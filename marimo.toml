@@ -1,0 +1,2 @@
+[runtime]
+output_max_bytes = 104_857_600  # 100 MB Limit (oder 209_715_200 für 200 MB)

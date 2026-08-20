@@ -4,12 +4,13 @@ Zentrales Rendering- und Chart-Engine-Modul für Lightweight Charts.
 Pfad: algos/chart_engine.py
 """
 
+import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 import duckdb
+import marimo as mo
 import numpy as np
 import pandas as pd
-from lightweight_charts import JupyterChart
 
 from algos.grid_indicator import GridIndicator
 from algos.ma_indicator import (
@@ -19,7 +20,6 @@ from algos.ma_indicator import (
     MAIndicator,
 )
 
-# Standard-Pfad zur DuckDB Datenbank
 DEFAULT_DB_PATH = Path(r"F:\Python\PyTrader\data\market_data.duckdb")
 
 
@@ -33,7 +33,7 @@ def load_candles(
         tz_offset_hours: int = 0,
         db_path: Path = DEFAULT_DB_PATH,
 ) -> pd.DataFrame:
-    """Lädt historische OHLCV-Kerzen aus der DuckDB-Datenbank."""
+    """Lädt historische OHLCV-Kerzen aus der DuckDB-Datenbank ohne Locks."""
     query = f"""
         SELECT "time", open, high, low, close, tick_volume AS volume
         FROM (
@@ -49,8 +49,16 @@ def load_candles(
         ) sub
         ORDER BY "time" ASC;
     """
-    with duckdb.connect(database=str(db_path), read_only=True) as con:
-        df = con.execute(query).df()
+    con = None
+    try:
+        con = duckdb.connect(database=str(db_path), read_only=True)
+        df = con.execute(query).df().copy()
+    finally:
+        if con is not None:
+            con.close()
+
+    if df.empty:
+        return pd.DataFrame(columns=["time", "open", "high", "low", "close", "volume"])
 
     df["time"] = df["time"].dt.tz_localize(None)
     if tz_offset_hours != 0:
@@ -65,172 +73,274 @@ def load_candles(
 
 
 # =============================================================================
-# 2. PLOT-SUBMODULE
-# =============================================================================
-def _plot_day_separators(chart: JupyterChart, df: pd.DataFrame) -> None:
-    """Zeichnet vertikale gestrichelte Tagestrennlinien."""
-    times = df["time"]
-    dates = times.dt.date
-    daily_extrema = df.groupby(dates).agg(
-        day_start=("time", "first"),
-        day_low=("low", "min"),
-        day_high=("high", "max"),
-    )
-    first_date = dates.iloc[0]
-
-    for d, row in daily_extrema.iterrows():
-        if d == first_date:
-            continue
-        pad = (row["day_high"] - row["day_low"]) * 0.08
-        pad = max(pad, row["day_high"] * 0.002)
-
-        line = chart.create_line(
-            color="rgba(41, 98, 255, 0.40)",
-            width=1,
-            style="dashed",
-            price_line=False,
-            price_label=False,
-        )
-        line.set(pd.DataFrame({
-            "time": [row["day_start"], row["day_start"]],
-            "value": [row["day_low"] - pad, row["day_high"] + pad],
-        }))
-
-
-def _plot_mas(chart: JupyterChart, df: pd.DataFrame, ma_indicator: Optional[MAIndicator]) -> None:
-    """Zeichnet segmentierte MAs farbig nach Trendsteigung."""
-    ma_cols = [
-        c for c in df.columns
-        if c.startswith("ma_") and not c.endswith("_bull") and not c.endswith("_bear")
-    ]
-    active_ind = (
-        ma_indicator if ma_indicator is not None
-        else MAIndicator(bull_color=DEFAULT_BULL_COLOR, bear_color=DEFAULT_BEAR_COLOR)
-    )
-    width = getattr(active_ind, "line_width", DEFAULT_LINE_WIDTH)
-
-    for col in ma_cols:
-        segments = active_ind.get_segments(df, col)
-        for seg_df, color in segments:
-            if len(seg_df) < 2:
-                continue
-            line = chart.create_line(color=color, width=width, price_line=False, price_label=False)
-            line.set(pd.DataFrame({"time": seg_df["time"], "value": seg_df[col].astype(float)}))
-
-
-def _plot_grid_and_hits(chart: JupyterChart, df: pd.DataFrame, grid_indicator: GridIndicator) -> None:
-    """Zeichnet durchgehende Gridlines und bindet Hit-Circles exakt auf Level-Höhe ein."""
-    grid_res = grid_indicator.calculate(df)
-
-    t_first = df["time"].iloc[0]
-    t_last = df["time"].iloc[-1]
-
-    # 1. Gridlines durchgehend spannen (ohne Y-Achsen Labels)
-    lines = grid_res.get("lines", [])
-    if lines:
-        for gl in lines:
-            g_line = chart.create_line(
-                color=gl["color"],
-                width=gl["width"],
-                price_line=False,
-                price_label=False,
-            )
-            g_line.set(pd.DataFrame({
-                "time": [t_first, t_last],
-                "value": [gl["price"], gl["price"]]
-            }))
-
-    # 2. Hit Circles als High-Speed Trägerserie auf exakter Grid-Höhe
-    hits = grid_res.get("hit_circles", [])
-    if hits:
-        hits_by_price = {}
-        for h in hits:
-            p = round(float(h["price"]), 6)
-            hits_by_price.setdefault(p, []).append(h)
-
-        for p_lvl, hit_list in hits_by_price.items():
-            pts_df = pd.DataFrame(hit_list)
-            pt_line = chart.create_line(
-                color="rgba(0,0,0,0)",
-                width=0,
-                price_line=False,
-                price_label=False,
-            )
-            pt_line.set(pd.DataFrame({
-                "time": pts_df["time"],
-                "value": p_lvl
-            }))
-
-            for row in pts_df.itertuples(index=False):
-                pt_line.marker(
-                    time=row.time,
-                    position="inside",
-                    shape="circle",
-                    color=row.color,
-                    text="",
-                )
-
-
-def _plot_signals(chart: JupyterChart, df: pd.DataFrame, ma_indicator: Optional[MAIndicator]) -> None:
-    """Zeichnet Kauf-/Verkaufspfeile am Kerzenchart."""
-    if "signal" in df.columns:
-        signals = df[df["signal"] != 0]
-        bull_c = getattr(ma_indicator, "bull_color", DEFAULT_BULL_COLOR) if ma_indicator else DEFAULT_BULL_COLOR
-        bear_c = getattr(ma_indicator, "bear_color", DEFAULT_BEAR_COLOR) if ma_indicator else DEFAULT_BEAR_COLOR
-
-        for row in signals.itertuples(index=False):
-            chart.marker(
-                time=row.time,
-                position="below" if row.signal == 1 else "above",
-                shape="arrow_up" if row.signal == 1 else "arrow_down",
-                color=bull_c if row.signal == 1 else bear_c,
-                text="",
-            )
-
-
-# =============================================================================
-# 3. ZENTRALE SHOW-FUNKTION
+# 2. ZENTRALE SHOW-FUNKTION
 # =============================================================================
 def show_chart(
-    df: pd.DataFrame,
-    symbol: str,
-    timeframe: str,
-    ma_indicator: Optional[MAIndicator] = None,
-    grid_indicator: Optional[GridIndicator] = None,
-    show_day_separators: bool = True,
-    visible_bars: int = 350,
-    width: int = 1200,
-    height: int = 550,
-    bg_color: str = "#060B14",       # Sehr dunkles Tiefblau (Midnight Navy)
-    text_color: str = "#A0AEC0",     # Dezenter Kontrast
+        df: pd.DataFrame,
+        symbol: str,
+        timeframe: str,
+        ma_indicator: Optional[MAIndicator] = None,
+        grid_indicator: Optional[GridIndicator] = None,
+        show_day_separators: bool = True,
+        show_signals: bool = True,
+        visible_bars: int = 350,
+        width: int = 1200,
+        height: int = 550,
+        scale_width: int = 55,
+        bg_color: str = "#060B14",
+        text_color: str = "#CBD5E1",
 ) -> Any:
-    """Erstellt den fertigen Jupyter Lightweight Chart."""
-    chart = JupyterChart(width=width, height=height)
-    chart.layout(background_color=bg_color, text_color=text_color)
-    chart.topbar.textbox("symbol_info", f"{symbol} · {timeframe}")
+    """Rendert Lightweight Charts direkt und entkoppelt über mo.iframe."""
+    if df.empty:
+        return mo.md("**Keine Daten vorhanden.**")
 
-    # Basis-Kerzen
-    chart.price_scale(
-        auto_scale=True,
-        mode="normal",
-        scale_margin_top=0.06,
-        scale_margin_bottom=0.06,
-    )
-    chart.price_line(label_visible=False, line_visible=False)
-    chart.set(df[["time", "open", "high", "low", "close"]])
+    # 1. Kerzendaten (Vektorisierte Extraktion)
+    time_sec = (df["time"].astype("int64") // 10 ** 9).values
+    opens = df["open"].values
+    highs = df["high"].values
+    lows = df["low"].values
+    closes = df["close"].values
 
-    if len(df) > visible_bars:
-        chart.set_visible_range(df["time"].iloc[-visible_bars], df["time"].iloc[-1])
+    candles_data = [
+        {"time": int(t), "open": float(o), "high": float(h), "low": float(l), "close": float(c)}
+        for t, o, h, l, c in zip(time_sec, opens, highs, lows, closes)
+    ]
 
-    # Module rendern
+    sample_price = float(closes[-1])
+    precision = 5 if sample_price < 10 else (3 if sample_price < 1000 else 2)
+    min_move = 1 / (10 ** precision)
+
+    # 2. Moving Averages
+    lines_payload = []
+    if ma_indicator is not None:
+        ma_cols = [
+            c for c in df.columns
+            if c.startswith("ma_") and not c.endswith("_bull") and not c.endswith("_bear")
+        ]
+        width_line = getattr(ma_indicator, "line_width", DEFAULT_LINE_WIDTH)
+        for col in ma_cols:
+            segments = ma_indicator.get_segments(df, col)
+            for seg_df, color in segments:
+                if len(seg_df) < 2:
+                    continue
+                seg_times = (seg_df["time"].astype("int64") // 10 ** 9).values
+                seg_vals = seg_df[col].values
+                seg_data = [
+                    {"time": int(t), "value": float(v)}
+                    for t, v in zip(seg_times, seg_vals)
+                ]
+                lines_payload.append({
+                    "data": seg_data,
+                    "color": color,
+                    "width": width_line,
+                    "style": 0,
+                })
+
+    # 3. Tagestrennlinien
     if show_day_separators:
-        _plot_day_separators(chart, df)
+        times = df["time"]
+        dates = times.dt.date
+        daily_extrema = df.groupby(dates).agg(
+            day_start=("time", "first"),
+            day_low=("low", "min"),
+            day_high=("high", "max"),
+        )
+        first_date = dates.iloc[0]
+        for d, row in daily_extrema.iterrows():
+            if d == first_date:
+                continue
+            pad = max((row["day_high"] - row["day_low"]) * 0.08, row["day_high"] * 0.002)
+            t_sec = int(pd.Timestamp(row["day_start"]).timestamp())
+            lines_payload.append({
+                "data": [
+                    {"time": t_sec, "value": float(row["day_low"] - pad)},
+                    {"time": t_sec, "value": float(row["day_high"] + pad)},
+                ],
+                "color": "rgba(66, 153, 225, 0.75)",
+                "width": 1,
+                "style": 2,
+            })
 
-    _plot_mas(chart, df, ma_indicator)
-
+    # 4. Gridlines & Hit Circles
+    markers_payload = []
     if grid_indicator is not None:
-        _plot_grid_and_hits(chart, df, grid_indicator)
+        grid_res = grid_indicator.calculate(df)
+        t_first = int(time_sec[0])
+        t_last = int(time_sec[-1])
 
-    _plot_signals(chart, df, ma_indicator)
+        for gl in grid_res.get("lines", []):
+            lines_payload.append({
+                "data": [
+                    {"time": t_first, "value": float(gl["price"])},
+                    {"time": t_last, "value": float(gl["price"])},
+                ],
+                "color": gl["color"],
+                "width": gl["width"],
+                "style": 0,
+            })
 
-    return chart.load()
+        for h in grid_res.get("hit_circles", []):
+            h_time = int(pd.Timestamp(h["time"]).timestamp())
+            markers_payload.append({
+                "time": h_time,
+                "position": "inBar",
+                "color": h["color"],
+                "shape": "circle",
+                "size": 1,
+            })
+
+    # 5. Signale
+    if show_signals and ma_indicator is not None and "signal" in df.columns:
+        signals = df[df["signal"] != 0]
+        bull_c = getattr(ma_indicator, "bull_color", DEFAULT_BULL_COLOR)
+        bear_c = getattr(ma_indicator, "bear_color", DEFAULT_BEAR_COLOR)
+
+        for row in signals.itertuples(index=False):
+            markers_payload.append({
+                "time": int(pd.Timestamp(row.time).timestamp()),
+                "position": "belowBar" if row.signal == 1 else "aboveBar",
+                "color": bull_c if row.signal == 1 else bear_c,
+                "shape": "arrowUp" if row.signal == 1 else "arrowDown",
+                "size": 2,
+            })
+
+    # 6. JSON Data Packs
+    candles_json = json.dumps(candles_data)
+    lines_json = json.dumps(lines_payload)
+    markers_json = json.dumps(markers_payload)
+
+    from_time = int(time_sec[-visible_bars]) if len(time_sec) > visible_bars else int(time_sec[0])
+    to_time = int(time_sec[-1])
+
+    # 7. HTML Payload
+    raw_html = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+        html, body {{
+            width: 100%; height: 100%; overflow: hidden;
+            background-color: {bg_color};
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Ubuntu, sans-serif;
+        }}
+        #chart-container {{
+            width: 100%; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+        }}
+        #watermark {{
+            position: absolute; top: 10px; left: 12px; font-size: 13px; font-weight: 600;
+            color: {text_color}; z-index: 20; pointer-events: none; user-select: none;
+            background: rgba(6, 11, 20, 0.75); padding: 3px 8px; border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }}
+    </style>
+    <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+</head>
+<body>
+    <div id="watermark">{symbol} · {timeframe}</div>
+    <div id="chart-container"></div>
+
+    <script>
+        const container = document.getElementById('chart-container');
+
+        const chart = LightweightCharts.createChart(container, {{
+            layout: {{
+                background: {{ type: 'solid', color: '{bg_color}' }},
+                textColor: '{text_color}',
+                fontSize: 12,
+            }},
+            grid: {{
+                vertLines: {{ color: 'rgba(255, 255, 255, 0.07)' }},
+                horzLines: {{ color: 'rgba(255, 255, 255, 0.07)' }},
+            }},
+            rightPriceScale: {{
+                visible: true,
+                borderVisible: true,
+                borderColor: '#4A5568',
+                autoScale: true,
+                minimumWidth: {scale_width},
+                scaleMargins: {{ top: 0.08, bottom: 0.08 }},
+                textColor: '{text_color}',
+                drawTicks: true,
+                entireTextOnly: false,
+            }},
+            leftPriceScale: {{ visible: false }},
+            timeScale: {{
+                visible: true,
+                borderVisible: true,
+                borderColor: '#4A5568',
+                timeVisible: true,
+                secondsVisible: false,
+                rightOffset: 8,
+            }},
+            crosshair: {{ mode: LightweightCharts.CrosshairMode.Normal }},
+        }});
+
+        const candleSeries = chart.addCandlestickSeries({{
+            upColor: '#26a69a',
+            downColor: '#ef5350',
+            borderVisible: false,
+            wickUpColor: '#26a69a',
+            wickDownColor: '#ef5350',
+            priceScaleId: 'right',
+            priceLineVisible: false,
+            lastValueVisible: false,
+            priceFormat: {{
+                type: 'price',
+                precision: {precision},
+                minMove: {min_move},
+            }},
+        }});
+        candleSeries.setData({candles_json});
+
+        const linesData = {lines_json};
+        linesData.forEach(item => {{
+            const lineSeries = chart.addLineSeries({{
+                color: item.color,
+                lineWidth: item.width,
+                lineStyle: item.style,
+                priceScaleId: 'right',
+                priceLineVisible: false,
+                lastValueVisible: false,
+                crosshairMarkerVisible: false,
+                priceFormat: {{
+                    type: 'price',
+                    precision: {precision},
+                    minMove: {min_move},
+                }},
+            }});
+            lineSeries.setData(item.data);
+        }});
+
+        const markersData = {markers_json};
+        if (markersData.length > 0) {{
+            markersData.sort((a, b) => a.time - b.time);
+            candleSeries.setMarkers(markersData);
+        }}
+
+        chart.timeScale().setVisibleRange({{
+            from: {from_time},
+            to: {to_time}
+        }});
+
+        function resizeChart() {{
+            const w = container.clientWidth;
+            const h = container.clientHeight;
+            if (w > 50 && h > 50) {{
+                chart.applyOptions({{ width: w, height: h }});
+            }}
+        }}
+
+        window.addEventListener('resize', resizeChart);
+        resizeChart();
+    </script>
+</body>
+</html>
+"""
+
+    # mo.iframe erwartet den HTML-String als erstes Positionsargument
+    return mo.iframe(
+        raw_html,
+        width="100%",
+        height=f"{height}px",
+    )

@@ -29,8 +29,18 @@ def build_candles_payload(df: pd.DataFrame) -> Tuple[List[Dict[str, Any]], int, 
     return candles, precision, min_move
 
 
-def build_ma_lines_payload(df: pd.DataFrame, ma_indicator: Any) -> List[Dict[str, Any]]:
-    """Erzeugt Liniendaten-Payload für Moving Averages."""
+def build_ma_lines_payload(
+    df: pd.DataFrame,
+    ma_indicator: Any,
+    min_segment_len: int = 1,
+) -> List[Dict[str, Any]]:
+    """Erzeugt Polyline-Payload für Moving Averages (Canvas-Overlay).
+
+    min_segment_len: Segmente kürzer als dieser Wert werden nicht verworfen,
+    sondern mit dem benachbarten Segment zusammengeführt. Dadurch bleibt die
+    Linie lückenlos (keine Gaps bei kleinen Stückelungen), während die Anzahl
+    der Zeichenpfade reduziert bleibt. Default 1 = kein Zusammenführen.
+    """
     if ma_indicator is None:
         return []
 
@@ -43,22 +53,47 @@ def build_ma_lines_payload(df: pd.DataFrame, ma_indicator: Any) -> List[Dict[str
 
     for col in ma_cols:
         segments = ma_indicator.get_segments(df, col)
+
+        # Segmente in Punktlisten überführen
+        segs = []
         for seg_df, color in segments:
-            if len(seg_df) < 2:
-                continue
             seg_times = (seg_df["time"].astype("int64") // 10**9).values
             seg_vals = seg_df[col].values
-            lines.append({
+            segs.append({
                 "data": [{"time": int(t), "value": float(v)} for t, v in zip(seg_times, seg_vals)],
                 "color": color,
+            })
+
+        # Kleine Segmente mit dem Nachbarn zusammenführen statt verwerfen,
+        # damit die MA-Linie durchgehend bleibt.
+        i = 0
+        while i < len(segs):
+            if len(segs[i]["data"]) >= min_segment_len:
+                i += 1
+                continue
+            if i + 1 < len(segs):
+                # mit dem folgenden Segment zusammenführen (Farbe des Nachbarn)
+                segs[i + 1]["data"] = segs[i]["data"] + segs[i + 1]["data"]
+                del segs[i]
+            elif i > 0:
+                # letztes Segment: mit dem vorherigen zusammenführen
+                segs[i - 1]["data"] = segs[i - 1]["data"] + segs[i]["data"]
+                del segs[i]
+            else:
+                # einzelnes winziges Segment ohne Nachbarn -> behalten
+                i += 1
+
+        for seg in segs:
+            lines.append({
+                "data": seg["data"],
+                "color": seg["color"],
                 "width": width_line,
-                "style": 0,
             })
     return lines
 
 
 def build_day_separators_payload(df: pd.DataFrame) -> List[Dict[str, Any]]:
-    """Erzeugt vertikale Tagestrennlinien."""
+    """Erzeugt vertikale Tagestrennlinien (Canvas-Overlay)."""
     times = df["time"]
     dates = times.dt.date
     daily_extrema = df.groupby(dates).agg(
@@ -71,16 +106,13 @@ def build_day_separators_payload(df: pd.DataFrame) -> List[Dict[str, Any]]:
     for d, row in daily_extrema.iterrows():
         if d == first_date:
             continue
-        pad = max((row["day_high"] - row["day_low"]) * 0.08, row["day_high"] * 0.002)
         t_sec = int(pd.Timestamp(row["day_start"]).timestamp())
         lines.append({
-            "data": [
-                {"time": t_sec, "value": float(row["day_low"] - pad)},
-                {"time": t_sec, "value": float(row["day_high"] + pad)},
-            ],
-            "color": "rgba(66, 153, 225, 0.75)",
-            "width": 1,
-            "style": 2,
+            "time": t_sec,
+            "full_height": True,
+            "color": "rgba(66, 153, 225, 0.6)",
+            "width": 0.75,
+            "dash": [4, 4],
         })
     return lines
 
@@ -91,17 +123,16 @@ def build_grid_payload(
     t_first: int,
     t_last: int,
 ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
-    """Erzeugt Grid-Linien und Hit-Circles (X, Y)."""
+    """Erzeugt Grid-Linien (Canvas-Overlay) und Hit-Circles (X, Y)."""
     if grid_indicator is None:
         return [], []
 
     grid_res = grid_indicator.calculate(df)
     lines = [
         {
-            "data": [{"time": t_first, "value": float(gl["price"])}, {"time": t_last, "value": float(gl["price"])}],
+            "price": float(gl["price"]),
             "color": gl["color"],
             "width": gl["width"],
-            "style": 0,
         }
         for gl in grid_res.get("lines", [])
     ]

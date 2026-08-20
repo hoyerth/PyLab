@@ -23,7 +23,7 @@ from algos.chart_plugins import (
 
 __all__ = ["load_candles", "show_chart"]
 
-DEFAULT_DB_PATH = Path(r"F:\Python\PyTrader\data\market_data.duckdb")
+DEFAULT_DB_PATH = Path(__file__).resolve().parent.parent / "data" / "market_data.duckdb"
 
 # Lokale Kopie der Lightweight-Charts-Standalone-Library (Offline-Fähigkeit).
 # Pfad: js/lightweight-charts.standalone.production.js (Version 4.1.3)
@@ -67,8 +67,23 @@ def load_candles(
     limit: int,
     tz_offset_hours: int = 0,
     db_path: Path = DEFAULT_DB_PATH,
+    end_offset_bars: int = 0,
+    warmup_bars: int = 0,
 ) -> pd.DataFrame:
-    """Lädt historische OHLCV-Kerzen aus der DuckDB-Datenbank."""
+    """Lädt historische OHLCV-Kerzen aus der DuckDB-Datenbank.
+
+    limit:            Größe des sichtbaren Fensters (Kerzen).
+    end_offset_bars:  Abstand des Fenster-Endes vom neuesten Datum in Kerzen
+                      (0 = rechteste/neueste Kante). Erlaubt das „Scrollen"
+                      in die Vergangenheit.
+    warmup_bars:      Zusätzliche ältere Kerzen vor dem Fenster (MA-Warmup).
+                      Die ersten `warmup_bars` Zeilen des Ergebnisses sind
+                      Warmup und werden im Chart nicht angezeigt.
+
+    Rückgabe: DataFrame (aufsteigend sortiert) mit maximal
+    `limit + warmup_bars` Zeilen (weniger, wenn die DB nicht genug Daten hat).
+    """
+    fetch_limit = int(limit) + int(end_offset_bars) + int(warmup_bars)
     query = f"""
         SELECT "time", open, high, low, close, tick_volume AS volume
         FROM (
@@ -80,7 +95,7 @@ def load_candles(
               AND open IS NOT NULL AND high IS NOT NULL 
               AND low IS NOT NULL AND close IS NOT NULL
             ORDER BY "time" DESC
-            LIMIT {limit}
+            LIMIT {fetch_limit}
         ) sub
         ORDER BY "time" ASC;
     """
@@ -103,6 +118,12 @@ def load_candles(
     for col in ["open", "high", "low", "close", "volume"]:
         df[col] = df[col].astype("float64")
 
+    # Fenster-Logik: Offset vom rechten Rand abziehen, dann nur
+    # `limit + warmup_bars` (rechteste) Zeilen behalten.
+    if end_offset_bars > 0:
+        df = df.iloc[:-int(end_offset_bars)]
+    df = df.tail(int(limit) + int(warmup_bars)).reset_index(drop=True)
+
     return df
 
 
@@ -114,6 +135,8 @@ def show_chart(
     grid_indicator: Optional[GridIndicator] = None,
     show_day_separators: bool = True,
     show_signals: bool = True,
+    min_segment_len: int = 3,
+    warmup_bars: int = 0,
     visible_bars: int = 350,
     width: int = 1200,
     height: int = 550,
@@ -125,18 +148,26 @@ def show_chart(
     if df.empty:
         return mo.md("**Keine Daten vorhanden.**")
 
+    # Warmup-Zeilen (links) abtrennen: sichtbares Fenster beginnt bei `warmup`.
+    # Der Warmup dient nur der MA-Berechnung und wird nicht als Candle gezeigt.
+    warmup = min(int(warmup_bars), max(0, len(df) - 1))
+    calc_df = df.iloc[warmup:]
+    if len(calc_df) < 2:
+        return mo.md(f"**Fenster nicht verfügbar** – gewählter Offset liegt vor dem Datenanfang ({len(df)} Kerzen geladen).")
+
     # 1. Daten über Plugins aufbereiten
-    candles, precision, min_move = build_candles_payload(df)
+    candles, precision, min_move = build_candles_payload(calc_df)
     t_first, t_last = candles[0]["time"], candles[-1]["time"]
 
-    lines = build_ma_lines_payload(df, ma_indicator)
-    if show_day_separators:
-        lines.extend(build_day_separators_payload(df))
-
+    # MA-Segmente über die GESAMTE df (inkl. Warmup) für durchgehende Linie
+    ma_lines = build_ma_lines_payload(df, ma_indicator, min_segment_len)
+    day_separators = build_day_separators_payload(calc_df) if show_day_separators else []
     grid_lines, hit_circles = build_grid_payload(df, grid_indicator, t_first, t_last)
-    lines.extend(grid_lines)
 
     markers = build_signal_markers_payload(df, ma_indicator) if show_signals else []
+    # Nur Objekte innerhalb des sichtbaren Fensters
+    markers = [m for m in markers if m["time"] >= t_first]
+    hit_circles = [c for c in hit_circles if c["time"] >= t_first]
     from_time = candles[-visible_bars]["time"] if len(candles) > visible_bars else t_first
 
     # 2. Template zusammenbauen
@@ -190,26 +221,19 @@ def show_chart(
         }});
         candleSeries.setData({json.dumps(candles)});
 
-        const linesData = {json.dumps(lines)};
-        linesData.forEach(item => {{
-            const ls = chart.addLineSeries({{
-                color: item.color, lineWidth: item.width, lineStyle: item.style,
-                priceScaleId: 'right', priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false,
-                priceFormat: {{ type: 'price', precision: {precision}, minMove: {min_move} }},
-            }});
-            ls.setData(item.data);
-        }});
-
         const markersData = {json.dumps(markers)};
         if (markersData.length > 0) {{
             markersData.sort((a, b) => a.time - b.time);
             candleSeries.setMarkers(markersData);
         }}
 
+        const maLines = {json.dumps(ma_lines)};
+        const gridLines = {json.dumps(grid_lines)};
+        const daySeparators = {json.dumps(day_separators)};
         const hitCircles = {json.dumps(hit_circles)};
         let isRenderPending = false;
 
-        function renderCircles() {{
+        function renderOverlay() {{
             isRenderPending = false;
             const dpr = window.devicePixelRatio || 1;
             const w = container.clientWidth;
@@ -225,7 +249,60 @@ def show_chart(
             ctx.clearRect(0, 0, w, h);
             const timeScale = chart.timeScale();
 
-            hitCircles.forEach(pt => {{
+            // 1) Grid-Linien: horizontal, volle Breite
+            for (const gl of gridLines) {{
+                const y = candleSeries.priceToCoordinate(gl.price);
+                if (y !== null && y >= 0 && y <= h) {{
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(w, y);
+                    ctx.lineWidth = gl.width;
+                    ctx.strokeStyle = gl.color;
+                    ctx.stroke();
+                }}
+            }}
+
+            // 2) Day-Separatoren: vertikal (volle Höhe, gestrichelt)
+            for (const ds of daySeparators) {{
+                const x = timeScale.timeToCoordinate(ds.time);
+                if (x === null || x < 0 || x > w) continue;
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, h);
+                ctx.lineWidth = ds.width;
+                ctx.strokeStyle = ds.color;
+                ctx.setLineDash(ds.dash || [4, 4]);
+                ctx.stroke();
+            }}
+            ctx.setLineDash([]);
+
+            // 3) MA-Linien: Polylinien, farbsegmentiert
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            for (const seg of maLines) {{
+                ctx.beginPath();
+                ctx.lineWidth = seg.width;
+                ctx.strokeStyle = seg.color;
+                let penDown = false;
+                for (const pt of seg.data) {{
+                    const px = timeScale.timeToCoordinate(pt.time);
+                    const py = candleSeries.priceToCoordinate(pt.value);
+                    if (px !== null && py !== null) {{
+                        if (penDown) {{
+                            ctx.lineTo(px, py);
+                        }} else {{
+                            ctx.moveTo(px, py);
+                            penDown = true;
+                        }}
+                    }} else {{
+                        penDown = false;
+                    }}
+                }}
+                if (penDown) ctx.stroke();
+            }}
+
+            // 4) Hit-Circles
+            for (const pt of hitCircles) {{
                 const x = timeScale.timeToCoordinate(pt.time);
                 const y = candleSeries.priceToCoordinate(pt.price);
                 if (x !== null && y !== null && x >= 0 && x <= w && y >= 0 && y <= h) {{
@@ -237,22 +314,22 @@ def show_chart(
                     ctx.strokeStyle = '#060B14';
                     ctx.stroke();
                 }}
-            }});
-        }}
-
-        function requestCircleRender() {{
-            if (!isRenderPending) {{
-                isRenderPending = true;
-                requestAnimationFrame(renderCircles);
             }}
         }}
 
-        chart.timeScale().subscribeVisibleLogicalRangeChange(requestCircleRender);
-        chart.timeScale().subscribeVisibleTimeRangeChange(requestCircleRender);
-        container.addEventListener('pointermove', requestCircleRender);
-        container.addEventListener('pointerdown', requestCircleRender);
-        container.addEventListener('wheel', requestCircleRender, {{ passive: true }});
-        window.addEventListener('mouseup', requestCircleRender);
+        function requestOverlayRender() {{
+            if (!isRenderPending) {{
+                isRenderPending = true;
+                requestAnimationFrame(renderOverlay);
+            }}
+        }}
+
+        chart.timeScale().subscribeVisibleLogicalRangeChange(requestOverlayRender);
+        chart.timeScale().subscribeVisibleTimeRangeChange(requestOverlayRender);
+        container.addEventListener('pointermove', requestOverlayRender);
+        container.addEventListener('pointerdown', requestOverlayRender);
+        container.addEventListener('wheel', requestOverlayRender, {{ passive: true }});
+        window.addEventListener('mouseup', requestOverlayRender);
 
         chart.timeScale().setVisibleRange({{ from: {from_time}, to: {t_last} }});
 
@@ -260,12 +337,12 @@ def show_chart(
             const w = container.clientWidth, h = container.clientHeight;
             if (w > 50 && h > 50) {{
                 chart.applyOptions({{ width: w, height: h }});
-                requestCircleRender();
+                requestOverlayRender();
             }}
         }}
         window.addEventListener('resize', resizeChart);
-        setTimeout(requestCircleRender, 60);
-        setTimeout(requestCircleRender, 200);
+        setTimeout(requestOverlayRender, 60);
+        setTimeout(requestOverlayRender, 200);
     </script>
 </body>
 </html>

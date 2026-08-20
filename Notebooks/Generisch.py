@@ -10,7 +10,7 @@ def _():
     # 0. GLOBALE KONSTANTEN & KONFIGURATION
     # ========================================== 
     SYMBOL = "SILVER"
-    TIMEFRAME = "M5"
+    TIMEFRAME = "M30"
     LIMIT = 3000
     TZ_OFFSET_HOURS = 2
 

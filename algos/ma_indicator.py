@@ -10,7 +10,7 @@ import pandas as pd
 
 DEFAULT_BULL_COLOR = "#089981"  # Grün
 DEFAULT_BEAR_COLOR = "#F23645"  # Rot
-DEFAULT_LINE_WIDTH = 2
+DEFAULT_LINE_WIDTH = 4
 
 
 def _pine_ema(series: np.ndarray, length: int) -> np.ndarray:

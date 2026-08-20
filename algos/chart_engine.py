@@ -25,6 +25,41 @@ __all__ = ["load_candles", "show_chart"]
 
 DEFAULT_DB_PATH = Path(r"F:\Python\PyTrader\data\market_data.duckdb")
 
+# Lokale Kopie der Lightweight-Charts-Standalone-Library (Offline-Fähigkeit).
+# Pfad: js/lightweight-charts.standalone.production.js (Version 4.1.3)
+LIGHTWEIGHT_CHARTS_PATH = Path(__file__).resolve().parent.parent / "js" / "lightweight-charts.standalone.production.js"
+CDN_SCRIPT_URL = "https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"
+_cached_lwc_js: Optional[str] = None
+
+
+def _load_lightweight_charts_script() -> str:
+    """Liefert das Lightweight-Charts-Script-Tag.
+
+    Bevorzugt wird die lokale Datei inline eingebettet (offline-fähig, kein
+    CDN-Zugriff nötig). Ist sie nicht vorhanden, fällt der Code auf das CDN
+    zurück. Das Ergebnis wird pro Prozess gecacht.
+    """
+    global _cached_lwc_js
+    if _cached_lwc_js is not None:
+        return _cached_lwc_js
+
+    script_tag = ""
+    if LIGHTWEIGHT_CHARTS_PATH.is_file():
+        try:
+            js = LIGHTWEIGHT_CHARTS_PATH.read_text(encoding="utf-8")
+            # '</script' innerhalb des JS sicher escapen (kommt im Minified-Code
+            # üblicherweise nicht vor, schützt aber gegen HTML-Tag-Injection).
+            js = js.replace("</script", r"<\/script")
+            script_tag = f"<script>{js}</script>"
+        except OSError:
+            pass
+
+    if not script_tag:
+        script_tag = f'<script src="{CDN_SCRIPT_URL}"></script>'
+
+    _cached_lwc_js = script_tag
+    return script_tag
+
 
 def load_candles(
     symbol: str,
@@ -105,6 +140,9 @@ def show_chart(
     from_time = candles[-visible_bars]["time"] if len(candles) > visible_bars else t_first
 
     # 2. Template zusammenbauen
+    # Lokale Lightweight-Charts-Library inline einbetten (offline-fähig),
+    # statt sie vom unpkg-CDN zu laden.
+    lwc_script = _load_lightweight_charts_script()
     raw_html = f"""<!DOCTYPE html>
 <html>
 <head>
@@ -232,5 +270,13 @@ def show_chart(
 </body>
 </html>
 """
+
+    # CDN-Script-Tag durch lokal eingebettete Library ersetzen (offline-fähig).
+    # Das Inline-JS enthält geschweifte Klammern und darf daher nicht direkt
+    # in das f-string-Template eingesetzt werden.
+    raw_html = raw_html.replace(
+        '<script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>',
+        lwc_script,
+    )
 
     return mo.iframe(raw_html, width="100%", height=f"{height}px")

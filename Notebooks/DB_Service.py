@@ -68,9 +68,9 @@ def _(duckdb):
 
 
 @app.cell(hide_code=True)
-def _(DB_APP_DATA, close_conn, mo, open_conn):
+def _(DB_APP_DATA, close_conn, open_conn):
     # ==========================================
-    # 1 · SYMBOL-AUSWAHL & FAVORITEN (app_data.duckdb)
+    # 1 · SYMBOL-FUNKTIONEN (app_data.duckdb)
     # ==========================================
     def get_symbols_data():
         con = open_conn(DB_APP_DATA, read_only=True)
@@ -154,129 +154,172 @@ def _(DB_APP_DATA, close_conn, mo, open_conn):
             except Exception:
                 pass
 
-    symbols_data = get_symbols_data()
-    all_syms = [s["symbol"] for s in symbols_data]
-    default_sym = "SILVER" if "SILVER" in all_syms else (all_syms[0] if all_syms else None)
-
-    # Suchfeld für die Symbol-Suche
-    suchfeld = mo.ui.text(
-        label="🔍 Symbol suchen",
-        placeholder="z.B. SIL, Gold, BTC...",
-    )
-
-    sym_sync_btn = mo.ui.button(label="🔄 Symbole von MT5 laden", on_click=lambda _v: sync_symbols_from_mt5())
-
-    mo.vstack([
-        mo.md("## 1 · Symbol-Auswahl & Favoriten"),
-        suchfeld,
-        sym_sync_btn,
-    ])
     return (
-        all_syms,
-        default_sym,
         get_favorite_symbols,
+        get_symbols_data,
         set_favorite,
-        suchfeld,
-        sym_sync_btn,
+        sync_symbols_from_mt5,
         toggle_favorite,
     )
 
 
 @app.cell(hide_code=True)
-def _(all_syms, mo, set_favorite, suchfeld):
+def _(mo):
     # ==========================================
-    # 1b · SUCHTREFFER & ALS FAVORIT MARKIEREN
+    # 1b · FAVORITEN-UI: STATE-TRIGGER
     # ==========================================
-    such = suchfeld.value.strip().upper()
-    if such:
-        treffer = [s for s in all_syms if such in s.upper()]
-    else:
-        treffer = all_syms[:100]
+    # allow_self_loops=True ist NOTWENDIG: Die UI-Zelle (1c) erzeugt die
+    # Buttons/Suchfeld UND liest dieselben States. on_click/on_change-
+    # Handler laufen im Execution-Context der ERZEUGER-Zelle; ohne
+    # allow_self_loops wuerde marimo genau diese Zelle vom State-Re-Run
+    # ausschliessen ("no self-loops") -> Suche und Toggle waeren tot.
+    fav_refresh, set_fav_refresh = mo.state(0, allow_self_loops=True)
+    search_q, set_search_q = mo.state("", allow_self_loops=True)
+    last_msg, set_last_msg = mo.state("", allow_self_loops=True)
+    # Merkt die zuletzt gewaehlte Symbol-Auswahl (Wert, nicht Label), damit
+    # ein Re-Run (z. B. nach Suche/Toggle) das Dropdown nicht auf den
+    # Default zuruecksetzt. Kein Re-Run noetig, wenn sich nur die Auswahl
+    # aendert -> allow_self_loops=False.
+    sel_sym, set_sel_sym = mo.state("", allow_self_loops=False)
+    return (
+        fav_refresh,
+        last_msg,
+        search_q,
+        sel_sym,
+        set_fav_refresh,
+        set_last_msg,
+        set_search_q,
+        set_sel_sym,
+    )
 
+
+@app.cell(hide_code=True)
+def _(
+    fav_refresh,
+    get_favorite_symbols,
+    get_symbols_data,
+    last_msg,
+    mo,
+    search_q,
+    sel_sym,
+    set_fav_refresh,
+    set_favorite,
+    set_last_msg,
+    set_search_q,
+    set_sel_sym,
+    sync_symbols_from_mt5,
+    toggle_favorite,
+):
+    # ==========================================
+    # 1c · KOMPLETTE FAVORITEN-UI (eine Zelle)
+    # ==========================================
+    _ = fav_refresh()   # State-Trigger: Re-Run nach Toggle/Markieren → sofort aktuell
+    query = search_q()  # Suchbegriff (Suchfeld on_change → State)
+    meldung = last_msg()
+
+    # Symbole + Favoriten (frisch aus der DB, damit Sync sofort sichtbar wird)
+    syms_data = get_symbols_data()
+    all_syms = [s["symbol"] for s in syms_data]
+    favorites = get_favorite_symbols()
+    default_sym = "SILVER" if "SILVER" in all_syms else (all_syms[0] if all_syms else None)
+
+    # Aktuelle Auswahl: gespeicherte Symbol-Auswahl bevorzugen, sonst Default.
+    # So springt das Dropdown nach einem Re-Run (Suche/Toggle) nicht zurueck.
+    current_sym = sel_sym() if sel_sym() in all_syms else default_sym
+
+    # Haupt-Dropdown: ⭐-Favoriten zuerst, Rest alphabetisch
+    non_fav = [s for s in all_syms if s not in favorites]
+    fav_opts = {f"⭐ {s}": s for s in favorites}
+    rest_opts = {s: s for s in non_fav}
+    opts = {**fav_opts, **rest_opts}
+
+    def _label_for(sym):
+        if sym is None:
+            return None
+        return f"⭐ {sym}" if sym in favorites else sym
+
+    def _on_symbol_change(v):
+        # v ist der Symbol-WERT (nicht das Label), z. B. "GOLD"
+        set_sel_sym(v)
+
+    symbol_dd = mo.ui.dropdown(
+        options=opts,
+        value=_label_for(current_sym),
+        label="Symbol (⭐ Favoriten zuerst)",
+        on_change=_on_symbol_change,
+    )
+
+    # Suchfeld (on_change → State, damit alles in einer Zelle bleiben kann)
+    def _on_search(v):
+        set_search_q(v)
+
+    suchfeld = mo.ui.text(
+        value=query,
+        label="🔍 Symbol suchen",
+        placeholder="z.B. SIL, Gold, BTC...",
+        on_change=_on_search,
+    )
+
+    # Suchtreffer
+    such = (query or "").strip().upper()
+    treffer = [s for s in all_syms if such in s.upper()] if such else all_syms[:100]
     treffer_dd = mo.ui.dropdown(
         options=treffer if treffer else ["— keine Treffer —"],
         value=(treffer[0] if treffer else "— keine Treffer —"),
         label=f"Suchtreffer ({len(treffer)})",
     )
-    fav_btn = mo.ui.button(
+
+    def _on_mark(_v):
+        r = set_favorite(treffer_dd.value, True)
+        set_last_msg(r.get("msg", ""))
+        set_fav_refresh(fav_refresh() + 1)
+        return r
+
+    mark_btn = mo.ui.button(
         label="⭐ Als Favorit markieren",
-        on_click=lambda _v: set_favorite(treffer_dd.value, True),
+        on_click=_on_mark,
         disabled=not treffer,
     )
 
-    mo.vstack([
-        mo.md(f"**Suchergebnis:** {such if such else '(leer – zeige erste 100 Symbole)'}"),
-        treffer_dd,
-        fav_btn,
-    ])
-    return (fav_btn,)
+    def _on_toggle(_v):
+        r = (
+            toggle_favorite(symbol_dd.value)
+            if symbol_dd.value
+            else {"ok": False, "msg": "Kein Symbol gewählt."}
+        )
+        set_last_msg(r.get("msg", ""))
+        set_fav_refresh(fav_refresh() + 1)
+        return r
 
-
-@app.cell(hide_code=True)
-def _(
-    all_syms,
-    default_sym,
-    fav_btn,
-    get_favorite_symbols,
-    mo,
-    suchfeld,
-    toggle_favorite,
-):
-    # ==========================================
-    # 1c · SYMBOL-DROPDOWN: Favoriten zuerst, dann alphabetisch
-    # ==========================================
-    _ = fav_btn.value  # Re-Run nach Favorit-Änderung (Sortierung aktualisieren)
-    _ = suchfeld.value
-
-    favorites = get_favorite_symbols()
-    non_fav = [s for s in all_syms if s not in favorites]
-    fav_opts = {f"⭐ {s}": s for s in favorites}
-    rest_opts = {s: s for s in non_fav}
-    # value muss der Label-Key sein, nicht der Symbolwert (marimo validiert gegen Keys)
-    default_label = (
-        (f"⭐ {default_sym}" if default_sym in favorites else default_sym)
-        if default_sym in all_syms
-        else None
-    )
-    symbol_dd = mo.ui.dropdown(
-        options={**fav_opts, **rest_opts},
-        value=default_label,
-        label="Symbol (⭐ Favoriten zuerst)",
-    )
-    sym_fav_btn = mo.ui.button(
+    toggle_btn = mo.ui.button(
         label="⭐ Favorit togglen",
-        on_click=lambda _v: toggle_favorite(symbol_dd.value),
+        on_click=_on_toggle,
     )
 
+    def _on_sync(_v):
+        r = sync_symbols_from_mt5()
+        set_last_msg(r.get("msg", ""))
+        set_fav_refresh(fav_refresh() + 1)
+        return r
+
+    fav_sync_btn = mo.ui.button(
+        label="🔄 Symbole von MT5 laden",
+        on_click=_on_sync,
+    )
+
+    fav_str = ", ".join(favorites) if favorites else "—"
     mo.vstack([
+        mo.md("## 1 · Symbol-Auswahl & Favoriten"),
+        mo.md(f"**⭐ Favoriten ({len(favorites)}):** {fav_str}"),
+        suchfeld,
+        treffer_dd,
+        mark_btn,
         symbol_dd,
-        sym_fav_btn,
+        toggle_btn,
+        fav_sync_btn,
+        mo.md(f"**Letzte Aktion:** {meldung}") if meldung else mo.md(""),
     ])
-    return sym_fav_btn, symbol_dd
-
-
-@app.cell(hide_code=True)
-def _(fav_btn, get_favorite_symbols, mo, sym_fav_btn, sym_sync_btn):
-    # ==========================================
-    # 1d · STATUS: Favoriten & Meldungen
-    # ==========================================
-    favs = get_favorite_symbols()
-    fav_str = ", ".join(favs) if favs else "—"
-
-    def fmt_fav(v):
-        if v is None or v == 0:
-            return "—"
-        if isinstance(v, dict):
-            return v.get("msg", str(v))
-        return str(v)
-
-    mo.vstack([
-        mo.md(f"**⭐ Favoriten ({len(favs)}):** {fav_str}"),
-        mo.md(f"**Favorit setzen:** {fmt_fav(fav_btn.value)}"),
-        mo.md(f"**Toggle:** {fmt_fav(sym_fav_btn.value)}"),
-        mo.md(f"**Symbol-Sync:** {fmt_fav(sym_sync_btn.value)}"),
-    ])
-    return
+    return (symbol_dd,)
 
 
 @app.cell(hide_code=True)
@@ -450,7 +493,15 @@ def _(conn_btn, mo, pd, sync_btn):
 
 
 @app.cell(hide_code=True)
-def _(DB_MARKET_DATA, close_conn, mo, open_conn, pd, sync_btn):
+def _(
+    DB_MARKET_DATA,
+    TZ_OFFSET_HOURS,
+    close_conn,
+    mo,
+    open_conn,
+    pd,
+    sync_btn,
+):
     # ==========================================
     # 4 · MARKTDATEN-SERVICES (market_data.duckdb)
     # ==========================================
@@ -465,7 +516,13 @@ def _(DB_MARKET_DATA, close_conn, mo, open_conn, pd, sync_btn):
                 GROUP BY symbol, timeframe
                 ORDER BY symbol, timeframe
             """).fetchall()
-            return pd.DataFrame(rows, columns=["Symbol", "TF", "Kerzen", "von", "bis"])
+            df = pd.DataFrame(rows, columns=["Symbol", "TF", "Kerzen", "von", "bis"])
+            # DB speichert die MT5-Serverzeit (UTC+2) als TIMESTAMPTZ; pandas
+            # rendert sie in lokaler Zeit (+2). Für die Brokerzeit-Anzeige werden
+            # das Suffix entfernt UND die 2 h abgezogen (identisch zum Chart).
+            df["von"] = df["von"].dt.tz_localize(None) - pd.Timedelta(hours=TZ_OFFSET_HOURS)
+            df["bis"] = df["bis"].dt.tz_localize(None) - pd.Timedelta(hours=TZ_OFFSET_HOURS)
+            return df
         finally:
             close_conn(con)
 
@@ -535,25 +592,33 @@ def _(DATA_DIR, Path, close_conn, duckdb, mo, open_conn, pd):
             })
         return {"msg": "✅ Kompaktierung abgeschlossen.", "df": pd.DataFrame(rows)}
 
-    compact_btn = mo.ui.button(label="🗜️ Alle duckdb-Dateien kompaktieren", on_click=lambda _v: compact_all_databases())
+    # run_button: Klick setzt .value=True → Zelle 5b läuft → zeigt Spinner
+    # (sofortiges "läuft"-Feedback), Ergebnis erscheint nach Abschluss in 5b.
+    compact_btn = mo.ui.run_button(label="🗜️ Alle duckdb-Dateien kompaktieren")
 
     mo.vstack([
         mo.md("## 5 · Kompaktierung (alle duckdb-Dateien)"),
         mo.md("**Hinweis:** Benötigt exklusiven Zugriff – alle DB-Connections sind geschlossen. Bei market_data (~1,3 GB) dauert der Vorgang einige Minuten und benötigt ~1,3 GB freien Speicherplatz."),
         compact_btn,
     ])
-    return (compact_btn,)
+    return compact_all_databases, compact_btn
 
 
 @app.cell(hide_code=True)
-def _(compact_btn, mo):
+def _(compact_all_databases, compact_btn, mo):
     # ==========================================
-    # 5b · STATUS: Kompaktierung
+    # 5b · STATUS: KOMPAKTIERUNG (Ausführung + Ergebnis)
     # ==========================================
-    compact_val = compact_btn.value
-    if isinstance(compact_val, dict) and compact_val.get("df") is not None:
-        compact_body = mo.ui.table(compact_val["df"], page_size=15)
-        msg = compact_val.get("msg", "—")
+    # .value wird hier (Zelle 5b) gelesen – NICHT in der Erzeuger-Zelle 5,
+    # sonst RuntimeError. Klick → Zelle 5b läuft, Button zeigt Spinner.
+    if compact_btn.value:
+        compact_result = compact_all_databases()
+    else:
+        compact_result = None
+
+    if compact_result is not None:
+        compact_body = mo.ui.table(compact_result["df"], page_size=15)
+        msg = compact_result["msg"]
     else:
         compact_body = mo.md("_Noch keine Kompaktierung ausgeführt._")
         msg = "—"

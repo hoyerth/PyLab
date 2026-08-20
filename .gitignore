@@ -13,7 +13,8 @@ __pycache__/
 *.sqlite
 *.sqlite3
 
-
+# Marimo
+.marimo/
 
 # Distribution / packaging
 .Python

@@ -43,19 +43,19 @@ if (-not $pythonExe -or -not (Test-Path $pythonExe)) {
     Write-Host "[3/8] Python Executable: $pythonExe" -ForegroundColor Green
 }
 
-# 4. marimo starten
+# 4. marimo starten mit --watch
 $portActive = (Get-NetTCPConnection -LocalPort $marimoPort -State Listen -ErrorAction SilentlyContinue)
 
 if ($portActive) {
     Write-Host "[4/8] marimo lauscht bereits auf Port $marimoPort." -ForegroundColor Yellow
 } else {
-    Write-Host "[4/8] Starte marimo Prozess..." -ForegroundColor Green
+    Write-Host "[4/8] Starte marimo Prozess mit File-Watcher (--watch)..." -ForegroundColor Green
 
     $stdoutLog = "$PSScriptRoot\marimo_stdout.log"
     $stderrLog = "$PSScriptRoot\marimo_stderr.log"
 
-    # Korrekte CLI-Parameter für marimo:
-    $args = "-m marimo edit --host 127.0.0.1 --port $marimoPort --headless --no-token"
+    # CLI-Parameter inklusive --watch für automatisches Neuladen modifizierter .py Dateien
+    $args = "-m marimo edit --watch --host 127.0.0.1 --port $marimoPort --headless --no-token"
 
     $proc = Start-Process -FilePath $pythonExe `
                           -ArgumentList $args `
@@ -160,7 +160,7 @@ for ($i = 0; $i -lt 15; $i++) {
 }
 
 if ($foundWindow) {
-    Write-Host "Fertig! marimo läuft auf Monitor 1." -ForegroundColor Cyan
+    Write-Host "Fertig! marimo läuft auf Monitor 1 mit Auto-Reload (--watch)." -ForegroundColor Cyan
 } else {
     Write-Host "Fenster konnte nicht automatisch platziert werden (Browser läuft trotzdem)." -ForegroundColor Yellow
 }

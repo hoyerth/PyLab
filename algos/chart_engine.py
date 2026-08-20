@@ -20,6 +20,8 @@ from algos.ma_indicator import (
     MAIndicator,
 )
 
+__all__ = ["load_candles", "show_chart"]
+
 DEFAULT_DB_PATH = Path(r"F:\Python\PyTrader\data\market_data.duckdb")
 
 
@@ -90,11 +92,11 @@ def show_chart(
         bg_color: str = "#060B14",
         text_color: str = "#CBD5E1",
 ) -> Any:
-    """Rendert Lightweight Charts direkt und entkoppelt über mo.iframe."""
+    """Rendert Lightweight Charts mit flüssig mitlaufenden Dual-Circles."""
     if df.empty:
         return mo.md("**Keine Daten vorhanden.**")
 
-    # 1. Kerzendaten (Vektorisierte Extraktion)
+    # 1. Kerzendaten
     time_sec = (df["time"].astype("int64") // 10 ** 9).values
     opens = df["open"].values
     highs = df["high"].values
@@ -161,8 +163,8 @@ def show_chart(
                 "style": 2,
             })
 
-    # 4. Gridlines & Hit Circles
-    markers_payload = []
+    # 4. Gridlines & Dual Hit Circles
+    hit_circles_payload = []
     if grid_indicator is not None:
         grid_res = grid_indicator.calculate(df)
         t_first = int(time_sec[0])
@@ -180,34 +182,35 @@ def show_chart(
             })
 
         for h in grid_res.get("hit_circles", []):
-            h_time = int(pd.Timestamp(h["time"]).timestamp())
-            markers_payload.append({
-                "time": h_time,
-                "position": "inBar",
-                "color": h["color"],
-                "shape": "circle",
-                "size": 1,
+            t_h = int(pd.Timestamp(h["time"]).timestamp())
+            hit_circles_payload.append({
+                "time": t_h,
+                "price": float(h["price"]),
+                "color": h.get("color", "#FF00FF"),
             })
 
-    # 5. Signale
+    # 5. MA Signale
+    candle_markers_payload = []
     if show_signals and ma_indicator is not None and "signal" in df.columns:
         signals = df[df["signal"] != 0]
         bull_c = getattr(ma_indicator, "bull_color", DEFAULT_BULL_COLOR)
         bear_c = getattr(ma_indicator, "bear_color", DEFAULT_BEAR_COLOR)
 
         for row in signals.itertuples(index=False):
-            markers_payload.append({
+            is_buy = (row.signal == 1)
+            candle_markers_payload.append({
                 "time": int(pd.Timestamp(row.time).timestamp()),
-                "position": "belowBar" if row.signal == 1 else "aboveBar",
-                "color": bull_c if row.signal == 1 else bear_c,
-                "shape": "arrowUp" if row.signal == 1 else "arrowDown",
-                "size": 2,
+                "position": "belowBar" if is_buy else "aboveBar",
+                "color": bull_c if is_buy else bear_c,
+                "shape": "arrowUp" if is_buy else "arrowDown",
+                "size": 1,
             })
 
     # 6. JSON Data Packs
     candles_json = json.dumps(candles_data)
     lines_json = json.dumps(lines_payload)
-    markers_json = json.dumps(markers_payload)
+    hit_circles_json = json.dumps(hit_circles_payload)
+    candle_markers_json = json.dumps(candle_markers_payload)
 
     from_time = int(time_sec[-visible_bars]) if len(time_sec) > visible_bars else int(time_sec[0])
     to_time = int(time_sec[-1])
@@ -224,8 +227,15 @@ def show_chart(
             background-color: {bg_color};
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Ubuntu, sans-serif;
         }}
+        #chart-wrapper {{
+            position: relative; width: 100%; height: 100%;
+        }}
         #chart-container {{
             width: 100%; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+        }}
+        #overlay-canvas {{
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 10;
         }}
         #watermark {{
             position: absolute; top: 10px; left: 12px; font-size: 13px; font-weight: 600;
@@ -237,11 +247,16 @@ def show_chart(
     <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
 </head>
 <body>
-    <div id="watermark">{symbol} · {timeframe}</div>
-    <div id="chart-container"></div>
+    <div id="chart-wrapper">
+        <div id="watermark">{symbol} · {timeframe}</div>
+        <div id="chart-container"></div>
+        <canvas id="overlay-canvas"></canvas>
+    </div>
 
     <script>
         const container = document.getElementById('chart-container');
+        const canvas = document.getElementById('overlay-canvas');
+        const ctx = canvas.getContext('2d');
 
         const chart = LightweightCharts.createChart(container, {{
             layout: {{
@@ -293,6 +308,7 @@ def show_chart(
         }});
         candleSeries.setData({candles_json});
 
+        // Grid- und MA-Linien
         const linesData = {lines_json};
         linesData.forEach(item => {{
             const lineSeries = chart.addLineSeries({{
@@ -312,11 +328,67 @@ def show_chart(
             lineSeries.setData(item.data);
         }});
 
-        const markersData = {markers_json};
-        if (markersData.length > 0) {{
-            markersData.sort((a, b) => a.time - b.time);
-            candleSeries.setMarkers(markersData);
+        // Signal-Pfeile
+        const candleMarkers = {candle_markers_json};
+        if (candleMarkers.length > 0) {{
+            candleMarkers.sort((a, b) => a.time - b.time);
+            candleSeries.setMarkers(candleMarkers);
         }}
+
+        // Circles Rendering
+        const hitCircles = {hit_circles_json};
+        let isRenderPending = false;
+
+        function renderCircles() {{
+            isRenderPending = false;
+            const dpr = window.devicePixelRatio || 1;
+            const w = container.clientWidth;
+            const h = container.clientHeight;
+
+            if (w === 0 || h === 0) return;
+
+            if (canvas.width !== w * dpr || canvas.height !== h * dpr) {{
+                canvas.width = w * dpr;
+                canvas.height = h * dpr;
+                canvas.style.width = w + 'px';
+                canvas.style.height = h + 'px';
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            }}
+
+            ctx.clearRect(0, 0, w, h);
+
+            const timeScale = chart.timeScale();
+
+            hitCircles.forEach(pt => {{
+                const x = timeScale.timeToCoordinate(pt.time);
+                const y = candleSeries.priceToCoordinate(pt.price);
+
+                if (x !== null && y !== null && x >= 0 && x <= w && y >= 0 && y <= h) {{
+                    ctx.beginPath();
+                    ctx.arc(x, y, 4, 0, Math.PI * 2);
+                    ctx.fillStyle = pt.color;
+                    ctx.fill();
+                    ctx.lineWidth = 1.2;
+                    ctx.strokeStyle = '#060B14';
+                    ctx.stroke();
+                }}
+            }});
+        }}
+
+        function requestCircleRender() {{
+            if (!isRenderPending) {{
+                isRenderPending = true;
+                requestAnimationFrame(renderCircles);
+            }}
+        }}
+
+        chart.timeScale().subscribeVisibleLogicalRangeChange(requestCircleRender);
+        chart.timeScale().subscribeVisibleTimeRangeChange(requestCircleRender);
+
+        container.addEventListener('pointermove', requestCircleRender);
+        container.addEventListener('pointerdown', requestCircleRender);
+        container.addEventListener('wheel', requestCircleRender, {{ passive: true }});
+        window.addEventListener('mouseup', requestCircleRender);
 
         chart.timeScale().setVisibleRange({{
             from: {from_time},
@@ -328,17 +400,21 @@ def show_chart(
             const h = container.clientHeight;
             if (w > 50 && h > 50) {{
                 chart.applyOptions({{ width: w, height: h }});
+                requestCircleRender();
             }}
         }}
 
         window.addEventListener('resize', resizeChart);
-        resizeChart();
+
+        // Mehrstufige Initialisierung, bis Preisskala Koordinaten liefert
+        setTimeout(requestCircleRender, 50);
+        setTimeout(requestCircleRender, 150);
+        setTimeout(requestCircleRender, 300);
     </script>
 </body>
 </html>
 """
 
-    # mo.iframe erwartet den HTML-String als erstes Positionsargument
     return mo.iframe(
         raw_html,
         width="100%",

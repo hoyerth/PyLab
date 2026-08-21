@@ -145,9 +145,9 @@ def _(MA_TYPES, mo, state):
 
 
 @app.cell
-def _(DATE_MAX, DATE_MIN, TIMEFRAMES, mo, state):
+def _(DATE_MAX, DATE_MIN, TIMEFRAMES, dt, mo, state):
     # ==========================================
-    # 3. STRATEGIE, DATUMSBEREICH, HTF-OPTIONEN, RUN-NAME
+    # 3. STRATEGIE, DATUMSBEREICH, HTF-OPTIONEN
     # ==========================================
     dd_strategy = mo.ui.dropdown(
         {"grid": "Grid (vollständiges Kreuzprodukt)", "random": "Random (Stichprobe)"},
@@ -158,8 +158,39 @@ def _(DATE_MAX, DATE_MIN, TIMEFRAMES, mo, state):
 
     dmin = DATE_MIN.date() if DATE_MIN is not None else None
     dmax = DATE_MAX.date() if DATE_MAX is not None else None
-    date_from = mo.ui.date(dmin, dmax, value=dmin, label="Von")
-    date_to = mo.ui.date(dmin, dmax, value=dmax, label="Bis")
+    _dr = state.get("date_range") or {}
+
+    def _pdate(s, default):
+        """ISO-String -> date, sonst default."""
+        if s:
+            try:
+                return dt.date.fromisoformat(str(s))
+            except ValueError:
+                pass
+        return default
+
+    # Datum: Kalender-Picker + manuelles Textfeld (JJJJ-MM-TT) je Grenze.
+    # Die manuelle Eingabe erlaubt auch Jahreszahlen, die der Picker schwer erreicht.
+    date_from = mo.ui.date(dmin, dmax, value=_pdate(_dr.get("from"), dmin), label="Von (Kalender)")
+    date_to = mo.ui.date(dmin, dmax, value=_pdate(_dr.get("to"), dmax), label="Bis (Kalender)")
+    txt_from = mo.ui.text(value=_dr.get("from") or "", label="Von (manuell JJJJ-MM-TT)", full_width=True)
+    txt_to = mo.ui.text(value=_dr.get("to") or "", label="Bis (manuell JJJJ-MM-TT)", full_width=True)
+
+    def resolve_date(txt, picker, default=None):
+        """Manuelle Eingabe gewinnt; sonst Kalenderwert; sonst default."""
+        s = (txt or "").strip()
+        if s:
+            try:
+                d = dt.date.fromisoformat(s)
+            except ValueError:
+                d = None
+            if d is not None:
+                if dmin is not None and d < dmin:
+                    d = dmin
+                if dmax is not None and d > dmax:
+                    d = dmax
+                return d
+        return picker.value or default
 
     sw_htf = mo.ui.switch(value=bool(state.get("htf_exact_time", False)),
                           label="HTF-Exact-Time (Logik auf kleinerem TF)")
@@ -167,17 +198,25 @@ def _(DATE_MAX, DATE_MIN, TIMEFRAMES, mo, state):
         TIMEFRAMES, value=state.get("htf_small_tf", "M15"), label="Kleiner TF für Exact-Time"
     )
 
-    txt_override = mo.ui.text(value=state.get("run_name_override", ""),
-                              label="Run-Name-Override (optional, leer = automatisch)")
+    sw_delete = mo.ui.switch(
+        value=bool(state.get("sweep_delete_existing", True)),
+        label="Update-Modus: vor dem Lauf vorhandene Runs/Signale für gewählte Symbole/TFs löschen",
+    )
+
+    def _on_free_tag(v):
+        state["free_tag"] = v
+
     txt_free_tag = mo.ui.text(value=state.get("free_tag", ""),
-                              label="Freier Tag (optional, wird angehängt)")
+                              label="Freier Tag (optional, wird an den Run-Namen angehängt, z. B. 'v2' oder 'Q3')",
+                              on_change=_on_free_tag)
 
     mo.vstack([
-        mo.md("**Strategie / Datumsbereich / HTF / Run-Name**"),
+        mo.md("**Strategie / Datumsbereich / HTF**"),
         mo.hstack([dd_strategy, num_sample]),
         mo.hstack([date_from, date_to]),
+        mo.hstack([txt_from, txt_to]),
         mo.hstack([sw_htf, dd_small_tf]),
-        txt_override,
+        sw_delete,
         txt_free_tag,
     ])
     return (
@@ -186,9 +225,12 @@ def _(DATE_MAX, DATE_MIN, TIMEFRAMES, mo, state):
         dd_small_tf,
         dd_strategy,
         num_sample,
+        resolve_date,
+        sw_delete,
         sw_htf,
         txt_free_tag,
-        txt_override,
+        txt_from,
+        txt_to,
     )
 
 
@@ -213,6 +255,7 @@ def _(
     ma_s_step,
     mo,
     num_sample,
+    resolve_date,
     save_state,
     sel_symbols,
     sel_tfs,
@@ -220,7 +263,8 @@ def _(
     sw_htf,
     sym_options,
     txt_free_tag,
-    txt_override,
+    txt_from,
+    txt_to,
 ):
     # ==========================================
     # 4. RUN-DEFINITION, RUN-ZÄHLER, GO + SAVE
@@ -235,12 +279,16 @@ def _(
     symbols = [s for s in symbols if s in SYMBOLS] or ["SILVER"]
     tfs = list(sel_tfs.value) or ["M30"]
 
+    # Manuelle Datumseingabe gewinnt vor dem Kalenderwert
+    date_from_val = resolve_date(txt_from.value, date_from)
+    date_to_val = resolve_date(txt_to.value, date_to)
+
     definition = build_run_definition(
         symbols=symbols,
         timeframes=tfs,
         ranges=ranges_ma,
-        date_from=date_from.value.isoformat() if date_from.value else None,
-        date_to=date_to.value.isoformat() if date_to.value else None,
+        date_from=date_from_val.isoformat() if date_from_val else None,
+        date_to=date_to_val.isoformat() if date_to_val else None,
         strategy=dd_strategy.value,
         sample_size=int(num_sample.value or 50),
         htf_exact_time=bool(sw_htf.value),
@@ -252,7 +300,20 @@ def _(
     preview_params = definition.param_space[0] if definition.param_space else {}
     run_name_preview = build_run_name("MAIndicator", preview_params, symbols[0], tfs[0])
 
-    def _save_state():
+    # Run-Name: automatische Vorgabe (Beispiel aus erster Param-Kombination),
+    # manuell änderbar. on_change sichert jede Eingabe sofort in state,
+    # damit ein Zellen-Update den manuellen Text nicht überschreibt.
+    def _on_name_change(v):
+        state["run_name_override"] = v
+
+    txt_override = mo.ui.text(
+        value=state.get("run_name_override") or run_name_preview,
+        label="Run-Name (manuell änderbar)",
+        full_width=True,
+        on_change=_on_name_change,
+    )
+
+    def _save_state(_value=None):
         state["symbols"] = [sym_options.get(l, l.replace("⭐ ", "")) for l in sel_symbols.value]
         state["timeframes"] = list(sel_tfs.value)
         state["ma"] = {
@@ -261,9 +322,11 @@ def _(
             "smoothing": {"min": ma_s_min.value, "step": ma_s_step.value, "max": ma_s_max.value},
             "alpha_factor": {"min": ma_a_min.value, "step": ma_a_step.value, "max": ma_a_max.value},
         }
+        _fd = resolve_date(txt_from.value, date_from)
+        _td = resolve_date(txt_to.value, date_to)
         state["date_range"] = {
-            "from": date_from.value.isoformat() if date_from.value else None,
-            "to": date_to.value.isoformat() if date_to.value else None,
+            "from": _fd.isoformat() if _fd else None,
+            "to": _td.isoformat() if _td else None,
         }
         state["run_name_override"] = txt_override.value
         state["free_tag"] = txt_free_tag.value
@@ -278,10 +341,11 @@ def _(
 
     mo.vstack([
         mo.md(f"**Run-Zähler:** {n_runs} Läufe = {len(symbols)} Symbole × {len(tfs)} TFs × {len(definition.param_space)} Parameter-Sets"),
+        txt_override,
         mo.md(f"_Beispiel-Name:_ `{run_name_preview}`"),
         mo.hstack([btn_go, btn_save]),
     ])
-    return btn_go, definition, n_runs, symbols, tfs
+    return btn_go, definition, n_runs, symbols, tfs, txt_override
 
 
 @app.cell
@@ -297,6 +361,7 @@ def _(
     save_state,
     service,
     state,
+    sw_delete,
     sweep_ui,
     symbols,
     tfs,
@@ -309,7 +374,7 @@ def _(
     # ==========================================
     import duckdb as _ddb
 
-    def _start_sweep():
+    def _start_sweep(_value=None):
         """Startet den Sweep in einem Hintergrund-Thread (UI bleibt reaktiv)."""
         sweep_ui.reset(definition.count_runs())
         # UI-Stand sichern (spätestens beim GO-Start)
@@ -321,6 +386,14 @@ def _(
 
         def _worker():
             try:
+                deleted = 0
+                if bool(sw_delete.value):
+                    # Update-Modus: vorhandene Runs + Signale der gewählten
+                    # Symbole/TFs löschen, damit der Zeitraum überschrieben wird.
+                    deleted = service.delete_runs(
+                        symbols=list(definition.symbols),
+                        timeframes=list(definition.timeframes),
+                    )
                 ids = run_sweep_sequential(
                     definition,
                     DB_MARKET,
@@ -345,6 +418,7 @@ def _(
                     "symbols": list(definition.symbols),
                     "timeframes": list(definition.timeframes),
                     "n_params": len(definition.param_space),
+                    "deleted": deleted,
                     "cancelled": sweep_ui.is_cancelled(),
                 }
                 state["last_sweep"] = summary
@@ -356,19 +430,31 @@ def _(
         threading.Thread(target=_worker, daemon=True).start()
         btn_go.value = False  # Dialog schließen
 
+    # --- Validierungs-Hinweis statt stillem Fehlschlag ---
+    if not definition.param_space or not symbols or not tfs:
+        mo.vstack([
+            mo.md("⚠️ **Keine gültige Konfiguration** – der Massentest kann nicht starten."),
+            mo.md("Bitte mindestens ein Symbol, einen Timeframe und gültige MA-Ranges wählen."),
+        ])
     # --- Sicherheitsabfrage (Modal-Ersatz): erst bestätigen, dann starten ---
-    if btn_go.value and not sweep_ui.get_state()["running"]:
+    elif btn_go.value and not sweep_ui.get_state()["running"]:
         _confirm_text = (
             f"**Sweep starten?**\n\n"
             f"- {n_runs} Läufe · {len(definition.param_space)} Parameter-Sets\n"
             f"- Symbole: {symbols}\n"
             f"- TFs: {tfs}\n"
-            f"- Datum: {definition.date_from or 'von Anfang'} → {definition.date_to or 'bis Ende'}\n\n"
-            f"_Bereits vorhandene Runs bleiben idempotent erhalten._"
+            f"- Datum: {definition.date_from or 'von Anfang'} → {definition.date_to or 'bis Ende'}\n"
+            f"- Run-Name: `{txt_override.value}`\n\n"
         )
+        if bool(sw_delete.value):
+            _confirm_text += (
+                f"♻️ **Update-Modus:** Vorhandene Runs + Signale für {len(symbols)} Symbol(e) "
+                f"× {len(tfs)} TF(s) werden **gelöscht** und neu berechnet.\n\n"
+            )
+        _confirm_text += "_Wiederholte Läufe ersetzen also den Datenbestand der betroffenen Symbole/TFs (Update des Zeitraums)._"
         _btn_confirm = mo.ui.button(label="✅ Ja, starten", kind="danger", on_click=_start_sweep)
         _btn_cancel = mo.ui.button(label="Nein, abbrechen",
-                                   on_click=lambda: setattr(btn_go, "value", False))
+                                   on_click=lambda _: setattr(btn_go, "value", False))
         mo.vstack([mo.md(_confirm_text), mo.hstack([_btn_confirm, _btn_cancel])])
     else:
         mo.md("")
@@ -382,7 +468,7 @@ def _(mo, sweep_ui):
     # ==========================================
     _refresh = mo.ui.refresh(default_interval="0.5s")
     _st = sweep_ui.get_state()
-    _btn_stop = mo.ui.button(label="⏹ Stopp", kind="warn", on_click=sweep_ui.cancel)
+    _btn_stop = mo.ui.button(label="⏹ Stopp", kind="warn", on_click=lambda _: sweep_ui.cancel())
 
     if _st["running"]:
         _pct = int(100 * _st["done"] / _st["total"]) if _st["total"] else 0
@@ -405,14 +491,17 @@ def _(mo, sweep_ui):
     elif _st["last_summary"]:
         _s = _st["last_summary"]
         _txt = "**abgebrochen**" if _s.get("cancelled") else "**fertig**"
-        _out = mo.vstack([
+        _lines = [
             mo.md(f"**Letzter Sweep** ({_s['timestamp']}) — {_txt}"),
             mo.md(
                 f"- {_s['runs']} Runs verarbeitet ({_s['n_params']} Parameter-Sets)"
                 f" · Symbole {_s['symbols']} · TFs {_s['timeframes']}"
             ),
-            mo.md(f"- Analytics-DB: **{_s['runs_db']} Runs**, **{_s['events_db']} Events** (idempotent)"),
-        ])
+            mo.md(f"- Analytics-DB: **{_s['runs_db']} Runs**, **{_s['events_db']} Events**"),
+        ]
+        if _s.get("deleted"):
+            _lines.append(mo.md(f"- ♻️ Update-Modus: {_s['deleted']} alte Runs gelöscht"))
+        _out = mo.vstack(_lines)
     else:
         _out = mo.md("_Noch kein Lauf – Konfiguration wählen und GO drücken._")
     mo.vstack([_refresh, _out])
@@ -447,7 +536,7 @@ def _(mo, save_state, state):
         label="Fenster (rechts = aktuell · links = ältere Daten)",
     )
 
-    def _save_ql():
+    def _save_ql(_value=None):
         state.setdefault("quick_look", {})["symbol_tf"] = txt_symbol_tf.value
         state["quick_look"]["overlay_tfs"] = list(sel_overlay.value)
         save_state(state)

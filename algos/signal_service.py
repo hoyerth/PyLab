@@ -105,6 +105,41 @@ class DuckDBSignalService(SignalService):
             con.close()
         return run_id
 
+    def delete_runs(self, symbols: Optional[list] = None, timeframes: Optional[list] = None) -> int:
+        """Löscht Runs + zugehörige Events für die angegebenen Symbole/Timeframes.
+
+        Wird für den Update-Modus des Signal Labs verwendet: vor einem erneuten
+        Massentest werden alle bestehenden Signale der betroffenen Symbol/TF-
+        Kombinationen entfernt, damit der Zeitraum überschrieben wird.
+        Liefert die Anzahl gelöschter Runs.
+        """
+        con = duckdb.connect(self.db_path)
+        try:
+            conds = []
+            params = []
+            if symbols:
+                ph = ",".join(["?"] * len(symbols))
+                conds.append(f"LOWER(symbol) IN ({ph})")
+                params.extend([str(s).lower() for s in symbols])
+            if timeframes:
+                ph = ",".join(["?"] * len(timeframes))
+                conds.append(f"LOWER(timeframe) IN ({ph})")
+                params.extend([str(t).lower() for t in timeframes])
+            if not conds:
+                return 0
+            where = " AND ".join(conds)
+            rows = con.execute(
+                f"SELECT run_id FROM indicator_runs WHERE {where}", params
+            ).fetchall()
+            ids = [r[0] for r in rows]
+            if ids:
+                ph = ",".join(["?"] * len(ids))
+                con.execute(f"DELETE FROM signal_events WHERE run_id IN ({ph})", ids)
+                con.execute(f"DELETE FROM indicator_runs WHERE run_id IN ({ph})", ids)
+            return len(ids)
+        finally:
+            con.close()
+
     def get_events(self, symbol: str = None, timeframe: str = None, signal_types: list = None) -> pd.DataFrame:
         con = duckdb.connect(self.db_path, read_only=True)
         try:

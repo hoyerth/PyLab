@@ -10,7 +10,11 @@ STATE_FILE = Path(__file__).resolve().parent.parent / "data" / "ui_state.json"
 
 
 def default_state() -> Dict[str, Any]:
-    """Sinnvolle Defaults für das Signal Lab."""
+    """Sinnvolle Defaults für das Signal Lab.
+
+    Hinweis: VectorBT/Order-Testing ist bewusst NICHT enthalten – das kommt
+    in ein separates Notebook/Modul (siehe Anweisung des Benutzers).
+    """
     return {
         "symbols": ["SILVER"],
         "timeframes": ["M30"],
@@ -19,13 +23,6 @@ def default_state() -> Dict[str, Any]:
             "period": {"min": 4, "step": 2, "max": 16},
             "smoothing": {"min": 6, "step": 2, "max": 14},
             "alpha_factor": {"min": 2.0, "step": 1.0, "max": 4.0},
-        },
-        "vectorbt": {
-            "spread": {"min": 0.0, "step": 0.1, "max": 1.0},
-            "sl_pct": {"min": 0.5, "step": 0.5, "max": 5.0},
-            "tp_pct": {"min": 0.5, "step": 0.5, "max": 5.0},
-            "position": {"min": 1.0, "step": 0.5, "max": 10.0},
-            "fees": {"min": 0.0, "step": 0.01, "max": 0.1},
         },
         "date_range": {"from": None, "to": None},
         "run_name_override": "",

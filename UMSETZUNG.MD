@@ -312,6 +312,11 @@ ML-Konfluenz).
 Persistenz, Quick Look). **Nicht enthalten:** Statistik/ML-Notebook,
 Presets/Profile, VectorBT-Backtest-Modul (kommen später).
 
+> **Wichtige Anweisung (21.08.2026):** VectorBT & Order-Testing gehören in ein
+> **separates Notebook** (nicht in `02_signal_lab.py`). Das Signal Lab bleibt
+> reine Test-/Datenerzeugungs-Plattform. Die (ehemals deaktivierten)
+> VectorBT-Ranges wurden aus UI und `ui_state` entfernt.
+
 **Fortschritt (Stand 2026-08-21):**
 - Phase 0 ✔ (Bestand, Composite-PK) · Phase 1 ✔ (`signal_lab/`) ·
   Phase 2 ✔ (Migration run_name/source_tf/signal_time) ·
@@ -319,9 +324,10 @@ Presets/Profile, VectorBT-Backtest-Modul (kommen später).
   Phase 6 ✔ (Run-Namensschema) · Phase 7 ✔ (Sweep sequenziell + parallel,
   idempotent, HTF-Exact-Time)
 - **Phase 4 ✔ (UI-Zellen):** `02_signal_lab.py` schlank umgebaut –
-  Symbol-/TF-Multiselect, MA-Ranges, VectorBT-Ranges (deaktiviert),
-  Strategie/Datum/HTF/Run-Name, Run-Zähler + GO/Stand-speichern,
-  Sweep-Ausführung mit `last_sweep`-Persistenz, Quick-Look-Platzhalter.
+  Symbol-/TF-Multiselect, MA-Ranges, Strategie/Datum/HTF/Run-Name,
+  Run-Zähler + GO/Stand-speichern, Sweep-Ausführung mit `last_sweep`-
+  Persistenz, Quick-Look-Platzhalter. **VectorBT-Ranges entfernt**
+  (kommt in separates Notebook).
   `build_run_definition(..., fixed_params={"ma_type": ...})` ergänzt.
 - **Phase 8 ✔ (Sicherheit + Fortschritt + Abbruch):** `sweep_ui.py`
   (thread-sicherer Lauf-Status) + GO→Bestätigungsdialog („X Läufe …
@@ -339,16 +345,17 @@ Presets/Profile, VectorBT-Backtest-Modul (kommen später).
 - **Phase 10 ✔ (VectorBT-Abstimmung):** `to_events_frame()` liefert UTC-
   Index + direction `[1,-1,0]`; OHLCV-Spalten `open/high/low/close` auf
   UTC-Index → Events 1:1 als VectorBT-Signal interpretierbar (63 Long/63
-  Short im Test). `vectorbt`-Paket selbst folgt mit dem Backtest-Modul.
+  Short im Test). **Hinweis:** Verifikation nur – das VectorBT/Order-Testing
+  selbst folgt in einem separaten Notebook.
 - **Phase 11 ✔ (End-to-End-Abnahme):** Echter Sweep gegen `market_data`/
   `analytics_data`: 2 Runs, 14.002 Events, 2. Sweep idempotent,
   `run_name` gefüllt (`…_20260821_1436_p11-abnahme`). HTF-Exact-Time:
   H1-Run mit M15-Logik → 17 Events mit `source_tf='M15'` + `signal_time`.
   Quick Look gegen echte DB: 75 M30- + 26 H1- + 12 H4-Signale.
   Notebook lädt fehlerfrei (HTTP 200).
-- **Bekannte Grenzen:** Grid vs. Random wählbar; VectorBT-Ranges sichtbar
-  aber deaktiviert (Backtest-Modul folgt); Konfluenz/Statistik/ML bewusst im
-  separaten Notebook; Presets/Profile folgen später.
+- **Bekannte Grenzen:** Grid vs. Random wählbar; VectorBT/Order-Testing in
+  separatem Notebook (folgt); Konfluenz/Statistik/ML bewusst im separaten
+  Notebook; Presets/Profile folgen später.
 
 **Reihenfolge = Abhängigkeiten:** Jeder Schritt baut auf dem vorherigen auf.
 Nach jedem Schritt: Zwischentest, bevor der nächste beginnt.

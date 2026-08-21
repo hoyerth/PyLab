@@ -303,3 +303,247 @@ Auslösezeitpunkt-Annäherung, Fensterbegrenzung wie Inspector) →
 VectorBT-Abstimmung (Signalfolge-Format verifizieren) →
 (danach: Presets/Profile, Backtest-Modul, Statistik-Notebook inkl. Konfluenz,
 ML-Konfluenz).
+
+---
+
+# Schritt-für-Schritt-Anleitung: Signal Lab v2
+
+**Geltungsbereich:** Umsetzung des Konzepts (UI, Run-Orchestrierung,
+Persistenz, Quick Look). **Nicht enthalten:** Statistik/ML-Notebook,
+Presets/Profile, VectorBT-Backtest-Modul (kommen später).
+
+**Reihenfolge = Abhängigkeiten:** Jeder Schritt baut auf dem vorherigen auf.
+Nach jedem Schritt: Zwischentest, bevor der nächste beginnt.
+
+---
+
+## Phase 0 · Vorbereitung (Bestand prüfen)
+
+1. **Bestand sichten:** `algos/` (base_indicator, signal_events, signal_service,
+   ma_indicator, grid_indicator, chart_engine, chart_plugins), Notebooks
+   `01_Chart_Inspector.py`, `02_signal_lab.py`, Datenbanken in `data/`.
+2. **Sicherstellen, dass der aktuelle Stand läuft:** `01_Chart_Inspector`
+   und `02_signal_lab` importieren ohne Fehler; `analytics_data.duckdb`
+   hat das Composite-PK-Schema (`run_id, time, signal_type, price`).
+3. **Merk-Punkt:** Der vorhandene Pfad
+   `compute() → IndicatorResult → SignalEvents` wird **nicht verändert**;
+   das Signal Lab wird als neue Schicht darüber gebaut.
+
+**Abnahme:** Beide bestehenden Notebooks laufen unverändert.
+
+---
+
+## Phase 1 · Projekt-Struktur für das Signal Lab
+
+1. Neuen Ordner `signal_lab/` im Projekt anlegen.
+2. Module vorbereiten (zunächst leere Gerüste mit Docstring + Signatur):
+   - `signal_lab/__init__.py`
+   - `signal_lab/ui_state.py`        → Persistenz des UI-Stands (JSON)
+   - `signal_lab/run_definition.py`  → Run-Definition aus UI-Auswahl
+   - `signal_lab/naming.py`          → Run-Namensschema (§5)
+   - `signal_lab/sweep_runner.py`    → Orchestrator (sequenziell/parallel)
+   - `signal_lab/quick_look.py`      → Chart-Schnellsicht (Wrapper um chart_engine)
+3. `sys.path`-Einbindung wie in den bestehenden Notebooks (PROJ_ROOT).
+
+**Regel:** Das Notebook importiert nur aus `signal_lab/` – keine lange Logik
+in Zellen.
+
+**Abnahme:** `import signal_lab` funktioniert ohne Fehler (leere Gerüste).
+
+---
+
+## Phase 2 · Schema-Migration in `analytics_data.duckdb`
+
+1. Migrationsskript ergänzen (z. B. `scripts/migrate_analytics_db.py`):
+   - `ALTER TABLE indicator_runs ADD COLUMN IF NOT EXISTS run_name VARCHAR;`
+   - `ALTER TABLE signal_events ADD COLUMN IF NOT EXISTS source_tf VARCHAR;`
+   - `ALTER TABLE signal_events ADD COLUMN IF NOT EXISTS signal_time TIMESTAMPTZ;`
+2. Skript ist **idempotent** (IF NOT EXISTS) – beliebig oft ausführbar.
+3. Danach vorhandene Zeilen prüfen (Spalten dürfen NULL sein für Alt-Daten).
+
+**Abnahme:** `duckdb_constraints()`/`information_schema` zeigen die neuen
+Spalten; Bestandsdaten sind unverändert.
+
+---
+
+## Phase 3 · UI-State-Persistenz (JSON-Datei)
+
+1. In `signal_lab/ui_state.py`:
+   - `load_state() -> dict`  (liest `data/ui_state.json`; leeres dict, wenn Datei fehlt)
+   - `save_state(state: dict)`  (schreibt atomar: erst `.tmp`, dann rename)
+   - `default_state()`  (sinnvolle Defaults: z. B. SILVER, M30, MA-Defaults)
+2. Alle UI-Felder, die gemerkt werden sollen (§11):
+   Symbole, TFs, MA-Ranges (+ma_type), VectorBT-Ranges, Datumsbereich,
+   Run-Name-Override, Grid/Random-Umschalter, Quick-Look `Symbol:TF`.
+3. Schreiben bei jeder Änderung bzw. spätestens beim GO-Start.
+
+**Abnahme:** Nach Neustart des Notebooks sind alle Felder mit dem letzten
+Stand vorbelegt. Kein DB-Zugriff, keine Migration.
+
+---
+
+## Phase 4 · UI-Zellen im Notebook (schlank)
+
+Neues/Migriertes Notebook `02_signal_lab.py` – Zellen-Aufbau:
+
+1. **Setup-Zelle:** Imports aus `signal_lab/`, Konstanten, `load_state()`.
+2. **Symbol-Buttons:** Favoriten aus `app_data.broker_symbols` (⭐ zuerst);
+   Mehrfachauswahl; onClick → State speichern.
+3. **TF-Buttons:** verfügbare TFs aus `market_data` (vorhandene Kombis);
+   Mehrfachauswahl.
+4. **MA-Parameter-Ranges:** je Parameter `min/step/max` (numerische Felder),
+   `ma_type` als Dropdown.
+5. **VectorBT-Ranges:** sichtbar, aber **deaktiviert** (bis Backtest-Modul
+   existiert) – Tooltip „folgt später".
+6. **Datumsbereich:** Von/Bis aus verfügbarer Spanne (aus `market_data`).
+7. **Run-Name:** automatisch generiert (Phase 6), überschreibbares Feld.
+8. **GO-Button + Run-Zähler:** siehe Phase 5.
+9. **Quick Look:** siehe Phase 9.
+
+**Regel:** Jede Zelle = UI-Element + 1 Aufruf in `signal_lab/`. Keine Logik.
+
+**Abnahme:** Alle UI-Elemente erscheinen; Werte kommen aus dem gespeicherten
+State (Phase 3).
+
+---
+
+## Phase 5 · Run-Definition & Run-Zähler
+
+1. In `signal_lab/run_definition.py`:
+   - `build_run_definition(ui_values) -> RunDefinition`
+   - `RunDefinition` (dataclass): Symbole, TFs, Parameter-Raum, Datumsbereich,
+     Strategie (grid/random), Sample-Größe bei random.
+   - `count_runs(def) -> int`  = len(Symbole) × len(TFs) × len(Parameter-Sets)
+2. Parameter-Raum erzeugen:
+   - grid: `itertools.product` über alle Range-Werte (`np.arange(min, max+step, step)`)
+   - random: Stichprobe (Seed fixieren → reproduzierbar)
+3. **Run-Zähler im UI:** neben dem GO-Button live anzeigen; aktualisiert sich
+   bei jeder Änderung an den Konfigurations-Controls.
+
+**Abnahme:** Zähler zeigt die korrekte Kombi-Anzahl; ändert sich die Auswahl,
+ändert sich die Zahl sofort.
+
+---
+
+## Phase 6 · Run-Namensschema
+
+1. In `signal_lab/naming.py`:
+   - `build_run_name(indicator, params, symbol, tf, timestamp) -> str`
+   - Format: `{INDIKATOR}_{PARAM-KURZ}_{SYMBOL}_{TF}_{JJJJMMTT}_{HHMM}`
+   - Parameter-Kurzform je Indikator fest (MA: `p06_s10_a3.0`)
+   - `build_run_id(...) -> str` (SHA256-Hash, wie in `signal_service`)
+2. Zeitstempel = Run-Start (lokal), pro Lauf einmal erzeugt.
+3. UI: Name wird automatisch befüllt, ist überschreibbar; optionaler freier
+   Tag wird angehängt (`_batch-01`).
+
+**Abnahme:** Zwei Läufe mit gleichen Parametern, aber unterschiedlichem Start
+haben eindeutige, sortierbare Namen.
+
+---
+
+## Phase 7 · Orchestrator (sweep_runner)
+
+1. In `signal_lab/sweep_runner.py`:
+   - **sequenziell zuerst** (Basis): `run_sweep_sequential(def, worker) -> list[RunResult]`
+     - pro Kombination: Daten laden (geteilter Datensatz cachen), `compute()`,
+       Events + run_name/id erzeugen, Ergebnis sammeln
+   - **Datenladung einmalig:** OHLCV für Symbol×TF×Datum nur einmal laden und
+     an alle Parameter-Kombis durchreichen (statt pro Run neu).
+2. Worker-Funktion: `worker(params, df, symbol, tf) -> IndicatorResult`
+   – reine Berechnung ohne DB.
+3. **Persistierung:** erst **nach Chunk-Ende** in `analytics_data` schreiben
+   (`DuckDBSignalService.store_result` pro Result – idempotent).
+4. Fortschrittsanzeige: fertig/gesamt + laufende Kombination (Callback).
+5. **Parallel (danach):**
+   - `multiprocessing.Pool` über die Parameter-Sets
+   - Chunking: z. B. `chunks = [sets[i::n_workers] for i in range(n_workers)]`
+   - Worker berechnet Chunk komplett im RAM → liefert Liste zurück
+   - **Persistierung nach Chunk-Ende** im Hauptprozess (vermeidet
+     DB-Write-Locks); pro Worker nur EIN Ergebnis-Transfer
+   - Windows: Schutzblock `if __name__ == "__main__":` beachten (spawn)
+
+**Abnahme:** Sequenzieller Sweep liefert dieselben Events wie ein manueller
+Einzel-Run; paralleler Sweep liefert identische Ergebnisse bei kürzerer Zeit;
+DB enthält nach dem Sweep die erwartete Anzahl Runs (idempotent).
+
+---
+
+## Phase 8 · Sicherheitsabfrage & Fortschrittsanzeige
+
+1. **GO-Button:** onClick → Bestätigung anzeigen:
+   „X Runs · Y Parameter-Sets · Symbole [… ] · TFs [… ] – starten?"
+   → Abbrechen / Bestätigen. Erst nach Bestätigung startet der Sweep.
+2. **Fortschritt:** während des Laufs Fortschrittsbalken / Statuszeile
+   (fertig/gesamt, aktueller Run-Name), live aus dem Runner-Callback.
+3. **Abbruch:** Button „Stopp" während des Laufs; nach Abbruch werden die
+   bereits fertig berechneten Chunks persistiert, der Rest verworfen.
+4. Der Run-Zähler (Phase 5) erscheint in der Sicherheitsabfrage als Summe.
+
+**Abnahme:** Ohne Bestätigung startet nichts; während des Laufs sieht man
+Fortschritt und kann abbrechen; danach sind nur fertige Runs in der DB.
+
+---
+
+## Phase 9 · Quick Look (Chart-Ausgabefenster)
+
+1. **Eingabezelle über der Grafik:** Textfeld `Symbol:TF`
+   (z. B. `SILVER:M30`); Buttons übernehmen den Wert, manuelle Eingabe
+   überschreibt nur die Chart-Sicht. Enter → sofort rendern.
+2. **Fensterbegrenzung wie Chart Inspector:** `load_candles(...)` mit
+   limit (z. B. 1000) + warmup + Slider-Scrolling – **keine 10k-Ansicht**.
+3. **Marker-Shapes-Registry:** zentrales Mapping `Signaltyp → Shape/Farbe`
+   in `algos/` (plot_meta-basiert), gemeinsam genutzt von Chart-Engine und
+   Quick Look: swing_change=▲/▼, circle_yellow/circle_fuchsia=Kreise, ...
+4. **Multi-TF-Overlay:**
+   - höhere TFs (max. 3, wählbar) zusätzlich laden (nur Fenster+Warmup)
+   - Signale der höheren TFs **zum Auslösezeitpunkt** annähern: den
+     kleineren-TF-Bar markieren, in dem der HTF-Close/High/Low erreicht wurde
+   - Farbvariation je TF (feste Palette), Marker versetzt über/unter
+   - **HTF-Logik auf kleinerem TF (exakter Zeitpunkt):** optionaler Modus –
+     Logik läuft auf kleinem TF, das Signal speichert `signal_time` (exakt)
+     + `source_tf` (HTF) für die spätere Statistik
+5. **Signal-Anzeige:** nur Events (Pfeile/Kreise) + MA/Grid-Overlays aus dem
+   bestehenden Rendering – keine Parameter-/Statistiktabellen.
+
+**Abnahme:** Quick Look zeigt ein Fenster wie im Chart Inspector, mit
+M30-Signalen + HTF-Signalen farbcodiert; `Symbol:TF`-Eingabe wechselt sofort
+die Ansicht; HTF-Signale liegen (genähert) am Auslösezeitpunkt.
+
+---
+
+## Phase 10 · VectorBT-Abstimmung verifizieren
+
+1. Sicherstellen, dass die Signalfolge aus `to_events_frame()` als
+   **VectorBT-kompatibel** gilt:
+   - Zeitindex = UTC (`TIMESTAMPTZ`), OHLCV-Spaltennamen `open/high/low/close`
+   - Richtung als `[1, -1, 0]` (direction)
+2. Kleiner Verifikationstest: Events-Frame → `vbt.Signal.from_signals`
+   (oder manuelle Signalfolge) ohne Fehler aufsetzbar.
+3. Ergebnis festhalten (z. B. kurzer Test in `scripts/`), damit der
+   Backtest-Anschluss später ohne Umbau klappt.
+
+**Abnahme:** Die erzeugten Events lassen sich 1:1 als VectorBT-Signal
+interpretieren.
+
+---
+
+## Phase 11 · End-to-End-Abnahme
+
+1. Kompletten Flow durchspielen:
+   - UI öffnen → letzter Stand ist vorbelegt
+   - Auswahl ändern → Run-Zähler aktualisiert sich
+   - GO → Sicherheitsabfrage → Sweep startet → Fortschritt sichtbar
+   - Quick Look zeigt die Charts mit Signalen (inkl. HTF-Overlay)
+2. Daten prüfen: `indicator_runs.run_name` gefüllt, `signal_events` mit
+   `source_tf`/`signal_time` (bei HTF-Run), keine Duplikate bei Wiederholung.
+3. Bekannte Grenzen dokumentieren (Grid vs. Random, VectorBT-Ranges noch
+   deaktiviert, Konfluenz folgt im Statistik-Notebook).
+
+**Abnahme:** Das Signal Lab ist eigenständig nutzbar und liefert saubere,
+benannte, idempotente Daten für die spätere Statistik.
+
+---
+
+**Hinweis:** Statistik/ML, Presets/Profile und das VectorBT-Backtest-Modul
+sind bewusst **nicht** Teil dieser Anleitung und werden in einem späteren
+Schritt ergänzt.

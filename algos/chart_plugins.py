@@ -212,24 +212,112 @@ def build_signal_markers_payload(
 # EVENT-BASIERTE BUILDER (Single Source of Truth)
 # =====================================================================
 
+# =====================================================================
+# MARKER-SHAPES-REGISTRY (zentral, §7)
+# =====================================================================
+# Einmaliges Mapping Signaltyp → Shape/Farbe für Lightweight-Charts-Marker.
+# Wird von Chart-Engine, Quick Look und späterer Live-Anzeige gemeinsam genutzt.
+MARKER_STYLE_REGISTRY = {
+    # swing_change (MA) → Pfeile ▲/▼
+    "swing_change": {
+        "shape_buy": "arrowUp",
+        "shape_sell": "arrowDown",
+        "color_buy": "#089981",
+        "color_sell": "#F23645",
+        "position_buy": "belowBar",
+        "position_sell": "aboveBar",
+    },
+    # Grid-Treffer → Kreise (gelb / fuchsia)
+    "circle_yellow": {
+        "shape_buy": "circle",
+        "shape_sell": "circle",
+        "color_buy": "#FFEB3B",
+        "color_sell": "#FFEB3B",
+        "position_buy": "aboveBar",
+        "position_sell": "belowBar",
+    },
+    "circle_fuchsia": {
+        "shape_buy": "circle",
+        "shape_sell": "circle",
+        "color_buy": "#FF00FF",
+        "color_sell": "#FF00FF",
+        "position_buy": "aboveBar",
+        "position_sell": "belowBar",
+    },
+    # Platzhalter für zukünftige Indikatoren
+    "cross": {"shape_buy": "cross", "shape_sell": "cross", "color_buy": "#CBD5E1", "color_sell": "#CBD5E1",
+              "position_buy": "aboveBar", "position_sell": "belowBar"},
+    "square": {"shape_buy": "square", "shape_sell": "square", "color_buy": "#CBD5E1", "color_sell": "#CBD5E1",
+               "position_buy": "aboveBar", "position_sell": "belowBar"},
+}
+
+# TF-Farbpalette für Multi-TF-Overlay (je höher der TF, desto intensiver)
+TF_COLOR_PALETTE = {
+    "M1": "#94A3B8", "M2": "#94A3B8", "M5": "#60A5FA", "M10": "#3B82F6",
+    "M15": "#22D3EE", "M30": "#2DD4BF", "H1": "#A78BFA", "H2": "#8B5CF6",
+    "H4": "#F472B6", "H6": "#EC4899", "D1": "#FB923C", "W1": "#FBBF24",
+    "MN1": "#F87171",
+}
+
+
+def marker_style_for(signal_type: str, direction: int, tf: str = None, stack: bool = False) -> Dict[str, Any]:
+    """Liefert Marker-Style (shape/color/position) für ein Event.
+
+    signal_type aus der Registry; direction 1 = buy, -1 = sell.
+    tf: optional – überschreibt die Farbe mit der TF-Palette (Multi-TF-Overlay)
+    und nutzt die Registry-Shape des Signaltyps.
+    stack: True invertiert die Position (HTF-Overlay) → Marker stapeln sich
+    über/unter den M30-Signalen (separater Marker-Slot).
+    """
+    style = MARKER_STYLE_REGISTRY.get(signal_type, MARKER_STYLE_REGISTRY["swing_change"])
+    is_buy = direction >= 0
+    pos_buy = style["position_buy"] if is_buy else style["position_sell"]
+    if stack:
+        # Invertieren: belowBar ↔ aboveBar
+        pos_buy = "aboveBar" if pos_buy == "belowBar" else "belowBar"
+    if tf:
+        color = TF_COLOR_PALETTE.get(str(tf).upper(), "#CBD5E1")
+        return {
+            "shape": style["shape_buy"] if is_buy else style["shape_sell"],
+            "color": color,
+            "position": pos_buy,
+        }
+    return {
+        "shape": style["shape_buy"] if is_buy else style["shape_sell"],
+        "color": style["color_buy"] if is_buy else style["color_sell"],
+        "position": pos_buy,
+    }
+
+
 def build_signal_markers_from_events(
         events: List[SignalEvent],
         bull_color: str = "#089981",
         bear_color: str = "#F23645"
 ) -> List[Dict[str, Any]]:
-    """Erzeugt Pfeil-Marker direkt aus den normalisierten SignalEvents."""
+    """Erzeugt Pfeil-Marker direkt aus den normalisierten SignalEvents.
+
+    Berücksichtigt die Marker-Shapes-Registry (§7). Enthält ein Event die
+    Meta-Angabe `tf` (Multi-TF-Overlay), wird die TF-Farbe aus der Palette
+    verwendet; `bull_color`/`bear_color` sind dann die Fallback-Farben.
+    Meta `stack=True` invertiert die Position (versetzter Marker-Slot).
+    """
     markers = []
     for e in events:
-        if e.signal_type == "swing_change":
-            is_buy = (e.direction == 1)
-            t_sec = int(pd.Timestamp(e.time).timestamp())
-            markers.append({
-                "time": t_sec,
-                "position": "belowBar" if is_buy else "aboveBar",
-                "color": bull_color if is_buy else bear_color,
-                "shape": "arrowUp" if is_buy else "arrowDown",
-                "size": 1,
-            })
+        meta = e.meta or {}
+        meta_tf = meta.get("tf")
+        meta_stack = bool(meta.get("stack", False))
+        style = marker_style_for(e.signal_type, e.direction, tf=meta_tf, stack=meta_stack)
+        # Registry-Farben mit bull/bear überschreiben, falls keine TF-Farbe
+        if not meta_tf and e.signal_type == "swing_change":
+            style["color"] = bull_color if e.direction >= 0 else bear_color
+        t_sec = int(pd.Timestamp(e.time).timestamp())
+        markers.append({
+            "time": t_sec,
+            "position": style["position"],
+            "color": style["color"],
+            "shape": style["shape"],
+            "size": 1,
+        })
     return markers
 
 

@@ -312,6 +312,44 @@ ML-Konfluenz).
 Persistenz, Quick Look). **Nicht enthalten:** Statistik/ML-Notebook,
 Presets/Profile, VectorBT-Backtest-Modul (kommen später).
 
+**Fortschritt (Stand 2026-08-21):**
+- Phase 0 ✔ (Bestand, Composite-PK) · Phase 1 ✔ (`signal_lab/`) ·
+  Phase 2 ✔ (Migration run_name/source_tf/signal_time) ·
+  Phase 3 ✔ (UI-State-JSON) · Phase 5 ✔ (Run-Definition/Zähler) ·
+  Phase 6 ✔ (Run-Namensschema) · Phase 7 ✔ (Sweep sequenziell + parallel,
+  idempotent, HTF-Exact-Time)
+- **Phase 4 ✔ (UI-Zellen):** `02_signal_lab.py` schlank umgebaut –
+  Symbol-/TF-Multiselect, MA-Ranges, VectorBT-Ranges (deaktiviert),
+  Strategie/Datum/HTF/Run-Name, Run-Zähler + GO/Stand-speichern,
+  Sweep-Ausführung mit `last_sweep`-Persistenz, Quick-Look-Platzhalter.
+  `build_run_definition(..., fixed_params={"ma_type": ...})` ergänzt.
+- **Phase 8 ✔ (Sicherheit + Fortschritt + Abbruch):** `sweep_ui.py`
+  (thread-sicherer Lauf-Status) + GO→Bestätigungsdialog („X Läufe …
+  wirklich starten?"), Sweep im Hintergrund-Thread (UI bleibt reaktiv),
+  Live-Fortschrittsbalken + aktueller Run-Name über `mo.ui.refresh`,
+  Stopp-Button (`cancel_callback` im Runner → bereits persistierte Runs
+  bleiben idempotent in der DB, Rest wird verworfen).
+- **Phase 9 ✔ (Quick Look):** `signal_lab/quick_look.py` (Wrapper um
+  chart_engine) + Marker-Shapes-Registry in `chart_plugins.py`
+  (Signaltyp → Shape/Farbe, TF-Farbpalette, Stacking-Versatz). UI-Zellen:
+  `Symbol:TF`-Eingabe, HTF-Overlay-Multiselect (max. 3), Fenster-Slider,
+  M30-Signale + H1/H4-Signale zum Auslösezeitpunkt angenähert (letzter
+  kleiner-TF-Bar im HTF-Intervall), farbcodiert + versetzt gestapelt.
+  Getestet: 68 M30-Events + 32 H1 + 8 H4, Marker-Farben korrekt.
+- **Phase 10 ✔ (VectorBT-Abstimmung):** `to_events_frame()` liefert UTC-
+  Index + direction `[1,-1,0]`; OHLCV-Spalten `open/high/low/close` auf
+  UTC-Index → Events 1:1 als VectorBT-Signal interpretierbar (63 Long/63
+  Short im Test). `vectorbt`-Paket selbst folgt mit dem Backtest-Modul.
+- **Phase 11 ✔ (End-to-End-Abnahme):** Echter Sweep gegen `market_data`/
+  `analytics_data`: 2 Runs, 14.002 Events, 2. Sweep idempotent,
+  `run_name` gefüllt (`…_20260821_1436_p11-abnahme`). HTF-Exact-Time:
+  H1-Run mit M15-Logik → 17 Events mit `source_tf='M15'` + `signal_time`.
+  Quick Look gegen echte DB: 75 M30- + 26 H1- + 12 H4-Signale.
+  Notebook lädt fehlerfrei (HTTP 200).
+- **Bekannte Grenzen:** Grid vs. Random wählbar; VectorBT-Ranges sichtbar
+  aber deaktiviert (Backtest-Modul folgt); Konfluenz/Statistik/ML bewusst im
+  separaten Notebook; Presets/Profile folgen später.
+
 **Reihenfolge = Abhängigkeiten:** Jeder Schritt baut auf dem vorherigen auf.
 Nach jedem Schritt: Zwischentest, bevor der nächste beginnt.
 

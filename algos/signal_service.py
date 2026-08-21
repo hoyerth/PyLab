@@ -65,7 +65,7 @@ class DuckDBSignalService(SignalService):
         key = f"{r.indicator_name}_{r.symbol}_{r.timeframe}_{json.dumps(r.params, sort_keys=True)}"
         return hashlib.sha256(key.encode()).hexdigest()[:16]
 
-    def store_result(self, result: IndicatorResult, warmup_bars: int = 0) -> str:
+    def store_result(self, result: IndicatorResult, warmup_bars: int = 0, source_tf: str = None) -> str:
         events_df = result.to_events_frame()
         run_id = self._generate_run_id(result)
 
@@ -76,6 +76,10 @@ class DuckDBSignalService(SignalService):
                 valid_start = valid_start.tz_localize("UTC")
             events_df = events_df[events_df["time"] >= valid_start].copy()
 
+        # HTF-Referenz: source_tf + signal_time (exakter Auslösezeitpunkt = time)
+        events_df["source_tf"] = source_tf if source_tf else None
+        events_df["signal_time"] = events_df["time"] if source_tf else None
+
         events_df["run_id"] = run_id
         params_str = json.dumps(result.params)
 
@@ -83,16 +87,17 @@ class DuckDBSignalService(SignalService):
         try:
             # Idempotenter Run-Insert
             con.execute("""
-                INSERT OR IGNORE INTO indicator_runs (run_id, indicator_name, symbol, timeframe, params_json)
-                VALUES (?, ?, ?, ?, ?)
-            """, [run_id, result.indicator_name, result.symbol, result.timeframe, params_str])
+                INSERT OR IGNORE INTO indicator_runs (run_id, indicator_name, symbol, timeframe, params_json, run_name)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, [run_id, result.indicator_name, result.symbol, result.timeframe, params_str,
+                  getattr(result, "run_name", None)])
 
             # Idempotenter Batch-Insert der Events (ON CONFLICT DO NOTHING durch Primary Key)
             if not events_df.empty:
                 con.register("df_events_temp", events_df)
                 con.execute("""
-                    INSERT OR IGNORE INTO signal_events (run_id, time, signal_type, direction, price, strength, meta_json)
-                    SELECT run_id, "time", signal_type, direction, price, strength, meta_json
+                    INSERT OR IGNORE INTO signal_events (run_id, time, signal_type, direction, price, strength, meta_json, source_tf, signal_time)
+                    SELECT run_id, "time", signal_type, direction, price, strength, meta_json, source_tf, signal_time
                     FROM df_events_temp
                 """)
                 con.unregister("df_events_temp")

@@ -73,13 +73,21 @@ def _(FAV, SYMBOLS, TIMEFRAMES, mo, state):
     # ==========================================
     # 1. SYMBOLE & TIMEFRAMES (Mehrfachauswahl)
     # ==========================================
+    # Optionen als {Label → Roh-Symbol}; Favoriten bekommen ⭐.
+    # WICHTIG: mo.ui.multiselect verlangt im `value` die Option-Keys (Labels),
+    # `.value` liefert beim Lesen ebenfalls die Labels zurück → Rück-Mapping nötig.
     sym_options = {}
     for s in SYMBOLS:
         sym_options[f"⭐ {s}" if s in FAV else s] = s
 
+    # State kann Roh-Symbole ODER bereits Labels enthalten (Alt-Daten) → normalisieren
+    _saved = [s.replace("⭐ ", "") for s in state["symbols"]]
+    _saved = [s for s in _saved if s in SYMBOLS]
+    _init_labels = [label for label, sym in sym_options.items() if sym in _saved]
+
     sel_symbols = mo.ui.multiselect(
         sym_options,
-        value=[s for s in state["symbols"] if s in SYMBOLS],
+        value=_init_labels,
         label="Symbole",
     )
     sel_tfs = mo.ui.multiselect(
@@ -88,7 +96,7 @@ def _(FAV, SYMBOLS, TIMEFRAMES, mo, state):
         label="Timeframes",
     )
     mo.hstack([sel_symbols, sel_tfs], widths=[1, 1])
-    return sel_symbols, sel_tfs
+    return sel_symbols, sel_tfs, sym_options
 
 
 @app.cell
@@ -137,29 +145,9 @@ def _(MA_TYPES, mo, state):
 
 
 @app.cell
-def _(mo, state):
-    # ==========================================
-    # 3. VECTORBT-RANGES (sichtbar, aber deaktiviert)
-    # ==========================================
-    vbt = state["vectorbt"]
-    rows = []
-    for name in ["spread", "sl_pct", "tp_pct", "position", "fees"]:
-        cfg = vbt[name]
-        f1 = mo.ui.text(value=str(cfg["min"]), disabled=True, label=f"{name} min")
-        f2 = mo.ui.text(value=str(cfg["step"]), disabled=True, label=f"{name} step")
-        f3 = mo.ui.text(value=str(cfg["max"]), disabled=True, label=f"{name} max")
-        rows.append(mo.hstack([f1, f2, f3]))
-    mo.vstack([
-        mo.md("**VectorBT-Parameter-Ranges** — 🔒 _deaktiviert, Backtest-Modul folgt später_"),
-        *rows,
-    ])
-    return
-
-
-@app.cell
 def _(DATE_MAX, DATE_MIN, TIMEFRAMES, mo, state):
     # ==========================================
-    # 4. STRATEGIE, DATUMSBEREICH, HTF-OPTIONEN, RUN-NAME
+    # 3. STRATEGIE, DATUMSBEREICH, HTF-OPTIONEN, RUN-NAME
     # ==========================================
     dd_strategy = mo.ui.dropdown(
         {"grid": "Grid (vollständiges Kreuzprodukt)", "random": "Random (Stichprobe)"},
@@ -206,6 +194,7 @@ def _(DATE_MAX, DATE_MIN, TIMEFRAMES, mo, state):
 
 @app.cell
 def _(
+    SYMBOLS,
     build_run_definition,
     build_run_name,
     date_from,
@@ -229,18 +218,21 @@ def _(
     sel_tfs,
     state,
     sw_htf,
+    sym_options,
     txt_free_tag,
     txt_override,
 ):
     # ==========================================
-    # 5. RUN-DEFINITION, RUN-ZÄHLER, GO + SAVE
+    # 4. RUN-DEFINITION, RUN-ZÄHLER, GO + SAVE
     # ==========================================
     ranges_ma = {
         "period": {"min": ma_p_min.value, "step": ma_p_step.value, "max": ma_p_max.value},
         "smoothing": {"min": ma_s_min.value, "step": ma_s_step.value, "max": ma_s_max.value},
         "alpha_factor": {"min": ma_a_min.value, "step": ma_a_step.value, "max": ma_a_max.value},
     }
-    symbols = list(sel_symbols.value) or ["SILVER"]
+    # Labels → Roh-Symbole (multiselect liefert Keys/Labels zurück)
+    symbols = [sym_options.get(l, l.replace("⭐ ", "")) for l in sel_symbols.value]
+    symbols = [s for s in symbols if s in SYMBOLS] or ["SILVER"]
     tfs = list(sel_tfs.value) or ["M30"]
 
     definition = build_run_definition(
@@ -261,7 +253,7 @@ def _(
     run_name_preview = build_run_name("MAIndicator", preview_params, symbols[0], tfs[0])
 
     def _save_state():
-        state["symbols"] = list(sel_symbols.value)
+        state["symbols"] = [sym_options.get(l, l.replace("⭐ ", "")) for l in sel_symbols.value]
         state["timeframes"] = list(sel_tfs.value)
         state["ma"] = {
             "ma_type": dd_ma_type.value,
@@ -289,7 +281,7 @@ def _(
         mo.md(f"_Beispiel-Name:_ `{run_name_preview}`"),
         mo.hstack([btn_go, btn_save]),
     ])
-    return btn_go, btn_save, definition, n_runs, run_name_preview, symbols, tfs
+    return btn_go, definition, n_runs, symbols, tfs
 
 
 @app.cell
@@ -307,13 +299,13 @@ def _(
     state,
     sweep_ui,
     symbols,
-    threading,
     tfs,
+    threading,
     txt_free_tag,
     txt_override,
 ):
     # ==========================================
-    # 6. SICHERHEITSABFRAGE + SWEEP-START (Thread)
+    # 5. SICHERHEITSABFRAGE + SWEEP-START (Thread)
     # ==========================================
     import duckdb as _ddb
 
@@ -386,7 +378,7 @@ def _(
 @app.cell
 def _(mo, sweep_ui):
     # ==========================================
-    # 8. FORTSCHRITT + ABBRUCH (live)
+    # 6. FORTSCHRITT + ABBRUCH (live)
     # ==========================================
     _refresh = mo.ui.refresh(default_interval="0.5s")
     _st = sweep_ui.get_state()
@@ -428,9 +420,9 @@ def _(mo, sweep_ui):
 
 
 @app.cell
-def _(DB_MARKET, mo, save_state, state):
+def _(mo, save_state, state):
     # ==========================================
-    # 9. QUICK LOOK (Chart-Schnellsicht, §7)
+    # 7. QUICK LOOK (Chart-Schnellsicht, §7)
     # ==========================================
     from signal_lab.quick_look import render_quick_look
 
@@ -483,7 +475,7 @@ def _(
     txt_symbol_tf,
 ):
     # ==========================================
-    # 10. QUICK LOOK — CHART-RENDER (reaktiv)
+    # 8. QUICK LOOK — CHART-RENDER (reaktiv)
     # ==========================================
     _OFFSET_MAX = 20000
     _offset = _OFFSET_MAX - int(ql_slider.value)

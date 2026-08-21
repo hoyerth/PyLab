@@ -149,9 +149,12 @@ def _(DATE_MAX, DATE_MIN, TIMEFRAMES, dt, mo, state):
     # ==========================================
     # 3. STRATEGIE, DATUMSBEREICH, HTF-OPTIONEN
     # ==========================================
+    # State kann den Key ODER bereits das Label enthalten (Alt-Daten) → normalisieren
+    _strat_raw = state["strategy"]
+    _strat_key = _strat_raw if _strat_raw in ("grid", "random") else "grid"
     dd_strategy = mo.ui.dropdown(
         {"grid": "Grid (vollständiges Kreuzprodukt)", "random": "Random (Stichprobe)"},
-        value=state["strategy"],
+        value=_strat_key,
         label="Strategie",
     )
     num_sample = mo.ui.number(1, 10000, 1, value=state["random_sample"], label="Stichproben-Größe (random)")
@@ -244,6 +247,7 @@ def _(
     dd_ma_type,
     dd_small_tf,
     dd_strategy,
+    dt,
     ma_a_max,
     ma_a_min,
     ma_a_step,
@@ -261,6 +265,7 @@ def _(
     sel_tfs,
     state,
     sw_htf,
+    sweep_ui,
     sym_options,
     txt_free_tag,
     txt_from,
@@ -335,8 +340,20 @@ def _(
         state["htf_exact_time"] = bool(sw_htf.value)
         state["htf_small_tf"] = dd_small_tf.value or "M15"
         save_state(state)
+        sweep_ui.set_message(
+            f"💾 Stand gespeichert ({dt.datetime.now().strftime('%H:%M:%S')})", "ok"
+        )
 
-    btn_go = mo.ui.button(label=f"🚀 GO — Massentest starten ({n_runs} Runs)", value=False)
+    def _on_go(_value):
+        """Klick auf GO: zeigt sofort eine Meldung und öffnet die Bestätigung."""
+        sweep_ui.set_message("🕒 Starte Massentest …", "spinner")
+        return True  # setzt btn_go.value=True → Bestätigungsdialog erscheint
+
+    btn_go = mo.ui.button(
+        label=f"🚀 GO — Massentest starten ({n_runs} Runs)",
+        value=False,
+        on_click=_on_go,
+    )
     btn_save = mo.ui.button(label="💾 Stand speichern", on_click=_save_state)
 
     mo.vstack([
@@ -377,6 +394,7 @@ def _(
     def _start_sweep(_value=None):
         """Startet den Sweep in einem Hintergrund-Thread (UI bleibt reaktiv)."""
         sweep_ui.reset(definition.count_runs())
+        sweep_ui.set_message("🕒 Massentest gestartet …", "spinner")
         # UI-Stand sichern (spätestens beim GO-Start)
         state["symbols"] = list(definition.symbols)
         state["timeframes"] = list(definition.timeframes)
@@ -424,8 +442,18 @@ def _(
                 state["last_sweep"] = summary
                 save_state(state)
                 sweep_ui.finish(ids, summary)
+                if sweep_ui.is_cancelled():
+                    sweep_ui.set_message(
+                        f"⏹ Abgebrochen – {len(ids)} Runs verarbeitet", "info"
+                    )
+                else:
+                    sweep_ui.set_message(
+                        f"✅ Massentest fertig – {len(ids)} Runs neu berechnet "
+                        f"({_n_runs_db} Runs gesamt)", "ok"
+                    )
             except Exception as e:
                 sweep_ui.fail(str(e))
+                sweep_ui.set_message(f"❌ Fehler: {e}", "err")
 
         threading.Thread(target=_worker, daemon=True).start()
         btn_go.value = False  # Dialog schließen
@@ -452,9 +480,14 @@ def _(
                 f"× {len(tfs)} TF(s) werden **gelöscht** und neu berechnet.\n\n"
             )
         _confirm_text += "_Wiederholte Läufe ersetzen also den Datenbestand der betroffenen Symbole/TFs (Update des Zeitraums)._"
+
+        def _cancel(_value=None):
+            """Abbrechen: Dialog schließen und Spinner-Meldung zurücksetzen."""
+            btn_go.value = False
+            sweep_ui.set_message("", "")
+
         _btn_confirm = mo.ui.button(label="✅ Ja, starten", kind="danger", on_click=_start_sweep)
-        _btn_cancel = mo.ui.button(label="Nein, abbrechen",
-                                   on_click=lambda _: setattr(btn_go, "value", False))
+        _btn_cancel = mo.ui.button(label="Nein, abbrechen", on_click=_cancel)
         mo.vstack([mo.md(_confirm_text), mo.hstack([_btn_confirm, _btn_cancel])])
     else:
         mo.md("")
@@ -464,11 +497,33 @@ def _(
 @app.cell
 def _(mo, sweep_ui):
     # ==========================================
-    # 6. FORTSCHRITT + ABBRUCH (live)
+    # 6. FORTSCHRITT + ABBRUCH + STATUSMELDUNG (live)
     # ==========================================
     _refresh = mo.ui.refresh(default_interval="0.5s")
     _st = sweep_ui.get_state()
     _btn_stop = mo.ui.button(label="⏹ Stopp", kind="warn", on_click=lambda _: sweep_ui.cancel())
+
+    # Statusmeldung (Start, fertig, gespeichert, Fehler) – mit Spinner wenn nötig
+    _msg = _st.get("message") or ""
+    _kind = _st.get("message_kind") or ""
+    if _msg:
+        if _kind == "spinner":
+            _msg_el = mo.hstack([
+                mo.Html(
+                    '<style>@keyframes _spin {to { transform: rotate(360deg); }}</style>'
+                    '<span style="display:inline-block;width:16px;height:16px;border:3px solid #94a3b8;'
+                    'border-top-color:#22c55e;border-radius:50%;animation:_spin 0.8s linear infinite;"></span>'
+                ),
+                mo.md(f"**{_msg}**"),
+            ])
+        elif _kind == "ok":
+            _msg_el = mo.md(f"✅ {_msg}")
+        elif _kind == "err":
+            _msg_el = mo.md(f"❌ {_msg}")
+        else:
+            _msg_el = mo.md(f"ℹ️ {_msg}")
+    else:
+        _msg_el = mo.md("")
 
     if _st["running"]:
         _pct = int(100 * _st["done"] / _st["total"]) if _st["total"] else 0
@@ -504,7 +559,7 @@ def _(mo, sweep_ui):
         _out = mo.vstack(_lines)
     else:
         _out = mo.md("_Noch kein Lauf – Konfiguration wählen und GO drücken._")
-    mo.vstack([_refresh, _out])
+    mo.vstack([_refresh, _msg_el, _out])
     return
 
 

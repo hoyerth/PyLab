@@ -17,6 +17,8 @@ _state: Dict[str, Any] = {
     "error": None,
     "ids": [],
     "last_summary": None,  # gesetzte Zusammenfassung nach Laufende
+    "message": "",          # kurze Statusmeldung für die UI
+    "message_kind": "",     # "spinner" | "ok" | "err" | "info"
 }
 _lock = threading.Lock()
 
@@ -27,12 +29,20 @@ def get_state() -> Dict[str, Any]:
         return dict(_state)
 
 
+def set_message(msg: str, kind: str = "info") -> None:
+    """Setzt eine kurze Statusmeldung (wird in der Fortschritts-Zelle angezeigt)."""
+    with _lock:
+        _state["message"] = str(msg)
+        _state["message_kind"] = str(kind)
+
+
 def reset(total: int) -> None:
     """Bereitet einen neuen Lauf vor (total = erwartete Anzahl Runs)."""
     with _lock:
         _state.update(
             running=True, done=0, total=int(total), current="",
             cancelled=False, error=None, ids=[], last_summary=None,
+            message="", message_kind="",
         )
 
 

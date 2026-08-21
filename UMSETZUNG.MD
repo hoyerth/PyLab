@@ -1,138 +1,305 @@
-  ═══ KONZEPT: Einheitliche Signal-Engine v3 (RAM für visuell · DB für Analytics) ═════
+# Konzept: Signal Lab v2 – Massentests & Konfluenz-Pipeline
 
-  Kernidee: Die Ereignis-Normalisierung (SignalEvents) ist die EINZIGE Wahrheit.
-  Das Modul signal_service.py kennt ZWEI Speicher-Implementierungen hinter dem
-  GLEICHEN Interface – in der visuellen Session wird in den RAM geschrieben
-  (kein DB-Schreiben!), in der Massenauswertung in die analytics_data.duckdb.
-  Der Chart und die DB-Zeile entstehen aus demselben normalisierten Event.
+## 1. Vision
 
-  Nutze Vektorisierung wo möglich
+Massenhafte, reproduzierbare Indikator-Tests auf einer einheitlichen Engine. Der
+Start erfolgt mit dem MA-Indikator, die Architektur ist aber von Beginn an auf
+**beliebig viele Indikatoren ausgelegt** (jeder Indikator in einer eigenen
+Signal-Lab-Zelle). Ziel ist es, **sich gegenseitig ergänzende Signale** zu
+finden, deren gemeinsames Auftreten später per ML als **%-Konfluenz-Hinweis am
+Livekurs** genutzt wird.
 
-  ┌─────────────────────────────────────────────────────────────────────────────┐
-  │  algos/base_indicator.py   (ABC + Contracts, NEU)                            │
-  │  class BaseIndicator: compute(df, symbol, timeframe) -> IndicatorResult      │
-  ├─────────────────────────────────────────────────────────────────────────────┤
-  │  ma_indicator / grid_indicator  ── compute() ──┐                              │
-  │  (weitere)                                      ▼                             │
-  │                                     IndicatorResult                            │
-  │                                     ├─ df          (OHLCV + Berechnungen)     │
-  │                                     ├─ events      (NUR Treffer, normalisiert)│
-  │                                     └─ plot_meta   (Farben/Linienstile)       │
-  └─────────────────────────────────────────────────────────────────────────────┘
-                                              │
-                      ┌───────────────────────┴────────────────────────┐
-                      ▼                                                ▼
-       ┌────────────────────────────────┐              ┌──────────────────────────┐
-       │  VISUELLE SESSION (RAM)        │              │  ANALYTICS (Massen-DB)   │
-       │  SignalStore(memory)           │              │  SignalStore(duckdb)     │
-       │  = In-Memory-Repository        │              │  = persist_run(result)   │
-       │                                │              │                          │
-       │  compute() → events in RAM     │              │  Param-Grid → compute()  │
-       │  Chart-Adapter liest events    │              │  → events → Batch in     │
-       │  direkt aus dem Memory-Store   │              │    analytics_data.duckdb │
-       │  KEIN DB-Zugriff, KEIN Schreib │              │  (nur Treffer)           │
-       └────────────────────────────────┘              └──────────────────────────┘
-                       beide nutzen die GLEICHE Normalisierung:
-                       events → to_events_frame()  (eine Funktion, ein Format)
-  ─────────────────────────────────────────────────────────────────────────────
+## 2. Leitprinzipien
 
-  1. EINHEITLICHES EVENT-FORMAT (algos/signal_events.py, NEU)
-  ─────────────────────────────────────────────────────────────────────────────
-  @dataclass
-  class SignalEvent:
-      time: pd.Timestamp      # Treffer-Zeitpunkt
-      signal_type: str        # "swing_change" | "circle_yellow" | "circle_fuchsia"
-      direction: int          # 1=Long, -1=Short, 0=neutral
-      price: float            # Kurs am Treffer
-      strength: float         # 0.0–1.0
-      meta: Dict[str, Any]    # z.B. {"ma_col":"ma_ehma_6"} / {"level":64.30}
+- **Single Source of Truth bleibt:** `compute() → IndicatorResult → SignalEvents`
+  (RAM für visuell, DuckDB für Analytics) wird nicht angefasst.
+- **Klick statt Tippen:** Symbole, Timeframes und Parameter-Ranges werden über
+  UI-Elemente gesetzt, nicht per Code.
+- **Reproduzierbarkeit:** Jeder Lauf bekommt einen **prägnanten Namen** mit
+  Zeitstempel + Parameter-Kurzform → spätere Auswertung ohne Rückfragen.
+- **Skalierbarkeit:** Neue Indikatoren werden als parallele Zellen ergänzt,
+  ohne die bestehende Pipeline zu verändern.
+- **Vektorisierung:** Die Berechnungslogik ist **immer vektorisiert** (NumPy/
+  pandas-Serien, keine Zeilen-Schleifen) und wird von Anfang an **auf VectorBT
+  abgestimmt** – d. h. Input/Output-Formate (OHLCV-Spalten, Signalfolgen,
+  Zeitindex) sind kompatibel mit VectorBT-Signalen (`[1, -1, 0]`), damit
+  Massentests später nahtlos in Backtests übergehen. Ausnahme: Pine-Script-
+  getreue 1:1-Rekursionen (z. B. EMA/HMA), die nur als gekapselte Hilfs-
+  funktion erlaubt sind.
+- **Schlanke Notebooks:** Längere Logikzeilen werden in **Python-Dateien im
+  Projekt** ausgelagert – mit sinnvollen Ordnern und sprechenden Namen
+  (z. B. `algos/` für Indikatoren, `algos/chart_plugins.py` für Rendering,
+  neu z. B. `signal_lab/` für UI+Orchestrierung). Das Notebook enthält nur
+  UI-Definition, Aufrufe und Anzeige – nie die Logik selbst.
+- **Trennung:** Statistik/ML gehört in ein eigenes Notebook – Signal Lab bleibt
+  reine Test- und Datenerzeugungs-Plattform.
 
-  @dataclass
-  class IndicatorResult:
-      symbol, timeframe, indicator_name, params
-      df: pd.DataFrame        # angereichert (ma_*, grid_*)
-      events: List[SignalEvent]
-      plot_meta: Dict[str, Any]
+## 3. UI-Konzept Signal Lab (einfach, eine Bildschirmseite)
 
-      def to_events_frame(self) -> pd.DataFrame:   # ← DIE Normalisierung
-          """Eine flache Tabelle: time, signal_type, direction, price,
-             strength, meta_json + symbol/timeframe/indicator/params.
-             RAM-Chart UND DB-Persistenz füttern sich daraus."""
+Layout von oben nach unten, bewusst ohne Tabellen-Overkill:
 
-  2. EIN MODUL, ZWEI SPEICHER (algos/signal_service.py, NEU)
-  ─────────────────────────────────────────────────────────────────────────────
-  class SignalService:                      # EIN Interface
-      def store_result(self, result: IndicatorResult) -> None
-      def get_events(self, **filters) -> pd.DataFrame
-      def clear(self) -> None
+```
+┌───────────────────────────────────────────────────────────────────────┐
+│  KONFIGURATION                                                        │
+│  [🟢 SILVER] [⭐ GOLD] [BTCUSD] ...   <- Favoriten-Symbole (Buttons)   │
+│  [M1] [M5] [M15] [M30] [H1] [H4] [D1] ...  <- verfügbare TF (Buttons)  │
+│                                                                       │
+│  MA-Parameter-Ranges        │  VectorBT-Parameter-Ranges             │
+│  ma_type: [EHMA▾]           │  spread:  min/step/max                  │
+│  period:  min/step/max      │  SL (%):  min/step/max                  │
+│  smoothing: min/step/max    │  TP (%):  min/step/max                  │
+│  alpha_factor: min/step/max │  Position/Größe:  min/step/max          │
+│                              │  Fees/Slippage:  min/step/max           │
+│                                                                       │
+│  Datumsbereich:  [Von ▾]  bis  [Bis ▾]   (aus verfügbaren Kerzen)     │
+│                                                                       │
+│  Run-Name (optional übersteuerbar)                                    │
+│  [EHMA_p6_s10_a3_SILVER_M30_20260821_1435  ✏️]                        │
+│                                                                       │
+│  [ 🚀 GO — Massentest starten ] (X Runs)  <- Sicherheitsabfrage vor Ausf.│
+│                                                                       │
+│  QUICK LOOK (Schnell-Sicht, Chart aus dem Inspector)                  │
+│  [ Symbol:TF  ─ SILVER:M30 ─ ]   <- Eingabezelle direkt über Grafik  │
+│  [ ──────────── Chart mit Signalen ──────────── ]                     │
+│     M30-Signale + höhere TFs (H1/H4/D1) farbcodiert                   │
+└───────────────────────────────────────────────────────────────────────┘
+```
 
-  class MemorySignalService(SignalService):
-      """Visuelle Session: hält IndicatorResult + Events im RAM.
-         Kein DB-Schreiben. Chart-Adapter liest hieraus.             """
-      _results: List[IndicatorResult]      # RAM
-      def store_result(self, r): self._results.append(r)
-      def get_events(self, ...): return pd.concat(r.to_events_frame() ...)
-      def clear(self): self._results.clear()
+- **Symbole:** kommen aus `app_data.broker_symbols` (is_favorite = ⭐),
+  Klick = Auswahl (Mehrfachauswahl möglich).
+- **Timeframes:** werden aus den tatsächlich in `market_data` vorhandenen
+  Symbol/TF-Kombinationen gefiltert (kein Leerlauf bei fehlenden Daten).
+- **Parameter-Ranges:** je Parameter `min / step / max` → erzeugt einen
+  Parameter-Raum als Kreuzprodukt (Grid) oder Stichprobe (Random Search).
+- **Datumsbereich:** Dropdown/Datepicker, begrenzt auf die in der DB
+  verfügbare Spanne; Warmup wird automatisch vorgehalten.
+- **GO-Button:** Sicherheitsabfrage (Modal: „X Läufe · Y Parameter-Kombis ·
+  Symbol/TF … wirklich starten?"), plus Abbruch während des Laufs.
+- **Run-Zähler neben dem GO-Button:** Live wird die Anzahl der Runs angezeigt,
+  die sich aus den aktuellen Kombis ergeben (Symbole × TFs × Parameter-Raum).
+  Der Zähler aktualisiert sich bei jeder Änderung an der Konfiguration und
+  macht vor dem Start sofort klar, wie groß der Sweep wird.
+- **Quick Look:** siehe §7 – das Chart-Ausgabefenster liegt unterhalb der
+  Konfiguration, nutzt das bewährte Rendering aus dem Chart Inspector und
+  dient dem schnellen visuellen Eindruck vor/neben dem Massentest.
 
-  class DuckDBSignalService(SignalService):
-      """Analytics: schreibt dieselben Events nach analytics_data.duckdb.
-         Gleiches to_events_frame() → gleiche Spalten wie im RAM.      """
-      def store_result(self, r): persist_run(r)   # run + signal_events
-      def get_events(self, ...): SELECT ... FROM signal_events ...
+## 4. Run-Orchestrierung (Logik, noch keine Umsetzung)
 
-  # HINWEIS: Beide nutzen 100 % dieselbe Normalisierung. Die einzige
-  # Entscheidung ist die Store-Instanz → Vorteil: einmal getestet, überall korrekt.
+Die gesamte Orchestrierung liegt **nicht im Notebook**, sondern in
+Projekt-Modulen (z. B. `signal_lab/`): `run_definition`, `sweep_runner`,
+`naming`, `ui_state` – das Notebook ruft nur noch auf. Die Ausgaben sind
+**von Anfang an VectorBT-kompatibel** (Signalfolgen als `[1, -1, 0]` mit
+UTC-Zeitindex, OHLCV im VectorBT-Format), damit der spätere Backtest-Anschluss
+ohne Umbau möglich ist.
 
-  3. DATENBANK (nur Analytics-Pfad, analytics_data.duckdb)
-  ─────────────────────────────────────────────────────────────────────────────
-  CREATE TABLE indicator_runs (
-      run_id VARCHAR PRIMARY KEY,           -- sha256(indikator+params+symbol+tf)
-      indicator_name VARCHAR, symbol VARCHAR, timeframe VARCHAR,
-      params_json JSON, created_at TIMESTAMPTZ DEFAULT now()
-  );
-  CREATE TABLE signal_events (
-      id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-      run_id VARCHAR REFERENCES indicator_runs(run_id),
-      time TIMESTAMPTZ, signal_type VARCHAR,
-      direction TINYINT, price DOUBLE, strength DOUBLE, meta_json JSON
-  );
-  Massen-Query (nur Treffer):
-  SELECT r.symbol, r.timeframe, e.time, e.signal_type, e.direction,
-         e.price, e.strength
-  FROM signal_events e JOIN indicator_runs r USING (run_id)
-  WHERE r.symbol=? AND r.timeframe=? AND e.signal_type IN ('swing_change','circle_yellow')
-  ORDER BY e.time;
+1. Aus den UI-Auswahlen wird eine **Run-Definition** gebaut:
+   - Symbole × Timeframes × Parameter-Raum × Datumsbereich
+2. Pro Kombination:
+   - `compute(df)` → `IndicatorResult`
+   - optional später: VectorBT-Backtest mit spread/SL/TP/Position
+   - Events + Backtest-Ergebnis → **Batch** in `analytics_data`
+3. Jede Kombination erhält eine `run_id` (Hash) **und** einen sprechenden
+   `run_name` (siehe §5). Identische Wiederholung bleibt idempotent
+   (bestehender Composite-PK).
+4. Fortschrittsanzeige (läuft/fertig/fehlgeschlagen) während des Sweeps.
 
-  4. WORKFLOWS
-  ─────────────────────────────────────────────────────────────────────────────
-  VISUELL (01_Chart_Inspector.py):
-    service = MemorySignalService()               # RAM, nichts wird geschrieben
-    result  = ma.compute(df, SYMBOL, TIMEFRAME)   # + grid.compute(...)
-    service.store_result(result)                  # → RAM
-    show_chart(..., results=[ma_result, grid_result])
-    # Chart-Adapter baut Marker aus result.events (RAM), MAs/Grid aus df+plot_meta.
-    # Jeder Slider-/Parameter-Update überschreibt den RAM-Store (clear + neu).
+**Parallele Verarbeitung (Empfehlung):**
+- **Multiprocessing auf Batch-Ebene** (Chunking der Parameter-Sets über die
+  CPU-Kerne): die Parameter-Sets werden in Chunks aufgeteilt, jeder Worker
+  berechnet seinen Chunk vollständig im RAM.
+- **Persistierung nach Chunk-Ende** in DuckDB (nicht pro Einzel-Run): so
+  werden DB-Write-Locks vermieden und der I/O-Overhead minimiert.
+- Sequenzieller Modus (mit Fortschrittsanzeige) bleibt als Fallback für
+  Debugging/kleine Sweeps.
 
-  ANALYTICS (02_signal_lab.py, NEU):
-    service = DuckDBSignalService()               # → analytics_data.duckdb
-    for params in param_grid:
-        result = indicator.compute(df, ...)
-        service.store_result(result)              # Batch-INSERT, nur Treffer
-    # Danach: get_events() als DataFrame → Table/Export/VectorBT
+## 5. Run-Namensschema (Vorgabefunktion)
 
-  5. BESTANDSINDIKATOREN → compute()-MIGRATION (Logik bleibt unverändert)
-  ─────────────────────────────────────────────────────────────────────────────
-  MAIndicator:   Richtungswechsel → SignalEvent("swing_change", dir=±1,
-                 price=close, strength=1.0)
-  GridIndicator: hit_circles → gelb = "circle_yellow", fuchsia = "circle_fuchsia";
-                 Grid-Linien/Level wandern in plot_meta (nur Optik, keine Events).
+Formatvorschlag (sortierbar, eindeutig, kompakt):
 
-  6. OFFENE DESIGNPUNKTE
-  ─────────────────────────────────────────────────────────────────────────────
-  • Grid-Anker "last_bar": für historische Massenscans ggf. anchor_mode="per_bar".
-  • Warmup: compute() rechnet über Warmup; RAM-Chart filtert sichtbares Fenster,
-    DB-Persistenz kann optional den Warmup-Bereich ausschließen.
-  • Zeitzonen: Events in UTC halten; Chart rendert mit tz_offset_hours.
+```
+{INDIKATOR}_{PARAM-KURZ}_{SYMBOL}_{TF}_{JJJJMMTT}_{HHMM}
+```
 
- Kurz zusammengefasst: compute() erzeugt einmalig IndicatorResult mit normalisierten SignalEvents. Ein SignalService-Interface mit zwei Implementierungen (Memory für die visuelle Session ohne DB, DuckDB für Analytics) konsumiert dieselben
- Events über dieselbe to_events_frame()-Normalisierung. So bleibt die Optik quelloffen im RAM überprüfbar und die Massenauswertung nutzt exakt dieselbe Datenbasis.
+Beispiele:
+- `EHMA_p06_s10_a3.0_SILVER_M30_20260821_1435`
+- `EHMA_p12_s10_a2.0_GOLD_H1_20260821_1435`
+
+Regeln:
+- Parameter-Kurzform folgt festem Schema (z. B. `p{period}_s{smoothing}_a{alpha}`).
+- Zeitstempel = Start des Runs (lokal), damit Läufe chronologisch sortierbar sind.
+- Der Name ist **standardmäßig vorgegeben**, kann im UI aber übersteuert und
+  mit einem freien Tag (z. B. „batch-01-swing") ergänzt werden.
+- `run_name` wird in `indicator_runs` gespeichert (neue Spalte), `run_id`
+  bleibt der technische Hash.
+
+**HTF-Läufe mit exaktem Auslösezeitpunkt:**
+- Bei einem Run auf einem höheren TF (z. B. H1) kann die Indikator-Logik
+  zusätzlich auf dem kleineren TF (z. B. M15) ausgeführt werden.
+- Das Ergebnis wird mit dem **exakten Auslösezeitpunkt** im Signal gespeichert
+  (siehe §7 und §9) – nicht nur mit dem HTF-Bar-Zeitstempel.
+- Die spätere Statistik muss damit umgehen können: pro Signal sind der
+  „große" TF (Run-TF) und der exakte Zeitpunkt auf dem kleinen TF bekannt.
+
+## 6. Mehrere Indikatoren / Zellen
+
+- Jeder Indikator bekommt eine **eigene Zelle** mit eigenem Parameter-Block.
+- Die UI-Felder (Symbole/TF/Datum/VectorBT) sind **geteilt** (gemeinsamer
+  Konfigurations-Kontext), die Indikator-Ranges sind **pro Zelle**.
+- Alle Zellen erzeugen weiterhin normalisierte `SignalEvent`s → Konfluenz
+  und ML können sie direkt gemeinsam auswerten.
+
+## 7. Schnell-Sicht: Chart-Ausgabefenster (Quick Look)
+
+Das Chart-Rendering aus dem **Chart Inspector** wird im Signal Lab als
+**Ausgabefenster wiederverwendet** – rein visuell, **nur Charts und Signale**,
+keine Parameter-Tabellen, keine Statistik. So bekommt man vor/neben dem
+Massentest sofort einen Eindruck, wie die gewählten Einstellungen im Chart
+aussehen.
+
+**Eingabezelle direkt über der Grafik**
+- Eine kompakte Zelle unmittelbar über dem Chart mit Eingabeformat
+  `Symbol:TF` (z. B. `SILVER:M30`, `GOLD:H1`).
+- Die in der Konfiguration gewählten Symbol/TF-Buttons übernehmen den Wert;
+  eine manuelle Eingabe überschreibt ihn **nur für die Chart-Sicht**
+  (der Massentest nutzt weiterhin die Konfiguration).
+- Eingabe mit Enter/Auswahl → Chart rendert sofort.
+
+**Verschiedene Zeichendarstellungen je Indikator (Marker-Shapes)**
+- Jeder Indikator-/Signaltyp erhält eine **eigene Zeichendarstellung** in der
+  Chart-Auswahl, damit sich die Signale verschiedener Indikatoren klar
+  unterscheiden lassen:
+  - `swing_change` (MA) → Pfeile ▲/▼
+  - `circle_yellow` / `circle_fuchsia` (Grid) → Kreise (gelb / fuchsia)
+  - zukünftige Indikatoren → z. B. Dreiecke, Kreuz ✕, Quadrat ■, Diamant ◆,
+    X-Marker, Balken
+- Das Mapping `Signaltyp → Shape/Farbe` wird **einmalig zentral definiert**
+  (Styling-Registry in `plot_meta`) und von Chart-Engine und späterer
+  Live-Anzeige gemeinsam genutzt.
+
+**Signale höherer Timeframes im Chart (Multi-TF-Overlay)**
+- Idee: Im Chart eines TF (z. B. M30) werden zusätzlich die **Signale
+  höherer Timeframes** (H1, H4, D1) angezeigt – so sieht man sofort, ob
+  der Trend „von oben" bestätigt wird.
+- **Anzeige zum Auslösezeitpunkt:** HTF-Signale werden möglichst **genau zum
+  Auslösezeitpunkt auf dem kleineren TF** platziert – nicht nur am HTF-Bar-
+  Anfang. Exakt ist das nicht möglich (der HTF-Bar kennt keinen Intra-Bar-
+  Zeitstempel), aber die Annäherung ist gut: z. B. der kleinere-TF-Bar, in
+  dem der HTF-Close/High/Low erreicht wurde (Kursdurchbruch).
+- **Automatische Farbvariation:** Je höher der TF, desto intensiver/anderer
+  Farbton – z. B. M30 = hell, H1 = mittel, H4 = dunkel, D1 = kräftig
+  (fest definierte TF-Farbpalette, automatisch zugewiesen).
+- Darstellung: Höhere-TF-Signale erscheinen **versetzt über/unter** den
+  M30-Signalen (separater Marker-Slot bzw. Y-Versatz), sodass beide Ebenen
+  gleichzeitig sichtbar sind.
+- **Konfluenz sofort sichtbar:** Wenn mehrere TFs in dieselbe Richtung
+  signalisieren, „stapeln" sich die Marker → schneller Eindruck der
+  Multi-TF-Stärke. Genau diese Gleichzeitigkeit ist später ein zentrales
+  ML-/%-Konfluenz-Merkmal.
+
+**Grafik-Begrenzung wie im Chart Inspector:**
+- Die Quick-Look-Grafik ist **genauso gestaltet und begrenzt wie im Chart
+  Inspector**: sichtbares Fenster (z. B. 1000 Kerzen) + Warmup, Scrolling
+  per Slider – **keine 10k-Kerzen-Gesamtansicht**.
+- Auch die Multi-TF-Daten werden nur für das sichtbare Fenster (+ Warmup)
+  geladen und angezeigt.
+
+## 8. Konfluenz & ML (später, eigenes Notebook)
+
+- **Konfluenz ist bewusst erst ein Thema des späteren Statistik-Notebooks.**
+  Das Signal Lab bereitet nur die Daten vor (exakte Zeitpunkte, HTF-Referenz),
+  wertet aber selbst keine Konfluenz aus.
+- **Konfluenz-Zähler:** pro Zeitpunkt, wie viele Indikatoren gleichzeitig in
+  dieselbe Richtung signalisieren (z. B. 2 von 3) → **%-Confluence**.
+- **ML-Modul (separates Notebook):** trainiert auf `signal_events` (+ Labels/
+  Ergebnisse), erkennt Muster der sich ergänzenden Signale und liefert am
+  **Livekurs** Hinweise inkl. Konfluenz-Prozentsatz.
+- Signal Lab liefert dafür nur die **sauberen, benannten Daten** – keine
+  Auswertung im selben Notebook.
+
+## 9. Datenmodell-Erweiterung (Vorschlag)
+
+- `indicator_runs` + Spalte `run_name VARCHAR` (sprechender Name).
+- `signal_events` + Spalte `source_tf VARCHAR` (der TF, aus dem das Signal
+  stammt – z. B. `H1`) sowie `signal_time` (exakter Auslösezeitpunkt auf dem
+  kleineren TF, wenn HTF-Logik auf kleinem TF gelaufen ist). Die Statistik
+  kann damit präzise auswerten: „H1-Signal, ausgelöst exakt am 14.08. 10:47".
+- Optional Tabelle `run_sweeps` (Batch-Metadaten: gewählte Ranges, Zeitstempel,
+  Anzahl Läufe) für spätere Nachvollziehbarkeit kompletter Sweeps.
+- Optional Tabelle `backtest_results` (pro Run: spread/SL/TP/Größe/Equity-
+  Kennzahlen), sobald VectorBT integriert wird.
+
+## 10. Bewertung
+
+**Stärken**
+- Baut auf bewährter, getesteter Engine auf (kein Bruch der bestehenden Pfade).
+- UI senkt die Hemmschwelle für Massentests massiv (Klick statt Skript).
+- Sprechende Run-Namen machen tausende Läufe später auswertbar.
+- Mehrfach-Indikator-Konzept ist architektonisch vorbereitet (parallele Zellen,
+  gemeinsame Events).
+- Quick Look macht die Auswahl sofort visuell prüfbar (Chart + Signale direkt
+  im Signal Lab); Multi-TF-Overlay liefert den Konfluenz-Eindruck schon vor
+  dem Massentest.
+- Vektorisierte, VectorBT-abgestimmte Logik in Projekt-Modulen → Notebook
+  bleibt schlank, Backtest-Anschluss ist ohne Umbau vorbereitet, Logik ist
+  testbar und wiederverwendbar.
+
+**Schwächen / Risiken**
+- Parameter-Raum wächst exponentiell (Symbole × TF × Ranges) → Gefahr von
+  Laufzeiten im Stundenbereich; **Grid vs. Random**-Strategie muss wählbar sein.
+- VectorBT-Parameter (spread/SL/TP) benötigen ein Backtest-Modul; bis dahin
+  sind diese Ranges wirkungslos → UI sollte sie zunächst „deaktiviert" zeigen.
+- Konfluenz über mehrere Indikatoren braucht eine gemeinsame Zeitachse
+  (Resampling auf einheitliches TF-Raster) – offener Designpunkt.
+- DB-Schema braucht eine Migration (run_name); bestehende `analytics_data`
+  muss sauber erweitert werden.
+- Multi-TF-Overlay: Marker-Stapelung kann bei vielen TFs unübersichtlich
+  werden → TF-Auswahl für das Overlay begrenzen (z. B. max. 3 höhere TFs,
+  nur „bestätigende" Signale).
+- Quick Look lädt zusätzliche Daten (mehrere TFs) → für die Chart-Sicht
+  gezielt begrenzen (Fenster, nicht Gesamthistorie).
+
+**Offene Entscheidungen**
+- Grid-Search, Random-Search oder beides (Umschalter)?
+- Parallele Verarbeitung: **Empfehlung getroffen** – Multiprocessing auf
+  Batch-Ebene (Chunking über CPU-Kerne), Persistierung nach Chunk-Ende in
+  DuckDB (vermeidet DB-Write-Locks); sequenziell als Fallback.
+- Konfluenz-Definition: wird erst im Statistik-Notebook festgelegt (gleicher
+  Bar vs. kumulatives Fenster) – Signal Lab liefert dafür die präzisen
+  Zeitpunkte (exakter Auslösezeitpunkt auf kleinerem TF).
+
+## 11. Letzte Einstellungen merken (Persistenz des aktuellen Stands)
+
+- **Alle UI-Felder und Toggle-Buttons** merken sich den letzten Stand:
+  - ausgewählte Symbole & Favoriten
+  - gewählte Timeframes
+  - MA-Parameter-Ranges (min/step/max je Parameter + ma_type)
+  - VectorBT-Parameter-Ranges (auch wenn aktuell deaktiviert)
+  - Datumsbereich (Von/Bis)
+  - übersteuerter Run-Name / freier Tag
+  - Optionen wie Grid/Random-Umschalter (sobald vorhanden)
+  - Quick Look: zuletzt eingegebenes `Symbol:TF` + gewählte Overlay-TFs
+    (höhere Timeframes, sobald Multi-TF-Overlay existiert)
+- **Speicherung:** bewusst einfach – **eine JSON-Datei im Projekt**
+  (z. B. `data/ui_state.json`). Kein DB-Zugriff, keine Migration, sofort
+  einsatzbereit, versionierbar. (Eine DB-Tabelle ist bewusst nicht nötig.)
+- **Verhalten:**
+  - Beim Öffnen des Signal Lab werden alle Felder mit dem gespeicherten Stand
+    vorbelegt (kein Reset beim Neustart)
+  - Der Stand wird bei jeder Änderung bzw. spätestens beim GO-Start aktualisiert
+- **Presets / Profile kommen später** (z. B. „Batch-01 Swing", „Scalping M1",
+  „Trend H1"): benannte, wiederherstellbare Gesamt-Konfigurationen.
+  - **Jetzt:** nur der aktuelle Stand wird gemerkt – kein Profil-Management,
+    kein UI dafür.
+- Bewusst minimal: ein kleiner Persistenz-Speicher, kein Migrationsaufwand.
+
+## 12. Nächste Schritte (Schlagworte, bewusst ohne Anleitung)
+
+Projekt-Struktur (`signal_lab/`-Module) → UI-Zellen (schlank, nur Aufrufe) →
+Run-Zähler (Kombis) → Run-Definition → Orchestrator (Multiprocessing/Chunks) →
+Namensschema → Schema-Migration (run_name, source_tf/signal_time) →
+UI-State-Persistenz (JSON-Datei) → Fortschrittsanzeige → Sicherheitsabfrage →
+Quick Look (Symbol:TF-Zelle, Marker-Shapes-Registry, Multi-TF-Overlay mit
+Auslösezeitpunkt-Annäherung, Fensterbegrenzung wie Inspector) →
+VectorBT-Abstimmung (Signalfolge-Format verifizieren) →
+(danach: Presets/Profile, Backtest-Modul, Statistik-Notebook inkl. Konfluenz,
+ML-Konfluenz).

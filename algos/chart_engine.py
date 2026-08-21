@@ -18,8 +18,13 @@ from algos.chart_plugins import (
     build_day_separators_payload,
     build_grid_payload,
     build_ma_lines_payload,
+    build_ma_lines_from_result,
     build_signal_markers_payload,
+    build_signal_markers_from_events,
+    build_hit_circles_from_events,
 )
+from algos.signal_events import IndicatorResult
+
 
 __all__ = ["load_candles", "show_chart"]
 
@@ -127,48 +132,83 @@ def load_candles(
     return df
 
 
+# In algos/chart_engine.py show_chart():
 def show_chart(
-    df: pd.DataFrame,
-    symbol: str,
-    timeframe: str,
-    ma_indicator: Optional[MAIndicator] = None,
-    grid_indicator: Optional[GridIndicator] = None,
-    show_day_separators: bool = True,
-    show_signals: bool = True,
-    min_segment_len: int = 3,
-    warmup_bars: int = 0,
-    visible_bars: int = 350,
-    width: int = 1200,
-    height: int = 550,
-    scale_width: int = 55,
-    bg_color: str = "#060B14",
-    text_color: str = "#CBD5E1",
+        df: pd.DataFrame,
+        symbol: str,
+        timeframe: str,
+        ma_indicator: Optional[MAIndicator] = None,
+        grid_indicator: Optional[GridIndicator] = None,
+        results: Optional[List[IndicatorResult]] = None,
+        show_day_separators: bool = True,
+        show_signals: bool = True,
+        min_segment_len: int = 3,
+        warmup_bars: int = 0,
+        visible_bars: int = 350,
+        width: int = 1200,
+        height: int = 550,
+        scale_width: int = 55,
+        bg_color: str = "#060B14",
+        text_color: str = "#CBD5E1",
 ) -> Any:
-    """Orchestrierungsfunktion für das Rendering."""
     if df.empty:
         return mo.md("**Keine Daten vorhanden.**")
 
-    # Warmup-Zeilen (links) abtrennen: sichtbares Fenster beginnt bei `warmup`.
-    # Der Warmup dient nur der MA-Berechnung und wird nicht als Candle gezeigt.
     warmup = min(int(warmup_bars), max(0, len(df) - 1))
     calc_df = df.iloc[warmup:]
     if len(calc_df) < 2:
-        return mo.md(f"**Fenster nicht verfügbar** – gewählter Offset liegt vor dem Datenanfang ({len(df)} Kerzen geladen).")
+        return mo.md(f"**Fenster nicht verfügbar** – Offset vor Datenanfang.")
 
-    # 1. Daten über Plugins aufbereiten
     candles, precision, min_move = build_candles_payload(calc_df)
     t_first, t_last = candles[0]["time"], candles[-1]["time"]
 
-    # MA-Segmente über die GESAMTE df (inkl. Warmup) für durchgehende Linie
-    ma_lines = build_ma_lines_payload(df, ma_indicator, min_segment_len)
-    day_separators = build_day_separators_payload(calc_df) if show_day_separators else []
-    grid_lines, hit_circles = build_grid_payload(df, grid_indicator, t_first, t_last)
+    # 1. Events & Plot-Metadaten aus den Results sammeln
+    all_events: List[SignalEvent] = []
+    grid_lines: List[Dict[str, Any]] = []
+    ma_plot_metas: List[Dict[str, Any]] = []
+    grid_plot_meta: Optional[Dict[str, Any]] = None
+    if results:
+        for r in results:
+            all_events.extend(r.events)
+            rmeta = r.plot_meta or {}
+            rtype = rmeta.get("type")
+            if rtype == "grid":
+                grid_lines = rmeta.get("lines", [])
+                grid_plot_meta = rmeta
+            elif rtype == "ma":
+                ma_plot_metas.append(rmeta)
 
-    markers = build_signal_markers_payload(df, ma_indicator) if show_signals else []
-    # Nur Objekte innerhalb des sichtbaren Fensters
+    # 2. Overlays bauen
+    day_separators = build_day_separators_payload(calc_df) if show_day_separators else []
+
+    if results:
+        # MA-Linien OHNE Indikator-Instanz direkt aus den Results zeichnen
+        ma_lines = []
+        for mp in ma_plot_metas:
+            ma_lines.extend(build_ma_lines_from_result(df, mp, min_segment_len))
+        # Marker/Circles mit den konfigurierten Farben aus den Results
+        ma_colors = ma_plot_metas[0] if ma_plot_metas else {}
+        markers = build_signal_markers_from_events(
+            all_events,
+            bull_color=ma_colors.get("bull_color", "#089981"),
+            bear_color=ma_colors.get("bear_color", "#F23645"),
+        ) if show_signals else []
+        hit_circles = build_hit_circles_from_events(
+            all_events,
+            time_circle_color=(grid_plot_meta or {}).get("time_circle_color", "#FFEB3B"),
+            circle_color=(grid_plot_meta or {}).get("circle_color", "#FF00FF"),
+        )
+    else:
+        # Fallback auf Legacy-Aufrufe falls results nicht übergeben
+        ma_lines = build_ma_lines_payload(df, ma_indicator, min_segment_len)
+        grid_lines, hit_circles = build_grid_payload(df, grid_indicator, t_first, t_last)
+        markers = build_signal_markers_payload(df, ma_indicator) if show_signals else []
+
     markers = [m for m in markers if m["time"] >= t_first]
     hit_circles = [c for c in hit_circles if c["time"] >= t_first]
     from_time = candles[-visible_bars]["time"] if len(candles) > visible_bars else t_first
+
+    # (Restlicher HTML/Canvas-Rendering-Code bleibt exakt unverändert)
 
     # 2. Template zusammenbauen
     # Lokale Lightweight-Charts-Library inline einbetten (offline-fähig),

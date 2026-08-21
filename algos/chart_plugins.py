@@ -1,6 +1,5 @@
-# algos/chart_plugins.py
 """
-Plugin- und Payload-Builder für Chart-Elemente (MAs, Grid, Separators, Markers).
+Payload-Builder für Lightweight Charts Overlays und Marker.
 Pfad: algos/chart_plugins.py
 """
 
@@ -8,10 +7,16 @@ from typing import Any, Dict, List, Optional, Tuple
 import pandas as pd
 import numpy as np
 
+from algos.signal_events import SignalEvent
+
 
 def build_candles_payload(df: pd.DataFrame) -> Tuple[List[Dict[str, Any]], int, float]:
-    """Wandelt OHLCV in Lightweight-Charts-Candle-Format um und ermittelt Precision."""
-    time_sec = (df["time"].astype("int64") // 10**9).values
+    """Erzeugt das Kerzen-Payload für Lightweight Charts inkl. automatischer Präzision."""
+    if df.empty:
+        return [], 2, 0.01
+
+    # Vektorisierte Epoch-Konvertierung (robust gegen ns-/us-Auflösung)
+    time_sec = df["time"].values.astype("datetime64[s]").astype("int64")
     opens = df["open"].values
     highs = df["high"].values
     lows = df["low"].values
@@ -22,149 +27,226 @@ def build_candles_payload(df: pd.DataFrame) -> Tuple[List[Dict[str, Any]], int, 
         for t, o, h, l, c in zip(time_sec, opens, highs, lows, closes)
     ]
 
-    sample_price = float(closes[-1])
-    precision = 5 if sample_price < 10 else (3 if sample_price < 1000 else 2)
-    min_move = 1 / (10 ** precision)
+    # Automatische Nachkommastellen & minMove ermitteln
+    spreads = (df["high"] - df["low"]).abs()
+    min_diff = spreads[spreads > 0].min() if not spreads[spreads > 0].empty else 0.01
+
+    if min_diff < 0.001:
+        precision = 4
+        min_move = 0.0001
+    elif min_diff < 0.01:
+        precision = 3
+        min_move = 0.001
+    elif min_diff < 0.1:
+        precision = 2
+        min_move = 0.01
+    else:
+        precision = 2
+        min_move = 0.01
 
     return candles, precision, min_move
 
 
-def build_ma_lines_payload(
-    df: pd.DataFrame,
-    ma_indicator: Any,
-    min_segment_len: int = 1,
-) -> List[Dict[str, Any]]:
-    """Erzeugt Polyline-Payload für Moving Averages (Canvas-Overlay).
-
-    min_segment_len: Segmente kürzer als dieser Wert werden nicht verworfen,
-    sondern mit dem benachbarten Segment zusammengeführt. Dadurch bleibt die
-    Linie lückenlos (keine Gaps bei kleinen Stückelungen), während die Anzahl
-    der Zeichenpfade reduziert bleibt. Default 1 = kein Zusammenführen.
-    """
-    if ma_indicator is None:
+def build_day_separators_payload(df: pd.DataFrame) -> List[Dict[str, Any]]:
+    """Erzeugt vertikale Tageswechsel-Linien."""
+    if df.empty or len(df) < 2:
         return []
 
-    lines = []
-    ma_cols = [
-        c for c in df.columns
-        if c.startswith("ma_") and not c.endswith("_bull") and not c.endswith("_bear")
-    ]
-    width_line = getattr(ma_indicator, "line_width", 2)
+    separators = []
+    times = pd.to_datetime(df["time"])
+    day_changes = times.dt.date != times.dt.date.shift(1)
 
-    for col in ma_cols:
-        segments = ma_indicator.get_segments(df, col)
-
-        # Segmente in Punktlisten überführen
-        segs = []
-        for seg_df, color in segments:
-            seg_times = (seg_df["time"].astype("int64") // 10**9).values
-            seg_vals = seg_df[col].values
-            segs.append({
-                "data": [{"time": int(t), "value": float(v)} for t, v in zip(seg_times, seg_vals)],
-                "color": color,
-            })
-
-        # Kleine Segmente mit dem Nachbarn zusammenführen statt verwerfen,
-        # damit die MA-Linie durchgehend bleibt.
-        i = 0
-        while i < len(segs):
-            if len(segs[i]["data"]) >= min_segment_len:
-                i += 1
-                continue
-            if i + 1 < len(segs):
-                # mit dem folgenden Segment zusammenführen (Farbe des Nachbarn)
-                segs[i + 1]["data"] = segs[i]["data"] + segs[i + 1]["data"]
-                del segs[i]
-            elif i > 0:
-                # letztes Segment: mit dem vorherigen zusammenführen
-                segs[i - 1]["data"] = segs[i - 1]["data"] + segs[i]["data"]
-                del segs[i]
-            else:
-                # einzelnes winziges Segment ohne Nachbarn -> behalten
-                i += 1
-
-        for seg in segs:
-            lines.append({
-                "data": seg["data"],
-                "color": seg["color"],
-                "width": width_line,
-            })
-    return lines
-
-
-def build_day_separators_payload(df: pd.DataFrame) -> List[Dict[str, Any]]:
-    """Erzeugt vertikale Tagestrennlinien (Canvas-Overlay)."""
-    times = df["time"]
-    dates = times.dt.date
-    daily_extrema = df.groupby(dates).agg(
-        day_start=("time", "first"),
-        day_low=("low", "min"),
-        day_high=("high", "max"),
-    )
-    lines = []
-    first_date = dates.iloc[0]
-    for d, row in daily_extrema.iterrows():
-        if d == first_date:
+    # Erste Kerze überspringen
+    day_change_indices = np.where(day_changes)[0]
+    for idx in day_change_indices:
+        if idx == 0:
             continue
-        t_sec = int(pd.Timestamp(row["day_start"]).timestamp())
-        lines.append({
+        t_sec = int(times.iloc[idx].timestamp())
+        separators.append({
             "time": t_sec,
-            "full_height": True,
-            "color": "rgba(66, 153, 225, 0.6)",
-            "width": 0.75,
+            "color": "rgba(255, 255, 255, 0.18)",
+            "width": 1,
             "dash": [4, 4],
         })
-    return lines
+
+    return separators
+
+
+def _segments_to_payload(
+        segments: List[Tuple[pd.DataFrame, str]],
+        col_name: str,
+        line_width: int,
+        min_segment_len: int
+) -> List[Dict[str, Any]]:
+    """Konvertiert (df, color)-Segmente in das Canvas-Polyline-Payload (vektorisiert)."""
+    payload = []
+    for seg_df, color in segments:
+        if len(seg_df) < min_segment_len:
+            continue
+        # Robust gegen ns-/us-Auflösung
+        seg_times = seg_df["time"].values.astype("datetime64[s]").astype("int64")
+        seg_vals = seg_df[col_name].values
+        pts = [{"time": int(t), "value": float(v)} for t, v in zip(seg_times, seg_vals)]
+        payload.append({"color": color, "width": line_width, "data": pts})
+    return payload
+
+
+def build_ma_lines_payload(
+        df: pd.DataFrame,
+        ma_indicator: Optional[Any] = None,
+        min_segment_len: int = 3
+) -> List[Dict[str, Any]]:
+    """Erzeugt farbsegmentierte Linien für den MA-Verlauf (Legacy-Pfad mit Instanz)."""
+    if ma_indicator is None or df.empty:
+        return []
+
+    col_name = f"ma_{ma_indicator.ma_type.lower()}_{ma_indicator.period}"
+    if col_name not in df.columns:
+        return []
+
+    segments = ma_indicator.get_segments(df, col_name)
+    return _segments_to_payload(segments, col_name, ma_indicator.line_width, min_segment_len)
+
+
+def build_ma_lines_from_result(
+        df: pd.DataFrame,
+        plot_meta: Optional[Dict[str, Any]] = None,
+        min_segment_len: int = 3
+) -> List[Dict[str, Any]]:
+    """Erzeugt farbsegmentierte MA-Linien direkt aus IndicatorResult.plot_meta.
+
+    Nutzt ausschließlich die normalisierten Metadaten (col_name, Farben,
+    Line-Width) — OHNE Indikator-Instanz. Damit bleibt der results-Pfad
+    vollständig von den Indikator-Klassen entkoppelt.
+    """
+    if df.empty or not plot_meta:
+        return []
+
+    col_name = plot_meta.get("col_name")
+    if not col_name or col_name not in df.columns:
+        return []
+
+    bull_color = plot_meta.get("bull_color", "#089981")
+    bear_color = plot_meta.get("bear_color", "#F23645")
+    line_width = int(plot_meta.get("line_width", 2))
+
+    vals = df[col_name].to_numpy()
+    valid_mask = ~np.isnan(vals)
+    if not np.any(valid_mask):
+        return []
+
+    df_valid = df.loc[valid_mask]
+    if len(df_valid) < 2:
+        return []
+
+    diffs = np.diff(df_valid[col_name].to_numpy())
+    is_bull = np.concatenate([[diffs[0] >= 0], diffs >= 0])
+
+    # In bull/bear-Segmente aufteilen (gleiche Logik wie MAIndicator.get_segments)
+    segments = []
+    start_idx = 0
+    n = len(df_valid)
+    for i in range(1, n):
+        if is_bull[i] != is_bull[i - 1]:
+            segments.append((df_valid.iloc[start_idx:i + 1],
+                             bull_color if is_bull[start_idx] else bear_color))
+            start_idx = i
+    if start_idx < n - 1:
+        segments.append((df_valid.iloc[start_idx:n],
+                         bull_color if is_bull[start_idx] else bear_color))
+
+    return _segments_to_payload(segments, col_name, line_width, min_segment_len)
 
 
 def build_grid_payload(
-    df: pd.DataFrame,
-    grid_indicator: Any,
-    t_first: int,
-    t_last: int,
+        df: pd.DataFrame,
+        grid_indicator: Optional[Any] = None,
+        t_first: Optional[int] = None,
+        t_last: Optional[int] = None
 ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
-    """Erzeugt Grid-Linien (Canvas-Overlay) und Hit-Circles (X, Y)."""
-    if grid_indicator is None:
+    """Legacy-Fallback: Berechnet Grid-Linien und Hit-Circles direkt aus dem Indicator."""
+    if grid_indicator is None or df.empty:
         return [], []
 
-    grid_res = grid_indicator.calculate(df)
-    lines = [
-        {
-            "price": float(gl["price"]),
-            "color": gl["color"],
-            "width": gl["width"],
-        }
-        for gl in grid_res.get("lines", [])
-    ]
+    res = grid_indicator.calculate(df)
+    lines = res.get("lines", [])
+    hit_circles = []
 
-    hit_circles = [
-        {
-            "time": int(pd.Timestamp(h["time"]).timestamp()),
-            "price": float(h["price"]),
-            "color": h.get("color", "#FF00FF"),
-        }
-        for h in grid_res.get("hit_circles", [])
-    ]
+    for hc in res.get("hit_circles", []):
+        t_sec = int(pd.Timestamp(hc["time"]).timestamp())
+        hit_circles.append({
+            "time": t_sec,
+            "price": float(hc["price"]),
+            "color": hc["color"],
+        })
+
     return lines, hit_circles
 
 
-def build_signal_markers_payload(df: pd.DataFrame, ma_indicator: Any) -> List[Dict[str, Any]]:
-    """Erzeugt Arrow-Marker für Handelssignale."""
-    if ma_indicator is None or "signal" not in df.columns:
+def build_signal_markers_payload(
+        df: pd.DataFrame,
+        ma_indicator: Optional[Any] = None
+) -> List[Dict[str, Any]]:
+    """Legacy-Fallback: Baut Signal-Marker direkt aus der 'signal'-Spalte."""
+    if ma_indicator is None or df.empty or "signal" not in df.columns:
         return []
 
-    signals = df[df["signal"] != 0]
-    bull_c = getattr(ma_indicator, "bull_color", "#26a69a")
-    bear_c = getattr(ma_indicator, "bear_color", "#ef5350")
-
     markers = []
-    for row in signals.itertuples(index=False):
-        is_buy = (row.signal == 1)
+    signals_df = df[df["signal"] != 0]
+
+    for _, row in signals_df.iterrows():
+        t_sec = int(pd.Timestamp(row["time"]).timestamp())
+        is_buy = (row["signal"] == 1)
         markers.append({
-            "time": int(pd.Timestamp(row.time).timestamp()),
+            "time": t_sec,
             "position": "belowBar" if is_buy else "aboveBar",
-            "color": bull_c if is_buy else bear_c,
+            "color": ma_indicator.bull_color if is_buy else ma_indicator.bear_color,
             "shape": "arrowUp" if is_buy else "arrowDown",
             "size": 1,
         })
+
     return markers
+
+
+# =====================================================================
+# EVENT-BASIERTE BUILDER (Single Source of Truth)
+# =====================================================================
+
+def build_signal_markers_from_events(
+        events: List[SignalEvent],
+        bull_color: str = "#089981",
+        bear_color: str = "#F23645"
+) -> List[Dict[str, Any]]:
+    """Erzeugt Pfeil-Marker direkt aus den normalisierten SignalEvents."""
+    markers = []
+    for e in events:
+        if e.signal_type == "swing_change":
+            is_buy = (e.direction == 1)
+            t_sec = int(pd.Timestamp(e.time).timestamp())
+            markers.append({
+                "time": t_sec,
+                "position": "belowBar" if is_buy else "aboveBar",
+                "color": bull_color if is_buy else bear_color,
+                "shape": "arrowUp" if is_buy else "arrowDown",
+                "size": 1,
+            })
+    return markers
+
+
+def build_hit_circles_from_events(
+        events: List[SignalEvent],
+        time_circle_color: str = "#FFEB3B",
+        circle_color: str = "#FF00FF"
+) -> List[Dict[str, Any]]:
+    """Erzeugt Canvas-Hit-Circles direkt aus den normalisierten Events."""
+    circles = []
+    for e in events:
+        if e.signal_type in ["circle_yellow", "circle_fuchsia"]:
+            color = time_circle_color if e.signal_type == "circle_yellow" else circle_color
+            t_sec = int(pd.Timestamp(e.time).timestamp())
+            circles.append({
+                "time": t_sec,
+                "price": float(e.price),
+                "color": color,
+            })
+    return circles

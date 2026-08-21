@@ -37,6 +37,7 @@ def _():
     import algos.ma_indicator
     import algos.grid_indicator
 
+
     # Erzwingt das Neuladen des Codes von der Festplatte bei jeder Zellenausführung
     # REIHENFOLGE WICHTIG: chart_plugins VOR chart_engine laden,
     # da chart_engine dessen Funktionen beim Reload frisch importiert.
@@ -49,6 +50,7 @@ def _():
     from algos.chart_engine import load_candles, show_chart
     from algos.ma_indicator import MAIndicator
     from algos.grid_indicator import GridIndicator
+    from algos.signal_service import MemorySignalService  # <-- NEU HINZUFÜGEN
 
     # UI-Control: Fenster über die Zeitreihe verschieben
     # Slider GANZ RECHTS = neueste Daten (Offset 0), nach LINKS schieben
@@ -68,6 +70,7 @@ def _():
         DB_MARKET_DATA,
         GridIndicator,
         MAIndicator,
+        MemorySignalService,
         OFFSET_MAX,
         SYMBOL,
         TIMEFRAME,
@@ -129,6 +132,7 @@ def _(
 def _(
     GridIndicator,
     MAIndicator,
+    MemorySignalService,
     SYMBOL,
     TIMEFRAME,
     WARMUP,
@@ -141,18 +145,21 @@ def _(
     # ==========================================
     # 3. INDIKATOREN & SIGNALE + CHART
     # ==========================================
-    df_calc = df_base.copy()
 
-    # 1) MA-Instanz erstellen & berechnen
+    # 1) RAM-Store für die visuelle Session
+    service = MemorySignalService()
+
+    # 2) MA berechnen: liefert das angereicherte DataFrame in ma_res.df
     ma = MAIndicator(
         ma_type="EHMA",
         period=6,
         smoothing=10,
         alpha_factor=3.0,
     )
-    df_calc = ma.apply(df_calc, generate_signals=True)
+    ma_res = ma.compute(df_base, symbol=SYMBOL, timeframe=TIMEFRAME)
+    service.store_result(ma_res)
 
-    # 2) GridIndicator instanziieren
+    # 3) Grid berechnen: nutzt das bereits vom MA angereicherte DataFrame
     grid = GridIndicator({
         "step_size": 0.50,
         "steps_around": 4,
@@ -166,15 +173,18 @@ def _(
         "show_lines": True,
         "show_circles": True,
     })
+    grid_res = grid.compute(ma_res.df, symbol=SYMBOL, timeframe=TIMEFRAME)
+    service.store_result(grid_res)
 
-    # 3. Chart anzeigen (Warmup links abgeschnitten, Fenster komplett sichtbar)
-    #    Slider direkt über der Grafik (UI-Elemente müssen im Output stehen).
+    # df_calc enthält alle Spalten (OHLCV + MA-Werte + Signale)
+    df_calc = grid_res.df
+
+    # 4) Chart anzeigen
     chart = show_chart(
         df=df_calc,
         symbol=SYMBOL,
         timeframe=TIMEFRAME,
-        ma_indicator=ma,
-        grid_indicator=grid,
+        results=[ma_res, grid_res],
         show_day_separators=True,
         show_signals=True,
         min_segment_len=3,
@@ -184,6 +194,7 @@ def _(
         height=550,
         scale_width=55,
     )
+
     mo.vstack([fenster, chart])
     return
 

@@ -28,6 +28,10 @@ def _():
     from signal_lab.naming import build_run_name
     from signal_lab.sweep_runner import run_sweep_sequential
     from signal_lab import sweep_ui
+    # Dev-Reload: der laufende Marimo-Kernel cached importierte Module.
+    # Ohne Reload wuerde eine alte Version (z. B. ohne set_message) verwendet.
+    import importlib
+    sweep_ui = importlib.reload(sweep_ui)
     from algos.signal_service import DuckDBSignalService
 
     DB_MARKET = PROJ_ROOT / "data" / "market_data.duckdb"

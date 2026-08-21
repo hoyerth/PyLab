@@ -43,6 +43,7 @@ def reset(total: int) -> None:
             running=True, done=0, total=int(total), current="",
             cancelled=False, error=None, ids=[], last_summary=None,
             message="", message_kind="",
+            _thread=None,
         )
 
 
@@ -66,6 +67,23 @@ def is_cancelled() -> bool:
         return bool(_state["cancelled"])
 
 
+def set_thread(t) -> None:
+    """Merkt den laufenden Worker-Thread (für is_alive-Check)."""
+    with _lock:
+        _state["_thread"] = t
+
+
+def is_alive() -> bool:
+    """True, wenn der Worker-Thread des Laufs noch lebt.
+
+    Bei True, aber toter Thread, hängt der Zustand (z. B. nach Kernel-
+    Neustart oder Absturz) -> UI kann den Zustand bereinigen.
+    """
+    with _lock:
+        t = _state.get("_thread")
+        return bool(t is not None and t.is_alive())
+
+
 def finish(ids: List[str], summary: Dict[str, Any] = None) -> None:
     """Schließt den Lauf ab (normal oder abgebrochen)."""
     with _lock:
@@ -73,6 +91,7 @@ def finish(ids: List[str], summary: Dict[str, Any] = None) -> None:
         _state["current"] = ""
         _state["ids"] = list(ids)
         _state["last_summary"] = summary
+        _state["_thread"] = None
 
 
 def fail(err: str) -> None:
@@ -81,3 +100,4 @@ def fail(err: str) -> None:
         _state["running"] = False
         _state["current"] = ""
         _state["error"] = str(err)
+        _state["_thread"] = None

@@ -8,6 +8,44 @@ from typing import Any, Dict
 
 STATE_FILE = Path(__file__).resolve().parent.parent / "data" / "ui_state.json"
 
+# ---------------------------------------------------------------------------
+# Lazy-Marimo-States (Singleton ueber Zell-Re-Runs hinweg)
+# ---------------------------------------------------------------------------
+# KRITISCH fuer marimo-Buttons: marimo matcht State-Konsumenten per Objekt-
+# Identitaet (globals[ref] is state). Wuerde die Setup-Zelle (4a) bei jedem
+# Re-Run ein NEUES mo.state() erzeugen, zeigten die Buttons/Closures auf
+# verwaiste State-Objekte -> tote Buttons (Dialog bleibt, Klick bewirkt
+# nichts). Dieses Modul-Singleton garantiert STABILE Objekte ueber alle
+# Zell-Re-Runs (z. B. mehrfacher Lauf der Setup-Zelle beim Notebook-Start).
+_marimo_states: Dict[str, Any] = {}
+
+
+def get_marimo_states() -> Dict[str, Any]:
+    """Liefert die marimo-State-Objekte (einmal erzeugt, danach stabil).
+
+    Aufruf NUR innerhalb einer marimo-Zelle (Kernel-Kontext), da mo.state()
+    und mo.ui.refresh() den Kontext fuer UI-IDs benoetigen. Beim ersten
+    Aufruf werden die Objekte erzeugt und gecacht; jeder weitere Aufruf
+    gibt dieselben Instanzen zurueck.
+    """
+    global _marimo_states
+    if not _marimo_states:
+        import marimo as mo
+
+        go_state, set_go_state = mo.state("idle", allow_self_loops=True)
+        save_msg, set_save_msg = mo.state("", allow_self_loops=False)
+        refresh_ctl = mo.ui.refresh(
+            default_interval="0.5s", label="Live-Aktualisierung (0.5s)"
+        )
+        _marimo_states = {
+            "go_state": go_state,
+            "set_go_state": set_go_state,
+            "save_msg": save_msg,
+            "set_save_msg": set_save_msg,
+            "refresh_ctl": refresh_ctl,
+        }
+    return _marimo_states
+
 
 def default_state() -> Dict[str, Any]:
     """Sinnvolle Defaults für das Signal Lab.

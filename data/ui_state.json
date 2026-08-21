@@ -1,6 +1,6 @@
 {
   "symbols": [
-    "GOLD"
+    "SILVER"
   ],
   "timeframes": [
     "M30"
@@ -24,12 +24,12 @@
     }
   },
   "date_range": {
-    "from": null,
-    "to": null
+    "from": "2026-06-01",
+    "to": "2026-08-20"
   },
-  "run_name_override": "",
+  "run_name_override": "MAINDICATOR_ehma_p04_s06_a2_SILVER_M30_20260821_1608",
   "free_tag": "",
-  "strategy": "grid",
+  "strategy": "Grid (vollständiges Kreuzprodukt)",
   "random_sample": 50,
   "quick_look": {
     "symbol_tf": "SILVER:M30",
@@ -41,16 +41,18 @@
   "htf_small_tf": "M15",
   "htf_exact_time": false,
   "last_sweep": {
-    "timestamp": "2026-08-21T00:00:00",
-    "runs": 75,
-    "runs_db": 75,
-    "events_db": 13447,
+    "timestamp": "2026-08-21T20:00:57",
+    "runs": 2,
+    "runs_db": 5,
+    "events_db": 14545,
     "symbols": [
-      "GOLD"
+      "SILVER"
     ],
     "timeframes": [
       "M30"
     ],
-    "n_params": 75
+    "n_params": 75,
+    "deleted": 0,
+    "cancelled": true
   }
 }

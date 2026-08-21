@@ -28,8 +28,8 @@ Livekurs** genutzt wird.
   funktion erlaubt sind.
 - **Schlanke Notebooks:** Längere Logikzeilen werden in **Python-Dateien im
   Projekt** ausgelagert – mit sinnvollen Ordnern und sprechenden Namen
-  (z. B. `algos/` für Indikatoren, `algos/chart_plugins.py` für Rendering,
-  neu z. B. `signal_lab/` für UI+Orchestrierung). Das Notebook enthält nur
+  (z. B. `../../algos` für Indikatoren, `../../algos/chart_plugins.py` für Rendering,
+  neu z. B. `../../signal_lab` für UI+Orchestrierung). Das Notebook enthält nur
   UI-Definition, Aufrufe und Anzeige – nie die Logik selbst.
 - **Trennung:** Statistik/ML gehört in ein eigenes Notebook – Signal Lab bleibt
   reine Test- und Datenerzeugungs-Plattform.
@@ -86,7 +86,7 @@ Layout von oben nach unten, bewusst ohne Tabellen-Overkill:
 ## 4. Run-Orchestrierung (Logik, noch keine Umsetzung)
 
 Die gesamte Orchestrierung liegt **nicht im Notebook**, sondern in
-Projekt-Modulen (z. B. `signal_lab/`): `run_definition`, `sweep_runner`,
+Projekt-Modulen (z. B. `../../signal_lab`): `run_definition`, `sweep_runner`,
 `naming`, `ui_state` – das Notebook ruft nur noch auf. Die Ausgaben sind
 **von Anfang an VectorBT-kompatibel** (Signalfolgen als `[1, -1, 0]` mit
 UTC-Zeitindex, OHLCV im VectorBT-Format), damit der spätere Backtest-Anschluss
@@ -280,7 +280,7 @@ aussehen.
   - Quick Look: zuletzt eingegebenes `Symbol:TF` + gewählte Overlay-TFs
     (höhere Timeframes, sobald Multi-TF-Overlay existiert)
 - **Speicherung:** bewusst einfach – **eine JSON-Datei im Projekt**
-  (z. B. `data/ui_state.json`). Kein DB-Zugriff, keine Migration, sofort
+  (z. B. `../../data/ui_state.json`). Kein DB-Zugriff, keine Migration, sofort
   einsatzbereit, versionierbar. (Eine DB-Tabelle ist bewusst nicht nötig.)
 - **Verhalten:**
   - Beim Öffnen des Signal Lab werden alle Felder mit dem gespeicherten Stand
@@ -294,7 +294,7 @@ aussehen.
 
 ## 12. Nächste Schritte (Schlagworte, bewusst ohne Anleitung)
 
-Projekt-Struktur (`signal_lab/`-Module) → UI-Zellen (schlank, nur Aufrufe) →
+Projekt-Struktur (`../../signal_lab`-Module) → UI-Zellen (schlank, nur Aufrufe) →
 Run-Zähler (Kombis) → Run-Definition → Orchestrator (Multiprocessing/Chunks) →
 Namensschema → Schema-Migration (run_name, source_tf/signal_time) →
 UI-State-Persistenz (JSON-Datei) → Fortschrittsanzeige → Sicherheitsabfrage →
@@ -318,7 +318,7 @@ Presets/Profile, VectorBT-Backtest-Modul (kommen später).
 > VectorBT-Ranges wurden aus UI und `ui_state` entfernt.
 
 **Fortschritt (Stand 2026-08-21):**
-- Phase 0 ✔ (Bestand, Composite-PK) · Phase 1 ✔ (`signal_lab/`) ·
+- Phase 0 ✔ (Bestand, Composite-PK) · Phase 1 ✔ (`../../signal_lab`) ·
   Phase 2 ✔ (Migration run_name/source_tf/signal_time) ·
   Phase 3 ✔ (UI-State-JSON) · Phase 5 ✔ (Run-Definition/Zähler) ·
   Phase 6 ✔ (Run-Namensschema) · Phase 7 ✔ (Sweep sequenziell + parallel,
@@ -335,7 +335,7 @@ Presets/Profile, VectorBT-Backtest-Modul (kommen später).
   Live-Fortschrittsbalken + aktueller Run-Name über `mo.ui.refresh`,
   Stopp-Button (`cancel_callback` im Runner → bereits persistierte Runs
   bleiben idempotent in der DB, Rest wird verworfen).
-- **Phase 9 ✔ (Quick Look):** `signal_lab/quick_look.py` (Wrapper um
+- **Phase 9 ✔ (Quick Look):** `../../signal_lab/quick_look.py` (Wrapper um
   chart_engine) + Marker-Shapes-Registry in `chart_plugins.py`
   (Signaltyp → Shape/Farbe, TF-Farbpalette, Stacking-Versatz). UI-Zellen:
   `Symbol:TF`-Eingabe, HTF-Overlay-Multiselect (max. 3), Fenster-Slider,
@@ -364,9 +364,9 @@ Nach jedem Schritt: Zwischentest, bevor der nächste beginnt.
 
 ## Phase 0 · Vorbereitung (Bestand prüfen)
 
-1. **Bestand sichten:** `algos/` (base_indicator, signal_events, signal_service,
+1. **Bestand sichten:** `../../algos` (base_indicator, signal_events, signal_service,
    ma_indicator, grid_indicator, chart_engine, chart_plugins), Notebooks
-   `01_Chart_Inspector.py`, `02_signal_lab.py`, Datenbanken in `data/`.
+   `01_Chart_Inspector.py`, `02_signal_lab.py`, Datenbanken in `../../data`.
 2. **Sicherstellen, dass der aktuelle Stand läuft:** `01_Chart_Inspector`
    und `02_signal_lab` importieren ohne Fehler; `analytics_data.duckdb`
    hat das Composite-PK-Schema (`run_id, time, signal_type, price`).
@@ -380,17 +380,17 @@ Nach jedem Schritt: Zwischentest, bevor der nächste beginnt.
 
 ## Phase 1 · Projekt-Struktur für das Signal Lab
 
-1. Neuen Ordner `signal_lab/` im Projekt anlegen.
+1. Neuen Ordner `../../signal_lab` im Projekt anlegen.
 2. Module vorbereiten (zunächst leere Gerüste mit Docstring + Signatur):
    - `signal_lab/__init__.py`
-   - `signal_lab/ui_state.py`        → Persistenz des UI-Stands (JSON)
-   - `signal_lab/run_definition.py`  → Run-Definition aus UI-Auswahl
-   - `signal_lab/naming.py`          → Run-Namensschema (§5)
-   - `signal_lab/sweep_runner.py`    → Orchestrator (sequenziell/parallel)
-   - `signal_lab/quick_look.py`      → Chart-Schnellsicht (Wrapper um chart_engine)
+   - `../../signal_lab/ui_state.py`        → Persistenz des UI-Stands (JSON)
+   - `../../signal_lab/run_definition.py`  → Run-Definition aus UI-Auswahl
+   - `../../signal_lab/naming.py`          → Run-Namensschema (§5)
+   - `../../signal_lab/sweep_runner.py`    → Orchestrator (sequenziell/parallel)
+   - `../../signal_lab/quick_look.py`      → Chart-Schnellsicht (Wrapper um chart_engine)
 3. `sys.path`-Einbindung wie in den bestehenden Notebooks (PROJ_ROOT).
 
-**Regel:** Das Notebook importiert nur aus `signal_lab/` – keine lange Logik
+**Regel:** Das Notebook importiert nur aus `../../signal_lab` – keine lange Logik
 in Zellen.
 
 **Abnahme:** `import signal_lab` funktioniert ohne Fehler (leere Gerüste).
@@ -399,7 +399,7 @@ in Zellen.
 
 ## Phase 2 · Schema-Migration in `analytics_data.duckdb`
 
-1. Migrationsskript ergänzen (z. B. `scripts/migrate_analytics_db.py`):
+1. Migrationsskript ergänzen (z. B. `../../scripts/migrate_analytics_db.py`):
    - `ALTER TABLE indicator_runs ADD COLUMN IF NOT EXISTS run_name VARCHAR;`
    - `ALTER TABLE signal_events ADD COLUMN IF NOT EXISTS source_tf VARCHAR;`
    - `ALTER TABLE signal_events ADD COLUMN IF NOT EXISTS signal_time TIMESTAMPTZ;`
@@ -413,8 +413,8 @@ Spalten; Bestandsdaten sind unverändert.
 
 ## Phase 3 · UI-State-Persistenz (JSON-Datei)
 
-1. In `signal_lab/ui_state.py`:
-   - `load_state() -> dict`  (liest `data/ui_state.json`; leeres dict, wenn Datei fehlt)
+1. In `../../signal_lab/ui_state.py`:
+   - `load_state() -> dict`  (liest `../../data/ui_state.json`; leeres dict, wenn Datei fehlt)
    - `save_state(state: dict)`  (schreibt atomar: erst `.tmp`, dann rename)
    - `default_state()`  (sinnvolle Defaults: z. B. SILVER, M30, MA-Defaults)
 2. Alle UI-Felder, die gemerkt werden sollen (§11):
@@ -431,7 +431,7 @@ Stand vorbelegt. Kein DB-Zugriff, keine Migration.
 
 Neues/Migriertes Notebook `02_signal_lab.py` – Zellen-Aufbau:
 
-1. **Setup-Zelle:** Imports aus `signal_lab/`, Konstanten, `load_state()`.
+1. **Setup-Zelle:** Imports aus `../../signal_lab`, Konstanten, `load_state()`.
 2. **Symbol-Buttons:** Favoriten aus `app_data.broker_symbols` (⭐ zuerst);
    Mehrfachauswahl; onClick → State speichern.
 3. **TF-Buttons:** verfügbare TFs aus `market_data` (vorhandene Kombis);
@@ -445,7 +445,7 @@ Neues/Migriertes Notebook `02_signal_lab.py` – Zellen-Aufbau:
 8. **GO-Button + Run-Zähler:** siehe Phase 5.
 9. **Quick Look:** siehe Phase 9.
 
-**Regel:** Jede Zelle = UI-Element + 1 Aufruf in `signal_lab/`. Keine Logik.
+**Regel:** Jede Zelle = UI-Element + 1 Aufruf in `../../signal_lab`. Keine Logik.
 
 **Abnahme:** Alle UI-Elemente erscheinen; Werte kommen aus dem gespeicherten
 State (Phase 3).
@@ -454,7 +454,7 @@ State (Phase 3).
 
 ## Phase 5 · Run-Definition & Run-Zähler
 
-1. In `signal_lab/run_definition.py`:
+1. In `../../signal_lab/run_definition.py`:
    - `build_run_definition(ui_values) -> RunDefinition`
    - `RunDefinition` (dataclass): Symbole, TFs, Parameter-Raum, Datumsbereich,
      Strategie (grid/random), Sample-Größe bei random.
@@ -472,7 +472,7 @@ State (Phase 3).
 
 ## Phase 6 · Run-Namensschema
 
-1. In `signal_lab/naming.py`:
+1. In `../../signal_lab/naming.py`:
    - `build_run_name(indicator, params, symbol, tf, timestamp) -> str`
    - Format: `{INDIKATOR}_{PARAM-KURZ}_{SYMBOL}_{TF}_{JJJJMMTT}_{HHMM}`
    - Parameter-Kurzform je Indikator fest (MA: `p06_s10_a3.0`)
@@ -488,7 +488,7 @@ haben eindeutige, sortierbare Namen.
 
 ## Phase 7 · Orchestrator (sweep_runner)
 
-1. In `signal_lab/sweep_runner.py`:
+1. In `../../signal_lab/sweep_runner.py`:
    - **sequenziell zuerst** (Basis): `run_sweep_sequential(def, worker) -> list[RunResult]`
      - pro Kombination: Daten laden (geteilter Datensatz cachen), `compute()`,
        Events + run_name/id erzeugen, Ergebnis sammeln
@@ -537,7 +537,7 @@ Fortschritt und kann abbrechen; danach sind nur fertige Runs in der DB.
 2. **Fensterbegrenzung wie Chart Inspector:** `load_candles(...)` mit
    limit (z. B. 1000) + warmup + Slider-Scrolling – **keine 10k-Ansicht**.
 3. **Marker-Shapes-Registry:** zentrales Mapping `Signaltyp → Shape/Farbe`
-   in `algos/` (plot_meta-basiert), gemeinsam genutzt von Chart-Engine und
+   in `../../algos` (plot_meta-basiert), gemeinsam genutzt von Chart-Engine und
    Quick Look: swing_change=▲/▼, circle_yellow/circle_fuchsia=Kreise, ...
 4. **Multi-TF-Overlay:**
    - höhere TFs (max. 3, wählbar) zusätzlich laden (nur Fenster+Warmup)
@@ -564,7 +564,7 @@ die Ansicht; HTF-Signale liegen (genähert) am Auslösezeitpunkt.
    - Richtung als `[1, -1, 0]` (direction)
 2. Kleiner Verifikationstest: Events-Frame → `vbt.Signal.from_signals`
    (oder manuelle Signalfolge) ohne Fehler aufsetzbar.
-3. Ergebnis festhalten (z. B. kurzer Test in `scripts/`), damit der
+3. Ergebnis festhalten (z. B. kurzer Test in `../../scripts`), damit der
    Backtest-Anschluss später ohne Umbau klappt.
 
 **Abnahme:** Die erzeugten Events lassen sich 1:1 als VectorBT-Signal

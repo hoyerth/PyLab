@@ -43,19 +43,25 @@ if (-not $pythonExe -or -not (Test-Path $pythonExe)) {
     Write-Host "[3/8] Python Executable: $pythonExe" -ForegroundColor Green
 }
 
-# 4. marimo starten mit --watch
+# 4. marimo starten (OHNE --watch: der File-Watcher reserialisiert/überschreibt
+#    die Notebook-Datei bei externen Edits - siehe marimo Issue #8421)
 $portActive = (Get-NetTCPConnection -LocalPort $marimoPort -State Listen -ErrorAction SilentlyContinue)
 
 if ($portActive) {
     Write-Host "[4/8] marimo lauscht bereits auf Port $marimoPort." -ForegroundColor Yellow
 } else {
-    Write-Host "[4/8] Starte marimo Prozess mit File-Watcher (--watch)..." -ForegroundColor Green
+    Write-Host "[4/8] Starte marimo Prozess (ohne --watch)..." -ForegroundColor Green
 
     $stdoutLog = "$PSScriptRoot\marimo_stdout.log"
     $stderrLog = "$PSScriptRoot\marimo_stderr.log"
 
-    # CLI-Parameter inklusive --watch für automatisches Neuladen modifizierter .py Dateien
-    $args = "-m marimo edit --watch --host 127.0.0.1 --port $marimoPort --headless --no-token"
+    # KEIN --watch: externe Änderungen an der Notebook-Datei würden sonst beim
+    # nächsten UI-Save überschrieben. Notebook-Datei nur im marimo-Editor oder
+    # per Skript ändern, dann Server neu starten. Logik-Änderungen in
+    # signal_lab/*.py werden via auto_reload ("autorun" in .marimo.toml)
+    # automatisch übernommen. Autosave ist OFF (.marimo.toml [save]) -> der
+    # Browser schreibt nur bei manuellem Ctrl+S.
+    $args = "-m marimo edit --host 127.0.0.1 --port $marimoPort --headless --no-token"
 
     $proc = Start-Process -FilePath $pythonExe `
                           -ArgumentList $args `
@@ -160,7 +166,9 @@ for ($i = 0; $i -lt 15; $i++) {
 }
 
 if ($foundWindow) {
-    Write-Host "Fertig! marimo läuft auf Monitor 1 mit Auto-Reload (--watch)." -ForegroundColor Cyan
+    Write-Host "Fertig! marimo läuft auf Monitor 1 (ohne --watch, Modul-Autoreload aktiv)." -ForegroundColor Cyan
+    Write-Host "      TIPP: Notebook-Datei extern ändern -> Server neu starten (stop_marimo.ps1 + start_marimo.ps1)" -ForegroundColor DarkGray
+    Write-Host "      Logik in signal_lab/*.py wird automatisch nachgeladen (auto_reload=autorun)." -ForegroundColor DarkGray
 } else {
     Write-Host "Fenster konnte nicht automatisch platziert werden (Browser läuft trotzdem)." -ForegroundColor Yellow
 }

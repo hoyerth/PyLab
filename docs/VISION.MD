@@ -145,6 +145,7 @@ Die Architektur trennt UI-Definitionen strikt von der Berechnungs- und Ausführu
 
 ## 7. Vision BacktestLab 
 
+- **Aufräumen und Optimieren:** Alles Vektorisiert?  Logik in externe py Dateien;  UI kompakt zusammen
 - **Equity-Curve on the fly:** Spaeter beliebige Trading-Runs zur Ansicht
   auswaehlen. Die Equity-Curve wird **als eigener, leichter Algo** nach dem
   Run berechnet (cumsum der Trade-PnL) - technisch sauber, da nur Trades
@@ -164,3 +165,6 @@ Die Architektur trennt UI-Definitionen strikt von der Berechnungs- und Ausführu
 - **Position Stacking, Trailing-Stops.**
 - **Extern in Python definierte Bedingungen** fuer Entry/Exit.
 - **Sets/Profile:** Speichern aller Parameter als benannte Profile.
+
+# 8 Offene Punkte
+- PushMode: Indikator-Einstellung per Button durch SignalLab und BacktestLab schicken und gleich die EquityCurce sehen

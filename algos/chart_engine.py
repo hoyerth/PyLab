@@ -188,8 +188,14 @@ def show_chart(
             ma_lines.extend(build_ma_lines_from_result(df, mp, min_segment_len))
         # Marker/Circles mit den konfigurierten Farben aus den Results
         ma_colors = ma_plot_metas[0] if ma_plot_metas else {}
+        # Grid-Hits (circle_yellow/circle_fuchsia) werden NICHT als native
+        # Marker gerendert (diese hängen an der Bar-Position statt am Preis).
+        # Sie erscheinen ausschließlich als Canvas-Kreise exakt auf den
+        # Grid-Leveln. Native Marker bleiben den Pfeil-Signalen vorbehalten.
+        arrow_events = [e for e in all_events
+                        if e.signal_type not in ("circle_yellow", "circle_fuchsia")]
         markers = build_signal_markers_from_events(
-            all_events,
+            arrow_events,
             bull_color=ma_colors.get("bull_color", "#089981"),
             bear_color=ma_colors.get("bear_color", "#F23645"),
         ) if show_signals else []
@@ -206,6 +212,26 @@ def show_chart(
 
     markers = [m for m in markers if m["time"] >= t_first]
     hit_circles = [c for c in hit_circles if c["time"] >= t_first]
+
+    # Mittlerer Bar-Abstand (Sekunden) für zusammenhängende Hit-Circle-Verläufe
+    candle_times_sec = [c["time"] for c in candles]
+    _diffs = [b - a for a, b in zip(candle_times_sec, candle_times_sec[1:])]
+    bar_spacing = int(sorted(_diffs)[len(_diffs) // 2]) if _diffs else 1800
+
+    # Pfeil-Marker auf den Ausführungszeitpunkt verschieben (Open der Folge-Bar T+1):
+    # Timing-Modell „Signal bei Bar-Close T -> Entry am Open von Bar T+1".
+    # Der Pfeil markiert damit den Einstiegspunkt und ist direkt verifizierbar.
+    if markers and candles:
+        time_to_idx = {t: i for i, t in enumerate(candle_times_sec)}
+        shifted = []
+        for m in markers:
+            i = time_to_idx.get(m["time"])
+            if i is not None and i + 1 < len(candle_times_sec):
+                m = dict(m)
+                m["time"] = candle_times_sec[i + 1]
+                shifted.append(m)
+        markers = shifted
+
     from_time = candles[-visible_bars]["time"] if len(candles) > visible_bars else t_first
 
     # (Restlicher HTML/Canvas-Rendering-Code bleibt exakt unverändert)
@@ -271,6 +297,7 @@ def show_chart(
         const gridLines = {json.dumps(grid_lines)};
         const daySeparators = {json.dumps(day_separators)};
         const hitCircles = {json.dumps(hit_circles)};
+        const barSpacing = {bar_spacing};
         let isRenderPending = false;
 
         function renderOverlay() {{
@@ -341,14 +368,43 @@ def show_chart(
                 if (penDown) ctx.stroke();
             }}
 
-            // 4) Hit-Circles
+            // 4) Hit-Circles: kleine Proximity-Kreise exakt auf den Grid-Leveln.
+            //    Aufeinanderfolgende Bars auf demselben Level werden zu einer
+            //    durchgehenden Linie verbunden („durchgehende/berührende Bars");
+            //    Lücken (z. B. Wochenende) brechen die Linie.
+            const maxHitGap = barSpacing * 1.5;
+            const hitsByPrice = {{}};
             for (const pt of hitCircles) {{
                 const x = timeScale.timeToCoordinate(pt.time);
                 const y = candleSeries.priceToCoordinate(pt.price);
                 if (x !== null && y !== null && x >= 0 && x <= w && y >= 0 && y <= h) {{
+                    const key = String(pt.price);
+                    (hitsByPrice[key] = hitsByPrice[key] || []).push({{time: pt.time, x: x, y: y, color: pt.color}});
+                }}
+            }}
+            for (const key in hitsByPrice) {{
+                const pts = hitsByPrice[key].sort((a, b) => a.time - b.time);
+                ctx.lineWidth = 1.5;
+                ctx.strokeStyle = pts[0].color;
+                ctx.globalAlpha = 0.55;
+                ctx.beginPath();
+                for (let i = 0; i < pts.length; i++) {{
+                    if (i === 0) {{
+                        ctx.moveTo(pts[i].x, pts[i].y);
+                    }} else if (pts[i].time - pts[i - 1].time <= maxHitGap) {{
+                        ctx.lineTo(pts[i].x, pts[i].y);
+                    }} else {{
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.moveTo(pts[i].x, pts[i].y);
+                    }}
+                }}
+                ctx.stroke();
+                ctx.globalAlpha = 1.0;
+                for (const p of pts) {{
                     ctx.beginPath();
-                    ctx.arc(x, y, 4, 0, Math.PI * 2);
-                    ctx.fillStyle = pt.color;
+                    ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color;
                     ctx.fill();
                     ctx.lineWidth = 1.2;
                     ctx.strokeStyle = '#060B14';

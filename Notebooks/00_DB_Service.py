@@ -72,17 +72,29 @@ def _(DB_APP_DATA, close_conn, open_conn):
     # ==========================================
     # 1 · SYMBOL-FUNKTIONEN (app_data.duckdb)
     # ==========================================
+    def ensure_broker_symbols_schema(con):
+        """Idempotente Migration: broker_symbols um point (DOUBLE) + digits (INTEGER) ergaenzen.
+
+        DuckDB: `ADD COLUMN IF NOT EXISTS` ist idempotent - funktioniert auf
+        Bestands-DBs (640 Zeilen) wie auf frischen, ohne Rebuild.
+        """
+        con.execute("ALTER TABLE broker_symbols ADD COLUMN IF NOT EXISTS point DOUBLE")
+        con.execute("ALTER TABLE broker_symbols ADD COLUMN IF NOT EXISTS digits INTEGER")
+
     def get_symbols_data():
         con = open_conn(DB_APP_DATA, read_only=True)
         try:
             rows = con.execute(
-                "SELECT symbol, path, is_favorite FROM broker_symbols ORDER BY symbol ASC"
+                "SELECT symbol, path, is_favorite, point, digits "
+                "FROM broker_symbols ORDER BY symbol ASC"
             ).fetchall()
             return [
                 {
                     "symbol": str(r[0]),
                     "path": str(r[1]) if r[1] else "",
                     "is_favorite": bool(r[2]),
+                    "point": float(r[3]) if r[3] is not None else None,
+                    "digits": int(r[4]) if r[4] is not None else None,
                 }
                 for r in rows
             ]
@@ -103,6 +115,7 @@ def _(DB_APP_DATA, close_conn, open_conn):
         """Setzt das Favoriten-Flag eines Symbols (True=⭐, False=kein Favorit)."""
         con = open_conn(DB_APP_DATA)
         try:
+            ensure_broker_symbols_schema(con)
             con.execute(
                 """
                 INSERT INTO broker_symbols (symbol, path, is_favorite)
@@ -136,14 +149,20 @@ def _(DB_APP_DATA, close_conn, open_conn):
                 return {"ok": False, "msg": "MT5 liefert keine Symbole. Nutze DB-Stand."}
             con = open_conn(DB_APP_DATA)
             try:
+                ensure_broker_symbols_schema(con)
                 for s in symbols:
                     con.execute(
                         """
-                        INSERT INTO broker_symbols (symbol, path, is_favorite)
-                        VALUES (?, ?, FALSE)
-                        ON CONFLICT (symbol) DO UPDATE SET path = EXCLUDED.path, updated_at = now()
+                        INSERT INTO broker_symbols (symbol, path, is_favorite, point, digits)
+                        VALUES (?, ?, FALSE, ?, ?)
+                        ON CONFLICT (symbol) DO UPDATE SET
+                            path = EXCLUDED.path,
+                            point = EXCLUDED.point,
+                            digits = EXCLUDED.digits,
+                            updated_at = now()
                         """,
-                        [s.name, getattr(s, "path", "")],
+                        [s.name, getattr(s, "path", ""),
+                         getattr(s, "point", None), getattr(s, "digits", None)],
                     )
             finally:
                 close_conn(con)
@@ -155,6 +174,7 @@ def _(DB_APP_DATA, close_conn, open_conn):
                 pass
 
     return (
+        ensure_broker_symbols_schema,
         get_favorite_symbols,
         get_symbols_data,
         set_favorite,

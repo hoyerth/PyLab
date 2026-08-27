@@ -3,8 +3,9 @@
     "SILVER"
   ],
   "timeframes": [
-    "M30"
+    "M1"
   ],
+  "active_indicator": "JumpIndicator",
   "ma": {
     "ma_type": "EHMA",
     "period": {
@@ -23,36 +24,42 @@
       "max": 4.0
     }
   },
+  "jump": {
+    "grid_interval": 0.5,
+    "atr_period": {
+      "min": 60,
+      "step": 1,
+      "max": 60
+    },
+    "vol_sma_period": 20
+  },
   "date_range": {
     "from": "2026-06-01",
     "to": "2026-08-20"
   },
-  "run_name_override": "MAINDICATOR_ehma_p04_s06_a2_SILVER_M30_20260821_1608",
+  "run_name_override": "JUMPINDICATOR_jump_g0.5_atr60_SILVER_M1_20260827_1105",
   "free_tag": "",
   "strategy": "Grid (vollständiges Kreuzprodukt)",
   "random_sample": 50,
   "quick_look": {
-    "symbol_tf": "SILVER:M30",
-    "overlay_tfs": [
-      "H1",
-      "H4"
-    ]
+    "symbol_tf": "SILVER:M1",
+    "overlay_tfs": []
   },
   "htf_small_tf": "M15",
   "htf_exact_time": false,
   "last_sweep": {
-    "timestamp": "2026-08-22T20:38:35",
+    "timestamp": "2026-08-27T12:42:11",
     "runs": 1,
-    "runs_db": 4,
-    "events_db": 14256,
+    "runs_db": 30,
+    "events_db": 75335,
     "symbols": [
       "SILVER"
     ],
     "timeframes": [
-      "M30"
+      "M1"
     ],
-    "n_params": 75,
-    "deleted": 21,
-    "cancelled": true
+    "n_params": 1,
+    "deleted": 1,
+    "cancelled": false
   }
 }

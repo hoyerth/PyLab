@@ -55,7 +55,7 @@ Schritt-fuer-Schritt-Anleitung umgesetzt:
    Zeitstempel im Namen): `MAX(created_at)`.
 
 7. **Engine-Entscheidung (2-stufig, per Smoke-Test):**
-   - Stufe A: `vectorbt 1.1.0` in `test/test.py` verifizieren
+   - Stufe A: `vectorbt 1.1.0` in `../../test/test.py` verifizieren
      (Kompatibilitaet mit pandas 3.0.5 / numpy 2.5.2 ist NICHT
      garantiert). Eingesetzt: `Portfolio.from_signals` mit getrennten
      Arrays `entries` / `short_entries` (Long/Short) sowie `sl_stop`,
@@ -69,7 +69,7 @@ Schritt-fuer-Schritt-Anleitung umgesetzt:
 ### ERGEBNIS ENGINE-SMOKE-TEST (2026-08-22): STUFE A GEWAEHLT
 
 `vectorbt 1.1.0` laeuft stabil mit pandas 3.0.5 / numpy 2.5.2. Alle 5
-Smoke-Tests in `test/test.py` (`test_vectorbt_smoke`) sind gruen. Die
+Smoke-Tests in `../../test/test.py` (`test_vectorbt_smoke`) sind gruen. Die
 eigene numpy-Engine (Stufe B) wird NICHT benoetigt.
 
 **API-Erkenntnisse v1.1.0 (verbindlich fuer `runner.py`):**
@@ -225,10 +225,10 @@ Multi-Signal-Entries.
 - **Komplexitaets-Anzeige vor dem Lauf:** Anzahl Runs + RAM-Verbrauch.
   Ablehnung (Button ausgrauen + Meldung), wenn Ressourcen nicht ausreichen.
 - **Persistenz:** aktuelles Parameter-Set als JSON (Auto oder per Button),
-  eigene Datei `data/backtest_ui_state.json` (analog Signal Lab).
+  eigene Datei `../../data/backtest_ui_state.json` (analog Signal Lab).
   Auch der Datumsbereich wird mitpersistiert.
 - **Button-/State-Pattern:** exakt wie im gefixten Signal Lab
-  (Modul-Singleton-States in `backtest_lab/`, exportierte Buttons,
+  (Modul-Singleton-States in `../../backtest_lab`, exportierte Buttons,
   `return btn_confirm, btn_cancel`, weakref-sicher). Kein erneutes
   stundenlanges Bugfixing.
 
@@ -388,7 +388,7 @@ Hinweis: R-Multiple-Definition ist geklaert (siehe Abschnitt A, Punkt 3):
 
 ## 9. Naechste Schritte (Schlagworte)
 
-Projekt-Struktur `backtest_lab/` (Module analog Signal Lab) -> DB-Schema
+Projekt-Struktur `../../backtest_lab` (Module analog Signal Lab) -> DB-Schema
 Migration `backtest_data.duckdb` (backtest_runs + backtest_trades) ->
 UI-Zellen (schlank) -> Run-Auswahl (letzter Lauf) -> Order-Parameter ->
 Komplexitaets-/RAM-Schaetzung (JSON-Schwellwert) -> Backtest-Runner
@@ -413,9 +413,9 @@ Die folgenden Schritte bauen aufeinander auf. Reihenfolge einhalten –
 jeder Schritt liefert die Grundlage fuer den naechsten. Analogien zum
 bereits gefixten Signal Lab (`02_Signal_Lab.py`) sind gekennzeichnet.
 
-## Schritt 1: Projekt-Struktur `backtest_lab/` anlegen
+## Schritt 1: Projekt-Struktur `../../backtest_lab` anlegen
 
-- Modul-Paket `backtest_lab/` im Projekt erstellen (analog `signal_lab/`).
+- Modul-Paket `../../backtest_lab` im Projekt erstellen (analog `../../signal_lab`).
 - Geplante Module:
   - `types.py` – Dataclasses (`BacktestRunRecord`, `OrderConfig`, ...)
   - `db.py` – DuckDB-Zugriff (read-only auf `market_data` / `analytics_data`, write auf `backtest_data`)
@@ -438,7 +438,7 @@ bereits gefixten Signal Lab (`02_Signal_Lab.py`) sind gekennzeichnet.
   ohne fixen SL: `NULL`.
 - `run_id` = deterministischer SHA-256-Hash (`run_id_from_config`),
   `params_json` vom Typ JSON.
-- Verifikation: DB-Test in `test/test.py` – Tabellen anlegen, INSERT + SELECT pruefen.
+- Verifikation: DB-Test in `../../test/test.py` – Tabellen anlegen, INSERT + SELECT pruefen.
 
 ## Schritt 3: Read-only-Anbindung an die Quell-DBs
 
@@ -446,12 +446,12 @@ bereits gefixten Signal Lab (`02_Signal_Lab.py`) sind gekennzeichnet.
 - `analytics_data.duckdb` (read-only): Signal-Events lesen
   (`run_id`, `symbol`, `tf`, `timestamp`, `direction`).
 - Verbindungen bewusst **read-only** oeffnen (kein Schreibzugriff).
-- Verifikation: Lese-Test in `test/test.py` – Signal-Events eines Runs
+- Verifikation: Lese-Test in `../../test/test.py` – Signal-Events eines Runs
   laden und Richtung (`+1`/`-1`) prüfen.
 
 ### ERGEBNIS SCHRITT 3 (2026-08-22): UMGESETZT + VERIFIZIERT
 
-Funktionen in `backtest_lab/db.py` (alle read-only):
+Funktionen in `../../backtest_lab/db.py` (alle read-only):
 - `connect_market()` / `connect_analytics()` – read-only-Connections
 - `load_ohlcv(symbol, timeframe, date_from, date_to, limit)` –
   OHLCV + `spread`, optional Datumsfilter
@@ -486,7 +486,7 @@ Verifikation (`test_read_only_sources`, gruen):
 
 ### ERGEBNIS SCHRITT 4 (2026-08-22): UMGESETZT + VERIFIZIERT
 
-Funktionen (in `backtest_lab/db.py`, read-only):
+Funktionen (in `../../backtest_lab/db.py`, read-only):
 - `extract_run_timestamp(run_name)` – parst den Lauf-Zeitstempel
   `_JJJJMMTT_HHMM` aus dem Signal-Lab-Run-Namen (letztes Vorkommen, auch
   hinter freiem Tag, z. B. `..._20260821_1436_p11-htf`); `None` bei
@@ -499,14 +499,14 @@ Funktionen (in `backtest_lab/db.py`, read-only):
   liefert NUR die Runs des letzten Lauf-Batches (gleicher maximaler
   effektiver Zeitstempel), keine Historie.
 
-UI (in `backtest_lab/ui.py`):
+UI (in `../../backtest_lab/ui.py`):
 - `render_run_selection(runs_df, initial_selection, page_size, label)` –
   marimo-Checkbox-Tabelle (`mo.ui.table`, `selection="multi"`): Checkbox
   am Zeilenanfang, Mehrfachauswahl. `run_id` ist versteckt
   (`hidden_columns`), bleibt aber im `.value` erhalten.
 - `selected_run_ids(table)` – extrahiert die gewaehlten `run_id`s.
 
-Verifikation (`test_last_signal_runs` in `test/test.py`, gruen):
+Verifikation (`test_last_signal_runs` in `../../test/test.py`, gruen):
 - `extract_run_timestamp`: mit/ohne free_tag, Override, None, ""
 - echte analytics_data: nur der letzte Batch (neuester Name-Ts) wird
   geliefert (SILVER/M30-Lauf `..._20260821_1608`), keine Historie
@@ -532,7 +532,7 @@ Verifikation (`test_last_signal_runs` in `test/test.py`, gruen):
 - Schwellwert / RAM-Schaetzung als JSON konfigurierbar.
 - Schaetzung = volles Parameter-Kreuzprodukt (realistisch).
 - Persistenz: Parameter-Set als JSON (Auto oder per Button) in
-  `data/backtest_ui_state.json`, inkl. Datumsbereich.
+  `../../data/backtest_ui_state.json`, inkl. Datumsbereich.
 - Button-/State-Pattern exakt wie im gefixten Signal Lab
   (Modul-Singleton-States, exportierte Buttons, `return btn_confirm, btn_cancel`,
   weakref-sicher, Session-ID, CRLF).
@@ -541,15 +541,15 @@ Verifikation (`test_last_signal_runs` in `test/test.py`, gruen):
 
 Neue Module/Funktionen:
 
-- **`backtest_lab/ui_state.py`** (analog `signal_lab/ui_state.py`):
+- **`../../backtest_lab/ui_state.py`** (analog `../../signal_lab/ui_state.py`):
   - `default_state()` – Order-Parameter (spread 0.05 %, SL 2 %, TP 4 %,
     Size 1 %) + `date_range` + Run-Namen-Felder.
   - `load_state()` / `save_state()` – atomarer Save (tmp + rename) nach
-    `data/backtest_ui_state.json`, Fallback auf Defaults bei
+    `../../data/backtest_ui_state.json`, Fallback auf Defaults bei
     fehlender/defekter Datei.
   - `get_marimo_states()` – Modul-Singleton (go_state, save_msg,
     refresh_ctl) stabil ueber Zell-Re-Runs (Signal-Lab-Fix-Pattern).
-- **`backtest_lab/complexity.py`** (RAM-Schaetzung, JSON-Schwellwert):
+- **`../../backtest_lab/complexity.py`** (RAM-Schaetzung, JSON-Schwellwert):
   - `DEFAULT_CONFIG` / `load_complexity_config()` / `save_complexity_config()`
     – `data/backtest_complexity.json`: `max_ram_mb` (4096), `max_runs`
     (10000), `warn_ram_mb` (2048), `est_bytes_per_bar` (200),
@@ -560,17 +560,17 @@ Neue Module/Funktionen:
     RAM total/per-Run, `ok`, blockierende `reasons` + nicht-blockierende
     `warnings`.
   - `go_allowed()` – True nur bei `ok` (GO-Button ausgrauen).
-- **`backtest_lab/db.py`** (read-only, Schritt-5-Ergaenzung):
+- **`../../backtest_lab/db.py`** (read-only, Schritt-5-Ergaenzung):
   - `count_bars(symbol, tf, date_from, date_to)` – COUNT mit demselben
     naive-UTC-Datumsfilter wie `load_ohlcv` (Wanduhr-Garantie).
   - `available_date_range()` – min/max der OHLCV-Zeitachse (naive UTC)
     als Grenzen der Kalender-Picker.
-- **`backtest_lab/types.py`**:
+- **`../../backtest_lab/types.py`**:
   - `make_order_config()` – validierte `OrderConfig` aus UI-Werten
     (Spread 0..10 %, SL/TP > 0 oder None, Size 0..100 %); `ValueError`
     statt stiller Fehlschlag.
   - `order_params_json()` – `params_json` fuer `backtest_runs`.
-- **`backtest_lab/ui.py`** (Schritt-5-Ergaenzung):
+- **`../../backtest_lab/ui.py`** (Schritt-5-Ergaenzung):
   - `render_order_params(defaults, date_min, date_max)` – `OrderParamsUI`
     mit `mo.ui.number/switch/date/text` (Spread, SL/TP-Switch+Zahl,
     Position-Sizing, Kalender-Picker + manuelle JJJJ-MM-TT-Eingabe).
@@ -579,16 +579,16 @@ Neue Module/Funktionen:
   - `render_complexity(report, config)` – Anzeige Anzahl Runs + RAM,
     Warn-/Ablehnungs-Meldungen vor dem Lauf.
 
-Verifikation (gruen, in `test/test.py`):
+Verifikation (gruen, in `../../test/test.py`):
 
 - `test_complexity_estimation`:
   - `count_bars("GOLD","M30", Jan 2024)` = 962 (identisch zu `load_ohlcv`)
   - `bar_counts_for(["SILVER","GOLD"],["M30"])` -> nur vorhandene Kombis
   - RAM-Formel, n_runs-Limit-Ablehnung, RAM-Limit-Ablehnung,
     Warnschwelle (nicht blockierend), `go_allowed(None)=False`
-  - Komplexitaets-Config JSON round-trip + Fallback (in `test/`)
+  - Komplexitaets-Config JSON round-trip + Fallback (in `../../test`)
 - `test_backtest_ui_state`:
-  - Defaults, save/load round-trip in `test/`, defekte Datei -> Fallback
+  - Defaults, save/load round-trip in `../../test`, defekte Datei -> Fallback
   - `make_order_config`: gueltig + 5 ungueltige Faelle abgelehnt
   - `order_params_json` Serialisierung
 - Regression gruen: `test_last_signal_runs`, `test_backtest_schema`,
@@ -629,12 +629,12 @@ Verifikation (gruen, in `test/test.py`):
   Equity-Curve-Berechnung und Statistik).
 - Bewusst NICHT in v1: Trailing-Stop, Breakeven, ATR, Max-Holding-Time,
   dynamischer Spread, Multi-Signal-Entries, Equity-Kurven in der DB.
-- Verifikation: Logik-Test in `test/test.py` mit kleinem Datensatz –
+- Verifikation: Logik-Test in `../../test/test.py` mit kleinem Datensatz –
   Entry/Exit-Preise, PnL und Metriken plausibel pruefen.
 
 ### ERGEBNIS SCHRITT 6 (2026-08-22): UMGESETZT + VERIFIZIERT
 
-Modul **`backtest_lab/runner.py`** (Engine: vectorbt 1.1.0, Stufe A):
+Modul **`../../backtest_lab/runner.py`** (Engine: vectorbt 1.1.0, Stufe A):
 
 - `_build_signal_arrays()` – Signal-Events auf Bar-Indizes gemappt und um
   1 Bar geshiftet (Signal Bar T -> Entry am Open von T+1, lookahead-frei).
@@ -665,10 +665,10 @@ Standalone-Smoke-Test (`test/_smoke_runner.py`) steht hinter
 `if __name__ == "__main__":`. Ohne diesen Guard wuerde jeder spawn-Worker
 das Hauptmodul neu importieren und erneut `run_backtests_parallel`
 starten -> rekursives Spawnen / Endlos-Loop. Die Regression ist in
-`test/test.py` (`test_backtest_runner`) integriert.
+`../../test/test.py` (`test_backtest_runner`) integriert.
 
-Verifikation (`test_backtest_runner` in `test/test.py`, gruen):
-- synthetische DBs in `test/` (12 M30-Bars SILVER + 4 Swing-Change-Signale)
+Verifikation (`test_backtest_runner` in `../../test/test.py`, gruen):
+- synthetische DBs in `../../test` (12 M30-Bars SILVER + 4 Swing-Change-Signale)
 - 3 geschlossene Trades mit exakten Entry/Exit-Preisen geprueft:
   - Long Entry Open Bar1=101 (inkl. Slippage 101.00505), Reversal-Exit
     Open Bar4=99.995
@@ -701,7 +701,7 @@ Verifikation (`test_backtest_runner` in `test/test.py`, gruen):
 
 ### ERGEBNIS SCHRITT 7 (2026-08-22): UMGESETZT + VERIFIZIERT
 
-Modul **`backtest_lab/naming.py`**:
+Modul **`../../backtest_lab/naming.py`**:
 
 - `_fmt_pct(pct)` – kompakte Prozentdarstellung via `:g` (2.0 -> "2",
   2.5 -> "2.5"); `None` -> "x" (kein fixer SL/TP).
@@ -716,7 +716,7 @@ Modul **`backtest_lab/naming.py`**:
 Banker's Rounding (`round(0.5)` -> 0). Fix: round-half-up
 `int(spread_pct*100 + 0.5)` – `0.005 %` ergibt jetzt `sp001` statt `sp000`.
 
-Verifikation (`test_backtest_naming` in `test/test.py`, gruen):
+Verifikation (`test_backtest_naming` in `../../test/test.py`, gruen):
 - Standard: `BT_sp005_sl2_tp4_sz1_20260821_2030` exakt
 - Spread-Rundung: `0.1`->`sp010`, `0.005`->`sp001` (round-half-up)
 - `None`-SL/TP -> `slx`/`tpx`
@@ -737,7 +737,7 @@ Verifikation (`test_backtest_naming` in `test/test.py`, gruen):
 
 ### ERGEBNIS SCHRITT 8 (2026-08-22): UMGESETZT (Notebook erstellt, Verifikation statisch/Backend)
 
-Neues Modul **`backtest_lab/run_ui.py`** (analog `signal_lab/sweep_ui.py`):
+Neues Modul **`../../backtest_lab/run_ui.py`** (analog `../../signal_lab/sweep_ui.py`):
 - Modul-Singleton `_state` (thread-sicher, `threading.Lock`) als Single
   Source of Truth fuer Fortschritt + Abbruch:
   `get_state()`, `reset(total)`, `progress(done,total,current)`,
@@ -746,7 +746,7 @@ Neues Modul **`backtest_lab/run_ui.py`** (analog `signal_lab/sweep_ui.py`):
 - Das Notebook nutzt es als `progress_callback`/`cancel_callback` des
   Runners und pollt den Zustand ueber `mo.ui.refresh` (0.5s).
 
-Notebook **`Notebooks/03_Backtest_Lab.py`** (7 Zellen, `marimo check` gruen):
+Notebook **`../../Notebooks/03_Backtest_Lab.py`** (7 Zellen, `marimo check` gruen):
 1. Setup (Modul-Importe inkl. `importlib.reload`, State, Datumsspanne,
    Komplexitaets-Config)
 2. **Run-Auswahl** – `render_run_selection` (Checkbox-Tabelle, nur letzter

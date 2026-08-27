@@ -1,6 +1,5 @@
-# algos/chart_engine.py
-"""
-Zentrales Rendering- und Chart-Engine-Modul für Lightweight Charts.
+"""Zentrales Rendering- und Chart-Engine-Modul für Lightweight Charts.
+
 Pfad: algos/chart_engine.py
 """
 
@@ -11,39 +10,37 @@ import duckdb
 import marimo as mo
 import pandas as pd
 
-from algos.grid_indicator import GridIndicator
-from algos.ma_indicator import MAIndicator
 from algos.chart_plugins import (
     build_candles_payload,
     build_day_separators_payload,
     build_grid_payload,
-    build_ma_lines_payload,
-    build_ma_lines_from_result,
-    build_signal_markers_payload,
-    build_signal_markers_from_events,
     build_hit_circles_from_events,
+    build_ma_lines_from_result,
+    build_ma_lines_payload,
+    build_signal_markers_from_events,
+    build_signal_markers_payload,
 )
-from algos.signal_events import IndicatorResult
-
+from algos.grid_indicator import GridIndicator
+from algos.ma_indicator import MAIndicator
+from algos.signal_events import IndicatorResult, SignalEvent
 
 __all__ = ["load_candles", "show_chart"]
 
-DEFAULT_DB_PATH = Path(__file__).resolve().parent.parent / "data" / "market_data.duckdb"
+DEFAULT_DB_PATH = (
+    Path(__file__).resolve().parent.parent / "data" / "market_data.duckdb"
+)
 
-# Lokale Kopie der Lightweight-Charts-Standalone-Library (Offline-Fähigkeit).
-# Pfad: js/lightweight-charts.standalone.production.js (Version 4.1.3)
-LIGHTWEIGHT_CHARTS_PATH = Path(__file__).resolve().parent.parent / "js" / "lightweight-charts.standalone.production.js"
+LIGHTWEIGHT_CHARTS_PATH = (
+    Path(__file__).resolve().parent.parent
+    / "js"
+    / "lightweight-charts.standalone.production.js"
+)
 CDN_SCRIPT_URL = "https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"
 _cached_lwc_js: Optional[str] = None
 
 
 def _load_lightweight_charts_script() -> str:
-    """Liefert das Lightweight-Charts-Script-Tag.
-
-    Bevorzugt wird die lokale Datei inline eingebettet (offline-fähig, kein
-    CDN-Zugriff nötig). Ist sie nicht vorhanden, fällt der Code auf das CDN
-    zurück. Das Ergebnis wird pro Prozess gecacht.
-    """
+    """Liefert das Lightweight-Charts-Script-Tag."""
     global _cached_lwc_js
     if _cached_lwc_js is not None:
         return _cached_lwc_js
@@ -52,8 +49,6 @@ def _load_lightweight_charts_script() -> str:
     if LIGHTWEIGHT_CHARTS_PATH.is_file():
         try:
             js = LIGHTWEIGHT_CHARTS_PATH.read_text(encoding="utf-8")
-            # '</script' innerhalb des JS sicher escapen (kommt im Minified-Code
-            # üblicherweise nicht vor, schützt aber gegen HTML-Tag-Injection).
             js = js.replace("</script", r"<\/script")
             script_tag = f"<script>{js}</script>"
         except OSError:
@@ -75,19 +70,7 @@ def load_candles(
     end_offset_bars: int = 0,
     warmup_bars: int = 0,
 ) -> pd.DataFrame:
-    """Lädt historische OHLCV-Kerzen aus der DuckDB-Datenbank.
-
-    limit:            Größe des sichtbaren Fensters (Kerzen).
-    end_offset_bars:  Abstand des Fenster-Endes vom neuesten Datum in Kerzen
-                      (0 = rechteste/neueste Kante). Erlaubt das „Scrollen"
-                      in die Vergangenheit.
-    warmup_bars:      Zusätzliche ältere Kerzen vor dem Fenster (MA-Warmup).
-                      Die ersten `warmup_bars` Zeilen des Ergebnisses sind
-                      Warmup und werden im Chart nicht angezeigt.
-
-    Rückgabe: DataFrame (aufsteigend sortiert) mit maximal
-    `limit + warmup_bars` Zeilen (weniger, wenn die DB nicht genug Daten hat).
-    """
+    """Lädt historische OHLCV-Kerzen aus der DuckDB-Datenbank."""
     fetch_limit = int(limit) + int(end_offset_bars) + int(warmup_bars)
     query = f"""
         SELECT "time", open, high, low, close, tick_volume AS volume
@@ -113,7 +96,9 @@ def load_candles(
             con.close()
 
     if df.empty:
-        return pd.DataFrame(columns=["time", "open", "high", "low", "close", "volume"])
+        return pd.DataFrame(
+            columns=["time", "open", "high", "low", "close", "volume"]
+        )
 
     df["time"] = df["time"].dt.tz_localize(None)
     if tz_offset_hours != 0:
@@ -123,8 +108,6 @@ def load_candles(
     for col in ["open", "high", "low", "close", "volume"]:
         df[col] = df[col].astype("float64")
 
-    # Fenster-Logik: Offset vom rechten Rand abziehen, dann nur
-    # `limit + warmup_bars` (rechteste) Zeilen behalten.
     if end_offset_bars > 0:
         df = df.iloc[:-int(end_offset_bars)]
     df = df.tail(int(limit) + int(warmup_bars)).reset_index(drop=True)
@@ -132,25 +115,25 @@ def load_candles(
     return df
 
 
-# In algos/chart_engine.py show_chart():
 def show_chart(
-        df: pd.DataFrame,
-        symbol: str,
-        timeframe: str,
-        ma_indicator: Optional[MAIndicator] = None,
-        grid_indicator: Optional[GridIndicator] = None,
-        results: Optional[List[IndicatorResult]] = None,
-        show_day_separators: bool = True,
-        show_signals: bool = True,
-        min_segment_len: int = 3,
-        warmup_bars: int = 0,
-        visible_bars: int = 350,
-        width: int = 1200,
-        height: int = 550,
-        scale_width: int = 55,
-        bg_color: str = "#060B14",
-        text_color: str = "#CBD5E1",
+    df: pd.DataFrame,
+    symbol: str,
+    timeframe: str,
+    ma_indicator: Optional[MAIndicator] = None,
+    grid_indicator: Optional[GridIndicator] = None,
+    results: Optional[List[IndicatorResult]] = None,
+    show_day_separators: bool = True,
+    show_signals: bool = True,
+    min_segment_len: int = 3,
+    warmup_bars: int = 0,
+    visible_bars: int = 350,
+    width: int = 1200,
+    height: int = 550,
+    scale_width: int = 55,
+    bg_color: str = "#060B14",
+    text_color: str = "#CBD5E1",
 ) -> Any:
+    """Rendert den Chart mit Kerzen, Indikatoren, Markern und Canvas-Overlays."""
     if df.empty:
         return mo.md("**Keine Daten vorhanden.**")
 
@@ -162,7 +145,6 @@ def show_chart(
     candles, precision, min_move = build_candles_payload(calc_df)
     t_first, t_last = candles[0]["time"], candles[-1]["time"]
 
-    # 1. Events & Plot-Metadaten aus den Results sammeln
     all_events: List[SignalEvent] = []
     grid_lines: List[Dict[str, Any]] = []
     ma_plot_metas: List[Dict[str, Any]] = []
@@ -178,67 +160,77 @@ def show_chart(
             elif rtype == "ma":
                 ma_plot_metas.append(rmeta)
 
-    # 2. Overlays bauen
-    day_separators = build_day_separators_payload(calc_df) if show_day_separators else []
+    day_separators = (
+        build_day_separators_payload(calc_df) if show_day_separators else []
+    )
 
     if results:
-        # MA-Linien OHNE Indikator-Instanz direkt aus den Results zeichnen
         ma_lines = []
         for mp in ma_plot_metas:
             ma_lines.extend(build_ma_lines_from_result(df, mp, min_segment_len))
-        # Marker/Circles mit den konfigurierten Farben aus den Results
+
         ma_colors = ma_plot_metas[0] if ma_plot_metas else {}
-        # Grid-Hits (circle_yellow/circle_fuchsia) werden NICHT als native
-        # Marker gerendert (diese hängen an der Bar-Position statt am Preis).
-        # Sie erscheinen ausschließlich als Canvas-Kreise exakt auf den
-        # Grid-Leveln. Native Marker bleiben den Pfeil-Signalen vorbehalten.
-        arrow_events = [e for e in all_events
-                        if e.signal_type not in ("circle_yellow", "circle_fuchsia")]
-        markers = build_signal_markers_from_events(
-            arrow_events,
-            bull_color=ma_colors.get("bull_color", "#089981"),
-            bear_color=ma_colors.get("bear_color", "#F23645"),
-        ) if show_signals else []
+        arrow_events = [
+            e
+            for e in all_events
+            if e.signal_type not in ("circle_yellow", "circle_fuchsia")
+        ]
+        markers = (
+            build_signal_markers_from_events(
+                arrow_events,
+                bull_color=ma_colors.get("bull_color", "#089981"),
+                bear_color=ma_colors.get("bear_color", "#F23645"),
+            )
+            if show_signals
+            else []
+        )
         hit_circles = build_hit_circles_from_events(
             all_events,
-            time_circle_color=(grid_plot_meta or {}).get("time_circle_color", "#FFEB3B"),
-            circle_color=(grid_plot_meta or {}).get("circle_color", "#FF00FF"),
+            time_circle_color=(grid_plot_meta or {}).get(
+                "time_circle_color", "#FFEB3B"
+            ),
+            circle_color=(grid_plot_meta or {}).get(
+                "circle_color", "#FF00FF"
+            ),
         )
     else:
-        # Fallback auf Legacy-Aufrufe falls results nicht übergeben
         ma_lines = build_ma_lines_payload(df, ma_indicator, min_segment_len)
-        grid_lines, hit_circles = build_grid_payload(df, grid_indicator, t_first, t_last)
-        markers = build_signal_markers_payload(df, ma_indicator) if show_signals else []
+        grid_lines, hit_circles = build_grid_payload(
+            df, grid_indicator, t_first, t_last
+        )
+        markers = (
+            build_signal_markers_payload(df, ma_indicator)
+            if show_signals
+            else []
+        )
 
     markers = [m for m in markers if m["time"] >= t_first]
     hit_circles = [c for c in hit_circles if c["time"] >= t_first]
 
-    # Mittlerer Bar-Abstand (Sekunden) für zusammenhängende Hit-Circle-Verläufe
     candle_times_sec = [c["time"] for c in candles]
     _diffs = [b - a for a, b in zip(candle_times_sec, candle_times_sec[1:])]
     bar_spacing = int(sorted(_diffs)[len(_diffs) // 2]) if _diffs else 1800
 
-    # Pfeil-Marker auf den Ausführungszeitpunkt verschieben (Open der Folge-Bar T+1):
-    # Timing-Modell „Signal bei Bar-Close T -> Entry am Open von Bar T+1".
-    # Der Pfeil markiert damit den Einstiegspunkt und ist direkt verifizierbar.
+    # Nur MA-Marker auf T+1 verschieben; geometrische Jump-Marker bleiben exakt auf Bar T
     if markers and candles:
         time_to_idx = {t: i for i, t in enumerate(candle_times_sec)}
-        shifted = []
-        for m in markers:
-            i = time_to_idx.get(m["time"])
-            if i is not None and i + 1 < len(candle_times_sec):
-                m = dict(m)
-                m["time"] = candle_times_sec[i + 1]
-                shifted.append(m)
-        markers = shifted
+        is_ma_run = bool(ma_plot_metas)
+        if is_ma_run:
+            shifted = []
+            for m in markers:
+                i = time_to_idx.get(m["time"])
+                if i is not None and i + 1 < len(candle_times_sec):
+                    m_copy = dict(m)
+                    m_copy["time"] = candle_times_sec[i + 1]
+                    shifted.append(m_copy)
+            markers = shifted
 
-    from_time = candles[-visible_bars]["time"] if len(candles) > visible_bars else t_first
+    from_time = (
+        candles[-visible_bars]["time"]
+        if len(candles) > visible_bars
+        else t_first
+    )
 
-    # (Restlicher HTML/Canvas-Rendering-Code bleibt exakt unverändert)
-
-    # 2. Template zusammenbauen
-    # Lokale Lightweight-Charts-Library inline einbetten (offline-fähig),
-    # statt sie vom unpkg-CDN zu laden.
     lwc_script = _load_lightweight_charts_script()
     raw_html = f"""<!DOCTYPE html>
 <html>
@@ -316,7 +308,6 @@ def show_chart(
             ctx.clearRect(0, 0, w, h);
             const timeScale = chart.timeScale();
 
-            // 1) Grid-Linien: horizontal, volle Breite
             for (const gl of gridLines) {{
                 const y = candleSeries.priceToCoordinate(gl.price);
                 if (y !== null && y >= 0 && y <= h) {{
@@ -329,7 +320,6 @@ def show_chart(
                 }}
             }}
 
-            // 2) Day-Separatoren: vertikal (volle Höhe, gestrichelt)
             for (const ds of daySeparators) {{
                 const x = timeScale.timeToCoordinate(ds.time);
                 if (x === null || x < 0 || x > w) continue;
@@ -343,7 +333,6 @@ def show_chart(
             }}
             ctx.setLineDash([]);
 
-            // 3) MA-Linien: Polylinien, farbsegmentiert
             ctx.lineJoin = 'round';
             ctx.lineCap = 'round';
             for (const seg of maLines) {{
@@ -368,10 +357,6 @@ def show_chart(
                 if (penDown) ctx.stroke();
             }}
 
-            // 4) Hit-Circles: kleine Proximity-Kreise exakt auf den Grid-Leveln.
-            //    Aufeinanderfolgende Bars auf demselben Level werden zu einer
-            //    durchgehenden Linie verbunden („durchgehende/berührende Bars");
-            //    Lücken (z. B. Wochenende) brechen die Linie.
             const maxHitGap = barSpacing * 1.5;
             const hitsByPrice = {{}};
             for (const pt of hitCircles) {{
@@ -444,9 +429,6 @@ def show_chart(
 </html>
 """
 
-    # CDN-Script-Tag durch lokal eingebettete Library ersetzen (offline-fähig).
-    # Das Inline-JS enthält geschweifte Klammern und darf daher nicht direkt
-    # in das f-string-Template eingesetzt werden.
     raw_html = raw_html.replace(
         '<script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>',
         lwc_script,

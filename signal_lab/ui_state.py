@@ -1,33 +1,20 @@
-# signal_lab/ui_state.py
-"""Persistenz des UI-Stands als JSON-Datei (letzter Stand, keine DB)."""
+"""Persistenz des UI-Stands als JSON-Datei (letzter Stand, keine DB).
+Pfad: signal_lab/ui_state.py
+"""
+
 import json
-import tempfile
 import os
 from pathlib import Path
+import tempfile
 from typing import Any, Dict
 
-STATE_FILE = Path(__file__).resolve().parent.parent / "data" / "ui_state.json"
+STATE_FILE: Path = Path(__file__).resolve().parent.parent / "data" / "ui_state.json"
 
-# ---------------------------------------------------------------------------
-# Lazy-Marimo-States (Singleton ueber Zell-Re-Runs hinweg)
-# ---------------------------------------------------------------------------
-# KRITISCH fuer marimo-Buttons: marimo matcht State-Konsumenten per Objekt-
-# Identitaet (globals[ref] is state). Wuerde die Setup-Zelle (4a) bei jedem
-# Re-Run ein NEUES mo.state() erzeugen, zeigten die Buttons/Closures auf
-# verwaiste State-Objekte -> tote Buttons (Dialog bleibt, Klick bewirkt
-# nichts). Dieses Modul-Singleton garantiert STABILE Objekte ueber alle
-# Zell-Re-Runs (z. B. mehrfacher Lauf der Setup-Zelle beim Notebook-Start).
 _marimo_states: Dict[str, Any] = {}
 
 
 def get_marimo_states() -> Dict[str, Any]:
-    """Liefert die marimo-State-Objekte (einmal erzeugt, danach stabil).
-
-    Aufruf NUR innerhalb einer marimo-Zelle (Kernel-Kontext), da mo.state()
-    und mo.ui.refresh() den Kontext fuer UI-IDs benoetigen. Beim ersten
-    Aufruf werden die Objekte erzeugt und gecacht; jeder weitere Aufruf
-    gibt dieselben Instanzen zurueck.
-    """
+    """Liefert die marimo-State-Objekte (Singleton über Zell-Re-Runs hinweg)."""
     global _marimo_states
     if not _marimo_states:
         import marimo as mo
@@ -48,19 +35,21 @@ def get_marimo_states() -> Dict[str, Any]:
 
 
 def default_state() -> Dict[str, Any]:
-    """Sinnvolle Defaults für das Signal Lab.
-
-    Hinweis: VectorBT/Order-Testing ist bewusst NICHT enthalten – das kommt
-    in ein separates Notebook/Modul (siehe Anweisung des Benutzers).
-    """
+    """Sinnvolle Defaults für das Signal Lab inklusive JumpIndicator."""
     return {
         "symbols": ["SILVER"],
-        "timeframes": ["M30"],
+        "timeframes": ["M1"],
+        "active_indicator": "JumpIndicator",
         "ma": {
             "ma_type": "EHMA",
             "period": {"min": 4, "step": 2, "max": 16},
             "smoothing": {"min": 6, "step": 2, "max": 14},
             "alpha_factor": {"min": 2.0, "step": 1.0, "max": 4.0},
+        },
+        "jump": {
+            "grid_interval": 0.50,
+            "atr_period": {"min": 60, "step": 1, "max": 60},
+            "vol_sma_period": 20,
         },
         "date_range": {"from": None, "to": None},
         "run_name_override": "",
@@ -79,9 +68,8 @@ def load_state() -> Dict[str, Any]:
         return default_state()
     try:
         with open(STATE_FILE, "r", encoding="utf-8") as f:
-            stored = json.load(f)
-        # Defaults mit gespeicherten Werten mergen (neue Felder ergänzen)
-        merged = default_state()
+            stored: Dict[str, Any] = json.load(f)
+        merged: Dict[str, Any] = default_state()
         for k, v in stored.items():
             if k in merged and isinstance(v, dict) and isinstance(merged[k], dict):
                 merged[k].update(v)

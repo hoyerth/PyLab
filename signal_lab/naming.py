@@ -1,53 +1,45 @@
-# signal_lab/naming.py
-"""Run-Namensschema: sprechende, sortierbare Namen + technischer Hash."""
-import hashlib
-import json
-from datetime import datetime
+"""
+Namens-Konventionen für Signal Lab Sweeps (§2).
+Pfad: signal_lab/naming.py
+"""
+
 from typing import Any, Dict
-
-
-def param_short(indicator_name: str, params: Dict[str, Any]) -> str:
-    """Kompakte Parameter-Kurzform je Indikator (MA: p06_s10_a3.0)."""
-    ind = indicator_name.lower()
-    if "ma" in ind:
-        p = params.get("period", "?")
-        s = params.get("smoothing", "?")
-        a = params.get("alpha_factor", "?")
-        mt = str(params.get("ma_type", "")).lower()
-        return f"{mt}_p{p:02d}_s{s:02d}_a{a}"
-    # Generischer Fallback: alphabetisch sortierte key-value Kette
-    parts = []
-    for k in sorted(params.keys()):
-        parts.append(f"{k}{params[k]}")
-    return "_".join(parts) or "default"
 
 
 def build_run_name(
     indicator_name: str,
     params: Dict[str, Any],
-    symbol: str,
-    timeframe: str,
-    timestamp: datetime = None,
+    symbol: str = "",
+    timeframe: str = "",
     free_tag: str = "",
 ) -> str:
-    """Erzeugt den sprechenden Run-Namen.
+    """Erzeugt einen lesbaren Run-Namen nach Konvention."""
+    ind = indicator_name.lower().replace("indicator", "")
+    parts = [ind]
 
-    Format: {INDIKATOR}_{PARAM-KURZ}_{SYMBOL}_{TF}_{JJJJMMTT}_{HHMM}
-    Optionaler freier Tag wird angehängt.
-    """
-    ts = timestamp or datetime.now()
-    base = (
-        f"{indicator_name.upper()}_{param_short(indicator_name, params)}"
-        f"_{symbol}_{timeframe}"
-        f"_{ts.strftime('%Y%m%d')}_{ts.strftime('%H%M')}"
-    )
+    if "jump" in ind:
+        grid = params.get("grid_interval", 0.5)
+        prox = params.get("proximity_buffer", 0.2)
+        parts.append(f"g{grid}")
+        parts.append(f"prox{prox}")
+    else:
+        mtype = params.get("ma_type", "EHMA").lower()
+        parts.append(mtype)
+        if "period" in params:
+            parts.append(f"p{params['period']}")
+        if "smoothing" in params:
+            parts.append(f"s{params['smoothing']}")
+        if "alpha_factor" in params:
+            parts.append(f"a{params['alpha_factor']}")
+
+    if symbol and timeframe:
+        parts.append(f"{symbol}_{timeframe}")
+    elif symbol:
+        parts.append(symbol)
+    elif timeframe:
+        parts.append(timeframe)
+
     if free_tag:
-        tag = str(free_tag).strip().replace(" ", "_")
-        base = f"{base}_{tag}"
-    return base
+        parts.append(free_tag.strip())
 
-
-def build_run_id(indicator_name: str, params: Dict[str, Any], symbol: str, timeframe: str) -> str:
-    """Technischer Hash – identisch zu DuckDBSignalService._generate_run_id."""
-    key = f"{indicator_name}_{symbol}_{timeframe}_{json.dumps(params, sort_keys=True)}"
-    return hashlib.sha256(key.encode()).hexdigest()[:16]
+    return "_".join(str(p) for p in parts if p)

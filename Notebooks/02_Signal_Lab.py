@@ -229,21 +229,21 @@ def _(MA_TYPES, dd_indicator, mo, state):
 
         jump_prox_min = mo.ui.number(
             0.000,
-            10.000,
+            1.000,
             0.001,
             value=round(float(init_prox_min), 3),
             label="Proximity min ($)",
         )
         jump_prox_step = mo.ui.number(
-            0.005,
-            5.000,
-            0.005,
+            0.001,
+            1.000,
+            0.001,
             value=round(float(init_prox_step), 3),
             label="Puffer step ($)",
         )
         jump_prox_max = mo.ui.number(
             0.000,
-            20.000,
+            2.000,
             0.001,
             value=round(float(init_prox_max), 3),
             label="Proximity max ($)",

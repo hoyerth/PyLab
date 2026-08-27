@@ -48,8 +48,7 @@ def default_state() -> Dict[str, Any]:
         },
         "jump": {
             "grid_interval": 0.50,
-            "atr_period": {"min": 60, "step": 1, "max": 60},
-            "vol_sma_period": 20,
+            "proximity_buffer": {"min": 0.075, "step": 0.050, "max": 0.075},
         },
         "date_range": {"from": None, "to": None},
         "run_name_override": "",

@@ -3,7 +3,8 @@ Namens-Konventionen für Signal Lab Sweeps (§2).
 Pfad: signal_lab/naming.py
 """
 
-from typing import Any, Dict
+from datetime import datetime
+from typing import Any, Dict, Optional
 
 
 def build_run_name(
@@ -11,10 +12,18 @@ def build_run_name(
     params: Dict[str, Any],
     symbol: str = "",
     timeframe: str = "",
+    timestamp: Optional[datetime] = None,
     free_tag: str = "",
 ) -> str:
-    """Erzeugt einen lesbaren Run-Namen nach Konvention."""
-    ind = indicator_name.lower().replace("indicator", "")
+    """Erzeugt einen lesbaren, sortierbaren Run-Namen.
+
+    Format: {indikator}_{param-kurz}_{SYMBOL}_{TF}_{JJJJMMTT}_{HHMM}[_{free_tag}]
+    Der Zeitstempel (Berliner Wanduhrzeit, naive) ist fester Bestandteil des
+    Namens und macht jeden Run eindeutig identifizierbar (z. B. für die
+    Run-Auswahl im Backtest Lab via `extract_run_timestamp`).
+    """
+    ts: datetime = timestamp or datetime.now()
+    ind: str = indicator_name.lower().replace("indicator", "")
     parts = [ind]
 
     if "jump" in ind:
@@ -38,6 +47,8 @@ def build_run_name(
         parts.append(symbol)
     elif timeframe:
         parts.append(timeframe)
+
+    parts.append(f"{ts.strftime('%Y%m%d')}_{ts.strftime('%H%M')}")
 
     if free_tag:
         parts.append(free_tag.strip())

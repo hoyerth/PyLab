@@ -413,6 +413,7 @@ def _(
 
     def sync_market_data(symbols, timeframes):
         import MetaTrader5 as mt5
+        from datetime import datetime, timedelta, timezone
         if not _ensure_mt5():
             return {"msg": f"❌ MT5 nicht erreichbar (Fehlercode {mt5.last_error()}). Bitte Terminal öffnen.", "results": []}
         results = []
@@ -428,11 +429,21 @@ def _(
                         tf_mt5 = getattr(mt5, f"TIMEFRAME_{tf}")
                         last_time = get_latest_timestamp(con, symbol, tf)
                         if last_time is not None:
-                            rates = mt5.copy_rates_from_pos(symbol, tf_mt5, 0, 5_000)
+                            # UPDATE: Immer die letzten 365 Tage (alle Timeframes)
+                            # per Range-Request holen. last_time dient NUR als
+                            # Trigger - bewusst kein 5.000-Bars-Fenster, damit
+                            # aeltere, unbemerkte Luecken additiv gefuellt werden
+                            # und lange Pausen (>3 Tage bei M1) keine Luecken
+                            # hinterlassen. INSERT OR REPLACE füllt per Upsert.
+                            now_utc = datetime.now(timezone.utc)
+                            date_from = now_utc - timedelta(days=365)
+                            rates = mt5.copy_rates_range(symbol, tf_mt5, date_from, now_utc)
                             mode = "UPDATE"
+                            detail = f"1 Jahr ({date_from:%Y-%m-%d} → {now_utc:%Y-%m-%d})"
                         else:
                             rates = mt5.copy_rates_from_pos(symbol, tf_mt5, 0, 10_000_000)
                             mode = "VOLLIMPORT"
+                            detail = "komplette Historie"
                         if rates is None:
                             results.append({"Symbol": symbol, "TF": tf, "Modus": "FEHLER", "Kerzen": 0, "Detail": str(mt5.last_error())})
                             continue
@@ -455,7 +466,7 @@ def _(
                         """)
                         con.unregister("df_temp")
                         total_bars += len(df)
-                        results.append({"Symbol": symbol, "TF": tf, "Modus": mode, "Kerzen": len(df), "Detail": ""})
+                        results.append({"Symbol": symbol, "TF": tf, "Modus": mode, "Kerzen": len(df), "Detail": detail})
                 finally:
                     con.close()
         finally:
@@ -540,8 +551,10 @@ def _(
             # DB speichert die MT5-Serverzeit (UTC+2) als TIMESTAMPTZ; pandas
             # rendert sie in lokaler Zeit (+2). Für die Brokerzeit-Anzeige werden
             # das Suffix entfernt UND die 2 h abgezogen (identisch zum Chart).
-            df["von"] = df["von"].dt.tz_localize(None) - pd.Timedelta(hours=TZ_OFFSET_HOURS)
-            df["bis"] = df["bis"].dt.tz_localize(None) - pd.Timedelta(hours=TZ_OFFSET_HOURS)
+            # to_datetime(..., utc=True): schuetzt gegen leere DB (MIN/MAX = NULL
+            # -> object-Spalten, .dt wuerde mit AttributeError scheitern).
+            df["von"] = pd.to_datetime(df["von"], errors="coerce", utc=True).dt.tz_localize(None) - pd.Timedelta(hours=TZ_OFFSET_HOURS)
+            df["bis"] = pd.to_datetime(df["bis"], errors="coerce", utc=True).dt.tz_localize(None) - pd.Timedelta(hours=TZ_OFFSET_HOURS)
             return df
         finally:
             close_conn(con)

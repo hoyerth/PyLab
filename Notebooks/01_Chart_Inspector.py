@@ -10,7 +10,7 @@ def _():
     # 0. GLOBALE KONSTANTEN & KONFIGURATION
     # ========================================== 
     SYMBOL = "SILVER"
-    TIMEFRAME = "M30"
+    TIMEFRAME = "M1"
     WINDOW_BARS = 1000         # Größe des sichtbaren Fensters (Kerzen)
     WARMUP = 200               # MA-Warmup links vom Fenster (nur Berechnung)
     TZ_OFFSET_HOURS = 2

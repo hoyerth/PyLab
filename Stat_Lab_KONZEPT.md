@@ -1,3 +1,8 @@
+- amplitudenversatz um .25$ registrieren und abtesten oder Invalidität feststellen (Dead Zone) oder Level shiften
+- 
+
+
+
 # Gesamtfach- und Statistik-Konzept: Stat_Lab & Quantitative Level-Mechanik (SignalLab v2)
 
 ---
@@ -115,21 +120,6 @@ CREATE TABLE broker_symbols (
 
 ## 3. Institutionelle Marktstruktur, Level-Genese & Zeit-Mechanik
 
-### A. Zweistufige Level-Systematik: Analyse-Grid vs. Handels-Grid
-
-Das System unterscheidet formal zwischen zwei interagierenden Level-Hierarchien:
-
-1. **Analyse-Grid (Dichtes Strike-Raster, z. B. $0.05\$$ bei Silber / $12.50\$$ bei Gold):**
-* *Zweck:* Dient der reinen mikrostrukturellen Hypothesenprüfung (Gamma-Hedging, Orderbuch-Absorption, Liniengänger, Sweeps, Intrabar-Rejections).
-* *Metriken:* `bars_hugging_level`, `penetration_depth`, `level_elasticity`, `crossing_type`.
-
-
-2. **Handels-Grid (Weites Makro-Raster, z. B. $0.50\$$ bzw. $1.00\$$ bei Silber / $25.00\$$ bzw. $100.00\$$ bei Gold):**
-* *Zweck:* Definiert übergeordnete Swing-Ziele, finale Target-Exkursionen ($L_{\text{target}}$) und Portfolio-Handelsentscheidungen.
-* *Zusammenspiel:* Reaktionen am dichten Analyse-Grid dienen als früher Konfluenz-Trigger für den Start einer Ausdehnung zum nächsten weiten Handels-Level.
-
-
-
 ### B. Ursachen fester Preis-Levels & Strike-Dynamik
 
 * **Option Strikes & Dealer Gamma Hedging (COMEX):**
@@ -153,6 +143,7 @@ Das System unterscheidet formal zwischen zwei interagierenden Level-Hierarchien:
 * `NY_CASH_OPEN`: 13:30 UTC – 15:00 UTC (US-Futures & Kassamarkt-Eröffnung).
 * `NY_AFTERNOON`: 15:00 UTC – 21:00 UTC (US-Nachmittag bis Kassa-Close).
 
+#### Die folgenden Spezialfälle werden gesondert als Reminder betrachtet und nicht in das Standard-Lab eingebaut
 
 * **TWAP/VWAP-Ausführungsfenster:**
 * Institutionelle Großaufträge (Zentralbanken, Fonds) werden via TWAP über diskrete Zeitblöcke (15, 30, 60 Minuten) abgewickelt. Neue Tranchen starten exakt um `:00`, `:15`, `:30` oder `:45`.

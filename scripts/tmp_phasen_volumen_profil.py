@@ -136,12 +136,17 @@ MIN_RECLAIM_BOUNCE = 2    # min. Bounce-Nummer an der Kante.
                           #   Bo=1-Signale sind zu 82% Verluste (14/17, netto -5.26R)
                           #   und werden gefiltert. Per --bounce=N testbar.
 MIN_RECLAIM_CRV = 1.0     # min. CRV (Risiko-Ertrag) fuer ein Signal (Patrick ~1:3)
-MIN_SIGNAL_ABSTAND_BARS = 12  # Cooldown: keine 2 Signale gleicher Richtung in 12 Bars
-                              #   GETESTET (Reihentest 05.02.-28.08.26, 82-95 Signale):
-                              #   Sweet Spot CD=12: +91.60R / avg +1.08 (klar vor CD=8
-                              #   +91.25, CD=10 +84.81, CD=14 +88.92, CD=16 +82.83).
-                              #   Fruherer CD=16-Default stammte nur aus Aug+Jun mit
-                              #   50/50-Split - haelt dem grossen Sample nicht stand.
+MIN_SIGNAL_ABSTAND_BARS = 8   # Cooldown: keine 2 Signale gleicher Richtung in 8 Bars
+                              #   GETESTET (kausal, Re-Optimierung 31.08.2026, 2 Samples):
+                              #   S1 2026-02-05..08-28: CD=8 +219.14R/226 Sig/43% WR vs.
+                              #   CD=12 +197.26R/201 Sig/44% WR (alter Lookahead-Default).
+                              #   S2 2025-01-01..12-01 (OOS): CD=8 +110.79R/240 Sig vs.
+                              #   CD=12 +99.88R/210 Sig. CD=8 gewinnt BEIDE Samples
+                              #   (+22R/+11R) bei gleichem avg R -> mehr Signale gleicher
+                              #   Qualitaet, kein Overfit (CD=14 war nur in S1 gut =
+                              #   verworfen). CD=6 bringt weitere +11R/+5R, aber mit
+                              #   abnehmendem Grenznutzen und sinkendem avg R -> CD=8
+                              #   als Knie-Punkt gewaehlt. Per --cooldown=N testbar.
 SL_PCT = 0.45             # SL bei Entry: % vom Einstiegspreis (SHORT +, LONG -)
                           #   GETESTET (Reihentest 05.02.-28.08.26, 82 Signale):
                           #   Sweet Spot 0.35-0.45; 0.45 = hoechster avg R +0.98
@@ -847,11 +852,12 @@ print(f"RESULTAT: {len(phases)} Phasen gesamt, {len(_relevant)} ab 21.08. (Refer
 # (Reclaim). Einstieg NACH Bestaetigung, Ziel = POC (Fair Value), SL
 # hinter der Kante.
 #
-# KAUSALITAET: Fuer jede Kandidaten-Bar wird das Volume-Profil NUR bis zu
-# dieser Bar berechnet (laufende Zone - kein Lookahead). Die finale
-# Phasen-Zone dient nur als Kandidaten-Screening; Bars, die nur die
-# laufende, nie die finale Kante erreichen, gelten als "Zone noch nicht
-# etabliert" und werden uebersprungen (passt zu Patricks 3-Touch-Regel).
+# KAUSALITAET (Bereinigt 31.08.2026): Der Signal-Loop ist REIN SEQUENTIELL
+# in Echtzeit - fuer jede Bar k wird das Volume-Profil NUR bis zu dieser
+# Bar berechnet (laufende Zone, kein Blick in die Zukunft). Es gibt KEIN
+# finales Zonen-Screening mehr: Jede Bar der Phase wird gegen ihre laufende
+# Zone geprueft, genau wie ein Live-Trader es zum Zeitpunkt des Signals
+# tun wuerde.
 def _laufende_zone(df, p, k):
     """Volume-Zone kausal bis Bar k (inklusive)."""
     return compute_volume_zone(df.iloc[p["i_start"]:k + 1])
@@ -1014,10 +1020,6 @@ def find_reclaim_signals(df, p, min_candles=MIN_RECLAIM_CANDLES,
     - Cooldown: keine 2 Signale gleicher Richtung innerhalb cooldown_bars.
     """
     sigs = []
-    vz_full = p.get("vol_zone")
-    if vz_full is None:
-        return sigs
-    U_full, L_full = vz_full["U_zone"], vz_full["L_zone"]
     hi = df["high"].values
     lo = df["low"].values
     cl = df["close"].values
@@ -1027,11 +1029,13 @@ def find_reclaim_signals(df, p, min_candles=MIN_RECLAIM_CANDLES,
     tp2_puffer = TP2_PUFFER_PCT / 100.0
     sl_p = SL_PCT / 100.0
 
-    # Kandidaten-Screening: Bars ausserhalb der FINALEN Kante (vektorisiert)
-    cand = np.where((hi > U_full) | (lo < L_full))[0]
-    cand = cand[(cand >= p["i_start"]) & (cand < p["i_ende"])]
-
-    for k in cand:
+    # REIN SEQUENTIELL (kein Lookahead): JEDE Bar der Phase wird einzeln
+    # durchlaufen. Die laufende Zone wird nur aus den Bars i_start..k
+    # berechnet - zum Zeitpunkt des Signals existieren exakt diese Bars.
+    # Ein finales Zonen-Screening gibt es bewusst NICHT mehr (Bereinigung
+    # 31.08.2026: frueher filterte die FINALE Zone der ganzen Phase die
+    # Kandidaten vor - ein Blick in die Zukunft).
+    for k in range(p["i_start"], p["i_ende"]):
         if k - p["i_start"] + 1 < min_candles:
             continue
         vz = _laufende_zone(df, p, k)
@@ -1046,7 +1050,7 @@ def find_reclaim_signals(df, p, min_candles=MIN_RECLAIM_CANDLES,
         if hi[k] > U:
             if cl[k] <= U:
                 e_bar, e_preis, reclaim = k + 1, float(op[k + 1]), "in_bar"
-            elif k + 1 <= p["i_ende"] and cl[k + 1] <= U:
+            elif k + 2 <= p["i_ende"] and cl[k + 1] <= U:
                 e_bar, e_preis, reclaim = k + 2, float(op[k + 2]), "next_bar"
             else:
                 e_bar, reclaim = None, None
@@ -1075,7 +1079,7 @@ def find_reclaim_signals(df, p, min_candles=MIN_RECLAIM_CANDLES,
         if lo[k] < L:
             if cl[k] >= L:
                 e_bar, e_preis, reclaim = k + 1, float(op[k + 1]), "in_bar"
-            elif k + 1 <= p["i_ende"] and cl[k + 1] >= L:
+            elif k + 2 <= p["i_ende"] and cl[k + 1] >= L:
                 e_bar, e_preis, reclaim = k + 2, float(op[k + 2]), "next_bar"
             else:
                 e_bar, reclaim = None, None
@@ -1234,8 +1238,8 @@ _trail_txt = f" | TRAILING {TRAILING_PCT:.2f}%" if TRAILING_PCT > 0 else ""
 _nach_txt = "SL bleibt am Entry (kein Nachzug)"
 _ant_txt = (f"{ANTEIL_TP1:.0f}/{100-ANTEIL_TP1:.0f}" if 0 < ANTEIL_TP1 < 100
             else ("100/0" if ANTEIL_TP1 >= 100 else "0/100"))
-print(f"\n=== SETUP B: RECLAIM-SIGNALE (SL {SL_PCT:.1f}% Entry; {_nach_txt}; "
-      f"TP2=Box-Ende innen 0.15%; Split {_ant_txt}{_trail_txt}; alle aufgeloest) ===")
+print(f"\n=== SETUP B: RECLAIM-SIGNALE (SL {SL_PCT:.2f}% Entry; {_nach_txt}; "
+      f"TP2=Box-Ende innen {TP2_PUFFER_PCT:.2f}%; Split {_ant_txt}{_trail_txt}; alle aufgeloest) ===")
 if not reclaim_signals:
     print("  keine Signale")
 for s in reclaim_signals:
@@ -1245,7 +1249,7 @@ for s in reclaim_signals:
           f"| CRV {s['crv']:.2f} | Bo {s['bounce_nr']} | H1 {s['exit1']:.3f} ({s['grund1']}) {s['r1']:+.2f}R | "
           f"H2 {s['exit2']:.3f} ({s['grund2']}) {s['r2']:+.2f}R | {s['resultat']} {s['r_mult']:+.2f}R")
 
-print(f"\n=== STATISTIK SETUP B (SL {SL_PCT:.1f}% Entry; {_nach_txt}; Split {_ant_txt}{_trail_txt}) ===")
+print(f"\n=== STATISTIK SETUP B (SL {SL_PCT:.2f}% Entry; {_nach_txt}; Split {_ant_txt}{_trail_txt}) ===")
 print(f"  Signale: {len(reclaim_signals)} | GEWONNEN {_n_win} | VERLOREN {_n_loss} | NEUTRAL {_n_neu}")
 if _n_win + _n_loss > 0:
     print(f"  Trefferquote: {100.0*_n_win/(_n_win+_n_loss):.0f}% (nur entschiedene)")
@@ -1257,7 +1261,7 @@ print(f"  TP1(POC) erreicht: {_n_tp1}/{len(reclaim_signals)} | TP2(Box-Ende) err
 
 # --- SETUP C Ausgabe (nur bei --moves=1) ---
 if TRADE_MOVES:
-    print(f"\n=== SETUP C: MOVE-TRADES (Breakout-Riding; SL {SL_PCT:.1f}% hinter der Kante) ===")
+    print(f"\n=== SETUP C: MOVE-TRADES (Breakout-Riding; SL {SL_PCT:.2f}% hinter der Kante) ===")
     if not move_signals:
         print("  keine Signale")
     for s in move_signals:

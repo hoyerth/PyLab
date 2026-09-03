@@ -560,6 +560,73 @@ Monsterphase; (3) Summe R ≥ Baseline-Niveau, keine 6er-Verlustserie;
 
 ---
 
+## 5.4 Dokumenten-Fixierung: Spread-Entscheid & Tier-2-Übergabe — 03.09.2026
+
+### 5.4.1 Spread-Entscheid: `MIN_ESTABLISH_SPREAD_PCT` bleibt verbindlich auf 1.5 % fixiert (2.0 % verworfen)
+
+**Empirische Basis (Spread-Check S2/S1, Log-Inspektion der Baseline- und
+`--macro-live`-Artefakte; Helper `test/tmp_spread_check.py`):**
+
+| Kennzahl | S2 (2025) | S1 (2026) |
+|---|---|---|
+| Phasen gesamt / handelbar | 62 / 22 | 139 / 40 |
+| Spread `(U−L)/L` — alle Phasen, Median | 1.34 % | 2.77 % |
+| Spread — nur handelbare, Median | 3.45 % | — |
+| Spread — nur handelbare, Minimum | 1.57 % | 1.60 % |
+| Handelbare mit Spread < 2.0 % | **4** (Ph8 1.57 %, Ph19 1.67 %, Ph13 1.81 %, Ph48 1.95 %) | **8** (1.60–1.97 %) |
+| Handelbare mit Spread ≥ 2.0 % | 18 | 32 |
+
+**Bewertung einer Anhebung des Etablierungs-Gates auf 2.0 %:**
+- S2 würde nicht abgewürgt (18/22 handelbare Phasen ≥ 2.0 %), aber ~18 %
+  der handelbaren Phasen (4/22) würden unterdrückt — ausgerechnet im
+  Low-Vol-Regime S2, dessen Bilanz ohnehin die schwächste ist.
+- **Unsicherheitszone:** E3 wirkt auf den **Etablierungs**-Spread (live,
+  enger als der finale Spread). Phasen mit finalem Spread ≥ 2.0 % können in
+  der Etablierungsphase noch unter 2.0 % gelegen haben → die reale
+  Unterdrückungswirkung liegt **über** der 4/22-Zählung.
+- S1 ist strukturell ähnlich (8/40 = 20 % unter 2.0 %).
+
+**Entscheid (verbindlich, arretiert):** `MIN_ESTABLISH_SPREAD_PCT = 1.5`
+bleibt fixiert. Die Anhebung auf 2.0 % ist **verworfen**: Das Risiko,
+handelbare Low-Vol-Phasen zu unterdrücken (S2-Regime), steht in keinem
+Verhältnis zum Nutzen — das Mikrorauschen ist bereits durch 1.5 %
+eliminiert (E3 validiert: AUG-Kontrolllauf +27.06R bei 11 Phasen, §5.3).
+Die Sweep-Kalibrierung 1.0–2.5 % aus §5.2.1 ist damit **obsolet**; ein
+Senkungstest 1.0–1.5 % bliebe nur als optionale Sensitivitäts-Prüfung
+offen (nicht geplant).
+
+### 5.4.2 Architektonische Übergabe R1–R4 an `macro_persistence.py` (Tier 2) — Inspektions-Befund
+
+Die R1–R4-Konsolidierung (Mehrtages-Gedächtnis 66.45/64.24) wird — wie in
+§5.3 Punkt 4 arretiert — **vollständig an `macro_persistence.py` (Tier 2)
+übergeben**. Die reine Lese-Inspektion (keine Änderung) bestätigt, dass die
+Schnittstelle die Makro-Abbildung konstruktiv bereits trägt:
+
+1. **Zonen-Pool je Seite** (`MacroLineState`, Z. 114) mit kausaler
+   Touch-Verarbeitung (`update_touch`, Z. 225: Zone matchen/erzeugen,
+   Zentrum = Remove-Tail-Schnittmenge) und selektivem Löschen an
+   Phasengrenzen (`on_phase_boundary`, Z. 261: nur durchschrittene Zonen
+   der Bruch-Seite, Gegenseite persistiert als `left_behind`).
+2. **Frozen Anker-Abfragen** (Kausalitäts-Schutz, nie Live-Referenzen):
+   `best_macro_anchor` (Z. 295, global, Evidenz ≥ `MIN_ZONE_EVIDENCE`,
+   R2-Tie-Break) und `best_local_macro_anchor` (Z. 305, distanz- UND
+   seitenbegrenzt mit `side_tol`).
+3. **Operative Kanten-Auswahl** `resolve_active_edge` (Z. 446, frozen
+   `ActiveEdgeDecision`): Tier 1 = lokale Volume-Kante bei bestätigter
+   Pivot-Dichte (E2), sonst Tier 2 = Makro-Anker (E3/E5) mit
+   Kanten-Kapselung (a_sym) und Überrannt-Filter (`overrun_tol` = 0.075);
+   E3-Fallback = lokale Kante als Tier 1 — nie None, Baseline-DNA bleibt.
+4. **Rein lesendes Replay/Report:** `macro_replay` (Z. 631) →
+   (state_upper, state_lower, PhaseSnapshots), `macro_report` (Z. 720)
+   als passiver Spiegel; dependency-frei (nur pandas), `level_schnittmenge`
+   wird injiziert (kein Zirkular-Import).
+
+**Fazit:** Kein Handlungsbedarf in der Segmentierungs-Engine. Die
+Tier-2-Anbindung der Arbeitskopie an die Makro-Zonen bleibt separates
+Folge-Experiment (§7 Punkt 3) — außerhalb dieses Dokuments.
+
+---
+
 ## 6. Tracking-Log
 
 | Datum | Ereignis | Commit/Status |
@@ -575,25 +642,34 @@ Monsterphase; (3) Summe R ≥ Baseline-Niveau, keine 6er-Verlustserie;
 | 03.09.2026 | **Mentor-Urteil: Ende der „Phasen-Alchemie"** — Makro-Sicht exklusiv in `macro_persistence.py` (Tier 2), Phasen bleiben agil. **§5.3-Anpassungsvertrag arretiert:** E3 bleibt, Reißleine auf 46, E4a vollständig zurück | §5.3 |
 | 03.09.2026 | **Rückbau R1–R3 ausgeführt** (Freigabe): `envelope_level`+`ENVELOPE_MIN_TOUCHES` entfernt, `RUNAWAY_MIN_CANDLES` 12→46, Bruch-Referenz = lokale Schnittmenge. py_compile OK, Produktion unverändert | `scripts/phasen_makro_swings.py` (uncommitted) |
 | 03.09.2026 | **AUG-Kontrolllauf nach Rückbau:** **11 Phasen** (keine Monsterphase), 26 Sig, **+27.06R** (> Baseline +24.97R!), WR 50 %, PF 3.43; 6er-Verlustserie **verschwunden**; Phase-2+3-Verschmelzung bleibt (112C) | `test/tmp_rueckbau_AUG_lauf.log`, `test/stats_trades_MAKRO_AUG.txt` |
+| 03.09.2026 | **Spread-Check S2/S1** (Log-Inspektion): nur handelbare Phasen median 3.45 % (S2) / 2.77 % (S1); handelbar < 2.0 %: S2 4/22, S1 8/40 → strukturell ähnliche Regime | `test/tmp_spread_check.py` (gitignored), Befunde §5.4.1 |
+| 03.09.2026 | **Dokumenten-Fixierung §5.4:** `MIN_ESTABLISH_SPREAD_PCT` = 1.5 % **verbindlich fixiert**, Anhebung auf 2.0 % **verworfen** (Low-Vol-Unterdrückung S2); R1–R4-Makro-Abbildung architektonisch **vollständig an `macro_persistence.py` (Tier 2)** übergeben (Inspektion abgeschlossen, kein Code-Eingriff) | dieses Dokument, §5.4 |
 
 ---
 
 ## 7. Offene Punkte
 
-1. **Zwischenstand §5.3 bestätigt:** Der Rückbau R1–R3 ist umgesetzt und der
-   AUG-Kontrolllauf zeigt **+27.06R bei 11 Phasen** (keine Monsterphase,
-   keine 6er-Verlustserie, Phase-2+3-Verschmelzung erhalten). Der Curve-
+1. **Zwischenstand §5.3/§5.4 bestätigt:** Der Rückbau R1–R3 ist umgesetzt
+   (AUG **+27.06R bei 11 Phasen**, keine Monsterphase, keine 6er-
+   Verlustserie, Phase-2+3-Verschmelzung erhalten); `MIN_ESTABLISH_SPREAD_PCT`
+   ist mit 1.5 % verbindlich fixiert (2.0 % verworfen, §5.4.1). Der Curve-
    Fitting-Bias (E4a) ist eliminiert.
-2. **Nächster Schritt (Vorschlag):** Die verbleibende E3-Wirkung isoliert
-   quantifizieren — Phase 2+3-Verschmelzung (112C) erzeugte in Phase 2 ein
-   Netto von +6.48R über 5 Trades. Sweep `min_establish_spread_pct`
-   (1.0–2.5 %) zur Kalibrierung.
-3. **Makro-Persistenz-Anbindung** (`macro_persistence.py`, Tier 2) als
-   architektonisch sauberer Ort für die R1–R4-Konsolidierung — separates
-   Folge-Experiment nach Abschluss der Segmentierungs-Korrektur.
+2. **Sweep `min_establish_spread_pct` (1.0–2.5 %) ist obsolet** — durch die
+   arretierte 1.5 %-Fixierung (§5.4.1) ersetzt. Optional bliebe nur ein
+   Sensitivitäts-Test 1.0–1.5 % (nicht geplant). Eine isolierte
+   Quantifizierung der E3-Wirkung (Phase-2+3-Verschmelzung, +6.48R über 5
+   Trades in Phase 2) wäre separat möglich, ist aber kein Pflichtpunkt mehr.
+3. **Makro-Persistenz-Anbindung** (`macro_persistence.py`, Tier 2): Die
+   Code-Inspektion (§5.4.2) bestätigt die architektonische Übergabe der
+   R1–R4-Konsolidierung (Zonen-Pool, frozen Anker-Abfragen,
+   `resolve_active_edge`, rein lesendes Replay/Report). Die konkrete
+   Anbindung der Arbeitskopie an die Makro-Zonen bleibt separates
+   Folge-Experiment **außerhalb** dieses Dokuments.
 4. **Git-Commit** der Arbeitskopie (Rückbau-Zustand) nach finaler
-   Mentor-Freigabe; Produktions-Baseline bleibt unberührt.
+   Mentor-Freigabe; Produktions-Baseline bleibt unberührt. Auch die
+   Dokumenten-Fixierung §5.4 ist committbar (dieses Dokument, Tracking-Log
+   §6).
 5. Temp-Helper in `test/` nach Abschluss der Explorationsphase löschen (I4):
    `tmp_makro_swings_trace.py`, `tmp_reissleinen_audit.py`, `tmp_huelle_e1e4.py`,
-   `tmp_rueckbau_r1r3.py`, `tmp_huelle_AUG_lauf.log`, `tmp_rueckbau_AUG_lauf.log`,
-   `tmp_abort_usage.py`.
+   `tmp_rueckbau_r1r3.py`, `tmp_spread_check.py`, `tmp_abort_usage.py`,
+   `tmp_huelle_AUG_lauf.log`, `tmp_rueckbau_AUG_lauf.log`.

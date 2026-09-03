@@ -1686,7 +1686,7 @@ class UserMacroLine:
 
 USER_LINES_AUG: tuple[UserMacroLine, ...] = (
     UserMacroLine("UPPER", pd.Timestamp("2026-08-11 03:45"), pd.Timestamp("2026-08-18 03:00"), 66.45, "R1_U"),
-    UserMacroLine("LOWER", pd.Timestamp("2026-08-11 08:30"), pd.Timestamp("2026-08-13 21:15"), 62.24, "R1_L"),
+    UserMacroLine("LOWER", pd.Timestamp("2026-08-11 08:30"), pd.Timestamp("2026-08-13 21:15"), 64.24, "R1_L"),
     UserMacroLine("UPPER", pd.Timestamp("2026-08-20 02:15"), pd.Timestamp("2026-08-20 07:00"), 67.26, "R2_U"),
     UserMacroLine("LOWER", pd.Timestamp("2026-08-20 14:00"), pd.Timestamp("2026-08-20 14:15"), 65.66, "R2_L"),
     UserMacroLine("UPPER", pd.Timestamp("2026-08-21 10:45"), pd.Timestamp("2026-08-25 02:00"), 69.90, "R3_U"),

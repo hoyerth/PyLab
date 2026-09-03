@@ -279,9 +279,9 @@ bricht unten, also existiert oben kein Markt mehr".
 
 Die Gegenseite wurde **nicht** gebrochen, sondern nur verlassen (left behind);
 genau dort liegt das Makro-Gedächtnis, das der Baseline heute fehlt (P5-
-Oberlinie). Durchschrittene Level sind deskriptiv; tiefe Alt-Zonen (z. B. R1_L
-62.24) re-formieren sich bei Erreichen aus frischen Pivots oder bleiben
-Archiv-Referenz.
+Oberlinie). Durchschrittene Level sind deskriptiv; tiefe Alt-Zonen (weit
+unter dem Markt verlassene Gegenseiten-Level früherer Phasen) re-formieren
+sich bei Erreichen aus frischen Pivots oder bleiben Archiv-Referenz.
 
 **Übergabewert:** Es wird **kein Skalar**, sondern der **kompakte Zonen-Zustand**
 (§4) übergeben — Zentrum + Evidenz + Zeitstempel. Die Gegenseiten-Zonen können

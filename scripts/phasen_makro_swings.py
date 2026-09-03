@@ -213,6 +213,11 @@ GRENZ_KONTAKT_TOL: float = 0.0
 FENSTER_PIVOTS: int = 100
 PIVOT_LOOKBACK: int = 2
 
+# --- Makro-Balance-Huelle (Experiment, docs/makro_swings_experiment.md S5.2) ---
+MIN_ESTABLISH_SPREAD_PCT: float = 1.5   # Etablierungs-Gate: rel. Mindest-Spanne (U-L)/L in %
+RUNAWAY_MIN_CANDLES: int = 46           # Not-Reissleine: Symmetrie zu MIN_PHASE_CANDLES (11.5h)
+RUNAWAY_MULT: float = 2.0               # Not-Reissleine: Faktor x Etablierungs-Spread-Schwelle
+
 VA_PCT: float = 0.93
 NUM_BINS: int = 60
 SMOOTH_WIN: int = 3
@@ -413,6 +418,7 @@ def _linie(prices: List[float], typ: Literal["H", "L"]) -> Optional[float]:
         return None
     w = prices if len(prices) <= FENSTER_PIVOTS else prices[-FENSTER_PIVOTS:]
     return level_schnittmenge(w, typ)
+
 
 
 def _final_level(schnitt: Optional[float], birth: Optional[float], typ: Literal["H", "L"]) -> Optional[float]:
@@ -669,7 +675,11 @@ while i < n:
         U = _linie(h_acc, "H")
         L = _linie(l_acc, "L")
 
-        if est_idx is None and U is not None and L is not None and n_touches(h_acc, U) + n_touches(l_acc, L) >= MIN_ESTABLISH:
+        # E3: Etablierungs-Gate - erst ab relativer Mindest-Spanne (U-L)/L
+        spread_pct = (U - L) / L * 100.0 if (U is not None and L is not None and L > 0) else 0.0
+        if (est_idx is None and U is not None and L is not None
+                and n_touches(h_acc, U) + n_touches(l_acc, L) >= MIN_ESTABLISH
+                and spread_pct >= MIN_ESTABLISH_SPREAD_PCT):
             est_idx = j
 
         if est_idx is not None:
@@ -683,6 +693,7 @@ while i < n:
                 last_L = L_applied
 
         if est_idx is not None and (j - i) >= MIN_PHASE_CANDLES and j + 1 < n:
+            # Bruch-Referenz: lokale Schnittmenge (Baseline-Verhalten, S5.3)
             h_ref = U if U is not None else None
             l_ref = L if L is not None else None
             if birth_h is not None:
@@ -694,6 +705,16 @@ while i < n:
                 break
             if l_ref is not None and row["close"] < l_ref - TOL and df["close"].iloc[j + 1] < l_ref - TOL:
                 brk_idx, brk_dir, brk_kante = j, "down", l_ref
+                break
+        elif est_idx is None and (j - i) >= RUNAWAY_MIN_CANDLES and j + 1 < n:
+            # E4b: Not-Reissleine (Runaway-Guard) - greift nur vor Etablierung
+            p0 = float(df["close"].iloc[i])
+            runaway_tol = RUNAWAY_MULT * p0 * MIN_ESTABLISH_SPREAD_PCT / 100.0
+            if row["close"] > p0 + runaway_tol and df["close"].iloc[j + 1] > p0 + runaway_tol:
+                brk_idx, brk_dir, brk_kante = j, "up", p0 + runaway_tol
+                break
+            if row["close"] < p0 - runaway_tol and df["close"].iloc[j + 1] < p0 - runaway_tol:
+                brk_idx, brk_dir, brk_kante = j, "down", p0 - runaway_tol
                 break
         j += 1
 

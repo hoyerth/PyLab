@@ -222,6 +222,26 @@
 > (kein Diff). Doku `docs/reclaim_signal_loop_design.md` §9.2/§9.3 +
 > Versions-Historie aktualisiert.
 >
+> **Stand (03.09.2026, nach Commit `b95d178`):** **REFERENZLINIEN-
+> MINDESTBREITE (Phasen-Darstellung korrigiert).** User-Problem: R2_L
+> (20.8 14:00–14:15 = nur 2 M15-Bars) erschien im Chart als Punkt/Stummel,
+> obwohl sie die Untergrenze der Phase-2-Range (67.26 → 65.66) ist.
+> AskQuestion-Entscheidung: **Option 2** = jede Linie nur über ihr eigenes
+> Zeitfenster, aber mit Mindestbreite (±3 Bars). Umsetzung in
+> `scripts/phasen_volumen_profil.py`: Konstante `REF_LINE_MIN_BARS = 7`
+> neben `REF_COL_UPPER/LOWER`; in `render_standard_chart` werden Segmente
+> < 7 Bars zentriert auf 7 Bars verbreitert (an Datenrand geclamped).
+> Nur R2_L betroffen (2 Bars); alle anderen Fenster ≥ 20 Bars unverändert.
+> **Verifiziert:** py_compile OK; AUG Baseline bitgenau **27 Sig/+24.97R**;
+> Pixel-Check: ockerfarbene ~10-px-Linie (Zeile ~595, Spalten 1375–1384)
+> rechts der gelben R2_U-Linie (Zeile ~410, 1306–1333) = R2_L sichtbar.
+> Legacy-Artefakte unverändert. Doku §9.3 (Mindestbreite) + Historie
+> ergänzt. Die 4 User-Referenz-Phasen (1–4) sind unverändert gültig:
+> (1) U 66.45 11.8 03:45–18.8 03:00 / L 62.24 11.8 08:30–13.8 21:15;
+> (2) U 67.26 20.8 02:15–07:00 / L 65.66 20.8 14:00–14:15;
+> (3) U 69.90 21.8 10:45–25.8 02:00 / L 68.40 24.8 03:30–20:00;
+> (4) U 69.58 26.8 04:30–27.8 18:45 / L 67.65 25.8 04:30–26.8 15:45.
+>
 > Bei jedem größeren Schritt hier aktualisieren (User-Vorgabe).
 
 ---

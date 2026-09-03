@@ -1703,6 +1703,12 @@ BENCHMARK_TOL_EXACT: float = 0.06  # "centgenau"-Stufe fuer den Report
 REF_COL_UPPER: str = "#EAB308"   # gelb
 REF_COL_LOWER: str = "#B8860B"   # ocker
 
+# Mindestbreite (in Bars) fuer Referenzlinien-Segmente im Chart. Sehr kurze
+# User-Fenster (z. B. R2_L 20.8 14:00-14:15 = 2 M15-Bars) wuerden sonst als
+# unsichtbarer Punkt verschwinden - das Segment wird zentriert auf diese
+# Breite verbreitert (User-Vorgabe 03.09.: "Mindestbreite +/-3 Bars").
+REF_LINE_MIN_BARS: int = 7
+
 
 def benchmark_report(
     phases: List["PhaseData"],
@@ -2245,6 +2251,17 @@ def render_standard_chart(
                                      side="right")) - 1
             x0 = max(0, min(x0, len(df) - 1))
             x1 = max(0, min(x1, len(df) - 1))
+            if x1 < x0:
+                continue
+            # Mindestbreite: Segmente < REF_LINE_MIN_BARS (z. B. R2_L mit nur
+            # 2 Bars) wuerden als Punkt verschwinden -> zentriert verbreitern.
+            if x1 - x0 + 1 < REF_LINE_MIN_BARS:
+                _cx = (x0 + x1) / 2.0
+                _half = (REF_LINE_MIN_BARS - 1) / 2.0
+                x0 = int(round(_cx - _half))
+                x1 = int(round(_cx + _half))
+                x0 = max(0, min(x0, len(df) - 1))
+                x1 = max(0, min(x1, len(df) - 1))
             if x1 < x0:
                 continue
             ax.hlines(ul.price, x0, x1,

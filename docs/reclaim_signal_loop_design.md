@@ -673,6 +673,11 @@ Zusätzlich im Standard-Chart:
   `test/tmp_reclaim_user_ranges.py`): **GELB `#EAB308` = UPPER**, **OCKER
   `#B8860B` = LOWER** — Beschriftung (`R1_U`…) in der Linienfarbe; zwei
   Legenden-Einträge „AUG-Referenzlinie UPPER (gelb)"/„LOWER (ocker)".
+- **Mindestbreite (`REF_LINE_MIN_BARS = 7`, ±3 Bars):** Sehr kurze
+  User-Fenster (z. B. R2_L 20.8 14:00–14:15 = 2 M15-Bars) würden als
+  unsichtbarer Punkt verschwinden — das Segment wird zentriert auf 7 Bars
+  verbreitert (User-Vorgabe 03.09.), damit jede Referenzlinie als Linie
+  sichtbar bleibt.
 - **Statistik-Box** (`stat_lines`) oben links.
 - **Rendering-Trennung:** `SignalMarkerStil` (frozen Dataclass) statt
   Ad-hoc-Plot-Dicts; die Funktion liest ausschließlich aus `df/phases/
@@ -778,3 +783,4 @@ Zusätzlich im Standard-Chart:
 | v0.4.x | 03.09.2026 | **Härtung (Pfad A, Mentor-Freigabe) — Doku + Code synchron:** §3-Signatur `resolve_active_edge` ohne `side`-Parameter (B3: `st.side` = Single Source of Truth; E2-typ/E4-Penetration/E6-Kapselung leiten sich aus `st.side` ab); B3-Invariante hart erzwungen in `update_touch` (`raise ValueError` bei `t.side != st.side`); A3-Bounds-Guard `k + 2 <= p.i_ende` in beiden `next_bar`-Zweigen (kein IndexError am Datenende, Variante 1 — keine in_bar-Umdeutung); Type-Safety: `MacroPhase`-Protocol + frozen `SideSnapshot`/`PhaseSnapshot` statt impliziter Dicts. Null-Einfluss: Baseline bitgenau 27 Sig/+24.97R. |
 | v0.4.x | 03.09.2026 | **Standard-Artefakte verankert (Referenz-Verankerung, Parallelbetrieb mit Legacy):** neuer Abschnitt §9 — jeder Pipeline-Lauf erzeugt ohne Sonderflags `test/stats_trades_<FENSTER>.txt` (Baseline- + optional Macro-Live-Abschnitt, `--stats-txt=`-Override) und `test/phasen_volumen_profil_<FENSTER>.png` (Tier-1/2-Kanten, Dreiecke gefüllt=`in_bar`/offen=`next_bar` + Tier-2-Ring, Baseline-Kreise bei `--macro-live`, AUG-Referenz-Overlay `USER_LINES_AUG`). `fenster_label` AUG/S1/S2/Fallback; Rendering strikt rein lesend (`SignalMarkerStil` frozen Dataclass). Verifiziert bitgenau gegen §8-IST; §9–§11 umnummeriert zu §10–§12. |
 | v0.4.x | 03.09.2026 | **Referenzlinien fest verankert (User-Farbschema Gelb/Ocker):** AUG-Referenzlinien (`R1_U`..`R4_L`) erscheinen in PNG **und** .txt. Chart: `REF_COL_UPPER=#EAB308` (GELB, UPPER) / `REF_COL_LOWER=#B8860B` (OCKER, LOWER) statt Dunkelblau — Beschriftung + 2 Legenden-Einträge in Linienfarbe (Quelle: User-Schema aus `test/tmp_reclaim_user_ranges.py`). .txt: fester Referenzlinien-Textblock (`Name | Farbe | Preis | Gueltig von … bis`) nach dem Report-Kopf via neuem `referenz_lines`-Parameter in `export_stats_trades` (nur AUG; S1/S2 ohne Set → kein Block). Verifiziert bitgenau (AUG 27/+24.97R Baseline, 25/+34.87R Macro-Live; PNG enthält Gelb/Ocker-Pixel, kein Blau mehr). |
+| v0.4.x | 03.09.2026 | **Referenzlinien-Mindestbreite (Phasen-Darstellung korrigiert):** R2_L (20.8 14:00–14:15 = 2 M15-Bars) erschien nur als Punkt/Stummel — User-Vorgabe: „Mindestbreite ±3 Bars". Neue Konstante `REF_LINE_MIN_BARS = 7` in `render_standard_chart`: Segmente < 7 Bars werden zentriert auf 7 Bars verbreitert (geclamped an Datenrand). Alle übrigen Fenster (≥ 20 Bars) unverändert. Verifiziert: Pixel-Check zeigt R2_L jetzt als ~10-px-Linie rechts der R2_U-Linie; Zahlen bitgenau (AUG 27/+24.97R). |

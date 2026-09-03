@@ -643,6 +643,11 @@ Das Label steckt in beiden Standard-Dateinamen — AUG/S1/S2-Läufe
 - **Override:** Der .txt-Pfad ist via `--stats-txt=<pfad>` überschreibbar;
   das Fenster-Label wird dann aus dem Datei-Stem abgeleitet
   (`_label_aus_stem`, z. B. `stats_trades_AUG` → `AUG`).
+- **Referenzlinien-Textblock (AUG):** Bei vorhandenem Referenz-Set
+  (`USER_LINES_AUG`, d. h. Fenster AUG) schreibt der Report direkt nach dem
+  Kopfbereich einen **festen Textblock** der 8 User-Ideallinien mit
+  Farblegende — `GELB`/`OCKER` je Seite und Gültigkeitsfenster (`Name |
+  Farbe | Preis | Gueltig von … bis`). S1/S2 haben kein Set → kein Block.
 - **Verifikation:** Die §8-IST-Zeilen (AUG 25/+34.87R, S1 199/+199.65R,
   S2 216/+93.70R; Baseline bitgenau 27/+24.97R) sind in den Reports
   bitgenau reproduziert (Baseline- UND Macro-Live-Abschnitt).
@@ -663,7 +668,11 @@ Zusätzlich im Standard-Chart:
   **offene Kreise** — Differenz-Sicht: nur Kreis = entfallen, nur Dreieck
   = neu.
 - **Benchmark-Overlay** (nur AUG): exakte historische Referenz-Musterlinien
-  `USER_LINES_AUG` (`R1_U`..`R4_L`), Zeitfenster via `np.searchsorted`.
+  `USER_LINES_AUG` (`R1_U`..`R4_L`), Zeitfenster via `np.searchsorted`,
+  im **User-Farbschema** (`REF_COL_UPPER`/`REF_COL_LOWER`, Quelle
+  `test/tmp_reclaim_user_ranges.py`): **GELB `#EAB308` = UPPER**, **OCKER
+  `#B8860B` = LOWER** — Beschriftung (`R1_U`…) in der Linienfarbe; zwei
+  Legenden-Einträge „AUG-Referenzlinie UPPER (gelb)"/„LOWER (ocker)".
 - **Statistik-Box** (`stat_lines`) oben links.
 - **Rendering-Trennung:** `SignalMarkerStil` (frozen Dataclass) statt
   Ad-hoc-Plot-Dicts; die Funktion liest ausschließlich aus `df/phases/
@@ -768,3 +777,4 @@ Zusätzlich im Standard-Chart:
 | v0.4 | 03.09.2026 | **Kanten-Kapselung (D1-mid) + Cooldown-Entkopplung (D2-asym) arretiert & implementiert** nach S2-Diagnose (Klasse A: Anker-Verdrängung/E4-Fail; Klasse B: Cooldown-Killer). E6: `_anchor_verdraengt_erlaubt` (a_sym-Kapselung `center ≥ lokal_kante − tol` + Überrannt-Filter `overrun_tol = 0.5 × PENETRATION_TOL = 0.075`); D2-asym: `last_bar_t1`/`last_bar_t2` in `find_reclaim_signals` (Tier 1 sperrt Tier 2, nie umgekehrt). **IST (produktive Läufe): AUG 25/+34.87R (P5 4/4, T2-66.364 +6.90R), S1 199/+199.65R, S2 216/+93.70R (6/7), S1+S2 = +293.35R ≥ +292.14R; Baseline bitgenau 27/+24.97R.** c_sym0 (strikt tol=0.0) als Curve-Fitting verworfen (tötet AUG-T2-66.364); P27 +2.01R als legitimer Kompromiss akzeptiert. |
 | v0.4.x | 03.09.2026 | **Härtung (Pfad A, Mentor-Freigabe) — Doku + Code synchron:** §3-Signatur `resolve_active_edge` ohne `side`-Parameter (B3: `st.side` = Single Source of Truth; E2-typ/E4-Penetration/E6-Kapselung leiten sich aus `st.side` ab); B3-Invariante hart erzwungen in `update_touch` (`raise ValueError` bei `t.side != st.side`); A3-Bounds-Guard `k + 2 <= p.i_ende` in beiden `next_bar`-Zweigen (kein IndexError am Datenende, Variante 1 — keine in_bar-Umdeutung); Type-Safety: `MacroPhase`-Protocol + frozen `SideSnapshot`/`PhaseSnapshot` statt impliziter Dicts. Null-Einfluss: Baseline bitgenau 27 Sig/+24.97R. |
 | v0.4.x | 03.09.2026 | **Standard-Artefakte verankert (Referenz-Verankerung, Parallelbetrieb mit Legacy):** neuer Abschnitt §9 — jeder Pipeline-Lauf erzeugt ohne Sonderflags `test/stats_trades_<FENSTER>.txt` (Baseline- + optional Macro-Live-Abschnitt, `--stats-txt=`-Override) und `test/phasen_volumen_profil_<FENSTER>.png` (Tier-1/2-Kanten, Dreiecke gefüllt=`in_bar`/offen=`next_bar` + Tier-2-Ring, Baseline-Kreise bei `--macro-live`, AUG-Referenz-Overlay `USER_LINES_AUG`). `fenster_label` AUG/S1/S2/Fallback; Rendering strikt rein lesend (`SignalMarkerStil` frozen Dataclass). Verifiziert bitgenau gegen §8-IST; §9–§11 umnummeriert zu §10–§12. |
+| v0.4.x | 03.09.2026 | **Referenzlinien fest verankert (User-Farbschema Gelb/Ocker):** AUG-Referenzlinien (`R1_U`..`R4_L`) erscheinen in PNG **und** .txt. Chart: `REF_COL_UPPER=#EAB308` (GELB, UPPER) / `REF_COL_LOWER=#B8860B` (OCKER, LOWER) statt Dunkelblau — Beschriftung + 2 Legenden-Einträge in Linienfarbe (Quelle: User-Schema aus `test/tmp_reclaim_user_ranges.py`). .txt: fester Referenzlinien-Textblock (`Name | Farbe | Preis | Gueltig von … bis`) nach dem Report-Kopf via neuem `referenz_lines`-Parameter in `export_stats_trades` (nur AUG; S1/S2 ohne Set → kein Block). Verifiziert bitgenau (AUG 27/+24.97R Baseline, 25/+34.87R Macro-Live; PNG enthält Gelb/Ocker-Pixel, kein Blau mehr). |

@@ -1698,6 +1698,11 @@ USER_LINES_AUG: tuple[UserMacroLine, ...] = (
 BENCHMARK_TOL: float = 0.15      # Match-Schwelle (konsistent DENSITY_BAND/TOL_TOUCH)
 BENCHMARK_TOL_EXACT: float = 0.06  # "centgenau"-Stufe fuer den Report
 
+# Referenzlinien-Farben (User-Schema, test/tmp_reclaim_user_ranges.py):
+# GELB  = UPPER (obere Range-Grenze), OCKER = LOWER (untere Range-Grenze).
+REF_COL_UPPER: str = "#EAB308"   # gelb
+REF_COL_LOWER: str = "#B8860B"   # ocker
+
 
 def benchmark_report(
     phases: List["PhaseData"],
@@ -1939,6 +1944,7 @@ def export_stats_trades(
     ende: str,
     baseline_signals: List[ReclaimSignal],
     macro_signals: Optional[List[ReclaimSignal]] = None,
+    referenz_lines: Optional[Sequence[UserMacroLine]] = None,
 ) -> str:
     """Schreibt den vollstaendigen Statistik- & Trade-Report eines Fensters.
 
@@ -1956,6 +1962,9 @@ def export_stats_trades(
         baseline_signals: Signale/Trades des Baseline-Laufs.
         macro_signals: optional Signale/Trades des --macro-live-Laufs
             (v0.4.x); None -> nur Baseline-Abschnitt.
+        referenz_lines: optional Referenzlinien (USER_LINES_AUG) - werden
+            als fester Textblock (GELB = UPPER / OCKER = LOWER) in den
+            Report geschrieben; None -> kein Block (S1/S2 ohne Set).
 
     Returns:
         Kompakte Konsolen-Zusammenfassung (mehrzeilig).
@@ -2032,6 +2041,22 @@ def export_stats_trades(
         "Vergleich: Baseline (Standardlauf ohne Makro-Flag) vs. "
         "--macro-live (v0.4.x).",
     ]
+    if referenz_lines:
+        zeilen.append("")
+        zeilen.append("-" * 118)
+        zeilen.append("REFERENZLINIEN AUG (User-Ideallinien - finale Range-"
+                      "Struktur, post-hoc)")
+        zeilen.append("GELB  (#EAB308) = UPPER (obere Range-Grenze)")
+        zeilen.append("OCKER (#B8860B) = LOWER (untere Range-Grenze)")
+        zeilen.append(f"{'Name':<5s} {'Farbe':<5s} {'Preis':>7s}  "
+                      f"Gueltig von            bis")
+        for _ul in referenz_lines:
+            _col = "GELB" if _ul.side == "UPPER" else "OCKER"
+            zeilen.append(
+                f"{_ul.name:<5s} {_col:<5s} {_ul.price:>7.2f}  "
+                f"{_ul.start_ts:%Y-%m-%d %H:%M}  -  {_ul.end_ts:%Y-%m-%d %H:%M}"
+            )
+        zeilen.append("-" * 118)
     for _kurz, _txt, _sigs in _modi:
         zeilen.extend(_abschnitt(_txt, _sigs))
         zeilen.append("")
@@ -2087,7 +2112,8 @@ def render_standard_chart(
         Baseline-Kontrolllage (Differenz-Sicht: nur Kreis = entfallen,
         nur Dreieck = neu).
       * benchmark_lines (optional, AUG): exakte historische Referenz-
-        Musterlinien (USER_LINES_AUG: R1_U..R4_L) als Overlay.
+        Musterlinien (USER_LINES_AUG: R1_U..R4_L) als Overlay -
+        GELB #EAB308 = UPPER / OCKER #B8860B = LOWER (User-Schema).
       * stat_lines (optional): Statistik-Box im Chart.
 
     Args:
@@ -2221,10 +2247,14 @@ def render_standard_chart(
             x1 = max(0, min(x1, len(df) - 1))
             if x1 < x0:
                 continue
-            ax.hlines(ul.price, x0, x1, color="#0b5394", lw=2.0, alpha=0.9,
-                      zorder=3)
+            ax.hlines(ul.price, x0, x1,
+                      color=REF_COL_UPPER if ul.side == "UPPER"
+                      else REF_COL_LOWER,
+                      lw=2.0, alpha=0.95, zorder=3)
             ax.text(x0, ul.price + 0.07, ul.name, fontsize=7.5,
-                    color="#0b5394", fontweight="bold", va="bottom")
+                    color=REF_COL_UPPER if ul.side == "UPPER"
+                    else REF_COL_LOWER,
+                    fontweight="bold", va="bottom")
 
     step = max(8, len(df) // 16)
     ticks = np.arange(0, len(df), step)
@@ -2271,9 +2301,14 @@ def render_standard_chart(
             Line2D([0], [0], marker="o", color="w", mfc="none", mec="#7b1fa2",
                    ms=10, label="Tier-2 Signal (Ring)"))
     if benchmark_lines is not None:
-        legend_elements.append(
-            Line2D([0], [0], color="#0b5394", lw=2.0,
-                   label="AUG-Referenzlinie (User)"))
+        if any(ul.side == "UPPER" for ul in benchmark_lines):
+            legend_elements.append(
+                Line2D([0], [0], color=REF_COL_UPPER, lw=2.0,
+                       label="AUG-Referenzlinie UPPER (gelb)"))
+        if any(ul.side == "LOWER" for ul in benchmark_lines):
+            legend_elements.append(
+                Line2D([0], [0], color=REF_COL_LOWER, lw=2.0,
+                       label="AUG-Referenzlinie LOWER (ocker)"))
     ax.legend(handles=legend_elements, loc="upper left", fontsize=7.5,
               framealpha=0.95)
 
@@ -2337,6 +2372,7 @@ if _macro_live:
         ende=ENDE,
         baseline_signals=_baseline_sigs,
         macro_signals=reclaim_signals,
+        referenz_lines=_bench_lines,
     )
     _chart_hinweis = render_standard_chart(
         ziel_png=_chart_png,
@@ -2359,6 +2395,7 @@ else:
         start=START,
         ende=ENDE,
         baseline_signals=reclaim_signals,
+        referenz_lines=_bench_lines,
     )
     _chart_hinweis = render_standard_chart(
         ziel_png=_chart_png,

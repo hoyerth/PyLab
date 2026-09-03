@@ -199,6 +199,29 @@
 > **Offen:** Commit des Gesamtstands (607 Insertions in
 > `scripts/phasen_volumen_profil.py` + Doku) mit Continue-Signatur.
 >
+> **Stand (03.09.2026, nach Commit `a040599`):** **REFERENZLINIEN GELB/OCKER
+> FEST VERANKERT (PNG + TXT).** User-Frage „Wo sind meine Referenzlinien in
+> gelb/ocker?“: Sie existierten nur im alten Diagnose-Chart
+> (`test/tmp_reclaim_user_ranges_AUG.png`, `COL_UP=#EAB308` / `COL_LO=
+> #B8860B`); im Standard-Chart waren sie Dunkelblau `#0b5394`, im .txt-
+> Report fehlten sie komplett. Jetzt in `scripts/phasen_volumen_profil.py`:
+> 1) `REF_COL_UPPER=#EAB308` (GELB = UPPER) / `REF_COL_LOWER=#B8860B`
+>    (OCKER = LOWER) neben `BENCHMARK_TOL_EXACT` (Quelle: User-Schema).
+> 2) PNG `render_standard_chart`: Referenzlinien je Seite in GELB/OCKER
+>    (Text-Label in Linienfarbe), Legende mit 2 Einträgen „AUG-Referenzlinie
+>    UPPER (gelb)“ / „LOWER (ocker)“ statt einem Blau-Eintrag.
+> 3) TXT `export_stats_trades`: neuer Parameter `referenz_lines`; der AUG-
+>    Report schreibt einen festen Textblock nach dem Kopf (Name | Farbe |
+>    Preis | Gueltig von .. bis, alle 8 Linien, GELB/OCKER-Legende). S1/S2
+>    ohne Set -> kein Block.
+> **Verifiziert:** py_compile OK; AUG Baseline **27 Sig/+24.97R** und AUG
+> `--macro-live` **25 Sig/+34.87R** bitgenau; PNG-Farbcheck GELB 328 Px /
+> OCKER 267 Px / BLAU 0 Px (Referenzlinien real in Gelb/Ocker); S1
+> 201/+197.26R ohne Block; Legacy-Artefakte (`scripts/phasen_volumen_
+> profil.png/.txt`) nach den Testläufen per `git checkout` restauriert
+> (kein Diff). Doku `docs/reclaim_signal_loop_design.md` §9.2/§9.3 +
+> Versions-Historie aktualisiert.
+>
 > Bei jedem größeren Schritt hier aktualisieren (User-Vorgabe).
 
 ---

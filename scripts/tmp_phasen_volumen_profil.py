@@ -38,151 +38,198 @@ Die Phasen-SEGMENTIERUNG (Etablierung/Ausbruch/Moves) bleibt zunaechst
 die kausale Schnittmengen-Logik aus dem Backup-Skript - erst die
 GRENZEN/Darstellung werden durch das Volume-Profil bestimmt.
 
-KAUSALITAET / KEIN LOOKAHEAD (wie im Backup):
+KAUSALITAET / KEIN LOOKAHEAD:
 - Pivot-Bestaetigung nachlaufend (Lag PIVOT_LOOKBACK).
 - Geburtszone nur mit bestaetigten Pivots (cutoff am Phasenstart).
+- Kausales Signal-Screening bar fuer bar ueber laufende Volume-Zone (keine finale Phasen-Huellkurve als Filter).
 - Regel-7-Finalize (letzter Grenz-Kontakt) ist POST-HOC am Datenende.
 """
-import duckdb
-import pandas as pd
-import numpy as np
+from __future__ import annotations
+
+import os
 import sys
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Dict, List, Literal, Optional, Tuple
 
-OUT_PNG = Path(__file__).resolve().parent / "tmp_phasen_volumen_profil.png"
-DB_PATH = Path(__file__).resolve().parent.parent / "data" / "market_data.duckdb"
-TOL = 0.34            # USD Close-Breakout-Toleranz (entscheidender Ausbruch)
-                      #   GETESTET (Reihentest 05.02.-28.08.26, 73-127 Signale):
-                      #   Sweet Spot 0.34: +250.80R / avg +2.01 / 65% WR / 125
-                      #   Signale (0.33 +248.90R, 0.32 +244.48R, 0.30 alt
-                      #   +238.44R / 62% WR). Unter 0.30: zu fruehe Ausbrueche
-                      #   kosten R; ueber 0.35: Ausbrueche zu spaet, Phasen
-                      #   laufen zu lange. Robustes Plateau 0.30-0.34.
-                      #   Per --tol=N testbar.
-TOL_TOUCH = 0.15      # "enger Touch": Pivot innerhalb dieser Distanz zur Grenze
-MIN_TOUCHES = 3       # je Grenze fuer "handelbar"
-MIN_CANDLES = 46
-MIN_PHASE_CANDLES = 46  # GEGENSTEUERUNG (Uebersegmentierung): eine Phase darf
-                        #   erst nach >= dieser Candles ausbrechen. Kausal
-                        #   (j-i >= MIN_PHASE_CANDLES), kein Lookahead.
-MIN_CLUSTER = 2       # min. Pivot-Treffer, damit eine Spitze ein Level bildet
-MIN_ESTABLISH = 4     # Touches GESAMT (H+L) auf beiden Grenzen, bevor Ausbrueche
-                      #   zaehlen. FIX (Trader): "3 Ankerpunkte insgesamt" statt
-                      #   "3 je High UND 3 je Low" (alt: je Seite getrennt).
-                      #   GETESTET (Reihentest 05.02.-28.08.26, 53-73 Signale):
-                      #   Sweet Spot 4: +169.82R / avg +2.36 / 64% WR / 72 Signale
-                      #   (1-3 identisch +152.14R, 5 +136.95R, 6 +132.54R).
-                      #   4. Anker filtert frisch etablierte, noch volatile
-                      #   Zonen; ab 5 werden zu viele Phasen erst spaeter
-                      #   handelbar. Per --establish=N testbar.
-DENSITY_BAND = 0.15   # Cluster-Fenster (+/-) fuer Level-Berechnung
-MIN_SPREAD_PCT = 1.5  # % minimale Handelsspanne (Breite/UNTEN) fuer handelbare Phase
-ERWEITERUNG_PCT = 1.0 # % HH/LL-Erweiterung: Spitze bis 1% ueber der Grenzkante
-                      #   erweitert die Range (Linie wandert in die Schnittmenge),
-                      #   darueber hinaus ist sie kein Teil des Levels
-SHIFT_TOL = 0.05      # USD: erst ab dieser Aenderung gilt eine Linie als
-                      #   "verschoben" (unterdrueckt Rauschen in der Entwicklung)
-GRENZ_KONTAKT_TOL = 0.0  # USD: Toleranz fuer "Pivot erreicht Grenzlinie"
-                         #   (H-Pivot >= OBEN-TOL bzw. L-Pivot <= UNTEN+TOL).
-                         #   0.0 = Pivot muss die Linie wirklich beruehren,
-                         #   damit der Do-19:00-Kontakt (69.714) der letzte ist
-FENSTER_PIVOTS = 100    # Gleitendes Pivot-Fenster fuer die Schnittmengen-Linie:
-                        #   Nur die letzten N Pivots je Seite bilden die Linie.
-                        #   Verhindert das "Einfrieren" an alten Extremen bei
-                        #   langen Phasen (z.B. Juni/Juli: U blieb auf 72.88,
-                        #   Kurs pendelte 55-70 -> nie etabliert). Bei kurzen
-                        #   Phasen (August, <100 Pivots) unveraendert.
-PIVOT_LOOKBACK = 2    # Pivot-Bestaetigungs-Lag (Bars): Ein Pivot bei Bar k
-                      #   wird erst in Bar k+PIVOT_LOOKBACK bekannt gegeben
-                      #   (kein Zentrums-Lookahead, kausal fuer Replay-Tests)
-# ---------- VOLUME-PROFIL-PARAMETER ----------
-VA_PCT = 0.93         # Value-Area-Anteil je Berg (0.70 = Standard, 0.85/0.90 = breiter)
-                      #   GETESTET (Reihentest 05.02.-28.08.26, 42-79 Signale):
-                      #   Sweet Spot 0.93: +124.25R / avg +1.66 / 60% WR / 75 Signale
-                      #   (0.96 +125.11R / avg +2.05, aber nur 61 Signale; 0.90
-                      #   +99.73R / 56% WR). Breitere Value-Area = weiter entfernte
-                      #   TP1/TP2 = groessere R. 1.00 kollabiert (Zone = Range,
-                      #   0 Signale); 0.93 bleibt sicher davor. Per --va-pct=N testbar.
-NUM_BINS = 60         # Preis-Bins fuer das Volume-Profil
-SMOOTH_WIN = 3        # Histogramm-Glaettung (Bins)
-VALLEY_REL = 0.15     # Tal-Relation: Tal < 15% des kleineren Nachbar-Peaks trennt Berge
-                      #   GETESTET (Reihentest 05.02.-28.08.26, 69-78 Signale):
-                      #   Sweet Spot 0.15: +152.14R / avg +2.08 / 64% WR / 73 Signale
-                      #   (0.14 +148.21R, 0.20 +151.76R, 0.35 alt +134.94R / 61% WR).
-                      #   Kleinere Werte trennen zu wenige Berge (engere Zone),
-                      #   groessere verschmelzen Berge (mehr Signale, niedrigere
-                      #   Qualitaet). Plateau 0.14-0.20. Per --valley-rel=N testbar.
-MIN_MOUNTAIN_PCT = 4.0  # Sekundaer-Berg muss >= 4% des dominanten Volumens haben
-                        #   GETESTET (Reihentest 05.02.-28.08.26, 72-76 Signale):
-                        #   Sweet Spot <= 4.0: +134.94R / avg +1.78 / 61% WR / 76
-                        #   Signale (0/2/4 identisch - keine relevanten Berge
-                        #   zwischen 4-8%). Default 8.0: +124.25R / 60% WR.
-                        #   Kleine Sub-Berge erweitern die Zone -> weiter entfernte
-                        #   TP1/TP2 -> groessere R (max +10.69R). Ab 60% Abfall.
-                        #   Per --mountain-pct=N testbar.
-MIN_RECLAIM_CANDLES = 0   # min. Bars einer Phase, bevor Setup-B-Signale zaehlen
-                          #   GETESTET (Reihentest 05.02.-28.08.26, 13-125 Signale):
-                          #   Sweet Spot 0: +238.44R / avg +1.91 / 62% WR / 125
-                          #   Signale - fast 50% MEHR RENDITE als 30 (+169.82R)
-                          #   bei nur ~2 Tagen/Signal statt ~3.5 (125 Signale in
-                          #   7 Monaten). Monoton: je frueher Signale zaehlen,
-                          #   desto mehr Summe R; Winrate stabil 62-64%. Die
-                          #   "jungen" Signale sind netto klar profitabel.
-                          #   Per --reclaim-candles=N testbar.
-MIN_RECLAIM_BOUNCE = 2    # min. Bounce-Nummer an der Kante.
-                          #   GETESTET (Reihentest 05.02.-28.08.26, 51-85 Signale):
-                          #   Sweet Spot bounce=2: +96.60R / avg +1.32 / 53% WR
-                          #   (bounce=1 +91.60R / 47% WR; bounce=3 +66.80R / 55% WR).
-                          #   Bo=1-Signale sind zu 82% Verluste (14/17, netto -5.26R)
-                          #   und werden gefiltert. Per --bounce=N testbar.
-MIN_RECLAIM_CRV = 1.0     # min. CRV (Risiko-Ertrag) fuer ein Signal (Patrick ~1:3)
-MIN_SIGNAL_ABSTAND_BARS = 8   # Cooldown: keine 2 Signale gleicher Richtung in 8 Bars
-                              #   GETESTET (kausal, Re-Optimierung 31.08.2026, 2 Samples):
-                              #   S1 2026-02-05..08-28: CD=8 +219.14R/226 Sig/43% WR vs.
-                              #   CD=12 +197.26R/201 Sig/44% WR (alter Lookahead-Default).
-                              #   S2 2025-01-01..12-01 (OOS): CD=8 +110.79R/240 Sig vs.
-                              #   CD=12 +99.88R/210 Sig. CD=8 gewinnt BEIDE Samples
-                              #   (+22R/+11R) bei gleichem avg R -> mehr Signale gleicher
-                              #   Qualitaet, kein Overfit (CD=14 war nur in S1 gut =
-                              #   verworfen). CD=6 bringt weitere +11R/+5R, aber mit
-                              #   abnehmendem Grenznutzen und sinkendem avg R -> CD=8
-                              #   als Knie-Punkt gewaehlt. Per --cooldown=N testbar.
-SL_PCT = 0.45             # SL bei Entry: % vom Einstiegspreis (SHORT +, LONG -)
-                          #   GETESTET (Reihentest 05.02.-28.08.26, 82 Signale):
-                          #   Sweet Spot 0.35-0.45; 0.45 = hoechster avg R +0.98
-                          #   und beste Winrate 63% bei minimaler Signalanzahl.
-TP2_PUFFER_PCT = 0.20     # % vom Level-Preis: TP2 VOR dem anderen Box-Ende (innen)
-                          #   SHORT: TP2 = L_zone * (1+0.20%) | LONG: TP2 = U_zone * (1-0.20%)
-                          #   GETESTET (Reihentest 05.02.-28.08.26, 73 Signale):
-                          #   Sweet Spot 0.20: +99.73R / avg +1.37 / 56% WR
-                          #   (0.10 +99.69R / 53% WR; 0.15 +96.60R / 53% WR).
-                          #   Groessere Puffer (0.30/0.50) steigern nur die WR,
-                          #   kosten aber -14R gegenueber 0.20.
-# --- TRADE-MANAGEMENT-VARIANTEN (Setup B / Setup C) ---
-ANTEIL_TP1 = 25           # % der Position, die bei TP1 (POC) geschlossen wird
-                          #   GETESTET (Reihentest 05.02.-28.08.26, 82 Signale):
-                          #   25/75 = Kompromiss: +82.83R / avg +1.01 bei deutlich
-                          #   besserer Winrate als 0/100 (+85.49R, aber nur 44%).
-                          #   50/50 = 63% Winrate, aber -2.7R Rendite.
-                          #   KEIN SL-NACHZUG (konsequent entfernt): Die Restcharge
-                          #   behaelt den Einstiegs-SL -> TP2 (Box-Ende) wird trotz
-                          #   Pullbacks erreichbar (Trader-Punkt 2).
-TRAILING_PCT = 0.0        # >0: Trailing-Stop-Modus statt festem TP1/TP2 (Trader-Punkt 4):
-                          #   SL folgt dem Preis mit X% Abstand vom letzten Extrem.
-                          #   GETESTET (Reihentest 05.02.-28.08.26, 73 Signale, in
-                          #   Kopie tmp_phasen_volumen_profil_trail.py, korrigierte
-                          #   Logik: initialer SL hart -1R max, Trailing nur fuer
-                          #   Gewinner): bester Wert 0.80 mit +83.45R / avg +1.14 /
-                          #   67% WR - DEM FESTEM TP1/TP2-MODUS UNTERLEGEN
-                          #   (Baseline +99.73R / avg +1.37). Trailing schneidet die
-                          #   grossen TP2-Runner (Box-Ende) ab. NICHT VERWERFEN:
-                          #   fuer SETUP C (Move-Trades) ggf. weiter nuetzlich.
-TRADE_MOVES = False       # Setup C (Trader-Punkt 3): Ausbruchs-Moves handeln
-                          #   (Einstieg nach 2-Close-Bestaetigung, Exit am Ende des Moves)
-START = "2026-08-10"
-ENDE = "2026-08-28"
+import duckdb
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
+import numpy as np
+import pandas as pd
 
-# Kommandozeilen-Override fuer Parametertests (z.B. --sl-pct=0.3, --start=2026-06-01)
+# ==============================================================================
+# TYPIFIZIERTE DATENVERTRAEGE (Strikte Nutzung von Type Hints)
+# ==============================================================================
+
+@dataclass(slots=True)
+class VolumeProfileData:
+    centers: np.ndarray
+    edges: np.ndarray
+    vol: np.ndarray
+    pmin: float
+    pmax: float
+
+
+@dataclass(slots=True)
+class MountainPeak:
+    poc: float
+    val: float
+    vah: float
+    vol: float
+    peak_share_pct: float
+
+
+@dataclass(slots=True)
+class VolumeZone:
+    profile: VolumeProfileData
+    mountains: List[Tuple[int, int, int]]
+    peaks: List[MountainPeak]
+    U_zone: float
+    L_zone: float
+    POC: float
+    n_mountains: int
+
+
+@dataclass(slots=True)
+class PhaseData:
+    start: pd.Timestamp
+    ende: pd.Timestamp
+    U_final: Optional[float]
+    L_final: Optional[float]
+    h_prices: List[float]
+    l_prices: List[float]
+    h_ts: List[pd.Timestamp]
+    l_ts: List[pd.Timestamp]
+    birth_h: Optional[float]
+    birth_l: Optional[float]
+    U_conf_ts: Optional[pd.Timestamp]
+    L_conf_ts: Optional[pd.Timestamp]
+    U_ts: Optional[pd.Timestamp]
+    L_ts: Optional[pd.Timestamp]
+    U_hist: List[Tuple[pd.Timestamp, float]]
+    L_hist: List[Tuple[pd.Timestamp, float]]
+    break_dir: Optional[Literal["up", "down"]]
+    brk_idx: Optional[int]
+    brk_kante: Optional[float]
+    n_candles: int = 0
+    handels_h: float = 0.0
+    i_start: int = 0
+    i_ende: int = 0
+    touches_h: int = 0
+    touches_l: int = 0
+    close_h: int = 0
+    close_l: int = 0
+    spread: float = 0.0
+    spread_pct: float = 0.0
+    handelbar: bool = False
+    U_init: Optional[float] = None
+    L_init: Optional[float] = None
+    n_U_shifts: int = 0
+    n_L_shifts: int = 0
+    U_proj_val: Optional[float] = None
+    L_proj_val: Optional[float] = None
+    vol_zone: Optional[VolumeZone] = None
+    U_zone: Optional[float] = None
+    L_zone: Optional[float] = None
+    POC: Optional[float] = None
+    n_berge: int = 0
+    zone_breite: float = 0.0
+
+
+@dataclass(slots=True)
+class MoveData:
+    dir: Literal["up", "down"]
+    von_ts: pd.Timestamp
+    von_pr: Optional[float]
+    bis_ts: pd.Timestamp
+    bis_pr: float
+
+
+@dataclass(slots=True)
+class TradeResolution:
+    r1: float
+    r2: float
+    exit1: float
+    exit2: float
+    grund1: str
+    grund2: str
+    pnl: float
+    r_mult: float
+    resultat: Literal["GEWONNEN", "VERLOREN", "NEUTRAL"]
+    tp1_hit: bool
+    tp2_hit: bool
+    sl_hit1: bool
+    sl_hit2: bool
+    sl_init: float
+
+
+@dataclass(slots=True)
+class ReclaimSignal:
+    typ: Literal["SHORT", "LONG"]
+    bar: int
+    ts: pd.Timestamp
+    reclaim: Literal["in_bar", "next_bar"]
+    einstieg_bar: int
+    einstieg_preis: float
+    U_laufend: float
+    L_laufend: float
+    POC: float
+    tp1: float
+    tp2: float
+    sl: float
+    crv: float
+    crv2: float
+    bounce_nr: int
+    phase: int = 0
+    trade: Optional[TradeResolution] = None
+    # Makro-Persistenz (Signal-Loop-Design v0.1): Schatten-Felder - Defaults
+    # = Baseline-Verhalten (kein Einfluss auf _aufloesen/Exits/SL).
+    edge_decision: Optional["ActiveEdgeDecision"] = None  # Kanten-Entscheidung (Audit)
+    macro_active: bool = False                            # True = Signal an Tier-2-Kante
+
+
+# ==============================================================================
+# PARAMETER
+# ==============================================================================
+
+OUT_PNG: Path = Path(__file__).resolve().parent / "tmp_phasen_volumen_profil.png"
+DB_PATH: Path = Path(__file__).resolve().parent.parent / "data" / "market_data.duckdb"
+
+TOL: float = 0.34
+TOL_TOUCH: float = 0.15
+MIN_TOUCHES: int = 3
+MIN_CANDLES: int = 46
+MIN_PHASE_CANDLES: int = 46
+MIN_CLUSTER: int = 2
+MIN_ESTABLISH: int = 4
+DENSITY_BAND: float = 0.15
+MIN_SPREAD_PCT: float = 1.5
+ERWEITERUNG_PCT: float = 1.0
+SHIFT_TOL: float = 0.05
+GRENZ_KONTAKT_TOL: float = 0.0
+FENSTER_PIVOTS: int = 100
+PIVOT_LOOKBACK: int = 2
+
+VA_PCT: float = 0.93
+NUM_BINS: int = 60
+SMOOTH_WIN: int = 3
+VALLEY_REL: float = 0.15
+MIN_MOUNTAIN_PCT: float = 4.0
+MIN_RECLAIM_CANDLES: int = 0
+MIN_RECLAIM_BOUNCE: int = 2
+MIN_RECLAIM_CRV: float = 1.0
+MIN_SIGNAL_ABSTAND_BARS: int = 12
+SL_PCT: float = 0.45
+TP2_PUFFER_PCT: float = 0.20
+
+ANTEIL_TP1: float = 25.0
+TRAILING_PCT: float = 0.0
+START: str = "2026-08-10"
+ENDE: str = "2026-08-28"
+
 for _a in sys.argv[1:]:
     if _a.startswith("--sl-pct="):
         SL_PCT = float(_a.split("=", 1)[1])
@@ -233,78 +280,78 @@ for _a in sys.argv[1:]:
     if _a.startswith("--trailing="):
         TRAILING_PCT = float(_a.split("=", 1)[1])
         print(f"==> TRAILING_PCT ueberschrieben: {TRAILING_PCT}")
-    if _a == "--moves=1":
-        TRADE_MOVES = True
-        print("==> TRADE_MOVES aktiviert (SETUP C: Move-Trades)")
 
-# ---------- 1) Daten ----------
-con = duckdb.connect(str(DB_PATH), read_only=True)
-df = con.execute(f"""
-    SELECT time AT TIME ZONE 'UTC' AS ts, open, high, low, close, tick_volume
-    FROM ohlcv_bars
-    WHERE symbol='SILVER' AND timeframe='M15'
-      AND time AT TIME ZONE 'UTC' >= DATE '{START}'
-      AND time AT TIME ZONE 'UTC' <  DATE '{ENDE}'
-    ORDER BY time
-""").fetchdf()
-con.close()
-df["ts"] = pd.to_datetime(df["ts"], utc=True).dt.tz_localize(None)
-df["idx"] = np.arange(len(df))
+# ==============================================================================
+# 1) DATEN EINLESEN (Strikt DuckDB)
+# ==============================================================================
 
-# ---------- 2) Pivots ----------
-def find_pivots(d, n=PIVOT_LOOKBACK):
-    """Zentrierte Pivot-Erkennung (Lookback n nach links UND rechts).
+def load_data(db_path: Path, start: str, ende: str) -> pd.DataFrame:
+    if not db_path.exists():
+        raise FileNotFoundError(f"DuckDB-Datei nicht gefunden: {db_path}")
+    con = duckdb.connect(str(db_path), read_only=True)
+    d = con.execute(f"""
+        SELECT time AT TIME ZONE 'UTC' AS ts, open, high, low, close, tick_volume
+        FROM ohlcv_bars
+        WHERE symbol='SILVER' AND timeframe='M15'
+          AND time AT TIME ZONE 'UTC' >= DATE '{start}'
+          AND time AT TIME ZONE 'UTC' <  DATE '{ende}'
+        ORDER BY time
+    """).fetchdf()
+    con.close()
+    d["ts"] = pd.to_datetime(d["ts"], utc=True).dt.tz_localize(None)
+    d["idx"] = np.arange(len(d))
+    return d
 
-    Die DETEKTION nutzt weiterhin n Zukunfts-Bars (Pivot-Definition).
-    Der Phasen-Loop gibt die Pivots aber erst mit Lag n bekannt (kausal) -
-    die Pivot-MENGE bleibt identisch, nur die Bekanntgabe ist nachlaufend.
-    """
-    h, l = d["high"].values, d["low"].values
-    hi, lo = pd.Series(h), pd.Series(l)
-    is_hi = (hi == hi.rolling(2*n+1, center=True, min_periods=1).max()) & (hi.shift(n) < h) & (hi.shift(-n) < h)
-    is_lo = (lo == lo.rolling(2*n+1, center=True, min_periods=1).min()) & (lo.shift(n) > l) & (lo.shift(-n) > l)
-    is_hi[:n] = False; is_hi[-n:] = False
-    is_lo[:n] = False; is_lo[-n:] = False
-    piv = pd.DataFrame({
-        "ts": d["ts"], "price": np.where(is_hi, h, np.where(is_lo, l, np.nan)),
+df = load_data(DB_PATH, START, ENDE)
+
+# ==============================================================================
+# 2) PIVOTS
+# ==============================================================================
+
+def find_pivots(d: pd.DataFrame, n: int = PIVOT_LOOKBACK) -> pd.DataFrame:
+    h: np.ndarray = d["high"].values
+    l: np.ndarray = d["low"].values
+    hi = pd.Series(h)
+    lo = pd.Series(l)
+    is_hi = (hi == hi.rolling(2 * n + 1, center=True, min_periods=1).max()) & (hi.shift(n) < h) & (hi.shift(-n) < h)
+    is_lo = (lo == lo.rolling(2 * n + 1, center=True, min_periods=1).min()) & (lo.shift(n) > l) & (lo.shift(-n) > l)
+    is_hi[:n] = False
+    is_hi[-n:] = False
+    is_lo[:n] = False
+    is_lo[-n:] = False
+    piv_df = pd.DataFrame({
+        "ts": d["ts"],
+        "price": np.where(is_hi, h, np.where(is_lo, l, np.nan)),
         "typ": np.where(is_hi, "H", np.where(is_lo, "L", "")),
     })
-    return piv[piv["typ"] != ""].copy()
+    return piv_df[piv_df["typ"] != ""].copy()
 
 piv = find_pivots(df.reset_index(drop=True), n=PIVOT_LOOKBACK).sort_values("ts").reset_index(drop=True)
 print(f"Pivots (Lookback {PIVOT_LOOKBACK}): {len(piv)} | Candles: {len(df)}")
 
-# ---------- 3) Schnittmengen-Linie (dominante Grenzen) ----------
-def level_schnittmenge(prices, target_typ="H", band=DENSITY_BAND,
-                       min_cluster=MIN_CLUSTER, erweiterung_pct=ERWEITERUNG_PCT):
-    """
-    Schnittmengen-Linie der extremen Spitzen-Ebene (Trader-Sicht).
+# ==============================================================================
+# 3) SCHNITTMENGEN-LINIE
+# ==============================================================================
 
-    1. Einzel-Ausreisser (lokale Dichte < min_cluster, z.B. Fr-Tief 67.883)
-       bilden KEIN Level.
-    2. EXTREMER KERN: oberste (H) / tiefste (L) Spitzen-Gruppe mit
-       >= min_cluster Treffern im Band.
-    3. ERWEITERUNGS-POOL: Spitzen bis erweiterung_pct ueber/unter der
-       Kern-Kante gehoeren zur Grenze (HH/LL <= 1% erweitert die Range).
-    4. Linie = getrimmte Schnittmenge des Pools OHNE das absolute Extrem,
-       damit die Linie nicht am hoechsten/niedrigsten Wert klebt, sondern
-       in der Schnittmenge der Mehrheit liegt.
-    """
+def level_schnittmenge(
+    prices: List[float] | np.ndarray,
+    target_typ: Literal["H", "L"] = "H",
+    band: float = DENSITY_BAND,
+    min_cluster: int = MIN_CLUSTER,
+    erweiterung_pct: float = ERWEITERUNG_PCT,
+) -> Optional[float]:
     arr = np.array(prices, dtype=float)
     if not len(arr):
         return None
-    # 1) lokale Dichte je Spitze (Anzahl Spitzen im Band)
     d = np.array([np.sum(np.abs(arr - x) <= band) for x in arr])
     m = d >= min_cluster
     if not m.any():
         return float(np.max(arr)) if target_typ == "H" else float(np.min(arr))
     sel = arr[m]
-    # 2) extremer Kern: Spitzen im Band um das absolute Extrem der signifikanten
     ext = float(np.max(sel)) if target_typ == "H" else float(np.min(sel))
     kern = sel[np.abs(sel - ext) <= band]
     if not len(kern):
         kern = sel
-    # 3) Erweiterungs-Pool: Kern-Kante +/- band, bis erweiterung_pct darueber/darunter
     if target_typ == "H":
         kante = float(np.min(kern))
         pool = sel[sel >= kante - band]
@@ -315,7 +362,6 @@ def level_schnittmenge(prices, target_typ="H", band=DENSITY_BAND,
         pool = pool[pool >= kante * (1 - erweiterung_pct / 100.0)]
     if not len(pool):
         pool = kern
-    # 4) getrimmte Schnittmenge ohne das absolute Extrem
     if len(pool) > 1:
         if target_typ == "H":
             pool = pool[pool != np.max(pool)]
@@ -324,29 +370,20 @@ def level_schnittmenge(prices, target_typ="H", band=DENSITY_BAND,
     return float(np.mean(pool)) if len(pool) else float(np.mean(kern))
 
 
-def n_touches(prices, level, band=DENSITY_BAND):
-    """Anzahl Pivots innerhalb +/- band um ein Level."""
-    if level is None or not prices:
+def n_touches(prices: List[float] | np.ndarray, level: Optional[float], band: float = DENSITY_BAND) -> int:
+    if level is None or not len(prices):
         return 0
-    return int(np.sum(np.abs(np.array(prices) - level) <= band))
+    return int(np.sum(np.abs(np.array(prices, dtype=float) - level) <= band))
 
 
-def _linie(prices, typ):
-    """Schnittmengen-Linie ueber ein GLEITENDES Pivot-Fenster (robust).
-
-    Nutzt nur die letzten FENSTER_PIVOTS Pivots je Seite, damit die Linie
-    dem aktuellen Preisniveau folgt und nicht an alten Extremen einfriert
-    (z.B. Phase 05.06-27.08: U=72.88, Kurs pendelte 55-70 -> nie etabliert).
-    Bei kurzen Phasen (<= FENSTER_PIVOTS Pivots) identisch zur vollen Linie.
-    """
-    if prices is None or not len(prices):
+def _linie(prices: List[float], typ: Literal["H", "L"]) -> Optional[float]:
+    if not prices:
         return None
     w = prices if len(prices) <= FENSTER_PIVOTS else prices[-FENSTER_PIVOTS:]
     return level_schnittmenge(w, typ)
 
 
-def _final_level(schnitt, birth, typ):
-    """Schnittmengen-Linie, verstaerkt um die Geburtszone."""
+def _final_level(schnitt: Optional[float], birth: Optional[float], typ: Literal["H", "L"]) -> Optional[float]:
     if schnitt is None:
         return birth
     if birth is None:
@@ -354,13 +391,12 @@ def _final_level(schnitt, birth, typ):
     return max(schnitt, birth) if typ == "H" else min(schnitt, birth)
 
 
-def _final_level_bestaetigt(schnitt, birth, typ, conf_ts):
-    """Finale Grenze (Variante C): Geburtszone NUR uebernehmen, wenn real getestet.
-
-    conf_ts ist der Zeitpunkt des ersten Pivots innerhalb DENSITY_BAND um die
-    Geburtszone (None = nie bestaetigt). Ohne Bestaetigung bleibt die finale
-    Linie die reine Schnittmenge (keine Vermutung, dass der Kurs zurueckkehrt).
-    """
+def _final_level_bestaetigt(
+    schnitt: Optional[float],
+    birth: Optional[float],
+    typ: Literal["H", "L"],
+    conf_ts: Optional[pd.Timestamp],
+) -> Optional[float]:
     if schnitt is None:
         return birth
     if birth is None or conf_ts is None:
@@ -368,15 +404,7 @@ def _final_level_bestaetigt(schnitt, birth, typ, conf_ts):
     return max(schnitt, birth) if typ == "H" else min(schnitt, birth)
 
 
-def _birth_level(birth, typ):
-    """FIX Birth: Geburtszone nur mit signifikanten Niveaus (>= MIN_CLUSTER).
-
-    Analog level_schnittmenge ("Einzel-Ausreisser bilden KEIN Level"):
-    birth_h/birth_l duerfen NICHT am Max/Min eines einzelnen Pivots kleben.
-    Ein einzelner Spike im Ausbruchs-Move (z.B. 72.950 am 05.06) wuerde sonst
-    die Obergrenze der neuen Phase fuer Wochen auf einen toten Wert pinnen.
-    Rueckgabe: Level nur, wenn >= MIN_CLUSTER Pivots im DENSITY_BAND liegen.
-    """
+def _birth_level(birth: Optional[pd.DataFrame], typ: Literal["H", "L"]) -> Optional[float]:
     if birth is None or len(birth) == 0:
         return None
     prices = birth.loc[birth["typ"] == typ, "price"].values.astype(float)
@@ -389,15 +417,18 @@ def _birth_level(birth, typ):
     return float(np.max(sel)) if typ == "H" else float(np.min(sel))
 
 
-def _last_grenz_kontakt(h_prices, h_ts, l_prices, l_ts, U_final, L_final, tol=0.0):
-    """
-    Letzter Pivot, der die finale Grenzlinie tatsaechlich erreicht hat.
-
-    - OBEN: H-Pivot >= U_final - tol
-    - UNTEN: L-Pivot <= L_final + tol
-    Rueckgabe: (ts, price, typ) des spaetesten Kontakts oder (None, None, None).
-    """
-    best_ts = best_pr = best_typ = None
+def _last_grenz_kontakt(
+    h_prices: List[float],
+    h_ts: List[pd.Timestamp],
+    l_prices: List[float],
+    l_ts: List[pd.Timestamp],
+    U_final: Optional[float],
+    L_final: Optional[float],
+    tol: float = 0.0,
+) -> Tuple[Optional[pd.Timestamp], Optional[float], Optional[Literal["H", "L"]]]:
+    best_ts: Optional[pd.Timestamp] = None
+    best_pr: Optional[float] = None
+    best_typ: Optional[Literal["H", "L"]] = None
     if U_final is not None:
         for ts, pr in zip(h_ts, h_prices):
             if pr >= U_final - tol and (best_ts is None or ts > best_ts):
@@ -408,17 +439,15 @@ def _last_grenz_kontakt(h_prices, h_ts, l_prices, l_ts, U_final, L_final, tol=0.
                 best_ts, best_pr, best_typ = ts, pr, "L"
     return best_ts, best_pr, best_typ
 
+# ==============================================================================
+# 3b) VOLUME-PROFIL BERECHNUNG
+# ==============================================================================
 
-# ---------- 3b) VOLUME-PROFIL (POC/VAH/VAL + Multi-Mountain) ----------
-def build_volume_profile(sub, num_bins=NUM_BINS):
-    """Baut das Volume-Profil (Volumen pro Preis-Bin) fuer ein Phasen-DataFrame.
-
-    Jede Bar verteilt ihr tick_volume proportional ueber ihren High-Low-
-    Bereich auf die ueberlappenden Bins. Vektorisiert ueber die Bar-Anteile.
-    """
+def build_volume_profile(sub: pd.DataFrame, num_bins: int = NUM_BINS) -> Optional[VolumeProfileData]:
     if sub.empty:
         return None
-    pmin, pmax = float(sub["low"].min()), float(sub["high"].max())
+    pmin = float(sub["low"].min())
+    pmax = float(sub["high"].max())
     if pmax <= pmin:
         return None
     edges = np.linspace(pmin, pmax, num_bins + 1)
@@ -436,7 +465,6 @@ def build_volume_profile(sub, num_bins=NUM_BINS):
         if lo_b == hi_b:
             vol[lo_b] += v
         else:
-            # proportionaler Anteil je Bin
             ov = np.array([
                 max(0.0, min(hi, edges[b + 1]) - max(lo, edges[b]))
                 for b in range(lo_b, hi_b + 1)
@@ -444,29 +472,24 @@ def build_volume_profile(sub, num_bins=NUM_BINS):
             tot = ov.sum()
             if tot > 0:
                 vol[lo_b:hi_b + 1] += v * ov / tot
-    return {"centers": centers, "edges": edges, "vol": vol, "pmin": pmin, "pmax": pmax}
+    return VolumeProfileData(centers=centers, edges=edges, vol=vol, pmin=pmin, pmax=pmax)
 
 
-def smooth_vol(vol, win=SMOOTH_WIN):
-    """Glaettet das Histogramm (gleitender Mittelwert)."""
+def smooth_vol(vol: np.ndarray, win: int = SMOOTH_WIN) -> np.ndarray:
     if win <= 1 or len(vol) < win:
         return vol.astype(float)
     return np.convolve(vol, np.ones(win) / win, mode="same")
 
 
-def find_mountains(vol_s, min_pct=MIN_MOUNTAIN_PCT, valley_rel=VALLEY_REL):
-    """Findet getrennte 'Berge' im (geglaetteten) Volume-Profil.
-
-    Berg = Bereich zwischen signifikanten Taellern. Ein Tal trennt zwei
-    Berge, wenn sein Volumen < valley_rel * min(linker, rechter Peak).
-    Nur Berge mit Peak >= min_pct % des dominierenden Peaks zaehlen.
-    Rueckgabe: Liste von (start_idx, peak_idx, end_idx), sortiert nach
-    Volumen absteigend.
-    """
+def find_mountains(
+    vol_s: np.ndarray,
+    min_pct: float = MIN_MOUNTAIN_PCT,
+    valley_rel: float = VALLEY_REL,
+) -> List[Tuple[int, int, int]]:
     n = len(vol_s)
     if n < 3:
         return []
-    mountains = []
+    mountains: List[Tuple[int, int, int]] = []
     start = 0
     for i in range(1, n - 1):
         if vol_s[i] <= vol_s[i - 1] and vol_s[i] < vol_s[i + 1]:
@@ -490,11 +513,13 @@ def find_mountains(vol_s, min_pct=MIN_MOUNTAIN_PCT, valley_rel=VALLEY_REL):
     return mountains
 
 
-def va_for_mountain(vol_s, edges, mountain, dominant_peak, va_pct=VA_PCT):
-    """VAH/VAL/POC fuer einen Berg (va_pct-Value-Area um den POC).
-
-    dominant_peak = Bin-Index des volumenstaerksten Bergs (fuer peak_share_pct).
-    """
+def va_for_mountain(
+    vol_s: np.ndarray,
+    edges: np.ndarray,
+    mountain: Tuple[int, int, int],
+    dominant_peak: Optional[int],
+    va_pct: float = VA_PCT,
+) -> MountainPeak:
     s, p, e = mountain
     poc = float((edges[p] + edges[p + 1]) / 2)
     total = float(vol_s[s:e + 1].sum())
@@ -515,142 +540,116 @@ def va_for_mountain(vol_s, edges, mountain, dominant_peak, va_pct=VA_PCT):
     share = 100.0
     if dominant_peak is not None and vol_s[dominant_peak] > 0:
         share = float(vol_s[p] / vol_s[dominant_peak] * 100.0)
-    return {
-        "poc": poc,
-        "val": float(edges[lo]),
-        "vah": float(edges[hi + 1]),
-        "vol": total,
-        "peak_share_pct": share,
-    }
+    return MountainPeak(
+        poc=poc,
+        val=float(edges[lo]),
+        vah=float(edges[hi + 1]),
+        vol=total,
+        peak_share_pct=share,
+    )
 
 
-def compute_volume_zone(sub):
-    """Komplettes Volume-Zonen-Paket fuer eine Phase (Variante A, Huelle).
-
-    Rueckgabe-Dict:
-      profile       : rohes Profil (centers/edges/vol)
-      mountains     : Liste [(s, p, e)]
-      peaks         : Liste von Berg-Dicts {poc, val, vah, vol, peak_share_pct}
-      U_zone        : hoechste VAH aller Berge
-      L_zone        : tiefste  VAL aller Berge
-      POC           : POC des volumenstaerksten Bergs
-      n_mountains   : Anzahl signifikanter Berge
-    """
+def compute_volume_zone(sub: pd.DataFrame) -> Optional[VolumeZone]:
     prof = build_volume_profile(sub)
     if prof is None:
         return None
-    vol_s = smooth_vol(prof["vol"])
+    vol_s = smooth_vol(prof.vol)
     mountains = find_mountains(vol_s)
     if not mountains:
         return None
     dominant_peak = mountains[0][1]
-    peaks = []
+    peaks: List[MountainPeak] = []
     for m in mountains:
-        va = va_for_mountain(vol_s, prof["edges"], m, dominant_peak)
+        va = va_for_mountain(vol_s, prof.edges, m, dominant_peak)
         peaks.append(va)
-    # Huelle (Variante A)
-    U_zone = max(p["vah"] for p in peaks)
-    L_zone = min(p["val"] for p in peaks)
-    POC = peaks[0]["poc"]  # volumenstaerkster Berg
-    return {
-        "profile": prof,
-        "mountains": mountains,
-        "peaks": peaks,
-        "U_zone": U_zone,
-        "L_zone": L_zone,
-        "POC": POC,
-        "n_mountains": len(peaks),
-    }
+    U_zone = max(p.vah for p in peaks)
+    L_zone = min(p.val for p in peaks)
+    POC = peaks[0].poc
+    return VolumeZone(
+        profile=prof,
+        mountains=mountains,
+        peaks=peaks,
+        U_zone=U_zone,
+        L_zone=L_zone,
+        POC=POC,
+        n_mountains=len(peaks),
+    )
 
+# ==============================================================================
+# 4) PHASEN-SEGMENTIERUNG
+# ==============================================================================
 
-# ---------- 4) Segmentierung: Range-Phasen mit entscheidendem Ausbruch ----------
-piv_typ = dict(zip(piv["ts"], piv["typ"]))
+piv_typ: Dict[pd.Timestamp, str] = dict(zip(piv["ts"], piv["typ"]))
 df["is_pivot"] = df["ts"].isin(piv_typ)
 
-phases = []
-moves = []
-i = 0
-n = len(df)
-prev_ende_ts = None   # Ende der Vor-Phase -> Geburtszone der neuen Phase
-while i < n:
-    h_acc, l_acc = [], []          # Pivot-Preise der Phase
-    h_ts, l_ts = [], []            # Pivot-Zeitpunkte der Phase
-    est_idx = None                 # Candle-Index der Etablierung (>= MIN_ESTABLISH Anker gesamt)
-    brk_idx, brk_dir = None, None  # bestaetigter Ausbruch
-    hist_U, hist_L = [], []        # Level-Historie: (ts, angewandter Linienwert)
-    last_U = last_L = None         # letzter aufgezeichneter Linienwert
-    U_conf_ts = L_conf_ts = None   # Variante C: 1. realer Test der Geburtszone
+phases: List[PhaseData] = []
+moves: List[MoveData] = []
+i: int = 0
+n: int = len(df)
+prev_ende_ts: Optional[pd.Timestamp] = None
 
-    # Geburtszone = Preise zwischen Vorphasen-Ende und Phasenstart.
-    # Der Ausbruchsbereich wird zur Widerstands-/Unterstuetzungszone der neuen
-    # Phase: z.B. Phase 2 erbt das Hoch 69.684 (Di 02:45) als Widerstand -
-    # die Di-Rally bis 69.27 bleibt dadurch ein Retest, kein Phasenende.
+while i < n:
+    h_acc: List[float] = []
+    l_acc: List[float] = []
+    h_ts: List[pd.Timestamp] = []
+    l_ts: List[pd.Timestamp] = []
+    est_idx: Optional[int] = None
+    brk_idx: Optional[int] = None
+    brk_dir: Optional[Literal["up", "down"]] = None
+    brk_kante: Optional[float] = None
+    hist_U: List[Tuple[pd.Timestamp, float]] = []
+    hist_L: List[Tuple[pd.Timestamp, float]] = []
+    last_U: Optional[float] = None
+    last_L: Optional[float] = None
+    U_conf_ts: Optional[pd.Timestamp] = None
+    L_conf_ts: Optional[pd.Timestamp] = None
+
     if prev_ende_ts is not None:
-        # L3-Fix (KAUSAL): Nur Pivots in der Geburtszone, die zum Phasenstart
-        # bereits BESTAETIGT waren (Lag PIVOT_LOOKBACK). Unbestaetigte Pivots
-        # der letzten PIVOT_LOOKBACK Bars vor dem Phasenstart sind ausgeschlossen.
         cutoff_birth = df["ts"].iloc[i] - pd.Timedelta(minutes=PIVOT_LOOKBACK * 15)
         birth = piv[(piv["ts"] > prev_ende_ts) & (piv["ts"] <= cutoff_birth)]
-        # FIX Birth: nur signifikante Niveaus (>= MIN_CLUSTER) vererben.
         birth_h = _birth_level(birth, "H")
         birth_l = _birth_level(birth, "L")
     else:
         birth_h = birth_l = None
 
-    phasen_start = df["ts"].iloc[i]   # FIX Doppelzaehlung: Referenz fuer Pivot-Skip
+    phasen_start = df["ts"].iloc[i]
     j = i
     while j < n:
         row = df.iloc[j]
         ts = row["ts"]
-        # L1/L2-Fix (KAUSAL): Ein Pivot bei Bar j-PIVOT_LOOKBACK wird erst in
-        # Bar j bekannt gegeben. Die Pivot-MENGE bleibt identisch - nur der
-        # Bekanntgabezeitpunkt ist um PIVOT_LOOKBACK Bars nachlaufend.
         if j - PIVOT_LOOKBACK >= 0 and df["is_pivot"].iloc[j - PIVOT_LOOKBACK]:
             t_prev = df["ts"].iloc[j - PIVOT_LOOKBACK]
-            # FIX Doppelzaehlung: Ein Pivot VOR dem Phasenstart gehoert zur
-            # Vor-Phase (er wurde dort ueber den Lag bereits aufgenommen und
-            # war meist der letzte Grenz-Kontakt). Ohne diesen Skip faende die
-            # Phasen-Ende-Suche ihn als "letzten Touch" -> Ende < Start
-            # (degenerierte Phasen, z.B. "Fri 14:45 -> 14:15").
             if t_prev < phasen_start:
                 pass
             elif piv_typ[t_prev] == "H":
-                pv = df["high"].iloc[j - PIVOT_LOOKBACK]
-                h_acc.append(pv); h_ts.append(t_prev)
-                # Variante C: erster realer Test der OBEN-Geburtszone
-                # (H-Pivot innerhalb DENSITY_BAND unterhalb der Zone)
+                pv = float(df["high"].iloc[j - PIVOT_LOOKBACK])
+                h_acc.append(pv)
+                h_ts.append(t_prev)
                 if U_conf_ts is None and birth_h is not None and abs(pv - birth_h) <= DENSITY_BAND:
                     U_conf_ts = t_prev
             else:
-                pv = df["low"].iloc[j - PIVOT_LOOKBACK]
-                l_acc.append(pv); l_ts.append(t_prev)
-                # Variante C: erster realer Test der UNTEN-Geburtszone
+                pv = float(df["low"].iloc[j - PIVOT_LOOKBACK])
+                l_acc.append(pv)
+                l_ts.append(t_prev)
                 if L_conf_ts is None and birth_l is not None and abs(pv - birth_l) <= DENSITY_BAND:
                     L_conf_ts = t_prev
 
         U = _linie(h_acc, "H")
         L = _linie(l_acc, "L")
 
-        # Etablierung: Zone eroeffnet ab MIN_ESTABLISH ANKERPUNKTE GESAMT (H+L).
-        # FIX (Trader): nicht 3 je High UND 3 je Low, sondern 3 insgesamt.
-        if est_idx is None and U is not None and L is not None \
-                and n_touches(h_acc, U) + n_touches(l_acc, L) >= MIN_ESTABLISH:
+        if est_idx is None and U is not None and L is not None and n_touches(h_acc, U) + n_touches(l_acc, L) >= MIN_ESTABLISH:
             est_idx = j
 
-        # Historie AB Etablierung: angewandte Linienwerte (inkl. Geburtszone)
-        # nur bei signifikanter Verschiebung (> SHIFT_TOL) festhalten.
-        # So zeigt die Entwicklung nur echte Zonen-Aenderungen, kein Rauschen
-        # und keine Einzel-Ausreisser vor der Etablierung.
         if est_idx is not None:
             U_applied = _final_level(U, birth_h, "H")
             L_applied = _final_level(L, birth_l, "L")
             if U_applied is not None and (last_U is None or abs(U_applied - last_U) > SHIFT_TOL):
-                hist_U.append((ts, U_applied)); last_U = U_applied
+                hist_U.append((ts, U_applied))
+                last_U = U_applied
             if L_applied is not None and (last_L is None or abs(L_applied - last_L) > SHIFT_TOL):
-                hist_L.append((ts, L_applied)); last_L = L_applied
+                hist_L.append((ts, L_applied))
+                last_L = L_applied
 
-        # Ausbruch-Check NUR nach Etablierung UND Mindest-Candles in der Phase.
-        # Referenz: eigene Schnittmengen-Linie, verstaerkt um die Geburtszone.
         if est_idx is not None and (j - i) >= MIN_PHASE_CANDLES and j + 1 < n:
             h_ref = U if U is not None else None
             l_ref = L if L is not None else None
@@ -666,292 +665,257 @@ while i < n:
                 break
         j += 1
 
-    # Finale Grenzen: Schnittmengen-Linie, Geburtszone nur bei realem Test
     U_final = _final_level_bestaetigt(_linie(h_acc, "H"), birth_h, "H", U_conf_ts)
     L_final = _final_level_bestaetigt(_linie(l_acc, "L"), birth_l, "L", L_conf_ts)
 
     if brk_idx is None:
-        # Phase laeuft bis Datenende
         ende_ts = df["ts"].iloc[n - 1]
-        phases.append({
-            "start": df["ts"].iloc[i], "ende": ende_ts,
-            "U_final": U_final, "L_final": L_final,
-            "h_prices": h_acc, "l_prices": l_acc,
-            "h_ts": list(h_ts), "l_ts": list(l_ts),
-            "birth_h": birth_h, "birth_l": birth_l,
-            "U_conf_ts": U_conf_ts, "L_conf_ts": L_conf_ts,
-            "U_ts": h_ts[-1] if h_ts else None, "L_ts": l_ts[-1] if l_ts else None,
-            "U_hist": hist_U, "L_hist": hist_L,
-            "break_dir": None, "brk_idx": None, "brk_kante": None,
-        })
+        phases.append(PhaseData(
+            start=df["ts"].iloc[i], ende=ende_ts,
+            U_final=U_final, L_final=L_final,
+            h_prices=h_acc, l_prices=l_acc,
+            h_ts=list(h_ts), l_ts=list(l_ts),
+            birth_h=birth_h, birth_l=birth_l,
+            U_conf_ts=U_conf_ts, L_conf_ts=L_conf_ts,
+            U_ts=h_ts[-1] if h_ts else None, L_ts=l_ts[-1] if l_ts else None,
+            U_hist=hist_U, L_hist=hist_L,
+            break_dir=None, brk_idx=None, brk_kante=None,
+        ))
         break
 
-    # Phasen-Ende = letzter Touch der GEGENgrenze vor dem Ausbruch
-    # (defensiv: nur Pivots >= Phasenstart, sonst Ende < Start moeglich)
     if brk_dir == "down":
         t_arr = np.array([abs(x - U_final) <= TOL_TOUCH and t >= phasen_start
                           for x, t in zip(h_acc, h_ts)]) if h_acc else np.array([], dtype=bool)
         if t_arr.any():
-            k = int(np.where(t_arr)[0][-1])
-            ende_ts, ende_pr = h_ts[k], h_acc[k]
+            k_touch = int(np.where(t_arr)[0][-1])
+            ende_ts, ende_pr = h_ts[k_touch], h_acc[k_touch]
         else:
             ende_ts, ende_pr = df["ts"].iloc[i], None
-        moves.append({"dir": "down", "von_ts": ende_ts, "von_pr": ende_pr,
-                      "bis_ts": df["ts"].iloc[brk_idx], "bis_pr": float(df["low"].iloc[brk_idx])})
+        moves.append(MoveData(
+            dir="down", von_ts=ende_ts, von_pr=ende_pr,
+            bis_ts=df["ts"].iloc[brk_idx], bis_pr=float(df["low"].iloc[brk_idx]),
+        ))
     else:
         t_arr = np.array([abs(x - L_final) <= TOL_TOUCH and t >= phasen_start
                           for x, t in zip(l_acc, l_ts)]) if l_acc else np.array([], dtype=bool)
         if t_arr.any():
-            k = int(np.where(t_arr)[0][-1])
-            ende_ts, ende_pr = l_ts[k], l_acc[k]
+            k_touch = int(np.where(t_arr)[0][-1])
+            ende_ts, ende_pr = l_ts[k_touch], l_acc[k_touch]
         else:
             ende_ts, ende_pr = df["ts"].iloc[i], None
-        moves.append({"dir": "up", "von_ts": ende_ts, "von_pr": ende_pr,
-                      "bis_ts": df["ts"].iloc[brk_idx], "bis_pr": float(df["high"].iloc[brk_idx])})
+        moves.append(MoveData(
+            dir="up", von_ts=ende_ts, von_pr=ende_pr,
+            bis_ts=df["ts"].iloc[brk_idx], bis_pr=float(df["high"].iloc[brk_idx]),
+        ))
 
-    # Nur Pivots bis zum Phasen-Ende verwenden (frisch berechnete Grenzen)
     h_clean = [p for p, t in zip(h_acc, h_ts) if t <= ende_ts]
     l_clean = [p for p, t in zip(l_acc, l_ts) if t <= ende_ts]
     h_clean_ts = [t for t, p in zip(h_ts, h_acc) if t <= ende_ts]
     l_clean_ts = [t for t, p in zip(l_ts, l_acc) if t <= ende_ts]
-    phases.append({
-        "start": df["ts"].iloc[i], "ende": ende_ts,
-        "U_final": _final_level_bestaetigt(_linie(h_clean, "H"), birth_h, "H", U_conf_ts),
-        "L_final": _final_level_bestaetigt(_linie(l_clean, "L"), birth_l, "L", L_conf_ts),
-        "h_prices": h_clean, "l_prices": l_clean,
-        "h_ts": h_clean_ts, "l_ts": l_clean_ts,
-        "birth_h": birth_h, "birth_l": birth_l,
-        "U_conf_ts": U_conf_ts, "L_conf_ts": L_conf_ts,
-        "U_ts": h_ts[len(h_clean) - 1] if h_clean else None,
-        "L_ts": l_ts[len(l_clean) - 1] if l_clean else None,
-        "U_hist": hist_U, "L_hist": hist_L,
-        "break_dir": brk_dir, "brk_idx": brk_idx, "brk_kante": brk_kante,
-    })
+    phases.append(PhaseData(
+        start=df["ts"].iloc[i], ende=ende_ts,
+        U_final=_final_level_bestaetigt(_linie(h_clean, "H"), birth_h, "H", U_conf_ts),
+        L_final=_final_level_bestaetigt(_linie(l_clean, "L"), birth_l, "L", L_conf_ts),
+        h_prices=h_clean, l_prices=l_clean,
+        h_ts=h_clean_ts, l_ts=l_clean_ts,
+        birth_h=birth_h, birth_l=birth_l,
+        U_conf_ts=U_conf_ts, L_conf_ts=L_conf_ts,
+        U_ts=h_ts[len(h_clean) - 1] if h_clean else None,
+        L_ts=l_ts[len(l_clean) - 1] if l_clean else None,
+        U_hist=hist_U, L_hist=hist_L,
+        break_dir=brk_dir, brk_idx=brk_idx, brk_kante=brk_kante,
+    ))
     prev_ende_ts = ende_ts
     i = brk_idx
 
-# ---------- 4b) L4: DATENENDE-FINALIZE (Regel 7, D1-Variante) ----------
-# Eine etablierte Phase, die OHNE 2-Close-Ausbruch bis zum Datenende laeuft,
-# endet am letzten Pivot, der die finale Grenzlinie tatsaechlich erreicht hat
-# (H-Pivot >= OBEN bzw. L-Pivot <= UNTEN). Danach folgt der Move in die
-# Gegenrichtung. Beispiele:
-#   Phase 1: letzter OBEN-Kontakt Di 25.08 02:00 (High 69.924) -> Crash-Move
-#   Phase 2: letzter OBEN-Kontakt Do 27.08 19:00 (High 69.714) -> Dreh nach unten
-# WICHTIG (KAUSALITAET): Dieser Schritt ist bewusst POST-HOC (erst am
-# Datenende ausfuehrbar). Er ist NICHT kausal umformulierbar - im Replay
-# "springt" die laufende Phase am letzten Bar auf ihren letzten Kontakt.
-# Fuer identische Ergebnisse mit dem Rueckblick-Skript ist genau diese
-# D1-Variante noetig (ehrliche Forward-Tests wuerden stattdessen D2 nutzen).
-if phases and phases[-1]["break_dir"] is None:
-    p = phases[-1]
+# 4b) Datenende-Finalize (Regel 7, D1-Variante)
+if phases and phases[-1].break_dir is None:
+    p_last = phases[-1]
     t_last, pr_last, typ_last = _last_grenz_kontakt(
-        p["h_prices"], p["h_ts"], p["l_prices"], p["l_ts"],
-        p["U_final"], p["L_final"], GRENZ_KONTAKT_TOL)
-    if t_last is not None and t_last < p["ende"]:
-        h_ok = [k for k, t in enumerate(p["h_ts"]) if t <= t_last]
-        l_ok = [k for k, t in enumerate(p["l_ts"]) if t <= t_last]
-        p["h_prices"] = [p["h_prices"][k] for k in h_ok]
-        p["h_ts"] = [p["h_ts"][k] for k in h_ok]
-        p["l_prices"] = [p["l_prices"][k] for k in l_ok]
-        p["l_ts"] = [p["l_ts"][k] for k in l_ok]
-        p["ende"] = t_last
-        p["U_final"] = _final_level_bestaetigt(_linie(p["h_prices"], "H"), p["birth_h"], "H", p["U_conf_ts"])
-        p["L_final"] = _final_level_bestaetigt(_linie(p["l_prices"], "L"), p["birth_l"], "L", p["L_conf_ts"])
-        p["U_ts"] = p["h_ts"][-1] if p["h_ts"] else None
-        p["L_ts"] = p["l_ts"][-1] if p["l_ts"] else None
-        p["U_hist"] = [(t, v) for t, v in p["U_hist"] if t <= t_last]
-        p["L_hist"] = [(t, v) for t, v in p["L_hist"] if t <= t_last]
-        # Move nach dem letzten Grenz-Kontakt bis zum Datenende (Gegenrichtung)
+        p_last.h_prices, p_last.h_ts, p_last.l_prices, p_last.l_ts,
+        p_last.U_final, p_last.L_final, GRENZ_KONTAKT_TOL,
+    )
+    if t_last is not None and t_last < p_last.ende:
+        h_ok = [k for k, t in enumerate(p_last.h_ts) if t <= t_last]
+        l_ok = [k for k, t in enumerate(p_last.l_ts) if t <= t_last]
+        p_last.h_prices = [p_last.h_prices[k] for k in h_ok]
+        p_last.h_ts = [p_last.h_ts[k] for k in h_ok]
+        p_last.l_prices = [p_last.l_prices[k] for k in l_ok]
+        p_last.l_ts = [p_last.l_ts[k] for k in l_ok]
+        p_last.ende = t_last
+        p_last.U_final = _final_level_bestaetigt(_linie(p_last.h_prices, "H"), p_last.birth_h, "H", p_last.U_conf_ts)
+        p_last.L_final = _final_level_bestaetigt(_linie(p_last.l_prices, "L"), p_last.birth_l, "L", p_last.L_conf_ts)
+        p_last.U_ts = p_last.h_ts[-1] if p_last.h_ts else None
+        p_last.L_ts = p_last.l_ts[-1] if p_last.l_ts else None
+        p_last.U_hist = [(t, v) for t, v in p_last.U_hist if t <= t_last]
+        p_last.L_hist = [(t, v) for t, v in p_last.L_hist if t <= t_last]
+
         sub = df[df["ts"] > t_last]
-        if len(sub) and typ_last == "H":
-            k = sub["low"].idxmin()
-            moves.append({"dir": "down", "von_ts": t_last, "von_pr": float(pr_last),
-                          "bis_ts": sub.loc[k, "ts"], "bis_pr": float(sub.loc[k, "low"])})
-        elif len(sub) and typ_last == "L":
-            k = sub["high"].idxmax()
-            moves.append({"dir": "up", "von_ts": t_last, "von_pr": float(pr_last),
-                          "bis_ts": sub.loc[k, "ts"], "bis_pr": float(sub.loc[k, "high"])})
+        if len(sub) and typ_last == "H" and pr_last is not None:
+            k_min = sub["low"].idxmin()
+            moves.append(MoveData(
+                dir="down", von_ts=t_last, von_pr=float(pr_last),
+                bis_ts=sub.loc[k_min, "ts"], bis_pr=float(sub.loc[k_min, "low"]),
+            ))
+        elif len(sub) and typ_last == "L" and pr_last is not None:
+            k_max = sub["high"].idxmax()
+            moves.append(MoveData(
+                dir="up", von_ts=t_last, von_pr=float(pr_last),
+                bis_ts=sub.loc[k_max, "ts"], bis_pr=float(sub.loc[k_max, "high"]),
+            ))
 
-# ---------- 5) Candle-Statistik je Phase ----------
-for p in phases:
-    mask = (df["ts"] >= p["start"]) & (df["ts"] <= p["ende"])
-    p["n_candles"] = int(mask.sum())
-    p["handels_h"] = p["n_candles"] * 15 / 60
-    p["i_start"] = int(df.loc[mask, "idx"].min()) if p["n_candles"] else 0
-    p["i_ende"] = int(df.loc[mask, "idx"].max()) if p["n_candles"] else 0
-    p["touches_h"] = len(p["h_prices"])
-    p["touches_l"] = len(p["l_prices"])
-    p["close_h"] = n_touches(p["h_prices"], p["U_final"])
-    p["close_l"] = n_touches(p["l_prices"], p["L_final"])
-    p["spread"] = (p["U_final"] - p["L_final"]) if (p["U_final"] and p["L_final"]) else 0.0
-    p["spread_pct"] = p["spread"] / p["L_final"] * 100.0 if p["L_final"] else 0.0
-    p["handelbar"] = (p["touches_h"] >= MIN_TOUCHES and p["touches_l"] >= MIN_TOUCHES
-                      and p["n_candles"] >= MIN_CANDLES and p["spread_pct"] >= MIN_SPREAD_PCT)
-    # Entwicklungs-Historie: Startposition (erste etablierte Linie) + Verschiebungen
-    p["U_init"] = p["U_hist"][0][1] if p["U_hist"] else p["U_final"]
-    p["L_init"] = p["L_hist"][0][1] if p["L_hist"] else p["L_final"]
-    p["n_U_shifts"] = len(p["U_hist"]) - 1 if len(p["U_hist"]) > 1 else 0
-    p["n_L_shifts"] = len(p["L_hist"]) - 1 if len(p["L_hist"]) > 1 else 0
-    # Variante C: Projektionswert = Geburtszone, wenn sie die finale Grenze bestimmt
-    p["U_proj_val"] = (p["birth_h"] if (p["birth_h"] is not None and p["U_final"] is not None
-                                        and abs(p["U_final"] - p["birth_h"]) < 1e-9) else None)
-    p["L_proj_val"] = (p["birth_l"] if (p["birth_l"] is not None and p["L_final"] is not None
-                                        and abs(p["L_final"] - p["birth_l"]) < 1e-9) else None)
+# ==============================================================================
+# 5) CANDLE-STATISTIK & VOLUME-ZONEN JE PHASE
+# ==============================================================================
 
-# ---------- 5a) VOLUME-ZONEN je Phase (POC/VAH/VAL + Multi-Mountain) ----------
 for p in phases:
-    mask = (df["ts"] >= p["start"]) & (df["ts"] <= p["ende"])
+    mask = (df["ts"] >= p.start) & (df["ts"] <= p.ende)
+    p.n_candles = int(mask.sum())
+    p.handels_h = p.n_candles * 15.0 / 60.0
+    p.i_start = int(df.loc[mask, "idx"].min()) if p.n_candles else 0
+    p.i_ende = int(df.loc[mask, "idx"].max()) if p.n_candles else 0
+    p.touches_h = len(p.h_prices)
+    p.touches_l = len(p.l_prices)
+    p.close_h = n_touches(p.h_prices, p.U_final)
+    p.close_l = n_touches(p.l_prices, p.L_final)
+    p.spread = (p.U_final - p.L_final) if (p.U_final is not None and p.L_final is not None) else 0.0
+    p.spread_pct = (p.spread / p.L_final * 100.0) if p.L_final else 0.0
+    p.handelbar = (
+        p.touches_h >= MIN_TOUCHES
+        and p.touches_l >= MIN_TOUCHES
+        and p.n_candles >= MIN_CANDLES
+        and p.spread_pct >= MIN_SPREAD_PCT
+    )
+    p.U_init = p.U_hist[0][1] if p.U_hist else p.U_final
+    p.L_init = p.L_hist[0][1] if p.L_hist else p.L_final
+    p.n_U_shifts = len(p.U_hist) - 1 if len(p.U_hist) > 1 else 0
+    p.n_L_shifts = len(p.L_hist) - 1 if len(p.L_hist) > 1 else 0
+    p.U_proj_val = (p.birth_h if (p.birth_h is not None and p.U_final is not None
+                                  and abs(p.U_final - p.birth_h) < 1e-9) else None)
+    p.L_proj_val = (p.birth_l if (p.birth_l is not None and p.L_final is not None
+                                  and abs(p.L_final - p.birth_l) < 1e-9) else None)
+
     sub = df[mask]
     vz = compute_volume_zone(sub)
-    if vz is None:
-        p["vol_zone"] = None
-    else:
-        p["vol_zone"] = vz
-        p["U_zone"] = vz["U_zone"]   # OBEN aus Volume (hoechste VAH)
-        p["L_zone"] = vz["L_zone"]   # UNTEN aus Volume (tiefste VAL)
-        p["POC"] = vz["POC"]         # MITTE aus Volume (POC dominant)
-        p["n_berge"] = vz["n_mountains"]
-        p["zone_breite"] = vz["U_zone"] - vz["L_zone"]
+    if vz is not None:
+        p.vol_zone = vz
+        p.U_zone = vz.U_zone
+        p.L_zone = vz.L_zone
+        p.POC = vz.POC
+        p.n_berge = vz.n_mountains
+        p.zone_breite = vz.U_zone - vz.L_zone
 
-# ---------- 5b) UEBERSICHT (erweiterter Testbereich ab 10.08.) ----------
-# Regression-Check gegen die 21.08.-Trader-Sicht ist hier bewusst aus: Der
-# erweiterte Bereich erzeugt zusaetzliche Vor-Phasen. Die Phase(n) ab 21.08.
-# muessen weiterhin der Trader-Sicht entsprechen.
-# STAND 31.08.2026 (Fixes: MIN_ESTABLISH-Summe + Birth-Cluster + MIN_PHASE_CANDLES):
-#   Phase 1 = 21.08 05:00 -> 25.08 02:00 (U 69.914 / L 68.370) - Level identisch
-#   zur alten Referenz, nur Start 5h spaeter.
-#   Die alte Phase-2-Referenz "25.08 04:30 -> 27.08 19:00" existiert nicht mehr:
-#   sie wird jetzt in mehrere Phasen 10-14 aufgesplittet (kein 1-Monats-Zombie
-#   mehr). Neue Phase 2 = 25.08 04:30 -> 25.08 15:45 (U 68.220 / L 67.544),
-#   OBEN-Geburtszone ohne Bestaetigung (NIE).
+# ==============================================================================
+# 5b) UEBERSICHT & VERIFIKATION
+# ==============================================================================
+
 _erwartet = [
     {"start": "2026-08-21 05:00", "ende": "2026-08-25 02:00", "U": 69.914, "L": 68.370},
     {"start": "2026-08-25 04:30", "ende": "2026-08-25 15:45", "U": 68.220, "L": 67.544},
 ]
 print("\n=== VERIFIKATION (Referenz 21.08.-Sicht) ===")
 _fmt = lambda t: t.strftime("%Y-%m-%d %H:%M")
-_relevant = [p for p in phases if p["start"] >= pd.Timestamp("2026-08-21 00:00")]
+_relevant = [p for p in phases if p.start >= pd.Timestamp("2026-08-21 00:00")]
 for k, p in enumerate(_relevant[:2]):
     e = _erwartet[k]
-    ok = (_fmt(p["start"]) == e["start"] and _fmt(p["ende"]) == e["ende"]
-          and p["U_final"] is not None and abs(p["U_final"] - e["U"]) < 0.01
-          and p["L_final"] is not None and abs(p["L_final"] - e["L"]) < 0.01)
-    if e.get("U_conf") is not None:
-        ok = ok and p.get("U_conf_ts") is not None and _fmt(p["U_conf_ts"]) == e["U_conf"]
-    print(f"Phase {k+1} (ab 21.08): {'OK ' if ok else 'ABWEICHUNG'} "
-          f"{_fmt(p['start'])} -> {_fmt(p['ende'])} "
-          f"| OBEN {p['U_final']:.3f} (erw. {e['U']}) | UNTEN {p['L_final']:.3f} (erw. {e['L']})")
-    if e.get("U_conf"):
-        _c = p.get("U_conf_ts")
-        print(f"    OBEN-Geburtszone bestaetigt: {_fmt(_c) if _c is not None else 'NIE'} (erw. {e['U_conf']})")
+    ok = (
+        _fmt(p.start) == e["start"]
+        and _fmt(p.ende) == e["ende"]
+        and p.U_final is not None
+        and abs(p.U_final - e["U"]) < 0.01
+        and p.L_final is not None
+        and abs(p.L_final - e["L"]) < 0.01
+    )
+    print(
+        f"Phase {k+1} (ab 21.08): {'OK ' if ok else 'ABWEICHUNG'} "
+        f"{_fmt(p.start)} -> {_fmt(p.ende)} "
+        f"| OBEN {p.U_final:.3f} (erw. {e['U']}) | UNTEN {p.L_final:.3f} (erw. {e['L']})"
+    )
 print(f"RESULTAT: {len(phases)} Phasen gesamt, {len(_relevant)} ab 21.08. (Referenz-Abgleich oben)")
 
-# ---------- 5c) SETUP B: RECLAIM/FAKEOUT-SIGNALE (Patrick Nill, P1) ----------
-# Patricks bevorzugtes Setup: Der Kurs sticht kurz aus einer etablierten
-# Zone aus (Fakeout, Liquiditaet/Stop-Jagd) und kehrt sofort zurueck
-# (Reclaim). Einstieg NACH Bestaetigung, Ziel = POC (Fair Value), SL
-# hinter der Kante.
-#
-# KAUSALITAET (Bereinigt 31.08.2026): Der Signal-Loop ist REIN SEQUENTIELL
-# in Echtzeit - fuer jede Bar k wird das Volume-Profil NUR bis zu dieser
-# Bar berechnet (laufende Zone, kein Blick in die Zukunft). Es gibt KEIN
-# finales Zonen-Screening mehr: Jede Bar der Phase wird gegen ihre laufende
-# Zone geprueft, genau wie ein Live-Trader es zum Zeitpunkt des Signals
-# tun wuerde.
-def _laufende_zone(df, p, k):
-    """Volume-Zone kausal bis Bar k (inklusive)."""
-    return compute_volume_zone(df.iloc[p["i_start"]:k + 1])
+# ==============================================================================
+# 5c) SETUP B: RECLAIM/FAKEOUT-SIGNALE (Reiner Realtime-Modus ohne Lookahead)
+# ==============================================================================
+
+def _laufende_zone(df: pd.DataFrame, p: PhaseData, k: int) -> Optional[VolumeZone]:
+    return compute_volume_zone(df.iloc[p.i_start : k + 1])
 
 
-def _bounce_nr(h_prices, h_ts, l_prices, l_ts, ts_k, U, L):
-    """Bounce-Nummer je Seite: Anzahl Pivots bis ts_k an der Kante + 1."""
-    n_h = 1 + sum(1 for pr, t in zip(h_prices, h_ts)
-                  if t <= ts_k and abs(pr - U) <= DENSITY_BAND)
-    n_l = 1 + sum(1 for pr, t in zip(l_prices, l_ts)
-                  if t <= ts_k and abs(pr - L) <= DENSITY_BAND)
+def _bounce_nr(
+    h_prices: List[float],
+    h_ts: List[pd.Timestamp],
+    l_prices: List[float],
+    l_ts: List[pd.Timestamp],
+    ts_k: pd.Timestamp,
+    U: float,
+    L: float,
+) -> Tuple[int, int]:
+    n_h = 1 + sum(1 for pr, t in zip(h_prices, h_ts) if t <= ts_k and abs(pr - U) <= DENSITY_BAND)
+    n_l = 1 + sum(1 for pr, t in zip(l_prices, l_ts) if t <= ts_k and abs(pr - L) <= DENSITY_BAND)
     return n_h, n_l
 
 
-def _aufloesen(df, s, sl_pct=None, anteil_tp1=ANTEIL_TP1,
-               trailing_pct=TRAILING_PCT):
-    """Loest beide Haelfte eines Setup-B-Signals VOLLSTAENDIG auf.
-
-    Regeln (User-Vorgabe):
-    1) SL bei Entry: SL_PCT (0.45%) vom Einstiegspreis
-       (SHORT: entry*(1+p), LONG: entry*(1-p))
-    2) KEIN SL-NACHZUG: Der SL der Restcharge bleibt am Einstiegs-SL, damit
-       TP2 (Box-Ende) trotz Pullbacks erreichbar bleibt (Trader-Punkt 2).
-    3) Alle Trades werden aufgeloest: Fenster bis Datenende; falls eine
-       Haelfte offen bleibt, Close zum letzten Kurs.
-    Konservativ: SL und TP in derselben Bar -> SL zuerst.
-
-    VARIANTEN:
-    - anteil_tp1: % der Position, die bei TP1 (POC) geschlossen wird
-      (50 = 50/50, 100 = alles bei TP1, kein Runner).
-    - trailing_pct > 0: TRAILING-MODUS statt festem TP1/TP2. Der SL folgt
-      dem Preis mit X% Abstand vom letzten Extrem (SHORT: ueber dem
-      hoechsten High, LONG: unter dem tiefsten Low) und zieht nur nach
-      (Ratchet). Exit, sobald der Kurs den Trail-SL beruehrt; sonst Close
-      am Datenende.
-
-    Rueckgabe-Dict mit r1/r2 (R-Multiple je Haelfte), exit1/exit2,
-    pnl, r_mult (gewichtetes R), resultat, tp1_hit, tp2_hit.
-    """
+def _aufloesen(
+    df: pd.DataFrame,
+    s: ReclaimSignal,
+    sl_pct: Optional[float] = None,
+    anteil_tp1: float = ANTEIL_TP1,
+    trailing_pct: float = TRAILING_PCT,
+) -> TradeResolution:
     if sl_pct is None:
         sl_pct = SL_PCT
-    e_bar = s["einstieg_bar"]
-    entry = s["einstieg_preis"]
-    typ = s["typ"]
-    tp1, tp2, poc = s["tp1"], s["tp2"], s["POC"]
+    e_bar = s.einstieg_bar
+    entry = s.einstieg_preis
+    typ = s.typ
+    tp1, tp2 = s.tp1, s.tp2
     p = sl_pct / 100.0
-    if typ == "SHORT":
-        sl_init = entry * (1 + p)
-    else:
-        sl_init = entry * (1 - p)
+    sl_init = entry * (1.0 + p) if typ == "SHORT" else entry * (1.0 - p)
+
     hi = df["high"].values[e_bar:]
     lo = df["low"].values[e_bar:]
     cl = df["close"].values[e_bar:]
-    n = len(hi)
+    n_bars = len(hi)
     risk = abs(sl_init - entry)
     if risk <= 0:
         risk = 1e-9
 
-    def _first(mask):
-        return int(np.argmax(mask)) if mask.any() else n
+    def _first(mask: np.ndarray) -> int:
+        return int(np.argmax(mask)) if mask.any() else n_bars
 
-    def _r(exit_price):
-        return ((entry - exit_price) / risk if typ == "SHORT"
-                else (exit_price - entry) / risk)
+    def _r(exit_price: float) -> float:
+        return (entry - exit_price) / risk if typ == "SHORT" else (exit_price - entry) / risk
 
-    # --- VARIANTE TRAILING: kein festes TP1/TP2, SL folgt dem Preis ---
     if trailing_pct > 0:
         tr = trailing_pct / 100.0
-        sl = sl_init
+        sl_val = sl_init
         ext = entry
         grund = "ENDE"
         exit_pr = float(cl[-1])
-        for k2 in range(n):
+        for k2 in range(n_bars):
             if typ == "SHORT":
-                if hi[k2] >= sl:
-                    exit_pr, grund = float(sl), "TRAIL"
+                if hi[k2] >= sl_val:
+                    exit_pr, grund = float(sl_val), "TRAIL"
                     break
                 ext = max(ext, float(hi[k2]))
-                sl = max(sl, ext * (1 + tr))
+                sl_val = max(sl_val, ext * (1.0 + tr))
             else:
-                if lo[k2] <= sl:
-                    exit_pr, grund = float(sl), "TRAIL"
+                if lo[k2] <= sl_val:
+                    exit_pr, grund = float(sl_val), "TRAIL"
                     break
                 ext = min(ext, float(lo[k2]))
-                sl = min(sl, ext * (1 - tr))
+                sl_val = min(sl_val, ext * (1.0 - tr))
         r = _r(exit_pr)
-        return {"r1": r, "r2": r, "exit1": exit_pr, "exit2": exit_pr,
-                "grund1": grund, "grund2": grund,
-                "pnl": r * risk, "r_mult": r,
-                "resultat": ("GEWONNEN" if r > 1e-9
-                             else ("VERLOREN" if r < -1e-9 else "NEUTRAL")),
-                "tp1_hit": False, "tp2_hit": False,
-                "sl_hit1": grund == "TRAIL", "sl_hit2": grund == "TRAIL",
-                "sl_init": sl_init}
+        res_tag: Literal["GEWONNEN", "VERLOREN", "NEUTRAL"] = (
+            "GEWONNEN" if r > 1e-9 else ("VERLOREN" if r < -1e-9 else "NEUTRAL")
+        )
+        return TradeResolution(
+            r1=r, r2=r, exit1=exit_pr, exit2=exit_pr,
+            grund1=grund, grund2=grund,
+            pnl=r * risk, r_mult=r, resultat=res_tag,
+            tp1_hit=False, tp2_hit=False,
+            sl_hit1=grund == "TRAIL", sl_hit2=grund == "TRAIL",
+            sl_init=sl_init,
+        )
 
     if typ == "SHORT":
         t1 = _first(lo <= tp1)
@@ -962,344 +926,496 @@ def _aufloesen(df, s, sl_pct=None, anteil_tp1=ANTEIL_TP1,
         t2 = _first(hi >= tp2)
         t_sl_i = _first(lo <= sl_init)
 
-    # --- Haelfte 1: TP1 (POC) ---
+    # Haelfte 1: TP1 (POC)
     if t1 < t_sl_i:
         r1, ex1, g1 = _r(tp1), tp1, "TP1"
     elif t_sl_i < t1:
         r1, ex1, g1 = -1.0, sl_init, "SL"
-    elif t_sl_i < n:                  # gleiche Bar: konservativ SL zuerst
+    elif t_sl_i < n_bars:
         r1, ex1, g1 = -1.0, sl_init, "SL"
-    else:                             # weder TP1 noch SL erreicht
-        r1, ex1, g1 = _r(cl[-1]), cl[-1], "ENDE"
+    else:
+        r1, ex1, g1 = _r(float(cl[-1])), float(cl[-1]), "ENDE"
 
-    # --- Haelfte 2: TP2 (Box-Ende); SL bleibt am Einstiegs-SL (KEIN Nachzug) ---
-    # Der Runner behaelt den Entry-SL, damit Pullbacks ihn nicht vorzeitig
-    # ausstoppen und TP2 (Box-Ende) trotzdem erreichbar bleibt.
+    # Haelfte 2: TP2 (Box-Ende)
     sl2 = sl_init
     t_sl2 = t_sl_i
     if t2 < t_sl2:
         r2, ex2, g2 = _r(tp2), tp2, "TP2"
-    elif t_sl2 < n:
+    elif t_sl2 < n_bars:
         r2, ex2, g2 = _r(sl2), sl2, "SL"
     else:
-        r2, ex2, g2 = _r(cl[-1]), cl[-1], "ENDE"
+        r2, ex2, g2 = _r(float(cl[-1])), float(cl[-1]), "ENDE"
 
     _w1 = anteil_tp1 / 100.0
     _w2 = 1.0 - _w1
     if _w2 <= 0:
-        r2, g2 = 0.0, "-"   # ex2 bleibt gefuellt (nur Gewicht 0)
+        r2, g2 = 0.0, "-"
     r_mult = _w1 * r1 + _w2 * r2
     pnl = r_mult * risk
-    resultat = ("GEWONNEN" if r_mult > 1e-9
-                else ("VERLOREN" if r_mult < -1e-9 else "NEUTRAL"))
-    return {"r1": r1, "r2": r2, "exit1": ex1, "exit2": ex2,
-            "grund1": g1, "grund2": g2,
-            "pnl": pnl, "r_mult": r_mult, "resultat": resultat,
-            "tp1_hit": g1 == "TP1", "tp2_hit": g2 == "TP2",
-            "sl_hit1": g1 == "SL", "sl_hit2": g2 == "SL",
-            "sl_init": sl_init}
+    resultat: Literal["GEWONNEN", "VERLOREN", "NEUTRAL"] = (
+        "GEWONNEN" if r_mult > 1e-9 else ("VERLOREN" if r_mult < -1e-9 else "NEUTRAL")
+    )
+    return TradeResolution(
+        r1=r1, r2=r2, exit1=ex1, exit2=ex2,
+        grund1=g1, grund2=g2,
+        pnl=pnl, r_mult=r_mult, resultat=resultat,
+        tp1_hit=g1 == "TP1", tp2_hit=g2 == "TP2",
+        sl_hit1=g1 == "SL", sl_hit2=g2 == "SL",
+        sl_init=sl_init,
+    )
 
 
-def find_reclaim_signals(df, p, min_candles=MIN_RECLAIM_CANDLES,
-                         min_bounce=MIN_RECLAIM_BOUNCE, min_crv=MIN_RECLAIM_CRV,
-                         cooldown_bars=MIN_SIGNAL_ABSTAND_BARS):
-    """Setup-B-Signale (Reclaim/Fakeout) fuer eine Phase - kausal.
+def find_reclaim_signals(
+    df: pd.DataFrame,
+    p: PhaseData,
+    min_candles: int = MIN_RECLAIM_CANDLES,
+    min_bounce: int = MIN_RECLAIM_BOUNCE,
+    min_crv: float = MIN_RECLAIM_CRV,
+    cooldown_bars: int = MIN_SIGNAL_ABSTAND_BARS,
+    st_u: Optional["MacroLineState"] = None,
+    st_l: Optional["MacroLineState"] = None,
+) -> List[ReclaimSignal]:
+    """Setup-B-Signale (Reclaim/Fakeout) - reiner Echtzeit-Modus ohne Lookahead.
 
-    OBERKANTE (SHORT):  high[k] > U_laufend UND close[k] <= U_laufend
-                        (Reclaim in derselben Bar) -> Einstieg Open[k+1]
-                        ODER close[k+1] <= U_laufend (Folge-Bar bestaetigt)
-                        -> Einstieg Open[k+2]
-    UNTERKANTE (LONG):  symmetrisch mit L_laufend.
-
-    Filter (Patrick Nill):
-    - Einstieg muss auf der richtigen Seite des POC liegen (SHORT: ueber
-      POC, LONG: unter POC), sonst ist das Fair-Value-Ziel bereits erreicht.
-    - Bounce-Nummer >= min_bounce (Default 1 = jede signifikante Kante; die
-  3-Touch-Regel ist via --bounce=3 zuschaltbar).
-    - CRV >= min_crv (Risiko-Ertrag, SL = SL_PCT vom Einstieg).
-    - Cooldown: keine 2 Signale gleicher Richtung innerhalb cooldown_bars.
+    Makro-Persistenz (Signal-Loop-Design v0.1, E1-E5): Optional koennen die
+    MacroLineState-Objekte der Seiten injiziert werden (Zustand NACH Phase
+    p-1, inkl. R4-Boundary). Dann ersetzt die operative Kanten-Auswahl
+    (resolve_active_edge) die implizite U_zone/L_zone-Wahl:
+      * Tier 1 = U_zone/L_zone, sofern die lokale Pivot-Dichte sie traegt (E2);
+      * Tier 2 = distanzbegrenzter Makro-Anker (E3/E5);
+      * Penetrations-Gate NUR auf Tier 2 (E4, Mentor §9.3);
+      * kein Intra-Phase-Bounce fuer Tier 2 (Mentor §9.4).
+    Default st_u/st_l = None -> exakt Baseline-Verhalten (bitgenau).
     """
-    sigs = []
+    sigs: List[ReclaimSignal] = []
     hi = df["high"].values
     lo = df["low"].values
     cl = df["close"].values
     op = df["open"].values
     ts = df["ts"].values
-    last_bar = {"SHORT": -10 ** 9, "LONG": -10 ** 9}
+    last_bar: Dict[Literal["SHORT", "LONG"], int] = {"SHORT": -10**9, "LONG": -10**9}
     tp2_puffer = TP2_PUFFER_PCT / 100.0
     sl_p = SL_PCT / 100.0
 
-    # REIN SEQUENTIELL (kein Lookahead): JEDE Bar der Phase wird einzeln
-    # durchlaufen. Die laufende Zone wird nur aus den Bars i_start..k
-    # berechnet - zum Zeitpunkt des Signals existieren exakt diese Bars.
-    # Ein finales Zonen-Screening gibt es bewusst NICHT mehr (Bereinigung
-    # 31.08.2026: frueher filterte die FINALE Zone der ganzen Phase die
-    # Kandidaten vor - ein Blick in die Zukunft).
-    for k in range(p["i_start"], p["i_ende"]):
-        if k - p["i_start"] + 1 < min_candles:
+    # Makro-Persistenz-Init (nur wenn States injiziert; sonst Baseline bitgenau)
+    _makro = st_u is not None or st_l is not None
+    _range_arr: Optional[np.ndarray] = None
+    if _makro:
+        try:
+            from macro_persistence import resolve_active_edge
+        except ImportError as _e:  # pragma: no cover
+            raise RuntimeError(
+                "macro_persistence.py erforderlich fuer Makro-Kanten-Auswahl"
+            ) from _e
+        _range_arr = (df["high"] - df["low"]).rolling(
+            200, min_periods=20).mean().shift(1).to_numpy(dtype=float)
+
+    # Kausale Schleife bar fuer bar (kein Lookahead ueber finale Phasen-Huellkurve)
+    for k in range(p.i_start, p.i_ende):
+        if k - p.i_start + 1 < min_candles:
             continue
         vz = _laufende_zone(df, p, k)
         if vz is None:
             continue
-        U, L, POC = vz["U_zone"], vz["L_zone"], vz["POC"]
-        ts_k = ts[k]
-        nb_h, nb_l = _bounce_nr(p["h_prices"], p["h_ts"],
-                                p["l_prices"], p["l_ts"], ts_k, U, L)
+        U, L, POC = vz.U_zone, vz.L_zone, vz.POC
 
-        # --- OBERKANTE: Fakeout nach oben + Reclaim -> SHORT ---
-        if hi[k] > U:
-            if cl[k] <= U:
+        ts_k = pd.Timestamp(ts[k])
+
+        # --- Operative Kanten-Auswahl (E1-E5): Baseline bitgenau, Makro-Pfad
+        #     nur mit injizierten MacroLineState-Objekten (je Seite unabhaengig).
+        if _makro:
+            _rr = (float(_range_arr[k])
+                   if _range_arr is not None and np.isfinite(_range_arr[k])
+                   else None)
+            _cur = float(cl[k])
+            if st_u is not None:
+                _dec_u = resolve_active_edge(
+                    side="UPPER", st=st_u, lokal_kante=U,
+                    phasen_prices=p.h_prices, phasen_ts=p.h_ts, ts_k=ts_k,
+                    current_price=_cur, extreme=float(hi[k]),
+                    range_ref=_rr, level_schnittmenge=level_schnittmenge,
+                )
+                U_eff = (_dec_u.edge_price if _dec_u is not None
+                         and _dec_u.penetriert else None)
+            else:
+                _dec_u = None
+                U_eff = U if hi[k] > U else None
+            if st_l is not None:
+                _dec_l = resolve_active_edge(
+                    side="LOWER", st=st_l, lokal_kante=L,
+                    phasen_prices=p.l_prices, phasen_ts=p.l_ts, ts_k=ts_k,
+                    current_price=_cur, extreme=float(lo[k]),
+                    range_ref=_rr, level_schnittmenge=level_schnittmenge,
+                )
+                L_eff = (_dec_l.edge_price if _dec_l is not None
+                         and _dec_l.penetriert else None)
+            else:
+                _dec_l = None
+                L_eff = L if lo[k] < L else None
+        else:
+            _dec_u = _dec_l = None
+            # Baseline exakt wie bisher: Kandidat = Durchstich ohne Obergrenze
+            U_eff = U if hi[k] > U else None
+            L_eff = L if lo[k] < L else None
+
+        if U_eff is None and L_eff is None:
+            continue
+
+        # Bounce-Zaehlung gegen die effektiven Kanten (Fallback = lokale Kante,
+        # wenn die Gegenseite in diesem Bar kein Kandidat ist - wie Baseline).
+        nb_h, nb_l = _bounce_nr(
+            p.h_prices, p.h_ts, p.l_prices, p.l_ts, ts_k,
+            U_eff if U_eff is not None else U,
+            L_eff if L_eff is not None else L,
+        )
+
+        if U_eff is not None:
+            if cl[k] <= U_eff:
                 e_bar, e_preis, reclaim = k + 1, float(op[k + 1]), "in_bar"
-            elif k + 2 <= p["i_ende"] and cl[k + 1] <= U:
+            elif k + 1 <= p.i_ende and cl[k + 1] <= U_eff:
                 e_bar, e_preis, reclaim = k + 2, float(op[k + 2]), "next_bar"
             else:
                 e_bar, reclaim = None, None
-            if (reclaim is not None and e_bar <= p["i_ende"]
-                    and e_preis > POC                      # Short ueber Fair Value
-                    and nb_h >= min_bounce                 # 3-Touch-Regel
-                    and k - last_bar["SHORT"] >= cooldown_bars):
-                sl = e_preis * (1 + sl_p)                  # SL 0.2% ueber Entry
+            # Mentor §9.4: Tier-2-Signale brauchen keinen Intra-Phase-Bounce
+            # (Legitimation durch ev >= 2 Phasen); Tier 1 behaelt min_bounce.
+            _bounce_ok = (nb_h >= min_bounce
+                          or (_dec_u is not None and _dec_u.tier == 2))
+            if (
+                reclaim is not None
+                and e_bar is not None
+                and e_bar <= p.i_ende
+                and e_preis > POC
+                and _bounce_ok
+                and k - last_bar["SHORT"] >= cooldown_bars
+            ):
+                sl = e_preis * (1.0 + sl_p)
                 tp1 = POC
-                tp2 = L * (1 + tp2_puffer)                 # Innen-Puffer vor Box-Ende
+                tp2 = L * (1.0 + tp2_puffer)
                 risk = abs(sl - e_preis)
                 crv = abs(tp1 - e_preis) / risk if risk > 0 else np.nan
                 crv2 = abs(tp2 - e_preis) / risk if risk > 0 else np.nan
                 if not np.isnan(crv) and crv >= min_crv:
                     last_bar["SHORT"] = k
-                    sig = {"typ": "SHORT", "bar": int(k), "ts": pd.Timestamp(ts[k]),
-                           "reclaim": reclaim, "einstieg_bar": int(e_bar),
-                           "einstieg_preis": e_preis,
-                           "U_laufend": U, "L_laufend": L, "POC": POC,
-                           "tp1": tp1, "tp2": tp2, "sl": sl,
-                           "crv": crv, "crv2": crv2, "bounce_nr": nb_h}
-                    sig.update(_aufloesen(df, sig))
+                    sig = ReclaimSignal(
+                        typ="SHORT",
+                        bar=int(k),
+                        ts=ts_k,
+                        reclaim=reclaim,  # type: ignore
+                        einstieg_bar=int(e_bar),
+                        einstieg_preis=e_preis,
+                        U_laufend=U_eff,
+                        L_laufend=L,
+                        POC=POC,
+                        tp1=tp1,
+                        tp2=tp2,
+                        sl=sl,
+                        crv=crv,
+                        crv2=crv2,
+                        bounce_nr=nb_h,
+                        edge_decision=_dec_u,
+                        macro_active=(_dec_u is not None and _dec_u.tier == 2),
+                    )
+                    sig.trade = _aufloesen(df, sig)
                     sigs.append(sig)
 
-        # --- UNTERKANTE: Fakeout nach unten + Reclaim -> LONG ---
-        if lo[k] < L:
-            if cl[k] >= L:
+        if L_eff is not None:
+            if cl[k] >= L_eff:
                 e_bar, e_preis, reclaim = k + 1, float(op[k + 1]), "in_bar"
-            elif k + 2 <= p["i_ende"] and cl[k + 1] >= L:
+            elif k + 1 <= p.i_ende and cl[k + 1] >= L_eff:
                 e_bar, e_preis, reclaim = k + 2, float(op[k + 2]), "next_bar"
             else:
                 e_bar, reclaim = None, None
-            if (reclaim is not None and e_bar <= p["i_ende"]
-                    and e_preis < POC                       # Long unter Fair Value
-                    and nb_l >= min_bounce                  # 3-Touch-Regel
-                    and k - last_bar["LONG"] >= cooldown_bars):
-                sl = e_preis * (1 - sl_p)                  # SL 0.2% unter Entry
+            # Mentor §9.4: Tier-2-Signale ohne Intra-Phase-Bounce-Huerde
+            _bounce_ok = (nb_l >= min_bounce
+                          or (_dec_l is not None and _dec_l.tier == 2))
+            if (
+                reclaim is not None
+                and e_bar is not None
+                and e_bar <= p.i_ende
+                and e_preis < POC
+                and _bounce_ok
+                and k - last_bar["LONG"] >= cooldown_bars
+            ):
+                sl = e_preis * (1.0 - sl_p)
                 tp1 = POC
-                tp2 = U * (1 - tp2_puffer)                 # Innen-Puffer vor Box-Ende
+                tp2 = U * (1.0 - tp2_puffer)
                 risk = abs(sl - e_preis)
                 crv = abs(tp1 - e_preis) / risk if risk > 0 else np.nan
                 crv2 = abs(tp2 - e_preis) / risk if risk > 0 else np.nan
                 if not np.isnan(crv) and crv >= min_crv:
                     last_bar["LONG"] = k
-                    sig = {"typ": "LONG", "bar": int(k), "ts": pd.Timestamp(ts[k]),
-                           "reclaim": reclaim, "einstieg_bar": int(e_bar),
-                           "einstieg_preis": e_preis,
-                           "U_laufend": U, "L_laufend": L, "POC": POC,
-                           "tp1": tp1, "tp2": tp2, "sl": sl,
-                           "crv": crv, "crv2": crv2, "bounce_nr": nb_l}
-                    sig.update(_aufloesen(df, sig))
+                    sig = ReclaimSignal(
+                        typ="LONG",
+                        bar=int(k),
+                        ts=ts_k,
+                        reclaim=reclaim,  # type: ignore
+                        einstieg_bar=int(e_bar),
+                        einstieg_preis=e_preis,
+                        U_laufend=U,
+                        L_laufend=L_eff,
+                        POC=POC,
+                        tp1=tp1,
+                        tp2=tp2,
+                        sl=sl,
+                        crv=crv,
+                        crv2=crv2,
+                        bounce_nr=nb_l,
+                        edge_decision=_dec_l,
+                        macro_active=(_dec_l is not None and _dec_l.tier == 2),
+                    )
+                    sig.trade = _aufloesen(df, sig)
                     sigs.append(sig)
     return sigs
 
 
-reclaim_signals = []
-for _pi, _p in enumerate(phases, 1):
-    for _s in find_reclaim_signals(df, _p):
-        _s["phase"] = _pi
-        reclaim_signals.append(_s)
-reclaim_signals.sort(key=lambda s: s["ts"])
-# Statistik (alle Trades VOLLSTAENDIG aufgeloest)
-_n_win = sum(1 for s in reclaim_signals if s["resultat"] == "GEWONNEN")
-_n_loss = sum(1 for s in reclaim_signals if s["resultat"] == "VERLOREN")
-_n_neu = sum(1 for s in reclaim_signals if s["resultat"] == "NEUTRAL")
-_n_tp1 = sum(1 for s in reclaim_signals if s["tp1_hit"])
-_n_tp2 = sum(1 for s in reclaim_signals if s["tp2_hit"])
-_n_sl1 = sum(1 for s in reclaim_signals if s["sl_hit1"])
-_n_sl2 = sum(1 for s in reclaim_signals if s["sl_hit2"])
-_n_trail = sum(1 for s in reclaim_signals if s.get("grund1") == "TRAIL")
+reclaim_signals: List[ReclaimSignal] = []
+# ==============================================================================
+# 5d) MAKRO-LIVE-HOOK (Signal-Loop-Design v0.1, Schritt 3)
+#     Aktivierung NUR via CLI-Flag:  python ... --macro-live
+#     Default: aus -> exakt Baseline (bitgenau).
+#
+#     Kausalitaets-Axiom (Mentor, nicht verhandelbar): Die Reihenfolge ist
+#       Boundary(p-1) -> Scan(p) -> Touches(p)
+#     Wer Touches aus Phase p in den State einspeist, BEVOR die Signale fuer
+#     Phase p gescannt werden, begeht Lookahead-Betrug (der Algorithmus
+#     wuesste bei Bar 10 bereits, welches Extremum der Markt bei Bar 80
+#     antestet). Scope-Trennung: --macro-live initialisiert ausschliesslich
+#     st_u/st_l und reicht sie an find_reclaim_signals weiter - keine
+#     globalen Variablen, keine Phasen-Zuschnitte.
+#
+#     Fuer den Delta-Report (Schritt 4) wird zusaetzlich ein Baseline-
+#     Kontrolllauf durchgefuehrt (ohne States) - rein lesend, nur zur
+#     Differenz-Anzeige.
+# ==============================================================================
+_macro_live = "--macro-live" in sys.argv
 
-# ---------- 5d) SETUP C: MOVE-TRADES (Breakout-Riding, optional) ----------
-# Trader-Punkt 3: "oft sind auch die Move-Downs und Move-Ups selbst sehr gute
-# Trades". Nach einem bestaetigten 2-Close-Ausbruch (brk_idx) wird in
-# Ausbruchsrichtung eingestiegen (Open der Bar NACH der Bestaetigung =
-# brk_idx+2, kausal). Der Move endet mit dem Ausbruch der FOLGE-Phase
-# (oder am Datenende) - Exit = Open der Bar nach dessen 2-Close-Bestaetigung.
-# SL: hinter der gebrochenen Kante + SL_PCT Puffer.
-move_signals = []
-_mw = _ml = _mn = 0
-if TRADE_MOVES:
-    for _k, _ph in enumerate(phases):
-        if _ph["break_dir"] is None or _ph["brk_idx"] is None or _ph["brk_kante"] is None:
-            continue
-        _dir = _ph["break_dir"]
-        _typ = "SHORT" if _dir == "down" else "LONG"
-        _e_bar = _ph["brk_idx"] + 2          # Open nach 2-Close-Bestaetigung
-        if _e_bar >= n:
-            continue
-        _entry = float(df["open"].iloc[_e_bar])
-        _kante = float(_ph["brk_kante"])
-        # SL hinter der gebrochenen Kante (bzw. am Entry, falls dieser
-        # bereits jenseits der Kante liegt)
-        if _typ == "SHORT":
-            _sl = max(_entry, _kante) * (1 + SL_PCT / 100.0)
-        else:
-            _sl = min(_entry, _kante) * (1 - SL_PCT / 100.0)
-        # Exit: Ausbruch der Folge-Phase = Ende des Moves (kausal, 2-Close)
-        if _k + 1 < len(phases) and phases[_k + 1]["brk_idx"] is not None:
-            _x_bar = phases[_k + 1]["brk_idx"] + 2
-            if _x_bar >= n:
-                _x_bar = n - 1
-                _x_pr = float(df["close"].iloc[_x_bar])
-                _x_grund = "DATENENDE"
-            else:
-                _x_pr = float(df["open"].iloc[_x_bar])
-                _x_grund = "MOVE-ENDE"
-        else:
-            _x_bar = n - 1
-            _x_pr = float(df["close"].iloc[_x_bar])
-            _x_grund = "DATENENDE"
-        # SL-Check waehrend des Ritts (nur falls Fenster nicht leer)
-        if _x_bar >= _e_bar:
-            _seg_hi = df["high"].values[_e_bar:_x_bar + 1]
-            _seg_lo = df["low"].values[_e_bar:_x_bar + 1]
-            if _typ == "SHORT":
-                _hits = np.where(_seg_hi >= _sl)[0]
-            else:
-                _hits = np.where(_seg_lo <= _sl)[0]
-            if len(_hits):
-                _x_pr, _x_grund = float(_sl), "SL"
-        _risk = abs(_sl - _entry)
-        if _risk <= 0:
-            _risk = 1e-9
-        _r_m = ((_entry - _x_pr) / _risk if _typ == "SHORT"
-                else (_x_pr - _entry) / _risk)
-        _res = ("GEWONNEN" if _r_m > 1e-9
-                else ("VERLOREN" if _r_m < -1e-9 else "NEUTRAL"))
-        move_signals.append({
-            "phase": _k + 1, "ts": df["ts"].iloc[_e_bar],
-            "typ": _typ, "einstieg_preis": _entry, "sl": _sl,
-            "exit": _x_pr, "grund": _x_grund, "r": _r_m,
-            "resultat": _res, "kante": _kante,
-            "von_ts": _ph["ende"], "bis_ts": df["ts"].iloc[_x_bar],
-        })
-    _mw = sum(1 for s in move_signals if s["resultat"] == "GEWONNEN")
-    _ml = sum(1 for s in move_signals if s["resultat"] == "VERLOREN")
-    _mn = sum(1 for s in move_signals if s["resultat"] == "NEUTRAL")
+if _macro_live:
+    try:
+        from macro_persistence import (  # noqa: F401
+            MacroLineState,
+            MacroTouch,
+            PhaseBoundaryEvent,
+            on_phase_boundary,
+            update_touch,
+        )
+    except ImportError as _e:
+        raise RuntimeError(
+            "macro_persistence.py erforderlich fuer --macro-live"
+        ) from _e
 
-# ---------- 6) Ausgabe ----------
+    st_u = MacroLineState(side="UPPER")
+    st_l = MacroLineState(side="LOWER")
+
+    # Baseline-Kontrolllauf (rein lesend, nur fuer den Delta-Report)
+    _baseline_sigs: List[ReclaimSignal] = []
+    for _pi_b, _p_b in enumerate(phases, 1):
+        for _s_b in find_reclaim_signals(df, _p_b):
+            _s_b.phase = _pi_b
+            _baseline_sigs.append(_s_b)
+
+    for _pi, _p in enumerate(phases, 1):
+        # 1) Boundary(p-1) in den State (R4, selektives Loeschen)
+        if _pi > 1:
+            _prev = phases[_pi - 2]
+            if _prev.break_dir is not None and _prev.brk_idx is not None:
+                _ev = PhaseBoundaryEvent(
+                    ts=df["ts"].iloc[_prev.brk_idx],
+                    break_dir=_prev.break_dir,
+                    broken_level=_prev.brk_kante,
+                    ended_phase_id=_pi - 2,
+                )
+                on_phase_boundary(st_u, _ev)
+                on_phase_boundary(st_l, _ev)
+        # 2) Scan(p) mit Makro-Sicht (Tier 2 fuehrt in jungen Phasen)
+        for _s in find_reclaim_signals(df, _p, st_u=st_u, st_l=st_l):
+            _s.phase = _pi
+            reclaim_signals.append(_s)
+        # 3) Touches(p) NACH dem Scan in den State (Evidenz fuer Folge-Phasen)
+        for _t, _x in zip(_p.h_ts, _p.h_prices):
+            update_touch(st_u, MacroTouch(_t, float(_x), "UPPER", _pi - 1),
+                         level_schnittmenge)
+        for _t, _x in zip(_p.l_ts, _p.l_prices):
+            update_touch(st_l, MacroTouch(_t, float(_x), "LOWER", _pi - 1),
+                         level_schnittmenge)
+
+    # Kausale Sortierung der Macro-Live-Signale
+    reclaim_signals.sort(key=lambda s: s.ts)
+
+    # --- Delta-Report (Konsolenausgabe, kein Datei-Eingriff) ---
+    _bset = {(s.typ, s.bar, s.einstieg_bar) for s in _baseline_sigs}
+    _mset = {(s.typ, s.bar, s.einstieg_bar) for s in reclaim_signals}
+    _entfallen = [s for s in _baseline_sigs
+                  if (s.typ, s.bar, s.einstieg_bar) not in _mset]
+    _neu = [s for s in reclaim_signals
+            if (s.typ, s.bar, s.einstieg_bar) not in _bset]
+    print("\n" + "=" * 118)
+    print("DELTA-REPORT --macro-live (Baseline vs. Makro-Live, AUG)")
+    print("=" * 118)
+    print(f"  Baseline-Signale: {len(_baseline_sigs)} | "
+          f"Macro-Live-Signale: {len(reclaim_signals)}")
+    print(f"  Entfallen: {len(_entfallen)} | Neu: {len(_neu)} | "
+          f"Identisch: {len(_bset & _mset)}")
+    if _entfallen:
+        print("\n  ENTALLENE Signale (Baseline, nicht in Macro-Live):")
+        for s in _entfallen:
+            assert s.trade is not None
+            print(f"    P{s.phase:2d} {s.ts:%a %d.%m %H:%M} {s.typ:5s} "
+                  f"Ein {s.einstieg_preis:.3f} | {s.trade.resultat} "
+                  f"{s.trade.r_mult:+.2f}R | Bo {s.bounce_nr} | "
+                  f"U_zone {s.U_laufend:.3f}")
+    if _neu:
+        print("\n  NEUE Signale (nur Macro-Live):")
+        for s in _neu:
+            assert s.trade is not None
+            _ed = s.edge_decision
+            _tier_txt = (f"Tier {_ed.tier} @ {_ed.edge_price:.3f}"
+                         if _ed is not None else "?")
+            _ev_txt = (_ed.anchor.kurz() if _ed is not None
+                       and _ed.anchor is not None else "")
+            print(f"    P{s.phase:2d} {s.ts:%a %d.%m %H:%M} {s.typ:5s} "
+                  f"Ein {s.einstieg_preis:.3f} | {s.trade.resultat} "
+                  f"{s.trade.r_mult:+.2f}R | {_tier_txt} | {_ev_txt}")
+    print("=" * 118)
+
+else:
+    for _pi, _p in enumerate(phases, 1):
+        for _s in find_reclaim_signals(df, _p):
+            _s.phase = _pi
+            reclaim_signals.append(_s)
+    reclaim_signals.sort(key=lambda s: s.ts)
+
+_n_win = sum(1 for s in reclaim_signals if s.trade and s.trade.resultat == "GEWONNEN")
+_n_loss = sum(1 for s in reclaim_signals if s.trade and s.trade.resultat == "VERLOREN")
+_n_neu = sum(1 for s in reclaim_signals if s.trade and s.trade.resultat == "NEUTRAL")
+_n_tp1 = sum(1 for s in reclaim_signals if s.trade and s.trade.tp1_hit)
+_n_tp2 = sum(1 for s in reclaim_signals if s.trade and s.trade.tp2_hit)
+_n_sl1 = sum(1 for s in reclaim_signals if s.trade and s.trade.sl_hit1)
+_n_sl2 = sum(1 for s in reclaim_signals if s.trade and s.trade.sl_hit2)
+_n_trail = sum(1 for s in reclaim_signals if s.trade and s.trade.grund1 == "TRAIL")
+
+# ==============================================================================
+# 6) KONSOLENAUSGABE
+# ==============================================================================
+
 pd.set_option("display.width", 230)
 print("\n=== PHASEN (VOLUME-PROFIL: POC/VAH/VAL-Zonen) ===")
-for i, p in enumerate(phases, 1):
-    u_str = f"{p['U_final']:.3f}" if p['U_final'] is not None else "N/A"
-    l_str = f"{p['L_final']:.3f}" if p['L_final'] is not None else "N/A"
-    ok = " [HANDELBAR]" if p["handelbar"] else ""
-    print(f"Phase {i}: {p['start']:%a %d.%m %H:%M} -> {p['ende']:%a %d.%m %H:%M} "
-          f"({p['handels_h']:.1f}h, {p['n_candles']}C){ok} "
-          f"| Pivots: {p['touches_h']}H/{p['touches_l']}L")
-    vz = p.get("vol_zone")
+for i_p, p in enumerate(phases, 1):
+    u_str = f"{p.U_final:.3f}" if p.U_final is not None else "N/A"
+    l_str = f"{p.L_final:.3f}" if p.L_final is not None else "N/A"
+    ok = " [HANDELBAR]" if p.handelbar else ""
+    print(
+        f"Phase {i_p}: {p.start:%a %d.%m %H:%M} -> {p.ende:%a %d.%m %H:%M} "
+        f"({p.handels_h:.1f}h, {p.n_candles}C){ok} "
+        f"| Pivots: {p.touches_h}H/{p.touches_l}L"
+    )
+    vz = p.vol_zone
     if vz is not None:
-        print(f"    VOLUME-ZONE: OBEN {vz['U_zone']:.3f} | MITTE(POC) {vz['POC']:.3f} | UNTEN {vz['L_zone']:.3f} "
-              f"| Breite {p['zone_breite']:.3f} | {p['n_berge']} Berg(e)")
-        for j, pk in enumerate(vz["peaks"], 1):
-            print(f"      Berg {j}: POC {pk['poc']:.3f} | VAL {pk['val']:.3f} | VAH {pk['vah']:.3f} "
-                  f"| Vol {pk['vol']:.0f} | Peak-Anteil {pk['peak_share_pct']:.0f}%")
+        print(
+            f"    VOLUME-ZONE: OBEN {vz.U_zone:.3f} | MITTE(POC) {vz.POC:.3f} | UNTEN {vz.L_zone:.3f} "
+            f"| Breite {p.zone_breite:.3f} | {p.n_berge} Berg(e)"
+        )
+        for j_m, pk in enumerate(vz.peaks, 1):
+            print(
+                f"      Berg {j_m}: POC {pk.poc:.3f} | VAL {pk.val:.3f} | VAH {pk.vah:.3f} "
+                f"| Vol {pk.vol:.0f} | Peak-Anteil {pk.peak_share_pct:.0f}%"
+            )
     else:
-        print(f"    VOLUME-ZONE: keine (zu wenig Daten)")
-    # Referenz: bisherige Schnittmengen-Linien
-    print(f"    REAKTIONS-Extreme (Schnittmengen): OBEN {u_str} | UNTEN {l_str} "
-          f"(dick gestrichelt im Chart)")
-    if p["U_hist"]:
-        dev_u = " -> ".join(f"{t:%a %H:%M} {v:.3f}" for t, v in p["U_hist"])
-        print(f"    OBEN-Entwicklung ({p['n_U_shifts']} Verschiebungen): {dev_u}")
-    if p["L_hist"]:
-        dev_l = " -> ".join(f"{t:%a %H:%M} {v:.3f}" for t, v in p["L_hist"])
-        print(f"    UNTEN-Entwicklung ({p['n_L_shifts']} Verschiebungen): {dev_l}")
-    if p.get("U_proj_val") is not None:
-        _c = p.get("U_conf_ts")
+        print("    VOLUME-ZONE: keine (zu wenig Daten)")
+    print(f"    REAKTIONS-Extreme (Schnittmengen): OBEN {u_str} | UNTEN {l_str} (dick gestrichelt im Chart)")
+    if p.U_hist:
+        dev_u = " -> ".join(f"{t:%a %H:%M} {v:.3f}" for t, v in p.U_hist)
+        print(f"    OBEN-Entwicklung ({p.n_U_shifts} Verschiebungen): {dev_u}")
+    if p.L_hist:
+        dev_l = " -> ".join(f"{t:%a %H:%M} {v:.3f}" for t, v in p.L_hist)
+        print(f"    UNTEN-Entwicklung ({p.n_L_shifts} Verschiebungen): {dev_l}")
+    if p.U_proj_val is not None:
+        _c = p.U_conf_ts
         z = f"bestaetigt {_c:%a %H:%M}" if _c is not None else "NIE bestaetigt (Projektion)"
-        print(f"    OBEN-Geburtszone {p['U_proj_val']:.3f}: {z}")
-    if p.get("L_proj_val") is not None:
-        _c = p.get("L_conf_ts")
+        print(f"    OBEN-Geburtszone {p.U_proj_val:.3f}: {z}")
+    if p.L_proj_val is not None:
+        _c = p.L_conf_ts
         z = f"bestaetigt {_c:%a %H:%M}" if _c is not None else "NIE bestaetigt (Projektion)"
-        print(f"    UNTEN-Geburtszone {p['L_proj_val']:.3f}: {z}")
+        print(f"    UNTEN-Geburtszone {p.L_proj_val:.3f}: {z}")
 
 print("\n=== MOVES (Phasenwechsel) ===")
 for m in moves:
-    d = (m["bis_ts"] - m["von_ts"]).total_seconds() / 60
-    print(f"{'UP  ' if m['dir']=='up' else 'DOWN'} {m['von_ts']:%a %H:%M} ({m['von_pr']:.3f}) "
-          f"-> {m['bis_ts']:%a %H:%M} ({m['bis_pr']:.3f})  "
-          f"{m['bis_pr']-m['von_pr']:+.3f} USD in {d:.0f} min")
+    d_min = (m.bis_ts - m.von_ts).total_seconds() / 60.0
+    pr_diff = (m.bis_pr - m.von_pr) if m.von_pr is not None else 0.0
+    pr_str = f"{m.von_pr:.3f}" if m.von_pr is not None else "N/A"
+    print(
+        f"{'UP  ' if m.dir=='up' else 'DOWN'} {m.von_ts:%a %H:%M} ({pr_str}) "
+        f"-> {m.bis_ts:%a %H:%M} ({m.bis_pr:.3f})  "
+        f"{pr_diff:+.3f} USD in {d_min:.0f} min"
+    )
 
 _trail_txt = f" | TRAILING {TRAILING_PCT:.2f}%" if TRAILING_PCT > 0 else ""
 _nach_txt = "SL bleibt am Entry (kein Nachzug)"
-_ant_txt = (f"{ANTEIL_TP1:.0f}/{100-ANTEIL_TP1:.0f}" if 0 < ANTEIL_TP1 < 100
-            else ("100/0" if ANTEIL_TP1 >= 100 else "0/100"))
-print(f"\n=== SETUP B: RECLAIM-SIGNALE (SL {SL_PCT:.2f}% Entry; {_nach_txt}; "
-      f"TP2=Box-Ende innen {TP2_PUFFER_PCT:.2f}%; Split {_ant_txt}{_trail_txt}; alle aufgeloest) ===")
+_ant_txt = (
+    f"{ANTEIL_TP1:.0f}/{100-ANTEIL_TP1:.0f}"
+    if 0 < ANTEIL_TP1 < 100
+    else ("100/0" if ANTEIL_TP1 >= 100 else "0/100")
+)
+print(
+    f"\n=== SETUP B: RECLAIM-SIGNALE (SL {SL_PCT:.1f}% Entry; {_nach_txt}; "
+    f"TP2=Box-Ende innen 0.15%; Split {_ant_txt}{_trail_txt}; alle aufgeloest) ==="
+)
 if not reclaim_signals:
     print("  keine Signale")
 for s in reclaim_signals:
-    typ = "SHORT" if s["typ"] == "SHORT" else "LONG "
-    print(f"  P{s['phase']:2d} {s['ts']:%a %d.%m %H:%M} {typ} Rec {s['reclaim']:8s} "
-          f"Ein {s['einstieg_preis']:.3f} | SL {s['sl']:.3f} | TP1 {s['tp1']:.3f} | TP2 {s['tp2']:.3f} "
-          f"| CRV {s['crv']:.2f} | Bo {s['bounce_nr']} | H1 {s['exit1']:.3f} ({s['grund1']}) {s['r1']:+.2f}R | "
-          f"H2 {s['exit2']:.3f} ({s['grund2']}) {s['r2']:+.2f}R | {s['resultat']} {s['r_mult']:+.2f}R")
+    assert s.trade is not None
+    typ_str = "SHORT" if s.typ == "SHORT" else "LONG "
+    print(
+        f"  P{s.phase:2d} {s.ts:%a %d.%m %H:%M} {typ_str} Rec {s.reclaim:8s} "
+        f"Ein {s.einstieg_preis:.3f} | SL {s.sl:.3f} | TP1 {s.tp1:.3f} | TP2 {s.tp2:.3f} "
+        f"| CRV {s.crv:.2f} | Bo {s.bounce_nr} | H1 {s.trade.exit1:.3f} ({s.trade.grund1}) {s.trade.r1:+.2f}R | "
+        f"H2 {s.trade.exit2:.3f} ({s.trade.grund2}) {s.trade.r2:+.2f}R | {s.trade.resultat} {s.trade.r_mult:+.2f}R"
+    )
 
-print(f"\n=== STATISTIK SETUP B (SL {SL_PCT:.2f}% Entry; {_nach_txt}; Split {_ant_txt}{_trail_txt}) ===")
+print(f"\n=== STATISTIK SETUP B (SL {SL_PCT:.1f}% Entry; {_nach_txt}; Split {_ant_txt}{_trail_txt}) ===")
 print(f"  Signale: {len(reclaim_signals)} | GEWONNEN {_n_win} | VERLOREN {_n_loss} | NEUTRAL {_n_neu}")
 if _n_win + _n_loss > 0:
     print(f"  Trefferquote: {100.0*_n_win/(_n_win+_n_loss):.0f}% (nur entschiedene)")
-_s = sum(s["r_mult"] for s in reclaim_signals) if reclaim_signals else 0.0
-print(f"  Summe R: {_s:+.2f} | avg R: {(_s/len(reclaim_signals) if reclaim_signals else 0):+.2f} "
-      f"| max R: {max(s['r_mult'] for s in reclaim_signals):+.2f} | min R: {min(s['r_mult'] for s in reclaim_signals):+.2f}")
-print(f"  TP1(POC) erreicht: {_n_tp1}/{len(reclaim_signals)} | TP2(Box-Ende) erreicht: {_n_tp2} "
-      f"| SL Haelfte1: {_n_sl1} | SL Haelfte2: {_n_sl2} | TRAIL-Exit: {_n_trail}")
+_s = sum(s.trade.r_mult for s in reclaim_signals if s.trade) if reclaim_signals else 0.0
+print(
+    f"  Summe R: {_s:+.2f} | avg R: {(_s/len(reclaim_signals) if reclaim_signals else 0):+.2f} "
+    f"| max R: {max(s.trade.r_mult for s in reclaim_signals if s.trade):+.2f} "
+    f"| min R: {min(s.trade.r_mult for s in reclaim_signals if s.trade):+.2f}"
+)
+print(
+    f"  TP1(POC) erreicht: {_n_tp1}/{len(reclaim_signals)} | TP2(Box-Ende) erreicht: {_n_tp2} "
+    f"| SL Haelfte1: {_n_sl1} | SL Haelfte2: {_n_sl2} | TRAIL-Exit: {_n_trail}"
+)
 
-# --- SETUP C Ausgabe (nur bei --moves=1) ---
-if TRADE_MOVES:
-    print(f"\n=== SETUP C: MOVE-TRADES (Breakout-Riding; SL {SL_PCT:.2f}% hinter der Kante) ===")
-    if not move_signals:
-        print("  keine Signale")
-    for s in move_signals:
-        print(f"  P{s['phase']:2d} {s['ts']:%a %d.%m %H:%M} {s['typ']:5s} "
-              f"Ein {s['einstieg_preis']:.3f} | SL {s['sl']:.3f} | Kante {s['kante']:.3f} "
-              f"| Exit {s['exit']:.3f} ({s['grund']}) | {s['r']:+.2f}R | {s['resultat']}")
-    print(f"\n=== STATISTIK SETUP C (MOVE-TRADES) ===")
-    print(f"  Signale: {len(move_signals)} | GEWONNEN {_mw} | VERLOREN {_ml} | NEUTRAL {_mn}")
-    if _mw + _ml > 0:
-        print(f"  Trefferquote: {100.0*_mw/(_mw+_ml):.0f}% (nur entschiedene)")
-    _sm = sum(s["r"] for s in move_signals) if move_signals else 0.0
-    print(f"  Summe R: {_sm:+.2f} | avg R: {(_sm/len(move_signals) if move_signals else 0):+.2f} "
-          f"| max R: {max(s['r'] for s in move_signals):+.2f} | min R: {min(s['r'] for s in move_signals):+.2f}")
-
-print("\n=== HANDELBARE RANGES (Filter: >= %d Touches je Grenze, >= %d Candles, Breite >= %.1f%%) ==="
-      % (MIN_TOUCHES, MIN_CANDLES, MIN_SPREAD_PCT))
-ranges = [p for p in phases if p["handelbar"]]
-for i, p in enumerate(ranges, 1):
-    print(f"\nRange {i}: {p['start']:%a %d.%m %H:%M} -> {p['ende']:%a %d.%m %H:%M}  ({p['handels_h']:.1f}h)")
-    vz = p.get("vol_zone")
+print(
+    "\n=== HANDELBARE RANGES (Filter: >= %d Touches je Grenze, >= %d Candles, Breite >= %.1f%%) ==="
+    % (MIN_TOUCHES, MIN_CANDLES, MIN_SPREAD_PCT)
+)
+ranges = [p for p in phases if p.handelbar]
+for i_r, p in enumerate(ranges, 1):
+    print(f"\nRange {i_r}: {p.start:%a %d.%m %H:%M} -> {p.ende:%a %d.%m %H:%M}  ({p.handels_h:.1f}h)")
+    vz = p.vol_zone
     if vz is not None:
-        print(f"    VOLUME-ZONE OBEN  {vz['U_zone']:.3f} | MITTE(POC) {vz['POC']:.3f} | UNTEN {vz['L_zone']:.3f} "
-              f"| Breite {p['zone_breite']:.3f} | {p['n_berge']} Berg(e)")
-        for j, pk in enumerate(vz["peaks"], 1):
-            print(f"      Berg {j}: POC {pk['poc']:.3f} | VAL {pk['val']:.3f} | VAH {pk['vah']:.3f} "
-                  f"| Peak-Anteil {pk['peak_share_pct']:.0f}%")
-    print(f"    REAKTIONS-Extreme (Schnittmengen): OBEN {p['U_final']:.3f} | UNTEN {p['L_final']:.3f}")
+        print(
+            f"    VOLUME-ZONE OBEN  {vz.U_zone:.3f} | MITTE(POC) {vz.POC:.3f} | UNTEN {vz.L_zone:.3f} "
+            f"| Breite {p.zone_breite:.3f} | {p.n_berge} Berg(e)"
+        )
+        for j_p, pk in enumerate(vz.peaks, 1):
+            print(
+                f"      Berg {j_p}: POC {pk.poc:.3f} | VAL {pk.val:.3f} | VAH {pk.vah:.3f} "
+                f"| Peak-Anteil {pk.peak_share_pct:.0f}%"
+            )
+    print(f"    REAKTIONS-Extreme (Schnittmengen): OBEN {p.U_final:.3f} | UNTEN {p.L_final:.3f}")
 
-# ---------- 6a) STATISTIK-PAKET + TRADE-TEXTFILE (fester Dateiname je Chart) ----------
-# Die Box im Chart und das Textfile nutzen DIESELBEN Zahlen (eine Quelle).
-_n_calls = sum(1 for s in reclaim_signals if s["typ"] == "LONG")
-_n_sells = sum(1 for s in reclaim_signals if s["typ"] == "SHORT")
+# ==============================================================================
+# 6a) STATISTIK-PAKET & TEXTFILE
+# ==============================================================================
+
+_n_calls = sum(1 for s in reclaim_signals if s.typ == "LONG")
+_n_sells = sum(1 for s in reclaim_signals if s.typ == "SHORT")
 _decided = _n_win + _n_loss
 _winrate = 100.0 * _n_win / _decided if _decided else 0.0
-_avg_crv = (sum(s["crv"] for s in reclaim_signals) / len(reclaim_signals)
-            if reclaim_signals else 0.0)
-_sum_r = sum(s["r_mult"] for s in reclaim_signals)
-# % Gesamtgewinn: Summe R x Risiko je Trade (SL_PCT% vom Entry)
+_avg_crv = sum(s.crv for s in reclaim_signals) / len(reclaim_signals) if reclaim_signals else 0.0
+_sum_r = sum(s.trade.r_mult for s in reclaim_signals if s.trade)
 _gewinn_pct = _sum_r * SL_PCT
 _stat_lines = [
     f"STATISTIK {START} - {ENDE}",
@@ -1309,49 +1425,40 @@ _stat_lines = [
     f"Summe R:  {_sum_r:+.2f}",
     f"Gesamtgewinn: {_gewinn_pct:+.2f}% (Risiko {SL_PCT:.2f}%/Trade)",
 ]
-# Nur SETUP B in der Statistik (Header + Grafik); SETUP C kommt spaeter.
 
-# Textfile mit allen Trades zum exakten Nachpruefen (immer gleicher Name)
 OUT_TXT = OUT_PNG.with_suffix(".txt")
 _fmt_ts = lambda t: t.strftime("%Y-%m-%d %H:%M")
 with open(OUT_TXT, "w", encoding="utf-8") as _f:
-    # 1) Header = identisch mit dem Statistik-Label im Chart
     _f.write("\n".join(_stat_lines) + "\n\n")
-
-    # 2) Alle Setup-B-Trades mit allen Rohwerten
     _f.write("=== SETUP B: RECLAIM-SIGNALE (alle Trades) ===\n")
-    _f.write(f"Parameter: SL_PCT={SL_PCT} | "
-             f"TP2_PUFFER_PCT={TP2_PUFFER_PCT} | Split {_ant_txt} | "
-             f"TRAILING_PCT={TRAILING_PCT} | "
-             f"MIN_RECLAIM_BOUNCE={MIN_RECLAIM_BOUNCE} | MIN_RECLAIM_CRV={MIN_RECLAIM_CRV} | "
-             f"Cooldown={MIN_SIGNAL_ABSTAND_BARS} Bars | KEIN SL-NACHZUG\n")
-    _f.write("Nr | Phase | Signal-Bar(ts)      | Typ   | Reclaim  | EntryBar | Entry   | SL      | TP1     | TP2     | "
-             "CRV   | CRV2  | Bo | Exit1   | Grund | R1    | Exit2   | Grund | R2    | R-mult | Resultat\n")
+    _f.write(
+        f"Parameter: SL_PCT={SL_PCT} | "
+        f"TP2_PUFFER_PCT={TP2_PUFFER_PCT} | Split {_ant_txt} | "
+        f"TRAILING_PCT={TRAILING_PCT} | "
+        f"MIN_RECLAIM_BOUNCE={MIN_RECLAIM_BOUNCE} | MIN_RECLAIM_CRV={MIN_RECLAIM_CRV} | "
+        f"Cooldown={MIN_SIGNAL_ABSTAND_BARS} Bars | KEIN SL-NACHZUG\n"
+    )
+    _f.write(
+        "Nr | Phase | Signal-Bar(ts)      | Typ   | Reclaim  | EntryBar | Entry   | SL      | TP1     | TP2     | "
+        "CRV   | CRV2  | Bo | Exit1   | Grund | R1    | Exit2   | Grund | R2    | R-mult | Resultat\n"
+    )
     for _i, s in enumerate(reclaim_signals, 1):
-        _f.write(f"{_i:2d} | P{s['phase']:<2d} | {_fmt_ts(s['ts'])} | {s['typ']:5s} | {s['reclaim']:8s} | "
-                 f"{s['einstieg_bar']:8d} | {s['einstieg_preis']:.3f} | {s['sl']:.3f} | {s['tp1']:.3f} | {s['tp2']:.3f} | "
-                 f"{s['crv']:.2f} | {s['crv2']:.2f} | {s['bounce_nr']:2d} | "
-                 f"{s['exit1']:.3f} | {s['grund1']:5s} | {s['r1']:+.2f} | "
-                 f"{s['exit2']:.3f} | {s['grund2']:5s} | {s['r2']:+.2f} | {s['r_mult']:+.2f} | {s['resultat']}\n")
+        assert s.trade is not None
+        _f.write(
+            f"{_i:2d} | P{s.phase:<2d} | {_fmt_ts(s.ts)} | {s.typ:5s} | {s.reclaim:8s} | "
+            f"{s.einstieg_bar:8d} | {s.einstieg_preis:.3f} | {s.sl:.3f} | {s.tp1:.3f} | {s.tp2:.3f} | "
+            f"{s.crv:.2f} | {s.crv2:.2f} | {s.bounce_nr:2d} | "
+            f"{s.trade.exit1:.3f} | {s.trade.grund1:5s} | {s.trade.r1:+.2f} | "
+            f"{s.trade.exit2:.3f} | {s.trade.grund2:5s} | {s.trade.r2:+.2f} | {s.trade.r_mult:+.2f} | {s.trade.resultat}\n"
+        )
     if not reclaim_signals:
         _f.write("(keine Signale)\n")
 
-    # 3) Setup-C-Moves (nur bei --moves=1)
-    if TRADE_MOVES:
-        _f.write("\n=== SETUP C: MOVE-TRADES ===\n")
-        _f.write("Nr | Phase | Entry-Bar(ts)     | Typ   | Entry   | SL      | Kante   | Exit    | Grund     | R     | Resultat\n")
-        for _i, s in enumerate(move_signals, 1):
-            _f.write(f"{_i:2d} | P{s['phase']:<2d} | {_fmt_ts(s['ts'])} | {s['typ']:5s} | "
-                     f"{s['einstieg_preis']:.3f} | {s['sl']:.3f} | {s['kante']:.3f} | "
-                     f"{s['exit']:.3f} | {s['grund']:9s} | {s['r']:+.2f} | {s['resultat']}\n")
-        if not move_signals:
-            _f.write("(keine Signale)\n")
 print(f"Trades-Textfile gespeichert: {OUT_TXT}")
 
-# ---------- 7) Chart ----------
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
+# ==============================================================================
+# 7) CHART
+# ==============================================================================
 
 fig, ax = plt.subplots(figsize=(17, 9))
 idx = df["idx"].values
@@ -1359,75 +1466,68 @@ ax.plot(idx, df["high"], color="#bbb", lw=0.5)
 ax.plot(idx, df["low"], color="#bbb", lw=0.5)
 
 colors = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd"]
-for i, p in enumerate(phases):
-    c = colors[i % len(colors)]
-    ax.axvspan(p["i_start"], p["i_ende"], color=c, alpha=0.07)
-    vz = p.get("vol_zone")
+for i_p, p in enumerate(phases):
+    c = colors[i_p % len(colors)]
+    ax.axvspan(p.i_start, p.i_ende, color=c, alpha=0.07)
+    vz = p.vol_zone
     if vz is None:
         continue
 
-    # --- VOLUME-ZONE (Variante A, "Huelle") ---
-    # OBEN  = hoechste VAH aller signifikanter Berge  (solid gruen)
-    # UNTEN = tiefste  VAL aller signifikanter Berge  (solid rot)
-    # MITTE = POC des volumenstaerksten Bergs         (orange Strich-Punkt)
-    ax.hlines(vz["U_zone"], p["i_start"], p["i_ende"], color="#1a7d1a", lw=2.4, alpha=0.95)
-    ax.hlines(vz["L_zone"], p["i_start"], p["i_ende"], color="#c00000", lw=2.4, alpha=0.95)
-    ax.hlines(vz["POC"], p["i_start"], p["i_ende"], color="#e07b00", lw=1.8, ls="-.")
-    ax.text(p["i_start"] + 2, vz["U_zone"] + 0.10, f"OBEN(VAH) {vz['U_zone']:.2f}",
+    ax.hlines(vz.U_zone, p.i_start, p.i_ende, color="#1a7d1a", lw=2.4, alpha=0.95)
+    ax.hlines(vz.L_zone, p.i_start, p.i_ende, color="#c00000", lw=2.4, alpha=0.95)
+    ax.hlines(vz.POC, p.i_start, p.i_ende, color="#e07b00", lw=1.8, ls="-.")
+    ax.text(p.i_start + 2, vz.U_zone + 0.10, f"OBEN(VAH) {vz.U_zone:.2f}",
             fontsize=8, color="#1a7d1a", fontweight="bold", va="bottom")
-    ax.text(p["i_start"] + 2, vz["L_zone"] - 0.10, f"UNTEN(VAL) {vz['L_zone']:.2f}",
+    ax.text(p.i_start + 2, vz.L_zone - 0.10, f"UNTEN(VAL) {vz.L_zone:.2f}",
             fontsize=8, color="#c00000", fontweight="bold", va="top")
-    ax.text(p["i_start"] + 2, vz["POC"] + 0.10, f"POC {vz['POC']:.2f}",
+    ax.text(p.i_start + 2, vz.POC + 0.10, f"POC {vz.POC:.2f}",
             fontsize=8, color="#e07b00", fontweight="bold", va="bottom")
 
-    # --- Sub-Berge: eigene POC/VAH/VAL fein gepunktet (Mehr-Berg-Struktur) ---
-    for j, pk in enumerate(vz["peaks"], 1):
-        if j == 1 and vz["n_mountains"] == 1:
-            continue  # einziger Berg ist bereits als Zone gezeichnet
-        ax.hlines(pk["vah"], p["i_start"], p["i_ende"], color="#2ca02c", lw=1.0, ls=":", alpha=0.75)
-        ax.hlines(pk["val"], p["i_start"], p["i_ende"], color="#d62728", lw=1.0, ls=":", alpha=0.75)
-        ax.hlines(pk["poc"], p["i_start"], p["i_ende"], color="#e07b00", lw=0.9, ls=":", alpha=0.75)
+    for j_pk, pk in enumerate(vz.peaks, 1):
+        if j_pk == 1 and vz.n_mountains == 1:
+            continue
+        ax.hlines(pk.vah, p.i_start, p.i_ende, color="#2ca02c", lw=1.0, ls=":", alpha=0.75)
+        ax.hlines(pk.val, p.i_start, p.i_ende, color="#d62728", lw=1.0, ls=":", alpha=0.75)
+        ax.hlines(pk.poc, p.i_start, p.i_ende, color="#e07b00", lw=0.9, ls=":", alpha=0.75)
 
-    # --- REAKTIONS-Extreme (Schnittmengen) als dicke gestrichelte Referenz ---
-    if p["U_final"] is not None:
-        ax.hlines(p["U_final"], p["i_start"], p["i_ende"], color="k", lw=1.6, ls="--", alpha=0.55)
-        ax.text(p["i_start"] + 2, p["U_final"] + 0.28, f"REAKTION OBEN {p['U_final']:.2f}",
+    if p.U_final is not None:
+        ax.hlines(p.U_final, p.i_start, p.i_ende, color="k", lw=1.6, ls="--", alpha=0.55)
+        ax.text(p.i_start + 2, p.U_final + 0.28, f"REAKTION OBEN {p.U_final:.2f}",
                 fontsize=7.5, color="k", alpha=0.8, fontweight="bold", va="bottom")
-    if p["L_final"] is not None:
-        ax.hlines(p["L_final"], p["i_start"], p["i_ende"], color="k", lw=1.6, ls="--", alpha=0.55)
-        ax.text(p["i_start"] + 2, p["L_final"] - 0.28, f"REAKTION UNTEN {p['L_final']:.2f}",
+    if p.L_final is not None:
+        ax.hlines(p.L_final, p.i_start, p.i_ende, color="k", lw=1.6, ls="--", alpha=0.55)
+        ax.text(p.i_start + 2, p.L_final - 0.28, f"REAKTION UNTEN {p.L_final:.2f}",
                 fontsize=7.5, color="k", alpha=0.8, fontweight="bold", va="top")
 
-# --- Setup-B-Signale (Reclaim/Fakeout) im Chart markieren ---
 for s in reclaim_signals:
-    x = s["bar"]
-    if s["typ"] == "SHORT":
+    x = s.bar
+    assert s.trade is not None
+    if s.typ == "SHORT":
         y = float(df["high"].iloc[x])
         ax.scatter(x, y, marker="v", s=85, color="#c00000", zorder=6,
                    edgecolor="w", linewidths=0.5)
-        txt = f"REC S {s['einstieg_preis']:.2f} CRV {s['crv']:.1f}"
+        txt = f"REC S {s.einstieg_preis:.2f} CRV {s.crv:.1f}"
     else:
         y = float(df["low"].iloc[x])
         ax.scatter(x, y, marker="^", s=85, color="#1a7d1a", zorder=6,
                    edgecolor="w", linewidths=0.5)
-        txt = f"REC L {s['einstieg_preis']:.2f} CRV {s['crv']:.1f}"
-    if s["resultat"] == "GEWONNEN":
+        txt = f"REC L {s.einstieg_preis:.2f} CRV {s.crv:.1f}"
+    if s.trade.resultat == "GEWONNEN":
         txt += " WIN"
-    elif s["resultat"] == "VERLOREN":
+    elif s.trade.resultat == "VERLOREN":
         txt += " LOSS"
     ax.annotate(txt, (x, y),
-                xytext=(x, y + (0.45 if s["typ"] == "SHORT" else -0.45)),
+                xytext=(x, y + (0.45 if s.typ == "SHORT" else -0.45)),
                 fontsize=7.5, ha="center",
-                color="#c00000" if s["typ"] == "SHORT" else "#1a7d1a",
+                color="#c00000" if s.typ == "SHORT" else "#1a7d1a",
                 fontweight="bold")
 
 for m in moves:
-    ix = df["idx"][df["ts"] == m["von_ts"]].iloc[0] if (df["ts"] == m["von_ts"]).any() else np.nan
-    iy = df["idx"][df["ts"] == m["bis_ts"]].iloc[0] if (df["ts"] == m["bis_ts"]).any() else np.nan
+    ix = df["idx"][df["ts"] == m.von_ts].iloc[0] if (df["ts"] == m.von_ts).any() else np.nan
+    iy = df["idx"][df["ts"] == m.bis_ts].iloc[0] if (df["ts"] == m.bis_ts).any() else np.nan
     if np.isnan(ix) or np.isnan(iy):
         continue
-    # Gelbe Move-Label entfernt (nur Pfeil bleibt) - 31.08.2026
-    ax.annotate("", xy=(iy, m["bis_pr"]), xytext=(ix, m["von_pr"]),
+    ax.annotate("", xy=(iy, m.bis_pr), xytext=(ix, m.von_pr),
                 arrowprops=dict(arrowstyle="->", color="k", lw=2.2, connectionstyle="arc3,rad=0.0"))
 
 step = max(8, len(df) // 16)
@@ -1440,8 +1540,6 @@ ax.set_title(f"SILVER M15 {START} - {ENDE} - VOLUME-PROFIL-ZONEN (VA_PCT {VA_PCT
 ax.set_ylabel("USD")
 ax.grid(alpha=0.3)
 
-# Legende: Volume-Zone vs. Sub-Berge vs. REAKTIONS-Extreme vs. Setup B
-from matplotlib.lines import Line2D
 legend_elements = [
     Line2D([0], [0], color="#1a7d1a", lw=2.4, label="OBEN (VAH-Zone)"),
     Line2D([0], [0], color="#c00000", lw=2.4, label="UNTEN (VAL-Zone)"),
@@ -1456,7 +1554,6 @@ legend_elements = [
 ]
 ax.legend(handles=legend_elements, loc="upper left", fontsize=8, framealpha=0.9)
 
-# --- Statistik-Box rechts neben der Legende (Daten aus 6a, identisch mit Textfile) ---
 ax.text(0.28, 0.985, "\n".join(_stat_lines), transform=ax.transAxes,
         fontsize=8, va="top", ha="left", family="monospace",
         bbox=dict(boxstyle="round,pad=0.45", facecolor="#fdf6e3",
@@ -1465,3 +1562,139 @@ ax.text(0.28, 0.985, "\n".join(_stat_lines), transform=ax.transAxes,
 fig.tight_layout()
 fig.savefig(OUT_PNG, dpi=130)
 print(f"\nChart gespeichert: {OUT_PNG}")
+# ==============================================================================
+# 7c) BENCHMARK-SET USER-IDEALLINIEN AUG (rein lesend, KEIN Signal-Einfluss)
+#     Aktivierung NUR via CLI-Flag:  python ... --benchmark
+#     Default: aus -> Baseline-Zahlen/Phasen/Chart exakt unveraendert.
+#     Massstab: 8 manuelle Makro-Range-Linien (User 02.09.). Report misst,
+#     wie nah U_final/L_final der Phasen diesen Idealen kommen (Delta-Klasse).
+# ==============================================================================
+
+@dataclass(frozen=True, slots=True)
+class UserMacroLine:
+    """Unveraenderliche Benchmark-Linie (finale Range-Grenze, post-hoc)."""
+    side: Literal["UPPER", "LOWER"]
+    start_ts: pd.Timestamp
+    end_ts: pd.Timestamp
+    price: float
+    name: str
+
+
+USER_LINES_AUG: tuple[UserMacroLine, ...] = (
+    UserMacroLine("UPPER", pd.Timestamp("2026-08-11 03:45"), pd.Timestamp("2026-08-18 03:00"), 66.45, "R1_U"),
+    UserMacroLine("LOWER", pd.Timestamp("2026-08-11 08:30"), pd.Timestamp("2026-08-13 21:15"), 62.24, "R1_L"),
+    UserMacroLine("UPPER", pd.Timestamp("2026-08-20 02:15"), pd.Timestamp("2026-08-20 07:00"), 67.26, "R2_U"),
+    UserMacroLine("LOWER", pd.Timestamp("2026-08-20 14:00"), pd.Timestamp("2026-08-20 14:15"), 65.66, "R2_L"),
+    UserMacroLine("UPPER", pd.Timestamp("2026-08-21 10:45"), pd.Timestamp("2026-08-25 02:00"), 69.90, "R3_U"),
+    UserMacroLine("LOWER", pd.Timestamp("2026-08-24 03:30"), pd.Timestamp("2026-08-24 20:00"), 68.40, "R3_L"),
+    UserMacroLine("UPPER", pd.Timestamp("2026-08-26 04:30"), pd.Timestamp("2026-08-27 18:45"), 69.58, "R4_U"),
+    UserMacroLine("LOWER", pd.Timestamp("2026-08-25 04:30"), pd.Timestamp("2026-08-26 15:45"), 67.65, "R4_L"),
+)
+
+BENCHMARK_TOL: float = 0.15      # Match-Schwelle (konsistent DENSITY_BAND/TOL_TOUCH)
+BENCHMARK_TOL_EXACT: float = 0.06  # "centgenau"-Stufe fuer den Report
+
+
+def benchmark_report(
+    phases: List["PhaseData"],
+    df: pd.DataFrame,
+    lines: tuple[UserMacroLine, ...] = USER_LINES_AUG,
+    tol: float = BENCHMARK_TOL,
+) -> str:
+    """Rein lesender Abgleich der Phasen-Niveaus (U_final/L_final) gegen die
+    User-Ideallinien. 0.0% Einfluss auf Phasenbildung/Signale/Exits/SL.
+
+    Treffer-Klassen je Linie:
+      VOLL       = Baseline-Niveau <= tol UND zeitliche Ueberlappung der
+                   tragenden Phase mit dem User-Intervall.
+      PREIS-ONLY = Niveau <= tol, aber beste Preis-Phase ueberlappt zeitlich
+                   nicht (Linie existiert im Datensatz, nur ausserhalb).
+      KEIN       = kein Niveau <= tol (zeigt naechste Distanz).
+
+    Returns:
+        Mehrzeiliger Report (Konsolen-/Textausgabe).
+    """
+    if len(df) == 0:
+        return "benchmark: leere Daten"
+    ts_lo = df["ts"].min()
+    ts_hi = df["ts"].max()
+    out: List[str] = [
+        "\n" + "=" * 100,
+        "BENCHMARK USER-IDEALLINIEN AUG (rein lesend, kein Signal-Einfluss)",
+        "=" * 100,
+    ]
+    n_voll = n_preis = n_kein = 0
+    for ul in lines:
+        # zeitlich im Datensatz?
+        in_window = ul.end_ts >= ts_lo and ul.start_ts <= ts_hi
+        best: list = []   # (distanz, phase, niveau)
+        for p in phases:
+            v = p.U_final if ul.side == "UPPER" else p.L_final
+            if v is None:
+                continue
+            best.append((abs(v - ul.price), p, float(v)))
+        if not best:
+            out.append(f"{ul.name:5s} {ul.side:5s} {ul.price:6.2f}  "
+                       f"[{ul.start_ts:%d.%m %H:%M}-{ul.end_ts:%d.%m %H:%M}]  "
+                       f"KEIN Niveau in Phasen")
+            n_kein += 1
+            continue
+        best.sort(key=lambda x: x[0])
+        d0, p0, v0 = best[0]
+        # zeitliche Ueberlappung der besten Phase
+        ueberlapp = p0.start <= ul.end_ts and p0.ende >= ul.start_ts
+        if d0 <= tol:
+            if ueberlapp and in_window:
+                klasse = "VOLL"
+                n_voll += 1
+            else:
+                klasse = "PREIS-ONLY"
+                n_preis += 1
+        else:
+            klasse = "KEIN"
+            n_kein += 1
+        d_txt = f"d={d0:.3f}"
+        if d0 <= BENCHMARK_TOL_EXACT:
+            d_txt += " (centgenau)"
+        elif d0 <= tol:
+            d_txt += " (Match)"
+        z_klasse = "VOLL" if klasse == "VOLL" else (
+            "PREIS-ONLY" if klasse == "PREIS-ONLY" else "KEIN")
+        out.append(
+            f"{ul.name:5s} {ul.side:5s} {ul.price:6.2f}  "
+            f"[{ul.start_ts:%d.%m %H:%M}-{ul.end_ts:%d.%m %H:%M}]  "
+            f"-> Phase {p0.start:%d.%m}-{p0.ende:%d.%m} {ul.side[:1]} {v0:.3f}  "
+            f"{d_txt}  [{z_klasse}]"
+        )
+    out.append("=" * 100)
+    out.append(f"RESULTAT: {n_voll} VOLL | {n_preis} PREIS-ONLY | {n_kein} KEIN "
+               f"(von {len(lines)} Linien, Tol {tol:.2f})")
+    out.append("=" * 100)
+    return "\n".join(out)
+
+
+if "--benchmark" in sys.argv:
+    print(benchmark_report(phases, df))
+
+# ==============================================================================
+# 7d) MACRO-PERSISTENZ-SPIEGEL (rein lesend, KEIN Signal-/Exit-/Trade-Einfluss)
+#     Aktivierung NUR via CLI-Flag:  python ... --macro
+#     Default: aus -> Baseline-Zahlen/Phasen/Chart exakt unveraendert.
+#     Passiver Beobachter (Design v0.2, Freigabe 02.09.): replayt die
+#     Phasen-Events (Touches + R4-Boundary) durch MacroLineState und zeigt
+#     je Phase den eingefrorenen Anker-Zustand VOR den Touches (global +
+#     distanzbegrenzt ueber Faktoren der kausalen Range-Referenz). Kein
+#     Eingriff in find_reclaim_signals/Exits/SL - nur Konsolen-Report.
+# ==============================================================================
+if "--macro" in sys.argv:
+    try:
+        from macro_persistence import macro_report
+    except ImportError:
+        print("==> macro_persistence.py nicht importierbar (erwartet in scripts/)")
+    else:
+        # Kausale Range-Referenz wie vol_ref (200er-Fenster, shift 1):
+        # Faktor-Kandidaten 4x/8x/12x dienen NUR dem Report - keine
+        # fest verdrahtete Schwelle (Kalibrierung erst im Signal-Loop).
+        _macro_dist_ref = (df["high"] - df["low"]).rolling(
+            200, min_periods=20).mean().shift(1)
+        print(macro_report(phases, df, level_schnittmenge, _macro_dist_ref))

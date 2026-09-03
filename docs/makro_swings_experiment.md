@@ -693,6 +693,9 @@ den aktiven R1-Kanten im Rückbau-Lauf.
 | 03.09.2026 | **Ursachenanalyse 52-Tage-Lücke §8.5 (statische Inspektion, kein Lauf):** Phase 7 endet 11.04 12:45, Phase 8 startet 02.06 19:30 = **52 Tage / 3237 M15-Kerzen** (Datenintegrität 100 %, keine Lücke > 4 Tage); Ursache = Geburtsanker `birth_h` 34.193 fixierte Bruch-Schwelle 34.533 (0 Kanten-Verschiebungen) → 2-Close-Bruch erst 02.06 19:30/19:45; **kein Seed-Fehlschlag, kein E3-Artefakt** (Baseline v0.4.x identisch); **Stale Phase** blockierte Sequenzer ohne Trades (0 im Fenster) — Spiegelbild zur R1-Fragmentierung | dieses Dokument, §8.5; Quellen `test/tmp_oos_S2_lauf.log`, `test/tmp_default_run_S2.log` |
 | 03.09.2026 | **S1-OOS-Lauf §8.6 (Arbeitskopie, Baseline-Modus, 2026-02-05 → 2026-08-28):** 130 Phasen (vs. 139 Base), 49 handelbar; 216 Trades (120 L/96 S), WR 41.7 %, **+172.92R** (−24.3R vs. Baseline +197.26R, −26.73R vs. OOS-Referenz +199.65R), PF 2.57; **0 Reißleinen**; AUG-Anker OK, Tail-Ph130 verschmolzen (154 C). **S1+S2 = +275.08R < Ziel ≥ +292.14R → OOS NICHT freigabefähig.** Delta-Attribution: 17 neue Fenster netto +7.98R (nicht Ursache); **−32.30R aus verändertem Altphasen-Verhalten** | `test/tmp_oos_S1_lauf.log`, `test/stats_trades_MAKRO_S1.txt`, `test/phasen_makro_swings_S1.png` (gitignored), dieses Dokument §8.6 |
 | 03.09.2026 | **Bitgenaue Obduktion §8.6 (Inspektion + DuckDB + Zone-Replikation):** (1) **B-Ph46 vs. E3-Ph46**: Base +10.21R (2 Tr, inkl. +10.69R Mo 13.04 00:15) vs. E3 −0.71R (5 Tr) → Δ −8.45R/−10.92R. Ursache bitgenau: E3-Riesenprofil hält L_eff bei 75.116 (Mo 00:15) → Dip-Close 72.896 kein Reclaim, ab 00:30 L_eff 72.639 → nie wieder Kandidat; Base-Profil dünn → L_eff 72.639 schon bei 00:15 → Trade exakt reproduziert (CRV 10.31, Bo 2). E3-up-Bruch Di 05:45 (Schwelle 76.879) vs. Base 05:30 (76.752). (2) **B-Ph132 (R1-Zone)**: Base +8.31R (7 Tr) vs. E3 Ph123+124 +5.14R (3 Tr) → Δ −3.17R; Reißleine exakt: p0 63.926, Schwelle 65.844, Trigger Mo 17.08 03:00/03:15 (C 65.850/65.866, Candle 92), Fr-max-High 65.684 < Schwelle | Helper `test/tmp_obduktion_p46.py`, `test/tmp_obduktion_trace.py`, `test/tmp_obduktion_reissleine.py` (I4, danach löschen), dieses Dokument §8.6 |
+| 03.09.2026 | **CRV2-Filter-Negativbefund §8.7 (statistische Log-Analyse, reine Inspektion):** CRV2 je Trade aus Ein/SL/TP2 (Log-3dp) berechnet; Verteilung min 0.98–1.36, Median 3.42–3.60, max 6.0/18.6/18.0; nur 1 Trade < 1.0. Simulation Schwellen 1.0/1.2/1.5 (AUG/S1/S2): **alle Fenster & alle Schwellen netto negativ** (−0.29 … −2.96R) — der Filter spart nur −1.00R-Voll-SL-Treffer und schneidet enge, voll treffende Reversion-Winner ab (R ≈ CRV2 ≈ 1.1–1.5). **Verdikt: CRV2-Filter endgültig verworfen** (kein Mindestraum-Filter auf TP2/Gegenseite); Raum-Filter-Ansatz empirisch abgeschlossen | dieses Dokument §8.7 |
+| 03.09.2026 | **Entscheidung Option A — Rückbau E3 arretiert (§8.7):** OOS-Lücke wird in der **Segmentierung** adressiert (nicht Signalebene). Rückbau: `MIN_ESTABLISH_SPREAD_PCT` + Reißleinen-Konstanten (Z. 216–219) entfernen, E3-Gate (Z. 682–687) auf touch-basierte Etablierung (`MIN_ESTABLISH = 4`), Reißleinen-`elif` (Z. 713–722) entfernen → segmentierungs-bitgenau zur Produktions-Baseline (§3-Vergleich direkt möglich). **Revidiert:** §5.3 Pkt. 1 & §5.4.1 (beruhten auf AUG-only-Kalibrierung). Erwartung: S1+S2 ≈ +297.14R ≥ Ziel +292.14R. **Umsetzung erst nach Mentor-Freigabe** (Code-Audit + Diff-Vorschau: §7 Pkt. 12) | dieses Dokument §8.7 |
+| 03.09.2026 | **Cleanup I4 (Obduktions-Helper):** `test/tmp_obduktion_p46.py`, `test/tmp_obduktion_trace.py`, `test/tmp_obduktion_reissleine.py` gelöscht (in §8.6 als „am 03.09.2026 gelöscht (§8.7)" vermerkt — Löschung konsistent nachgezogen). OOS-Logs `test/tmp_oos_S1_lauf.log` / `test/tmp_oos_S2_lauf.log` bleiben als Belegquellen (§8.4/§8.6/§8.7) vorerst erhalten | dieses Dokument §8.6/§8.7, §7 Pkt. 5 |
 
 ---
 
@@ -703,11 +706,17 @@ den aktiven R1-Kanten im Rückbau-Lauf.
    Verlustserie, Phase-2+3-Verschmelzung erhalten); `MIN_ESTABLISH_SPREAD_PCT`
    ist mit 1.5 % verbindlich fixiert (2.0 % verworfen, §5.4.1). Der Curve-
    Fitting-Bias (E4a) ist eliminiert.
+   **Status 03.09.2026 (§8.7): „verbindlich fixiert" durch Option-A-Entscheid
+   revidiert** — E3 wird auf touch-basierte Etablierung zurückgebaut
+   (Punkt 12). Bis zur Umsetzung (nach Mentor-Freigabe) beschreibt Punkt 1
+   weiterhin den Ist-Zustand der Arbeitskopie (E3 1.5 % + Reißleine 46).
 2. **Sweep `min_establish_spread_pct` (1.0–2.5 %) ist obsolet** — durch die
    arretierte 1.5 %-Fixierung (§5.4.1) ersetzt. Optional bliebe nur ein
    Sensitivitäts-Test 1.0–1.5 % (nicht geplant). Eine isolierte
    Quantifizierung der E3-Wirkung (Phase-2+3-Verschmelzung, +6.48R über 5
    Trades in Phase 2) wäre separat möglich, ist aber kein Pflichtpunkt mehr.
+   **Status 03.09.2026 (§8.7): durch Option-A-Entscheid obsolet** — der
+   E3-Parameter wird zurückgebaut (Punkt 12); ein Sweep entfällt endgültig.
 3. **Makro-Persistenz-Anbindung** (`macro_persistence.py`, Tier 2): Die
    Code-Inspektion (§5.4.2) bestätigt die architektonische Übergabe der
    R1–R4-Konsolidierung (Zonen-Pool, frozen Anker-Abfragen,
@@ -719,12 +728,15 @@ den aktiven R1-Kanten im Rückbau-Lauf.
    Dokumenten-Fixierung §5.4 ist committet (`73e5166`); §5.5 (Veto-Check)
    ist committbar (Tracking-Log §6).
 5. Temp-Helper in `test/` nach Abschluss der Explorationsphase löschen (I4):
-   `tmp_makro_swings_trace.py` **bereits gelöscht** (03.09.2026); offen:
-   `tmp_reissleinen_audit.py`, `tmp_huelle_e1e4.py`, `tmp_rueckbau_r1r3.py`,
-   `tmp_spread_check.py`, `tmp_abort_usage.py`, `tmp_huelle_AUG_lauf.log`,
-   `tmp_rueckbau_AUG_lauf.log`, `tmp_oos_S1_lauf.log`,
+   `tmp_makro_swings_trace.py` **bereits gelöscht** (03.09.2026);
    `tmp_obduktion_p46.py`, `tmp_obduktion_trace.py`,
-   `tmp_obduktion_reissleine.py` (S1-OOS + Obduktion §8.6, 03.09.2026).
+   `tmp_obduktion_reissleine.py` **bereits gelöscht** (03.09.2026, §8.7);
+   offen: `tmp_reissleinen_audit.py`, `tmp_huelle_e1e4.py`,
+   `tmp_rueckbau_r1r3.py`, `tmp_spread_check.py`, `tmp_abort_usage.py`,
+   `tmp_huelle_AUG_lauf.log`, `tmp_rueckbau_AUG_lauf.log`; **Belegquellen
+   bleiben vorerst erhalten:** `tmp_oos_S1_lauf.log`, `tmp_oos_S2_lauf.log`
+   (in §8.4/§8.6/§8.7 als Quellen zitiert — Löschung erst nach finaler
+   Freigabe der OOS-Auswertung).
 6. **Veto-Check §5.5:** 0/26 Trades im aktiven R1-Puffer → kein
    Handlungsbedarf im Rückbau-Zustand. Der Check ist auf die übrigen
    Makro-Zonen (R2–R4) übertragbar, falls ein Veto-Filter konzipiert wird.
@@ -757,6 +769,62 @@ den aktiven R1-Kanten im Rückbau-Lauf.
     (c) Stale-Phase-Guard (§8.5) & AUG-Tail-Verschmelzung (Ph130, 154 C).
     Jede Anpassung erneut gegen den AUG-Regressionsanker (11 Ph / 26 Sig /
     +27.06R) und die §8.6-Referenzfälle (B-Ph46/B-Ph132) validieren.
+12. **Code-Audit E3 — Rückbau Option A (§8.7, 03.09.2026; reine Inspektion,
+     kein Code-Eingriff):** Diff-Vorschau für `scripts/phasen_makro_swings.py`
+     (Arbeitskopie). Vollständigkeit geprüft: `MIN_ESTABLISH_SPREAD_PCT`
+     nur Z. 217/686/716, `RUNAWAY_MIN_CANDLES` nur Z. 218/713,
+     `RUNAWAY_MULT` nur Z. 219/716 → die drei Blöcke unten decken alle
+     Verwendungen ab; keine Altlasten nach dem Rückbau.
+
+     **(a) Konstanten-Block entfernen (Z. 216–219):**
+     ```diff
+     -# --- Makro-Balance-Huelle (Experiment, docs/makro_swings_experiment.md S5.2) ---
+     -MIN_ESTABLISH_SPREAD_PCT: float = 1.5   # Etablierungs-Gate: rel. Mindest-Spanne (U-L)/L in %
+     -RUNAWAY_MIN_CANDLES: int = 46           # Not-Reissleine: Symmetrie zu MIN_PHASE_CANDLES (11.5h)
+     -RUNAWAY_MULT: float = 2.0               # Not-Reissleine: Faktor x Etablierungs-Spread-Schwelle
+     ```
+
+     **(b) E3-Gate auf touch-basierte Etablierung zurückbauen (Z. 682–687):**
+     ```diff
+     -        # E3: Etablierungs-Gate - erst ab relativer Mindest-Spanne (U-L)/L
+     -        spread_pct = (U - L) / L * 100.0 if (U is not None and L is not None and L > 0) else 0.0
+     -        if (est_idx is None and U is not None and L is not None
+     -                and n_touches(h_acc, U) + n_touches(l_acc, L) >= MIN_ESTABLISH
+     -                and spread_pct >= MIN_ESTABLISH_SPREAD_PCT):
+     -            est_idx = j
+     +        # Etablierung: touch-basiert (Produktions-Baseline, MIN_ESTABLISH = 4)
+     +        if (est_idx is None and U is not None and L is not None
+     +                and n_touches(h_acc, U) + n_touches(l_acc, L) >= MIN_ESTABLISH):
+     +            est_idx = j
+     ```
+
+     **(c) Reißleinen-Zweig entfernen (Z. 713–722):**
+     ```diff
+     -        elif est_idx is None and (j - i) >= RUNAWAY_MIN_CANDLES and j + 1 < n:
+     -            # E4b: Not-Reissleine (Runaway-Guard) - greift nur vor Etablierung
+     -            p0 = float(df["close"].iloc[i])
+     -            runaway_tol = RUNAWAY_MULT * p0 * MIN_ESTABLISH_SPREAD_PCT / 100.0
+     -            if row["close"] > p0 + runaway_tol and df["close"].iloc[j + 1] > p0 + runaway_tol:
+     -                brk_idx, brk_dir, brk_kante = j, "up", p0 + runaway_tol
+     -                break
+     -            if row["close"] < p0 - runaway_tol and df["close"].iloc[j + 1] < p0 - runaway_tol:
+     -                brk_idx, brk_dir, brk_kante = j, "down", p0 - runaway_tol
+     -                break
+     ```
+
+     Nach dem Umbau bleibt im Segmentierungs-Loop nur der normale
+     Bruch-Check (Z. 699–712; Bruch-Referenz = lokale Schnittmenge
+     `h_ref = max(U, birth_h)` / `l_ref = min(L, birth_l)`, `TOL` 0.34) —
+     identisch zur Produktions-Baseline. **Unberührt bleiben:**
+     `MIN_PHASE_CANDLES` (Z. 205), `MIN_ESTABLISH` (Z. 207, = 4),
+     `MIN_SPREAD_PCT` (Z. 209, post-hoc-Handelbarkeits-Label,
+     Z. 839–845), `spread_pct`-Feld der Phasen-Struktur (Z. 126) sowie
+     die Signal-Pfade (POC-Gate CRV ≥ 1.0, Z. 1221/1273).
+     Erwartung nach Umsetzung: Segmentierung bitgenau zur §3-Baseline →
+     S1/S2-OOS ≈ Referenz (+199.65R/+93.70R), S1+S2 ≈ +297.14R ≥ Ziel;
+     AUG-Regressionsanker ≈ 12 Ph / 27 Sig / +24.97R.
+     Verifikation: py_compile; AUG-Lauf; S1/S2-OOS-Lauf.
+     **Umsetzung erst nach Mentor-Freigabe.**
 
 ---
 
@@ -1122,4 +1190,96 @@ Ph124 Mo 17:45 +3.16 (TP2 65.249); Di 02:15 +2.98 (TP2 65.399) →
    und AUG-Tail-Verschmelzung berücksichtigen. Jede Anpassung erneut gegen
    den AUG-Regressionsanker (11 Ph / 26 Sig / +27.06R).
 6. **Helper (I4, danach löschen):** `test/tmp_obduktion_p46.py`,
-   `test/tmp_obduktion_trace.py`, `test/tmp_obduktion_reissleine.py`.
+   `test/tmp_obduktion_trace.py`, `test/tmp_obduktion_reissleine.py` — **am
+   03.09.2026 gelöscht (§8.7).**
+
+### 8.7 CRV2-Filter-Negativbefund & Entscheidung Option A (Rückbau E3) — 03.09.2026
+
+**Hintergrund:** §8.6 hat die E3-Verschmelzung zu Riesenprofilen als
+dominanten OOS-Schwachpunkt identifiziert (S1+S2 +275.08R < Ziel
++292.14R). Vor der Segmentierungs-Entscheidung wurde eine denkbare
+Korrektur auf der **Signalebene** geprüft: ein Mindest-Raum-Filter auf
+`crv2` (= |TP2 − Einstieg| / |SL − Einstieg|; TP2 = Box-Ende an der
+gegenüberliegenden Kante U/L ± 0.2 %-Puffer; im Code berechnet Z. 1220/1272,
+aber **nie als Gate geprüft** — nur Reporting, Z. 1572/1579).
+
+**Empirischer Befund (statistische Log-Analyse, reine Inspektion, 03.09.2026):**
+Quellen: `test/tmp_rueckbau_AUG_lauf.log` (26 Tr, +27.06R),
+`test/tmp_oos_S1_lauf.log` (216 Tr, +172.94R), `test/tmp_oos_S2_lauf.log`
+(209 Tr, +102.18R). CRV2 je Trade aus Ein/SL/TP2 (Log-3dp) berechnet;
+Parse bitgenau (CRV-Gegenprobe ±0.01–0.03 Rundung bei großen Werten).
+CRV2-Verteilung: min **AUG 1.36 / S1 1.10 / S2 0.98**; Median
+3.42/3.44/3.60; max 6.0/18.6/18.0 → Signale mit CRV2 < 1.0 existieren
+praktisch nicht (nur 1 S2-Trade).
+
+**Simulation „Filter: Trade entfernen, wenn crv2 < Schwelle" (je Fenster):**
+
+| Fenster | Schwelle | gefiltert | Verlust-Tr | gerettete R | Gewinn-Tr | verlorene R | **Netto-R** |
+|---|---|---|---|---|---|---|---|
+| AUG | 1.0 | 0 | 0 | 0.00 | 0 | 0.00 | **±0.00** |
+| AUG | 1.2 | 0 | 0 | 0.00 | 0 | 0.00 | **±0.00** |
+| AUG | 1.5 | 2 | 1 | +1.00 | 1 | −1.29 | **−0.29** |
+| S1 | 1.0 | 0 | 0 | 0.00 | 0 | 0.00 | **±0.00** |
+| S1 | 1.2 | 2 | 0 | 0.00 | 2 | −2.30 | **−2.30** |
+| S1 | 1.5 | 6 | 2 | +2.00 | 4 | −4.96 | **−2.96** |
+| S2 | 1.0 | 1 | 0 | 0.00 | 1 | −1.05 | **−1.05** |
+| S2 | 1.2 | 2 | 0 | 0.00 | 2 | −2.11 | **−2.11** |
+| S2 | 1.5 | 7 | 3 | +3.00 | 4 | −4.63 | **−1.63** |
+
+Alle gefilterten Verluste sind **−1.00R-Voll-SL**; alle gefilterten
+Gewinne sind **echte TP1+TP2-Treffer mit kleinem R** (+1.05 … +1.47,
+CRV nahe 1.0).
+
+**Wirkung auf S1 & S1+S2 (Anker: stats +172.92/+102.16 → 275.08):**
+
+| Schwelle | S1-Netto | S1 neu | S1+S2-Netto | S1+S2 neu |
+|---|---|---|---|---|
+| 1.0 | ±0.00 | 172.92R | −1.05 | 274.03R |
+| 1.2 | −2.30 | 170.62R | −4.41 | 270.67R |
+| 1.5 | −2.96 | 169.96R | −4.59 | 270.49R |
+
+**Befund & Grund:**
+1. **In allen Fenstern und allen Schwellen netto negativ** (−0.29R …
+   −2.96R). Der Filter spart nur −1.00R-Voll-SL-Treffer und schneidet
+   dafür **funktionierende Reversion-Winner** ab, deren R ≈ CRV2 ≈
+   1.1–1.5 knapp über der Schwelle liegt — er entfernt exakt die
+   „engen, aber voll treffenden Boxen", die das Ergebnis stützen.
+2. **Grund:** Das bestehende POC-Gate (CRV ≥ 1.0 auf TP1 = POC,
+   Z. 1221/1273) greift bereits — jedes Signal hat mindestens ~1R
+   POC-Raum. CRV2 gegen die Gegenseite ist dadurch fast immer ≥ 1.0
+   (nur 1 Trade < 1.0 über alle drei Fenster): Eine Mindest-CRV2 ≥ 1.0
+   hätte praktisch **keine** Filterwirkung; erst ≥ 1.2/1.5 greift und
+   schneidet dann profitable Trades.
+3. **Verdikt: CRV2-Filter endgültig verworfen.** Es wird **kein**
+   Mindestabstands-/Raum-Filter auf die Gegenseite (TP2/U bzw. L)
+   eingeführt; TP2 bleibt reines Box-Ende und CRV2 reine Reporting-Größe.
+   AUG-Regressionsanker bestätigt: bei Schwelle 1.5 fiele AUG auf
+   +26.77R (Δ−0.29R unter Rückbau-Stand +27.06R).
+4. **Konsequenz:** Die OOS-Lücke wird **nicht auf der Signalebene**
+   geschlossen. Der Raum-Filter-Ansatz (Vorprüfung im Signal-Loop) ist
+   damit empirisch abgeschlossen.
+
+**Entscheidung Option A — Rückbau E3 (arretiert, 03.09.2026):**
+- Die OOS-Lücke wird durch **Rückbau des E3-Etablierungs-Gates** in der
+  Segmentierung adressiert: `MIN_ESTABLISH_SPREAD_PCT` (1.5 %) entfernen
+  → Etablierung wieder **touch-basiert** (`MIN_ESTABLISH = 4`) wie in der
+  Produktions-Baseline → keine E3-Verschmelzung zu Riesenprofilen
+  (Ph46/Ph130-Muster, §8.6 D) mehr.
+- **Damit revidiert:** §5.3 Punkt 1 („E3 bleibt erhalten") und §5.4.1
+  („1.5 % verbindlich fixiert") — diese Entscheide beruhten auf
+  AUG-only-Kalibrierung; der OOS-Befund §8.6/§8.7 belegt E3 über S1+S2
+  als **netto-schädlich** (S1 −24.3/−26.7R; S2-Einzelergebnis +8.46R war
+  E3-getragen, aber die S1-Verluste überwiegen im S1+S2-Ziel).
+- Die **Reißleine** (RUNAWAY_MIN_CANDLES 46 / RUNAWAY_MULT 2.0) wird
+  ebenfalls zurückgebaut: 0 Auslösungen in S1/S2-OOS und im
+  Baseline-Modus (est_idx früh) wirkungslos; sie gehört zum selben
+  E3-Experiment-Block (Z. 216–219). Ziel: Arbeitskopie wird
+  **segmentierungs-bitgenau zur Produktions-Baseline** (Vergleich gegen
+  §3 direkt möglich).
+- **Erwartung nach Umsetzung:** S1 ≈ Baseline 201 Sig / +197.26R, S2 ≈
+  Baseline 210 Sig / +99.88R → S1+S2 ≈ +297.14R ≥ Ziel +292.14R
+  (bitgenaue §3-Baseline); AUG ≈ 12 Phasen / 27 Sig / +24.97R.
+  Verifikation: py_compile; AUG-Regressionslauf; S1/S2-OOS-Lauf.
+- **Umsetzungs-Audit (exakte Zeilen, reine Inspektion, kein Eingriff):**
+  Konstanten Z. 216–219 · Gate Z. 682–687 · Reißleinen-Zweig
+  Z. 713–722 — Diff-Vorschau siehe §7 Punkt 12 (Code-Audit, 03.09.2026).

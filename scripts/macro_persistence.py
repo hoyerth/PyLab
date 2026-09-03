@@ -37,7 +37,7 @@ Dieses Modul ist dependency-frei (nur pandas/dataclasses). Die
 Baseline-Funktion level_schnittmenge wird injiziert (kein Zirkular-Import).
 
 Aufruf (im Hauptskript):
-    python scripts/tmp_phasen_volumen_profil.py --macro [--start=... --ende=...]
+    python scripts/phasen_volumen_profil.py --macro [--start=... --ende=...]
 """
 from __future__ import annotations
 

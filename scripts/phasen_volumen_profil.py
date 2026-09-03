@@ -195,7 +195,7 @@ class ReclaimSignal:
 # PARAMETER
 # ==============================================================================
 
-OUT_PNG: Path = Path(__file__).resolve().parent / "tmp_phasen_volumen_profil.png"
+OUT_PNG: Path = Path(__file__).resolve().parent / "phasen_volumen_profil.png"
 DB_PATH: Path = Path(__file__).resolve().parent.parent / "data" / "market_data.duckdb"
 
 TOL: float = 0.34

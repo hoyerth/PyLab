@@ -2,7 +2,7 @@
 
 > **Status:** v0.4 — **ARRETIERT (Mentor-Freigabe 03.09.2026), implementiert
 > & 3-Fenster-validiert** (`scripts/macro_persistence.py` +
-> `scripts/tmp_phasen_volumen_profil.py`).
+> `scripts/phasen_volumen_profil.py`).
 > **v0.2-Änderung (02.09., nach OOS-Falsifikation):** E3-Fallback arretiert
 > („kein Tier-2-Anker → Tier-1-Fallback statt `None`") — siehe §2/E3 + §2.1.
 > **v0.3-Änderung (02.09., nach P7-Diagnose):** E5-Seiten-Konsistenz arretiert
@@ -650,7 +650,7 @@ wie im S3-Store, aber jetzt über die Baseline-Schnittmengen-Kante).
 > 6. `scripts/macro_persistence.py`: `OVERRUN_TOL`-Konstante, Helfer
 >    `_anchor_verdraengt_erlaubt` (E6 a/b) + `overrun_tol`-Parameter in
 >    `resolve_active_edge` (Filter im E3-Zweig → bei Scheitern E3-Fallback).
-> 7. `scripts/tmp_phasen_volumen_profil.py`: `_cooldown_ok`/`_cooldown_set`
+> 7. `scripts/phasen_volumen_profil.py`: `_cooldown_ok`/`_cooldown_set`
 >    (D2-asym, `last_bar_t1`/`last_bar_t2`) in `find_reclaim_signals`;
 >    Baseline-Pfad (keine States) bleibt bitgenau auf `last_bar_t1`.
 > 8. Verifikations-/Benchmark-Lauf §8/8 — alle Zielzahlen exakt erreicht.

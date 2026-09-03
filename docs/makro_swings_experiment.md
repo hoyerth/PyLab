@@ -627,6 +627,48 @@ Folge-Experiment (§7 Punkt 3) — außerhalb dieses Dokuments.
 
 ---
 
+## 5.5 Statischer Veto-Trocken-Check AUG (26 Trades) — 03.09.2026
+
+**Prüfobjekt:** `test/stats_trades_MAKRO_AUG.txt` (Rückbau-Lauf, 11 Phasen,
+26 Trades, +27.06R). **Modus:** reine Rechenprüfung (kein Lauf).
+
+**Suchmuster gegen die aktiven R1-Referenzfenster (0.25 %-Puffer):**
+- R1_U = 66.45 (0.25 % = 0.166) → Puffer **[66.284, 66.450]**; aktiv
+  11.08 03:45 → 18.08 03:00 (df 107–564)
+- R1_L = 64.24 (0.25 % = 0.160) → Puffer **[64.240, 64.400]**; aktiv
+  11.08 08:30 → 13.08 21:15 (df 126–361)
+- Kriterium: **LONG** mit Entry im R1_U-Puffer (Chase-Long in die Oberkante)
+  bzw. **SHORT** mit Entry im R1_L-Puffer (Chase-Short in die Unterkante).
+- Zeit-Anker: df 380 = 14.08 03:00 (Trace-Matrix §4.2; konsistent mit
+  4-Bar-Gap je Mitternacht — alle Anker-Paare rechnerisch verifiziert).
+
+**Ergebnis (Preis-Puffer-Kandidaten):**
+
+| Trade | Phase | Richtung | Entry | Puffer (Preis) | R_Result | Entry-Zeit (Bar 405) | aktives Fenster |
+|---|---|---|---|---|---|---|---|
+| 9 | 4 | SHORT | 64.244 | R1_L [64.240–64.400] **✓** | −1.00 | Fr 14.08 09:15 | **NEIN** (R1_L endete 13.08 21:15) |
+
+**Befund:**
+1. **LONG im R1_U-Puffer: 0 Treffer** — kein einziger LONG-Entry des AUG
+   liegt in [66.284, 66.450] (LONG-Preise: 63.0–64.7 bzw. 68.0–69.0; Lücke
+   64.70 → 67.99).
+2. **SHORT im R1_L-Puffer: genau 1 Preis-Kandidat (Trade 9, 64.244).**
+   Zeitlich verworfen: Entry-Bar 405 = Fr 14.08 09:15 liegt **12 h nach
+   R1_L-Ablauf** (Fensterende df 361 = 13.08 21:15) und **6.25 h nach dem
+   R1-Unterbruch** (2-Close down 14.08 03:00, df 380, Trace §4.2 Phase 4).
+   Die Kante war zum Entry bereits gebrochen → der SHORT ist ein
+   Retest-/Momentum-Trade der gebrochenen Unterstützung, kein Veto-Fall.
+3. **Kontext (nicht im Suchmuster, legitime Fade-Seite an R1_U):** die
+   SHORTs im oberen Puffer innerhalb des R1_Fensters — T6 (66.294,
+   11.08 03:15, +4.59), T10 (66.307, 17.08 18:15, +3.16), T11 (66.376,
+   18.08 01:30, +2.98) — sind Fade-Shorts an der Oberkante und profitabel.
+
+**Verdikt:** **0 von 26 Trades** erfüllen das Veto-Kriterium (Preis-Puffer
+UND aktives Referenzfenster). Kein Handlungsbedarf, keine Fehl-Entries an
+den aktiven R1-Kanten im Rückbau-Lauf.
+
+---
+
 ## 6. Tracking-Log
 
 | Datum | Ereignis | Commit/Status |
@@ -643,7 +685,8 @@ Folge-Experiment (§7 Punkt 3) — außerhalb dieses Dokuments.
 | 03.09.2026 | **Rückbau R1–R3 ausgeführt** (Freigabe): `envelope_level`+`ENVELOPE_MIN_TOUCHES` entfernt, `RUNAWAY_MIN_CANDLES` 12→46, Bruch-Referenz = lokale Schnittmenge. py_compile OK, Produktion unverändert | `scripts/phasen_makro_swings.py` (uncommitted) |
 | 03.09.2026 | **AUG-Kontrolllauf nach Rückbau:** **11 Phasen** (keine Monsterphase), 26 Sig, **+27.06R** (> Baseline +24.97R!), WR 50 %, PF 3.43; 6er-Verlustserie **verschwunden**; Phase-2+3-Verschmelzung bleibt (112C) | `test/tmp_rueckbau_AUG_lauf.log`, `test/stats_trades_MAKRO_AUG.txt` |
 | 03.09.2026 | **Spread-Check S2/S1** (Log-Inspektion): nur handelbare Phasen median 3.45 % (S2) / 2.77 % (S1); handelbar < 2.0 %: S2 4/22, S1 8/40 → strukturell ähnliche Regime | `test/tmp_spread_check.py` (gitignored), Befunde §5.4.1 |
-| 03.09.2026 | **Dokumenten-Fixierung §5.4:** `MIN_ESTABLISH_SPREAD_PCT` = 1.5 % **verbindlich fixiert**, Anhebung auf 2.0 % **verworfen** (Low-Vol-Unterdrückung S2); R1–R4-Makro-Abbildung architektonisch **vollständig an `macro_persistence.py` (Tier 2)** übergeben (Inspektion abgeschlossen, kein Code-Eingriff) | dieses Dokument, §5.4 |
+| 03.09.2026 | **Dokumenten-Fixierung §5.4:** `MIN_ESTABLISH_SPREAD_PCT` = 1.5 % **verbindlich fixiert**, Anhebung auf 2.0 % **verworfen** (Low-Vol-Unterdrückung S2); R1–R4-Makro-Abbildung architektonisch **vollständig an `macro_persistence.py` (Tier 2)** übergeben (Inspektion abgeschlossen, kein Code-Eingriff) | `73e5166`, dieses Dokument §5.4 |
+| 03.09.2026 | **Cleanup I4 + Statischer Veto-Trocken-Check AUG (§5.5):** `tmp_makro_swings_trace.py` gelöscht. 26 Trades rechnerisch gegen R1-Puffer (0.25 %): **0/26 Veto-Treffer** (einziger Preis-Kandidat Trade 9 = SHORT 64.244, zeitlich nach R1_L-Ablauf & R1-Unterbruch verworfen); LONG im R1_U-Puffer: 0 | dieses Dokument, §5.5 |
 
 ---
 
@@ -666,10 +709,14 @@ Folge-Experiment (§7 Punkt 3) — außerhalb dieses Dokuments.
    Anbindung der Arbeitskopie an die Makro-Zonen bleibt separates
    Folge-Experiment **außerhalb** dieses Dokuments.
 4. **Git-Commit** der Arbeitskopie (Rückbau-Zustand) nach finaler
-   Mentor-Freigabe; Produktions-Baseline bleibt unberührt. Auch die
-   Dokumenten-Fixierung §5.4 ist committbar (dieses Dokument, Tracking-Log
-   §6).
+   Mentor-Freigabe; Produktions-Baseline bleibt unberührt. Die
+   Dokumenten-Fixierung §5.4 ist committet (`73e5166`); §5.5 (Veto-Check)
+   ist committbar (Tracking-Log §6).
 5. Temp-Helper in `test/` nach Abschluss der Explorationsphase löschen (I4):
-   `tmp_makro_swings_trace.py`, `tmp_reissleinen_audit.py`, `tmp_huelle_e1e4.py`,
-   `tmp_rueckbau_r1r3.py`, `tmp_spread_check.py`, `tmp_abort_usage.py`,
-   `tmp_huelle_AUG_lauf.log`, `tmp_rueckbau_AUG_lauf.log`.
+   `tmp_makro_swings_trace.py` **bereits gelöscht** (03.09.2026); offen:
+   `tmp_reissleinen_audit.py`, `tmp_huelle_e1e4.py`, `tmp_rueckbau_r1r3.py`,
+   `tmp_spread_check.py`, `tmp_abort_usage.py`, `tmp_huelle_AUG_lauf.log`,
+   `tmp_rueckbau_AUG_lauf.log`.
+6. **Veto-Check §5.5:** 0/26 Trades im aktiven R1-Puffer → kein
+   Handlungsbedarf im Rückbau-Zustand. Der Check ist auf die übrigen
+   Makro-Zonen (R2–R4) übertragbar, falls ein Veto-Filter konzipiert wird.

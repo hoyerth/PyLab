@@ -691,6 +691,8 @@ den aktiven R1-Kanten im Rückbau-Lauf.
 | 03.09.2026 | **Phase-13-Close-Verifikation §8.2a (DuckDB read_only):** p0 38.288; max close 38.351 (+0.16 %), min close 37.628 (−1.72 %) in C 46–124; **0** × 2-Close-Bruch der 3 %-Barrieren (39.437/37.139) → **Reißleine NEIN**, E3-Etablierung greift stabil ~C 124 | dieses Dokument, §8.2a |
 | 03.09.2026 | **S2-OOS-Lauf §8.4 (isolierte Arbeitskopie, Baseline-Modus, Gesamtjahr 2025):** 52 Phasen (vs. 62 Baseline), 26 handelbare Ranges; 209 Trades (106 L/103 S), WR 34.0 %, **+102.16R** (+8.46R vs. OOS-Referenz +93.70R, +2.28R vs. Baseline +99.88R), PF 1.80; **0 Reißleinen-Auslösungen**; Grenzphasen Ph8/19/48 überleben eigenständig (neue Phasen 8/16/40), **Ph13 → Phase 12 (723 C) verschmolzen, unschädlich** (+1.98R) | `test/tmp_oos_S2_lauf.log`, `test/stats_trades_MAKRO_S2.txt`, `test/phasen_makro_swings_S2.png` (gitignored), dieses Dokument §8.4 |
 | 03.09.2026 | **Ursachenanalyse 52-Tage-Lücke §8.5 (statische Inspektion, kein Lauf):** Phase 7 endet 11.04 12:45, Phase 8 startet 02.06 19:30 = **52 Tage / 3237 M15-Kerzen** (Datenintegrität 100 %, keine Lücke > 4 Tage); Ursache = Geburtsanker `birth_h` 34.193 fixierte Bruch-Schwelle 34.533 (0 Kanten-Verschiebungen) → 2-Close-Bruch erst 02.06 19:30/19:45; **kein Seed-Fehlschlag, kein E3-Artefakt** (Baseline v0.4.x identisch); **Stale Phase** blockierte Sequenzer ohne Trades (0 im Fenster) — Spiegelbild zur R1-Fragmentierung | dieses Dokument, §8.5; Quellen `test/tmp_oos_S2_lauf.log`, `test/tmp_default_run_S2.log` |
+| 03.09.2026 | **S1-OOS-Lauf §8.6 (Arbeitskopie, Baseline-Modus, 2026-02-05 → 2026-08-28):** 130 Phasen (vs. 139 Base), 49 handelbar; 216 Trades (120 L/96 S), WR 41.7 %, **+172.92R** (−24.3R vs. Baseline +197.26R, −26.73R vs. OOS-Referenz +199.65R), PF 2.57; **0 Reißleinen**; AUG-Anker OK, Tail-Ph130 verschmolzen (154 C). **S1+S2 = +275.08R < Ziel ≥ +292.14R → OOS NICHT freigabefähig.** Delta-Attribution: 17 neue Fenster netto +7.98R (nicht Ursache); **−32.30R aus verändertem Altphasen-Verhalten** | `test/tmp_oos_S1_lauf.log`, `test/stats_trades_MAKRO_S1.txt`, `test/phasen_makro_swings_S1.png` (gitignored), dieses Dokument §8.6 |
+| 03.09.2026 | **Bitgenaue Obduktion §8.6 (Inspektion + DuckDB + Zone-Replikation):** (1) **B-Ph46 vs. E3-Ph46**: Base +10.21R (2 Tr, inkl. +10.69R Mo 13.04 00:15) vs. E3 −0.71R (5 Tr) → Δ −8.45R/−10.92R. Ursache bitgenau: E3-Riesenprofil hält L_eff bei 75.116 (Mo 00:15) → Dip-Close 72.896 kein Reclaim, ab 00:30 L_eff 72.639 → nie wieder Kandidat; Base-Profil dünn → L_eff 72.639 schon bei 00:15 → Trade exakt reproduziert (CRV 10.31, Bo 2). E3-up-Bruch Di 05:45 (Schwelle 76.879) vs. Base 05:30 (76.752). (2) **B-Ph132 (R1-Zone)**: Base +8.31R (7 Tr) vs. E3 Ph123+124 +5.14R (3 Tr) → Δ −3.17R; Reißleine exakt: p0 63.926, Schwelle 65.844, Trigger Mo 17.08 03:00/03:15 (C 65.850/65.866, Candle 92), Fr-max-High 65.684 < Schwelle | Helper `test/tmp_obduktion_p46.py`, `test/tmp_obduktion_trace.py`, `test/tmp_obduktion_reissleine.py` (I4, danach löschen), dieses Dokument §8.6 |
 
 ---
 
@@ -720,7 +722,9 @@ den aktiven R1-Kanten im Rückbau-Lauf.
    `tmp_makro_swings_trace.py` **bereits gelöscht** (03.09.2026); offen:
    `tmp_reissleinen_audit.py`, `tmp_huelle_e1e4.py`, `tmp_rueckbau_r1r3.py`,
    `tmp_spread_check.py`, `tmp_abort_usage.py`, `tmp_huelle_AUG_lauf.log`,
-   `tmp_rueckbau_AUG_lauf.log`.
+   `tmp_rueckbau_AUG_lauf.log`, `tmp_oos_S1_lauf.log`,
+   `tmp_obduktion_p46.py`, `tmp_obduktion_trace.py`,
+   `tmp_obduktion_reissleine.py` (S1-OOS + Obduktion §8.6, 03.09.2026).
 6. **Veto-Check §5.5:** 0/26 Trades im aktiven R1-Puffer → kein
    Handlungsbedarf im Rückbau-Zustand. Der Check ist auf die übrigen
    Makro-Zonen (R2–R4) übertragbar, falls ein Veto-Filter konzipiert wird.
@@ -738,6 +742,21 @@ den aktiven R1-Kanten im Rückbau-Lauf.
    OOS-Referenz v0.4.x (+93.70R) und +2.28R über der Baseline (+99.88R).
    Der **S1-OOS-Lauf ist der nächste offene OOS-Schritt** (§3-Referenz
    +199.65R; S1+S2-Ziel ≥ +292.14R). §8.4 ist committbar (Tracking-Log §6).
+10. **OOS-Schritt §8.3 Nr. 1 für S1 erledigt (§8.6) — NICHT bestanden:**
+    Der S1-OOS-Lauf der Arbeitskopie (E3 1.5 % + Reißleine 46) liefert
+    **+172.92R** bei 216 Trades / 130 Phasen (49 handelbar, PF 2.57,
+    **0 Reißleinen**) — **−24.3R vs. Baseline (+197.26R), −26.73R vs.
+    OOS-Referenz (+199.65R)**. **S1+S2 = +275.08R < Ziel ≥ +292.14R** →
+    Arbeitskopie **OOS-nicht freigabefähig**; bleibt experimentell/
+    uncommitted (Punkt 4 gilt weiterhin), Produktions-Baseline unberührt.
+11. **Anpassungsoptionen aus §8.6 (offen, keine Umsetzung ohne
+    Mentor-Freigabe):** (a) Reclaim-/Zonen-Referenz gegen die
+    E3-verschobene Unterkante stabilisieren (Ph46-Muster: L_eff 75.1
+    blockt Dip-Reclaims); (b) Wochenend-/Gap-Regel für die Reißleine
+    (Ph132-Muster: Trigger erst ab N Bars nach Session-Wiedereröffnung);
+    (c) Stale-Phase-Guard (§8.5) & AUG-Tail-Verschmelzung (Ph130, 154 C).
+    Jede Anpassung erneut gegen den AUG-Regressionsanker (11 Ph / 26 Sig /
+    +27.06R) und die §8.6-Referenzfälle (B-Ph46/B-Ph132) validieren.
 
 ---
 
@@ -952,3 +971,155 @@ identischer Lücke), DuckDB read_only (`time AT TIME ZONE 'UTC'`).
    Erstarren). Beides ist Tier-1-Segmentierungs-Verhalten, kein Daten- oder
    E3-Problem; eine Auflösung (z. B. Stale-Phase-Guard / altersbasierte
    Kanten-Erneuerung) wäre Gegenstand eines separaten Folge-Experiments.
+
+### 8.6 S1-OOS-Lauf & bitgenaue Obduktion B-Ph46 / E3-Ph46 & B-Ph132 (03.09.2026)
+
+**Ausführung S1-OOS (Arbeitskopie, E3-Gate 1.5 % + Reißleine 46 C):**
+`python scripts/phasen_makro_swings.py --start=2026-02-05 --ende=2026-08-28`
+(Baseline-Modus). Artefakte: `test/tmp_oos_S1_lauf.log`,
+`test/stats_trades_MAKRO_S1.txt`, `test/phasen_makro_swings_S1.png`
+(gitignored). **Modus:** Inspektion + DuckDB read_only + bitgenaue
+Zone-Replikation (Helper `test/tmp_obduktion_trace.py` u. a., I4-konform,
+danach löschen). Kein Produktions-Code berührt.
+
+#### A. S1-OOS-Ergebnis — nicht freigabefähig
+
+| Kennzahl | S1-OOS (E3+Reißleine) | S1 Baseline v0.4.x | S1 OOS-Referenz v0.4.x (`--macro-live`) |
+|---|---|---|---|
+| Phasen gesamt | **130** | 139 | — |
+| Handelbar | **49** | 40 | — |
+| Trades | **216** (120 L / 96 S) | 201 Sig | 199 Sig |
+| Win-Rate | **41.7 %** (90/126/0) | — | — |
+| **Summe R** | **+172.92R** | +197.26R | +199.65R |
+| Profit-Faktor | **2.57** | — | — |
+| Reißleinen-Auslösungen | **0** | — | — |
+
+- **Delta S1: −24.3R gegen Baseline (201/+197.26R), −26.73R gegen die
+  OOS-Referenz (199/+199.65R).** S1+S2 der Arbeitskopie = +172.92 +
+  +102.16 (§8.4) = **+275.08R < Ziel ≥ +292.14R** → **OOS nicht
+  freigabefähig**; §7-Punkt-9-Frage für S1 ist damit beantwortet (negativ).
+- AUG-Verifikation im S1-Lauf: Phase-1/2-Anker ab 21.08 OK. **Tail-Abweichung:**
+  3 statt 4 Phasen ab 21.08 — E3-Ph130 (Mi 26.08 03:45 → Do 27.08 19:00,
+  154 C, 24H/21L) **verschmilzt** den Base-Split (53 C + 102 C, §5.3-Muster).
+
+**Delta-Attribution (bitgenau geparst, Base 201 Tr/+197.26R → E3 216 Tr/+172.94R,**
+Δ ≈ −24.3R; Rundungsdifferenz zu stats +172.92):
+- **17 neue handelbare Fenster: +43.18R** (37 E3-Trades) — die Baseline
+  hatte dort bereits +35.20R (12 Tr) → **Netto neuer Phasen: +7.98R** →
+  nicht die Verlustquelle.
+- **Verändertes Verhalten alter Phasen: −32.30R** = gesamte Verlustquelle.
+  Haupttäter: **B-Ph46** (Δ−10.92R), **B-Ph132** (Δ−3.17R), B-Ph23
+  (+17.79R → +14.13R, Δ−3.66R), diverse Label-/Fenster-Verschiebungen.
+- **[HANDELBAR] ist post-hoc-Label, kein Trade-Filter** (größter
+  Baseline-Gewinner B-Ph23 war nicht handelbar).
+
+#### B. Obduktion Fall 1 — B-Ph46 vs. E3-Ph46 (09.–14.04.2026)
+
+**Segmentierung:** Base = Ph45 (Do 09.04 19:00 → Fr 10.04 10:45, 60 C) +
+Ph46 (Fr 10.04 15:45 → Mo 13.04 17:00, 98 C, HANDELBAR). E3 = **eine**
+Phase 46 (Do 09.04 19:00 → Mo 13.04 17:00, 177 C, HANDELBAR) —
+Zusammenlegung der Base-Ph45+46 (E3-Bruch-Schwelle Fr Nachmittag nicht
+erreicht).
+
+**Trade-Objekte (Bitgenau):**
+- **Base-Ph46 (2 Trades, +10.21R):** (1) Signal Fr 10.04 18:00 LONG in_bar
+  Ein 76.076 | SL 75.734 | TP1 76.442 | TP2 76.534 | CRV 1.07 | Bo 2 →
+  −0.48R. (2) Signal **Mo 13.04 00:15** LONG in_bar Ein **72.901** (Open
+  00:30) | SL 72.573 | TP1 **76.284** (=POC) | TP2 76.449 | CRV 10.31 |
+  Bo 2 → H1 +10.31R, H2 +10.82R → **+10.69R**.
+- **E3-Ph46 (5 Trades, −0.71R):** Do 20:45 −1.00; Fr 01:15 −1.00
+  (next_bar); Fr 04:30 −0.47; Fr 10:45 +2.76 (next_bar); Fr 15:15 −1.00.
+  Die ersten 3 sind **identisch** mit Base-Ph45; Fr 10:45/15:15 existieren
+  nur in E3 (Base-Lücke 10:45–15:45); **beide Base-Ph46-Trades fehlen**
+  (Fr 18:00 −0.48 **und** Mo 00:15 +10.69).
+- Fenstervergleich (Do 19:00 → Mo 17:00): Base P45+P46 = −2.47 + 10.21 =
+  **+7.74R** vs. E3-Ph46 **−0.71R** → **Δ ≈ −8.45R** (bzw. −10.92R gegen
+  B-Ph46 allein).
+
+**Warum der +10.69R-Trade im E3-Lauf nicht generiert wird** (bitgenaue
+Zone-Replikation `test/tmp_obduktion_trace.py`, 100 % reproduziert):
+- Mechanik LONG: Bar k mit `lo[k] < L_eff` (laufende Zonen-Unterkante =
+  Volume-Zone-VAL) und `close[k] ≥ L_eff` → in_bar (k+1); sonst
+  `close[k+1] ≥ L_eff` → next_bar (k+2); Einstieg nur `< POC`, Bounce ≥ 2,
+  Cooldown ≥ 12, CRV ≥ 1.
+- **E3-Kontext (Zone Do 19:00 → k):** Bei k = Mo 00:15 ist `L_eff =
+  75.116` (Freitags-Profil dominiert; Dip-Volumen noch nicht
+  VA-relevant). lo 72.568 < 75.116 ✓, aber close 72.896 **< 75.116** →
+  Reclaim fehlt; close[k+1] 73.342 < 75.116 → auch next_bar verneint. Ab
+  k = 00:30 fällt `L_eff` auf 72.639 (Dip-Volumen absorbiert) → alle
+  späteren Lows (≥ 72.84) ≥ L_eff → **nie wieder Kandidat**. Erster
+  Reclaim über ~75.1 erst Mo 18:15+ → **außerhalb Phasenende Mo 17:00**.
+- **Base-Kontext (Zone Fr 15:45 → k, dünnes Profil):** Bei k = Mo 00:15
+  ist `L_eff = 72.639` → lo 72.568 < L ✓ **und** close 72.896 ≥ L ✓ →
+  in_bar @ Mo 00:30 open 72.901 < POC 76.284 ✓, Bounce nb=2 ✓, Cooldown ✓,
+  CRV 10.31 ≥ 1 ✓ → **Signal exakt reproduziert** (Trace-Zeile:
+  „SIGNAL in_bar @ 00:30 open 72.901, nb=2, CRV=10.31").
+
+**E3-Ph46-Ende / Bruchbar (exakt):** up-Bruch **Di 14.04 05:45**. `h_ref`
+= 76.539 (0 U-Shifts seit Fr 21:00) → Schwelle h_ref+TOL = **76.879**.
+Closes 05:45 76.930 & 06:00 76.890 > 76.879 → brk_idx 05:45; Ende-Touch
+Mo 17:00 (L-Geburtszone 73.598, letzter Touch 73.701). Base-Ph46 dagegen:
+h_ref 76.412 → Schwelle **76.752** → Closes 05:30 76.795 + 05:45 76.930 >
+76.752 → Bruch schon **05:30** (daher Ph47-Start Base 05:30 vs. E3 05:45,
+1 Bar). Down-Bruch-Versuch in E3 Mo 00:15: l_ref = 73.598 (birth_l) →
+Schwelle 73.258; nur **ein** Close darunter (00:15 C 72.896), Folge-Close
+73.342 ≥ → kein 2-Close → Phase überlebt.
+
+#### C. Obduktion Fall 2 — B-Ph132 (R1-Zone 14.–18.08.2026) / Reißleine
+
+**Baseline Ph132 (Fr 14.08 03:00 → Di 18.08 03:15, 186 C, HANDELBAR,
+22H/27L) — 7 Trades +8.31R:** Fr 08:45/11:45/14:45 SHORT je −1.00; Mo
+17.08 04:30 −1.00; Mo 07:30 −1.00; Mo 19:00 **+6.71R** (TP2 63.816); Di
+18.08 02:15 **+6.60R** (TP2 63.816).
+
+**E3-Zerlegung:** Ph123 (Fr 14.08 03:00 → Fr 09:30 [Touch], 27 C,
+**NICHT handelbar**, U 64.035 / L 63.485 → Spread **0.87 % < 1.5 %** →
+est_idx **nie** gesetzt) + Ph124 (Mo 17.08 03:00 → Di 18.08 03:15, 94 C,
+U 66.468 / L 65.510). **E3-Trades R1-Zone (+5.14R):** Ph123 Fr 08:45 −1.00;
+Ph124 Mo 17:45 +3.16 (TP2 65.249); Di 02:15 +2.98 (TP2 65.399) →
+**Δ −3.17R** (2 Mo-Shorts entfallen; Gewinner kleiner, weil der TP2 in die
+63.8-Zone des 2-Berg-Profils fehlt).
+
+**Reißleine (DuckDB-verifiziert, exakt):**
+- p0 = C Fr 14.08 03:00 = **63.926**; Schwelle oben = p0 × 1.03 =
+  **65.844** (RUNAWAY_MULT 2.0 × MIN_ESTABLISH_SPREAD_PCT 1.5 %).
+- **Kein früherer Trigger:** Fr 14.08 max High 65.684 < 65.844 (auch kein
+  intrabar-Kontakt).
+- **Erster 2-Close-Trigger: Mo 17.08 03:00 C 65.850 + 03:15 C 65.866** >
+  65.844 → brk_idx = Mo 03:00 (Candle **92** ab Phasenstart ≥
+  RUNAWAY_MIN_CANDLES 46 ✓).
+- Die „3-Tage-Lücke" ist **kein Datenloch**, sondern das reguläre Wochenende;
+  die junge, nie etablierte Phase saß über das Wochenende und der
+  Montags-Gap-Up trippte die 3 %-Schwelle.
+- **Baseline anders:** ohne E3-Spread-Gate etablierte sich Ph132
+  (touch-basiert); der Bruch-Check lief gegen die lokale Kante U ≈
+  66.33 → 66.47 (+TOL 0.34) — die Mo-Bewegung blieb darunter → Phase
+  überlebte und erzeugte die Gewinner-Trades mit TP2 in die 63.8-Zone.
+
+#### D. Muster & Einordnung
+
+1. **E3-Verschmelzung (Riesenprofil) verschiebt die Zonen-Unterkante
+   `L_eff` nach oben** → Reclaim-Longs nach tiefen Dips werden unterdrückt
+   (Ph46: der Dip-Rebound aus 72.568 blieb unter der Freitags-L_eff 75.116;
+   das Phasenende Mo 17:00 schnitt den verspäteten Reclaim ab).
+2. **E3-Spread-Gate + Reißleine töten junge, nie etablierte Phasen über
+   Wochenenden**, die die Baseline überlebt hätte (Ph132: Gap-Up trippt die
+   3 %-Reißleine statt Etablierung am Mo 03:00).
+3. Beide Fälle = **−8.45R (Ph46-Window) bzw. −10.92R (B-Ph46-Zuordnung)
+   + −3.17R (Ph132)** ≈ −11.6 … −14.1R der −24.3/−26.7R-Deltas; Rest aus
+   weiteren Einzel-Phasen-Verschiebungen (u. a. B-Ph23 Δ−3.66R).
+4. Deckungsgleich mit dem §5.3-Muster (AUG-Monsterphase): E3-Riesen-Profile
+   brechen die Signal-Asymmetrie der Reclaim-Engine — jetzt **OOS über S1
+   quantifiziert**. Zusammen mit dem AUG-Tail (Ph130-Verschmelzung) und der
+   §8.5-Stale-Phase ist die E3-Verschmelzungsneigung der dominante
+   OOS-Schwachpunkt der Arbeitskopie.
+5. **Entscheidung:** OOS **nicht freigabefähig** (S1+S2 +275.08R <
+   +292.14R-Ziel). Arbeitskopie bleibt experimentell/uncommitted;
+   Produktions-Baseline unberührt. Anpassungsoptionen (offen, §7): (a)
+   Reclaim-/Zonen-Referenz gegen die E3-verschobene Unterkante
+   stabilisieren; (b) Wochenend-/Gap-Regel für die Reißleine (Trigger erst
+   ab N Bars nach Session-Wiedereröffnung); (c) Stale-Phase-Guard (§8.5)
+   und AUG-Tail-Verschmelzung berücksichtigen. Jede Anpassung erneut gegen
+   den AUG-Regressionsanker (11 Ph / 26 Sig / +27.06R).
+6. **Helper (I4, danach löschen):** `test/tmp_obduktion_p46.py`,
+   `test/tmp_obduktion_trace.py`, `test/tmp_obduktion_reissleine.py`.

@@ -698,6 +698,9 @@ den aktiven R1-Kanten im Rückbau-Lauf.
 | 03.09.2026 | **Cleanup I4 (Obduktions-Helper):** `test/tmp_obduktion_p46.py`, `test/tmp_obduktion_trace.py`, `test/tmp_obduktion_reissleine.py` gelöscht (in §8.6 als „am 03.09.2026 gelöscht (§8.7)" vermerkt — Löschung konsistent nachgezogen). OOS-Logs `test/tmp_oos_S1_lauf.log` / `test/tmp_oos_S2_lauf.log` bleiben als Belegquellen (§8.4/§8.6/§8.7) vorerst erhalten | dieses Dokument §8.6/§8.7, §7 Pkt. 5 |
 | 03.09.2026 | **Option A ausgeführt (Freigabe erteilt) & verifiziert:** Rückbau E3 + Reißleine in der Arbeitskopie exakt nach §7 Pkt. 12 (Konstanten-Block entfernt, E3-Gate auf Touch-Check Z. 677–680, Reißleinen-`elif` entfernt; 17 Zeilen netto, py_compile OK, keine E3-Identifier mehr). **AUG-Regression exakt bestanden: 12 Ph / 27 Sig / +24.97R** (= Baseline). **S1 exakt bestanden: 139 Ph / 201 Sig / +197.26R** (= S1-Baseline, bitgenau); B-Ph46-Riesenprofil aufgelöst (139 statt 130 Phasen), Referenzfall reproduziert: Phase 46 eigenständig Fr 10.04–Mo 13.04, 2 Tr **+10.21R** inkl. Mo 13.04 00:15 **+10.69R** (§8.6) | `test/tmp_optionA_AUG_lauf.log`, `test/tmp_optionA_S1_lauf.log`, `test/stats_trades_MAKRO_AUG.txt`, `test/stats_trades_MAKRO_S1.txt`, `test/phasen_makro_swings_AUG.png`, `test/phasen_makro_swings_S1.png` (gitignored), dieses Dokument §8.7 |
 | 03.09.2026 | **S2-Bestätigungslauf §8.7 (Arbeitskopie `d99abbb`, Gesamtjahr 2025, reine Messung):** **exakt 62 Phasen / 210 Signale / +99.88R** (WR 35.2 %, PF 1.80) = bitgenaue S2-Baseline (§3). **Gesamt S1+S2: 201 Phasen / 411 Signale / +297.14R** — Ziel ≥ +292.14R erreicht (**+5.00R Delta**), OOS-Referenz +293.35R übertroffen. OOS-Lücke empirisch geschlossen → Arbeitskopie `d99abbb` **bitgenau verifiziert & freigabefähig** | `test/tmp_optionA_S2_lauf.log`, `test/stats_trades_MAKRO_S2.txt`, `test/phasen_makro_swings_S2.png` (gitignored), dieses Dokument §8.7 |
+| 03.09.2026 | **Tier-2-Zonen-Replay §8.8 (instrumentierter Replay, autorisiert):** Logs enthalten keinen Zonen-Pool-Dump → Helper `test/tmp_zonepool_replay.py` (exec-Import `baseline_mod` von `phasen_volumen_profil.py`, Cut vor Signal-Sektion, echtes unverändertes `macro_persistence.py`; Kausalitäts-Axiom Boundary(p−1) → Scan → Touches(p)). **Fidelity bitgenau:** AUG 27/+24.97R & 25/+34.87R; S2 210/+99.88R & 216/+93.70R; alle Tier-2-Anker exakt (AUG 66.364/66.382; S2 31.309, 4× 29.706, 41.373, 41.347). **S2-Delta:** 209 identisch | 1 entfallen (18.09 07:45 LONG +2.01R) | 7 neu (6× −1.00R an alten LOWER-Ankern + 1× +1.84R) → Δ −6.18R; AUG-Δ +9.90R = Veto (+4.00R) **+** Substitution (Tier-2-Ersatz 66.364) → reines Veto-Gate erreicht die Substitutionsquelle nicht | Logs `test/tmp_zonepool_{AUG,S2}.txt` | dieses Dokument §8.8.1 |
+| 03.09.2026 | **Wand-Obduktion §8.8 (Bar-Ebene, 3 Fenster; Helper `test/tmp_wall_obduktion.py`):** AUG 2 Wand-Zeilen (0 FP / 2 TP), S1 30 (14 FP +51.64R / 16 TP), S2 42 (5 FP +23.88R / 37 TP). **Interview-Frage 1 datenwiderlegt:** Intra-Phase-Durchbruch (n_ph > 0) verwirft 100 % der Veto-Wirkung (AUG 2/2, S1 16/16, S2 37/37) — Reclaim feuert nach Seitentausch, „unberührte Wand" existiert praktisch nie. **Frage 2 datenwiderlegt (Achse invertiert):** größtes Veto-Cluster S2-P7 = 38.5–67.3 d alt, schlimmster FP S2-P49 +8.63R = frischeste Wand (d_ph_last 1, 6.4 d); S1 Winner/Loser über denselben Altersbereich. **Sammelwand S2-P49:** 5 Loser + +8.63R-Winner teilen exakt Wand 48.360 — keine Zonen-Regel trennt Versuch 1–5 von 6. **S1-Trigger-Nähe:** P129-Wand 0.05 über Entry (Retail-Falle) | Logs `test/tmp_wall_obduktion_{AUG,S1,S2}.txt` | dieses Dokument §8.8.2 |
+| 03.09.2026 | **Veto-Bilanz & Distanz-Check §8.8 (naiv + 1.0R-Klausel; Helper `test/tmp_wall_distance.py`):** Naiv: S1 23 geflaggt (12W/11L, +31.16R) → Blocken kostet −31.16R, S1+S2 ≈ +269.7R < Ziel. **1.0R-Klausel:** 48 geflaggt → 13 rehabilitiert (+13.91R) / 35 verbleibende Veto-Kandidaten kumuliert **+11.51R Netto-Gewinner** (S1 12 Kandidaten +15.25R, AUG 2 +2.00R, S2 21 −1.74R) → S1+S2-Projektion ≈ **+283.6R < +292.14R**. **Verdikt arretiert:** geometrisches Wand-Veto (naiv & mit Klausel) empirisch abgeschlossen — v0.4-AUG-Erfolg kommt aus Tier-2-Kanten-Substitution, nicht LOWER-Wand-Blockade; `macro_persistence.py` unverändert. Optionen (offen): Regime-/Trigger-Hypothese, Veto-Gate-Simulation mit Cooldown-Kaskade, oder Pfad-A-Abschluss | Logs `test/tmp_wall_distance_{AUG,S1,S2}.txt` | dieses Dokument §8.8.3/§8.8.4 |
 
 ---
 
@@ -1319,3 +1322,186 @@ CRV nahe 1.0).
   `test/stats_trades_MAKRO_AUG.txt`, `test/stats_trades_MAKRO_S1.txt`,
   `test/stats_trades_MAKRO_S2.txt`, `test/phasen_makro_swings_AUG.png`,
   `test/phasen_makro_swings_S1.png`, `test/phasen_makro_swings_S2.png`.
+
+### 8.8 Tier-2-Veto-Modell (Wand-Regel) — Negativbefund & Abschluss — 03.09.2026
+
+**Hintergrund & Auftrag (Pfad A, Tier-2-Veto-Modell):** §8.7 hat die
+Arbeitskopie `d99abbb` auf **segmentierungs-bitgenaue §3-Baseline**
+arretiert (S1+S2 +297.14R ≥ Ziel +292.14R). Der verbleibende offene
+Fragekomplex war das **Delta der v0.4.x-`--macro-live`-Referenz**
+(S1+S2 +293.35R; AUG +34.87R, S2 +93.70R) gegen die Baseline (AUG
++24.97R, S2 +99.88R): AUG profitiert von der Makro-Anbindung (+9.90R),
+S2 verliert (−6.18R). Aufgabe: das S2-Delta auditieren und prüfen, ob
+der Tier-2-Mechanismus von **Kanten-Substitution** (v0.4-Modell:
+Tier-2-Ersatz der lokalen Ausführungs-Kante durch einen Makro-Anker +
+E4-Penetrations-Gate, `macro_persistence.py`) auf ein **reines
+Veto-Gate** (`allow_trade: bool`; Invariante N_Macro ≤ N_Base) umgebaut
+werden kann. **Wichtig:** `find_reclaim_signals` ist in Produktion
+(`phasen_volumen_profil.py`) und Arbeitskopie 100 % identisch —
+der gesamte Pfad A ist **reine Analyse/Simulation** in `test/`, kein
+Produktions-Eingriff.
+
+**Mentor-Wand-Regel (Referenz-Semantik, 03.09.2026):** Wand =
+stehende Makro-Zone der **Gegenseite** (LONG → UPPER, SHORT → LOWER),
+**unidirektional**, mit **Evidenz ≥ 2** (`ev2+`) und **aktiver Rolle**
+(nicht `left_behind`/überrannt); der Trade müsste die Zone zwischen
+Entry und TP1 durchlaufen (inklusiv-Entry / exklusiv-TP1). Die separate
+Regel R2 (SL-Raum / Liquiditätsjagd) gehört **nicht** zu Iteration 1.
+Die statische Veto-Bilanz §5.5 (R1-Puffer AUG, 0/26) bleibt davon
+unberührt — hier wird die **Zonen-Ebene** geprüft.
+
+#### 8.8.1 S2-Delta-Zerlegung (bitgenau, instrumentierter Replay)
+
+Die Lauf-Logs enthalten keinen Zonen-Pool-Dump → Replay-Helper gebaut &
+ausgeführt: `test/tmp_zonepool_replay.py` (Muster
+`test/tmp_makro_state_proto.py::baseline_mod` = exec-Import von
+`phasen_volumen_profil.py`, Cut vor der Signal-Sektion, echtes
+unverändertes `macro_persistence.py`; **Kausalitäts-Axiom**: Zonen-Pool
+je Phase = Scan-Zustand nach `Boundary(p−1)`, VOR `Touches(p)` — die
+Touches der laufenden Phase bauen Zonen erst für Folgephasen auf).
+Logs: `test/tmp_zonepool_{AUG,S2}.txt`.
+
+**Fidelity bitgenau bewiesen (Selbstvalidierung gegen die
+v0.4.x-Referenz-Artefakte):**
+
+| Fenster | Baseline (Replay) | macro-live (Replay) | Tier-2-Anker (exakt reproduziert) |
+|---|---|---|---|
+| AUG | 27 Sig / +24.97R ✓ | 25 Sig / +34.87R ✓ | 66.364 `ev2 [1,3]`, 66.382 `ev3 [1,3,4]` ✓ |
+| S2 | 210 Sig / +99.88R ✓ | 216 Sig / +93.70R ✓ | 31.309, 4× 29.706, 41.373, 41.347 ✓ |
+
+**S2-Delta (210 → 216 Trades, Δ −6.18R):**
+
+| Komponente | Trades | R |
+|---|---|---|
+| Identisch (bitgenau) | 209 | — |
+| **Entfallen** (vom Veto geblockt) | 1 — P27 18.09 07:45 LONG, Ein 41.326 | **+2.01R verloren** |
+| **Neu** (Tier-2-Kanten-Ersatz) | 7 — 28.02 (Anker 31.309), 04.04/07.04/08.04/09.04 (Anker 29.706), 17.09 (Anker 41.373), 18.09 (Anker 41.347) | **−4.16R** (6× −1.00R „Falling-Knife" an alten LOWER-Ankern + 1× +1.84R) |
+| **Summe** | −1 +7 | **−6.17R ≈ −6.18R** |
+
+**AUG-Δ +9.90R (+24.97 → +34.87R) — zweiteilig:** (a) **Veto-Effekt**
+(+4.00R: 4 Verlust-SHORTs der P5/P7 entfallen), (b) **Substitutions-/
+Neu-Effekt** (netto +5.90R, darunter der Tier-2-Ersatz-Kandidat
+17.08 17:45 SHORT 66.307 → +6.90R via Anker **66.364**). Die
+**Wand-Regel-Bilanz** des Replays zeigt: von den 6 v0.4-entfallenen
+AUG-Trades haben nur **2** eine echte LOWER-Wand (14.08 11:45/14:45,
+je −1.00R); der +6.71R-Winner 17.08 18:45 und die übrigen 3 Verlierer
+haben **keine** Wand → ein reines Veto-Gate **erreicht die
+Substitutionsquelle (b) nicht** — es kann v0.4 nur approximieren.
+
+#### 8.8.2 Wand-Obduktion auf Bar-Ebene (3 Fenster) — die 2 Interview-Fragen
+
+Helper `test/tmp_wall_obduktion.py` (Bar-Ebene: Wand-Zeilen je Trade mit
+`n_ph` = Intra-Phase-Closes jenseits der Wand, `d_ph_last` = Phasen seit
+letztem Touch, Alter in Tagen, Trigger-Nähe). Logs:
+`test/tmp_wall_obduktion_{AUG,S1,S2}.txt`.
+
+| Fenster | Wand-Zeilen | FP-Winner (Blocken verlöre sie) | TP-Loser (korrekte Vetoes) | n_ph-Bereich |
+|---|---|---|---|---|
+| AUG | 2 | 0 | **2** (−1.00R/−1.00R) | 24 (beide) |
+| S1 | 30 | **14 (+51.64R)** | 16 | 2–147 |
+| S2 | 42 | **5 (+23.88R)** | 37 | 1–387 |
+
+**Antwort Frage 1 — „Intra-Phase-Durchbruch erlischt die Zone": NEIN
+(datenwiderlegt).** Die Regel „Wand tot, wenn `n_ph_beyond > 0`"
+(`R_ph`) verwirft in **allen** Fenstern 100 % der Veto-Wirkung:
+AUG 2/2, S1 16/16, S2 37/37 der TP-Loser-Vetoes entfielen (S2 mit
+`≥ 2` noch 36/37, da nur 1 Zeile n_ph = 1 hat). **Grund:** Der Reclaim
+feuert nach dem Seitentausch der Phasen-Grenzen — die „Wand" liegt auf
+der Seite, von der der Preis gerade gekommen ist → der Preis hat sie
+intra-phasig praktisch immer schon durchschritten. Eine „unberührte
+Wand" (n_ph = 0) existiert als Veto-Kandidat faktisch nie.
+
+**Antwort Frage 2 — „Frische-Cap": NEIN (Achse invertiert).**
+Die größten echten Veto-Cluster sind **alt**, der schlimmste
+FP-Winner ist die **frischeste** Wand:
+
+- **S2-P7 (09.–11.04.2025, 10× −1.00R SHORT)** — wertvollstes
+  Veto-Cluster — trifft Wände mit Alter **38.5–67.3 d**
+  (30.654: 65.7–67.3 d, d_ph_last 4; 30.851: 40.2–41.7 d, d_ph_last 2;
+  31.119: 38.5–39.1 d, d_ph_last 2). Jedes Frische-Cap (≤ 30 d o. ä.)
+  entfernt exakt diese korrekten Vetoes.
+- **S2-P49 (05.11 02:30 LONG, +8.63R)** — schlimmster FP — trifft die
+  **frischeste** Wand des Datensatzes (48.360: d_ph_last 1, Alter
+  6.4 d).
+- **S1:** FP-Winner und TP-Loser liegen über **denselben**
+  Altersbereich (0.3–50.7 d) — kein Alters-Schnitt trennt sie.
+
+**Zusatzbefund 1 — S2-P49-Sammelwand:** 5 Verlierer (03.11 21:00 +
+04.11 04:15/09:00/12:30/16:45, je −1.00R) **und** der +8.63R-Winner
+(05.11 02:30) teilen **exakt dieselbe** Wand 48.360
+(`ev2 [44,47]`, n=8, 22.10–29.10). Keine Zonen-Regel (Alter, n, ev,
+Distanz) kann Versuch 1–5 von Versuch 6 unterscheiden — die 6
+Signale sind bis auf die Tick-Reihenfolge identisch positioniert.
+
+**Zusatzbefund 2 — S1-Trigger-Nähe (Retail-Falle auf Zonen-Ebene):**
+Mehrere S1-FP-Winner haben ihre Wand **trigger-nah direkt über dem
+Entry** — die Regel behandelt den eigenen Reclaim-Trigger als
+Hindernis:
+
+| Trade | Entry | Wand | Abstand Wand−Entry |
+|---|---|---|---|
+| P129 07.08 19:00 LONG +4.22R | 63.175 | 63.227 | **0.05** |
+| P61 01.05 10:45 LONG +3.68R | 73.117 | 73.859 | 0.74 |
+| P130 11.08 17:30 LONG +4.47R | 64.597 | 64.916 | 0.32 |
+
+#### 8.8.3 Naive geometrische Veto-Bilanz (statisch, Trade-Ebene)
+
+| Fenster | Baseline | geflaggt (naiv) | davon W/L | Netto-R der Geflaggten | Ergebnis mit Veto |
+|---|---|---|---|---|---|
+| AUG | 27 / +24.97R | 2 | 0W / 2L | −2.00R | +26.97R ✓ |
+| S1 | 201 / +197.26R | 23 | 12W / 11L | **+31.16R** | +166.10R ✗ |
+| S2 | 210 / +99.88R | 23 | 3W / 20L | −3.74R | +103.62R ✓ |
+| **S1+S2** | +297.14R | 46 | 15W / 31L | +27.42R | **≈ +269.7R < Ziel +292.14R** ✗ |
+
+Die naive Regel blockt in S1 12 Gewinner (u. a. +5.62R, +4.51R, +3.69R,
++3.68R) für 11 Verlierer → **Netto −31.16R**; AUG+S2 (+5.74R) können das
+nicht kompensieren. **Die naive Wand-Regel scheitert als Alleinregel.**
+
+#### 8.8.4 Distanz-Check 1.0R-Klausel (Schritt 2/3, ausgeführt)
+
+Datenvertrag `WallDistanceCheck` (frozen): `risk = |entry − sl|`,
+`distance_in_r = |wand − entry| / risk`, Veto greift je Trade nur, wenn
+**≥ 1 Wand mit distance_in_r ≥ 1.0** (die Wand muss ≥ 1R jenseits des
+Entrys liegen, damit der Trade bis dorthin „Raum hat" zu scheitern).
+Helper `test/tmp_wall_distance.py`; Logs:
+`test/tmp_wall_distance_{AUG,S1,S2}.txt`.
+
+| Fenster | geflaggt (naiv) | rehabilitiert (< 1.0R) | verbleibende Veto-Kandidaten | Rehab-Bilanz | Veto-Bilanz (Blocken) |
+|---|---|---|---|---|---|
+| AUG | 2 | 0 | 2 (64.278, D 1.62/2.16R) | ±0.00 | −2.00R (2 TP) → **+2.00R** |
+| S1 | 23 | 11 | 12 | **+15.91R** gerettet (6W +20.26 − 5L −4.35) | **+15.25R** (6W +21.25 − 6L −6.00) → **−15.25R** |
+| S2 | 23 | 2 | 21 | **−2.00R** (2 TP-Loser entgehen dem Block) | −1.74R (3W +16.26 − 18L −18.00) → **+1.74R** |
+| **Σ** | 48 | **13 (+13.91R)** | **35** | +13.91R | **+11.51R Netto-Gewinner** → Blocken kostet +11.51R |
+
+**Projektion mit 1.0R-Klausel (S1+S2):** S1 = 197.26 − 15.25 =
+**+182.0R**; S2 = 99.88 + 1.74 = **+101.6R** → **S1+S2 ≈ +283.6R < Ziel
++292.14R**. Die Klausel rettet zwar 13/48 falsche Blocker (S1-rehab
++15.91R), aber die 35 verbleibenden Veto-Kandidaten sind kumuliert
+**Netto-Gewinner** (+11.51R) — in S1 allein dominieren die FP-Winner
+(16.04 +1.81, 23.04 +5.62, 01.05 +3.68, 08.05 +1.98, 11.05 +3.69,
+11.08 17:30 +4.47).
+
+**Verdikt (arretiert, analog §8.7-CRV2):** Das geometrische
+Wand-Veto-Modell ist — naiv **und** mit 1.0R-Mindestabstand — empirisch
+**kein netto-positiver Selektor** über AUG/S1/S2. Der v0.4-Erfolg
+(AUG-Konter-Eliminierung) entsteht über die **Tier-2-Kanten-
+Substitution** (UPPER-Anker + E4-Penetrations-Gate), nicht über eine
+LOWER-Wand-Blockade — die Substitutionsquelle ist im reinen Veto-Gate
+strukturell unerreichbar (§8.8.1). Der Tier-2-Umbau auf
+`allow_trade`-Veto entfällt damit; `macro_persistence.py` (Tier 2,
+eingefroren) bleibt unverändert.
+
+**Offene Optionen (Benutzer-Entscheidung, kein automatischer nächster
+Schritt):** (a) Regime-/Trigger-Hypothese (Konter nur in bestimmten
+Makro-Zuständen); (b) Veto-Gate-Simulation mit **echter
+Tier-2-Cooldown-Kaskade** (Nachbau des v0.4-Substitutionsmechanismus in
+der Arbeitskopie, Muster `tmp_v04_kapsel_sim`); (c) Abschluss des
+Pfads A ohne weitere Analyse (v0.4-Referenz bleibt wie in §3
+eingefroren; Arbeitskopie `d99abbb` = freigegebene Baseline).
+
+**Belege (gitignored, in `test/` als Quellen vorerst erhalten; I4-
+Cleanup erst nach Abschluss der Explorationsphase):**
+`test/tmp_zonepool_replay.py`, `test/tmp_wall_obduktion.py`,
+`test/tmp_wall_distance.py`, Logs `test/tmp_zonepool_{AUG,S2}.txt`,
+`test/tmp_wall_obduktion_{AUG,S1,S2}.txt`,
+`test/tmp_wall_distance_{AUG,S1,S2}.txt`.

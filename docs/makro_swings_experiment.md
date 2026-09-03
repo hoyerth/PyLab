@@ -701,6 +701,7 @@ den aktiven R1-Kanten im Rückbau-Lauf.
 | 03.09.2026 | **Tier-2-Zonen-Replay §8.8 (instrumentierter Replay, autorisiert):** Logs enthalten keinen Zonen-Pool-Dump → Helper `test/tmp_zonepool_replay.py` (exec-Import `baseline_mod` von `phasen_volumen_profil.py`, Cut vor Signal-Sektion, echtes unverändertes `macro_persistence.py`; Kausalitäts-Axiom Boundary(p−1) → Scan → Touches(p)). **Fidelity bitgenau:** AUG 27/+24.97R & 25/+34.87R; S2 210/+99.88R & 216/+93.70R; alle Tier-2-Anker exakt (AUG 66.364/66.382; S2 31.309, 4× 29.706, 41.373, 41.347). **S2-Delta:** 209 identisch | 1 entfallen (18.09 07:45 LONG +2.01R) | 7 neu (6× −1.00R an alten LOWER-Ankern + 1× +1.84R) → Δ −6.18R; AUG-Δ +9.90R = Veto (+4.00R) **+** Substitution (Tier-2-Ersatz 66.364) → reines Veto-Gate erreicht die Substitutionsquelle nicht | Logs `test/tmp_zonepool_{AUG,S2}.txt` | dieses Dokument §8.8.1 |
 | 03.09.2026 | **Wand-Obduktion §8.8 (Bar-Ebene, 3 Fenster; Helper `test/tmp_wall_obduktion.py`):** AUG 2 Wand-Zeilen (0 FP / 2 TP), S1 30 (14 FP +51.64R / 16 TP), S2 42 (5 FP +23.88R / 37 TP). **Interview-Frage 1 datenwiderlegt:** Intra-Phase-Durchbruch (n_ph > 0) verwirft 100 % der Veto-Wirkung (AUG 2/2, S1 16/16, S2 37/37) — Reclaim feuert nach Seitentausch, „unberührte Wand" existiert praktisch nie. **Frage 2 datenwiderlegt (Achse invertiert):** größtes Veto-Cluster S2-P7 = 38.5–67.3 d alt, schlimmster FP S2-P49 +8.63R = frischeste Wand (d_ph_last 1, 6.4 d); S1 Winner/Loser über denselben Altersbereich. **Sammelwand S2-P49:** 5 Loser + +8.63R-Winner teilen exakt Wand 48.360 — keine Zonen-Regel trennt Versuch 1–5 von 6. **S1-Trigger-Nähe:** P129-Wand 0.05 über Entry (Retail-Falle) | Logs `test/tmp_wall_obduktion_{AUG,S1,S2}.txt` | dieses Dokument §8.8.2 |
 | 03.09.2026 | **Veto-Bilanz & Distanz-Check §8.8 (naiv + 1.0R-Klausel; Helper `test/tmp_wall_distance.py`):** Naiv: S1 23 geflaggt (12W/11L, +31.16R) → Blocken kostet −31.16R, S1+S2 ≈ +269.7R < Ziel. **1.0R-Klausel:** 48 geflaggt → 13 rehabilitiert (+13.91R) / 35 verbleibende Veto-Kandidaten kumuliert **+11.51R Netto-Gewinner** (S1 12 Kandidaten +15.25R, AUG 2 +2.00R, S2 21 −1.74R) → S1+S2-Projektion ≈ **+283.6R < +292.14R**. **Verdikt arretiert:** geometrisches Wand-Veto (naiv & mit Klausel) empirisch abgeschlossen — v0.4-AUG-Erfolg kommt aus Tier-2-Kanten-Substitution, nicht LOWER-Wand-Blockade; `macro_persistence.py` unverändert. Optionen (offen): Regime-/Trigger-Hypothese, Veto-Gate-Simulation mit Cooldown-Kaskade, oder Pfad-A-Abschluss | Logs `test/tmp_wall_distance_{AUG,S1,S2}.txt` | dieses Dokument §8.8.3/§8.8.4 |
+| 03.09.2026 | **Baseline-Fehltrade-Audit AUG §8.9 (Pfad B, kausaler Replay; Helper `test/tmp_baseline_loss_replay.py`, Log `test/tmp_baseline_loss_replay.txt`):** exec-Import-Cut NACH Baseline-Signal-Loop → 27 original erzeugte Signale, Mapping Log↔Replay **27/27 bitgenau**. **Trigger-Integrität 100 % regelkonform** (Cooldown ≥ 12, CRV ≥ 1.0, Bounce ≥ 2, Reclaim-Bedingung — kein Bug). **13 Voll-SL + 2 Teilverluste** (T3 −0.29R / T22 −0.36R: TP1 = POC erreicht, Restcharge vor TP2 am SL — TP2-Reichweiten-Thema, kein Signalfehler). **Naive Filter datenwiderlegt:** Profilalter (5/12 Winner ebenfalls < 40, T25 Alter 2 +1.83R) und Mikro-Penetration (T22 Pen 0.001 vs. Winner T1/T6/T24 RcDepth 0.005–0.008) trennen Winner/Loser nicht. **Muster A** Expansion-Trap/Kanten-Drift (P5 zweigeteilt: Fr 14.08 Erholung 64.309→65.038, Mo 17.08 Expansion 65.752→65.798; T14/T15 shorteten dieselbe Kante 66.284 + Turn — Kostenstruktur des Fade-Edges), **Muster B** junge Profile (11/15, überlappend), **Muster C** TP2-Reichweite. Nächste Schritte: S1 → S2 → Synthese (strikt sequentiell) | dieses Dokument §8.9 |
 
 ---
 
@@ -1505,3 +1506,172 @@ Cleanup erst nach Abschluss der Explorationsphase):**
 `test/tmp_wall_distance.py`, Logs `test/tmp_zonepool_{AUG,S2}.txt`,
 `test/tmp_wall_obduktion_{AUG,S1,S2}.txt`,
 `test/tmp_wall_distance_{AUG,S1,S2}.txt`.
+
+### 8.9 Baseline-Fehltrade-Audit AUG (15 Losses) — Kausale Obduktion & Muster-Befund — 03.09.2026
+
+**Hintergrund & Auftrag (Pfad B, neue Untersuchungsreihe):** Nach dem
+Abschluss von Pfad A (§8.8, Tier-2-Veto verworfen) und der
+Workspace-Bereinigung (I4) wird die **reine Baseline-Engine**
+(`scripts/phasen_volumen_profil.py`, Produktion; Arbeitskopie
+`phasen_makro_swings.py` im Baseline-Modus — beide identisch,
+`find_reclaim_signals` 100 % bitgenau) auf **systemische Schwachstellen
+in den Verlust-Trades** durchleuchtet. Untersuchungsreihenfolge strikt
+sequentiell: AUG (2026) → S1 (2026) → S2 (2025). Setup C bleibt
+zurückgestellt. **Modus:** reine Code-/Log-/DuckDB-Exploration
+(read_only, exec-Import-Cut nach dem Baseline-Signal-Loop), kein
+Sandbox-Run, kein Produktivcode.
+
+**Faktenbasis (State of Truth):** `test/stats_trades_AUG.txt`
+(Baseline-Block): **27 Trades, 12 W / 15 L, +24.97R, PF 2.83**.
+Die anfangs präsentierte 15-Zeilen-Tabelle (abweichende P1-Preise,
+P2-LONG, 11/4-Verteilung) wurde als **synthetisches Artefakt eines
+früheren Zwischenstands** verworfen; die 15 Verlust-Trades sind die
+per Log verifizierten Trades 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 16, 17,
+18, 22, 26.
+
+#### 8.9.1 Methodik: bitgenauer kausaler Replay (Phase 1+2)
+
+**Helper:** `test/tmp_baseline_loss_replay.py` → Log
+`test/tmp_baseline_loss_replay.txt`. **Vorgehen:** exec-Import von
+`scripts/phasen_volumen_profil.py` mit **Cut NACH dem Baseline-
+Signal-Loop** (`reclaim_signals.sort`, Z. ~1389) → die **original
+erzeugten 27 ReclaimSignal-Objekte** (mit `.phase`, `.trade`,
+`.U_laufend/.L_laufend/.POC/.crv/.bounce_nr`, `ts`) stehen im
+Namespace — kein eigener Loop-Nachbau, damit keine Replikationsfehler.
+**Fidelity:** Mapping Log↔Replay **27/27 bitgenau** (bar_signal,
+bar_entry, Richtung, Entry-Preis 1e-9, R ±5e-3), Phasen-Zuordnung
+27/27. Pro Trade kausal angereichert: Profilalter (Bars seit
+Phasenstart), Kante, POC, POC-Distanz (R), Penetrationstiefe
+(hi[k]−U bzw. L−lo[k]), Reclaim-Tiefe (U−cl[k] bzw. cl[k]−L),
+Bounce-Nr, Cooldown-Gap, Auflösung (H1/H2-Grund, r1/r2, Exits).
+
+#### 8.9.2 Trigger-Integrität: 100 % regelkonform
+
+**Kein einziger Regelverstoß in den 15 Losses** (und in allen 27):
+- **Cooldown ≥ 12 strikt eingehalten:** keine Gap < 12 (P5-Serie:
+  None→12→12→48→15; die exakten 12er sind legal am Minimum).
+- **POC-Gate CRV ≥ 1.0:** immer erfüllt (Loser-Min 1.04, T9).
+- **Bounce ≥ 2:** immer erfüllt (Loser-Min 2).
+- **Reclaim-Bedingung** (in_bar: close innerhalb; next_bar:
+  close[k+1] innerhalb): per Konstruktion des Original-Codes erfüllt.
+- **Kein Lookahead / kein Off-by-One:** der Cut garantiert die
+  originale kausale Schleife.
+
+**Verdikt:** Die 15 Losses sind **kein Bug** — sie sind regelkonform
+ausgelöste Trades, deren statistische Kostenstruktur untersucht wird.
+
+#### 8.9.3 Die 15 Verlust-Trades (kausal, auditierte Kenngrößen)
+
+| # | Ph | Signal-Zeit | Rc | Entry | R | Alter | Kante | POCdist | Pen | RcDepth | CD |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 3 | P1 | 10.08 08:45 | nb | 64.163 | **−0.29** | 36 | 64.177 | 1.85 | 0.096 | 0.020 | 27 |
+| 4 | P2 | 10.08 18:00 | ib | 65.098 | −1.00 | **7** | 65.134 | 1.51 | 0.122 | 0.037 | — |
+| 5 | P2 | 10.08 21:45 | ib | 65.722 | −1.00 | 22 | 66.019 | 2.11 | **0.007** | 0.299 | 15 |
+| 7 | P3 | 11.08 07:30 | ib | 64.702 | −1.00 | **2** | 64.470 | 1.13 | **0.015** | 0.234 | — |
+| 8 | P3 | 11.08 12:15 | nb | 64.968 | −1.00 | 21 | 65.029 | 1.65 | 0.093 | 0.053 | — |
+| 9 | P5 | 14.08 08:45 | nb | 64.244 | −1.00 | 24 | 64.309 | 1.04 | 0.051 | 0.068 | — |
+| 10 | P5 | 14.08 11:45 | nb | 64.750 | −1.00 | 36 | 64.790 | 2.70 | 0.093 | 0.041 | **12** |
+| 11 | P5 | 14.08 14:45 | nb | 64.910 | −1.00 | 48 | 65.038 | 3.27 | 0.054 | 0.123 | **12** |
+| 12 | P5 | 17.08 03:45 | ib | 65.671 | −1.00 | 96 | 65.752 | 3.18 | 0.120 | 0.081 | 48 |
+| 13 | P5 | 17.08 07:30 | ib | 65.769 | −1.00 | 111 | 65.798 | 3.50 | 0.069 | 0.034 | 15 |
+| 16 | P6 | 18.08 22:00 | ib | 63.500 | −1.00 | 21 | 63.478 | 1.04 | **0.013** | 0.023 | — |
+| 17 | P6 | 19.08 02:00 | ib | 63.011 | −1.00 | 33 | 62.855 | 2.80 | 0.048 | 0.157 | **12** |
+| 18 | P7 | 19.08 21:45 | nb | 66.316 | −1.00 | 17 | 66.341 | 1.47 | 0.076 | 0.024 | — |
+| 22 | P9 | 24.08 02:15 | ib | 68.974 | **−0.36** | 82 | 68.791 | 1.57 | **0.001** | 0.185 | — |
+| 26 | P12 | 27.08 03:15 | ib | 69.041 | −1.00 | 39 | 69.126 | 3.34 | 0.117 | 0.087 | — |
+
+(Zeiten = Signal-Bar; Rc = reclaim in_bar/next_bar; Alter = Bars seit
+Phasenstart; POCdist/Pen/RcDepth in USD bzw. R; CD = Cooldown-Gap in
+Bars, None = erstes Signal der Richtung in der Phase.)
+
+**Auflösungs-Struktur:**
+- **13 Voll-SL:** beide Hälften (25 %/75 %) laufen in den SL
+  (H1 = H2 = SL, r1 = r2 = −1.00R; bei SL_TRIGGER am Entry-SL 0.45 %).
+- **2 Teilverluste:**
+  - **T3** (SHORT, P1, −0.29R): H1 = **TP1 (POC 63.628) +1.85R**
+    erreicht, H2 = SL → r = 0.25×(+1.85) − 0.75 = **−0.29R**.
+  - **T22** (LONG, P9, −0.36R): H1 = **TP1 (POC 69.461) +1.57R**
+    erreicht, H2 = SL → r = 0.25×(+1.57) − 0.75 = **−0.36R**.
+  → **Die Trigger-Richtung stimmte** (POC = TP1 wurde sauber erreicht);
+    die 75 %-Restcharge wurde am SL (0.45 % über/unter Entry)
+    abgeräumt, **bevor** TP2 (Box-Ende ±0.2 %) lief. Das ist ein
+    **TP2-Reichweiten-Thema** (TP1→TP2-Strecke zu groß bzw. Markt
+    drehte nach TP1 zurück), **kein Signal-/Trigger-Fehler**.
+
+#### 8.9.4 Widerlegung naiver Filter (Kontrollgruppe = 12 Winner)
+
+**Filter-Hypothese 1 — „Profilalter trennt": NEIN.**
+11/15 Loser haben Alter < 40, aber **5/12 Winner ebenfalls** — darunter
+T25 (P12, **Alter 2**, +1.83R), T1 (P1, Alter 9, +1.29R), T2 (Alter 15,
++1.69R), T19 (Alter 31, +4.26R), T20 (Alter 35, +3.06R). Median:
+Loser 33 vs. Winner 56 — Tendenz, aber **kein sauberer Schnitt**:
+ein Mindestalter (z. B. ≥ 40) würde T25/T1/T2/T19/T20 (zusammen
++12.21R) opfern. **Profilalter allein ist kein Diskriminator.**
+
+**Filter-Hypothese 2 — „Mikro-Penetration/Reclaim-Tiefe trennt":
+NEIN.** T22 verlor mit Penetration **0.001** (1 Cent!), aber T25
+(0.016), T1 (0.038), T6 (0.033) gewannen mit ähnlich kleinen
+Penetrationen. Reclaim-Tiefe ebenso: Winner T1/T6/T24 haben RcDepth
+0.008/0.005/0.008 — **kleiner** als die meisten Loser. Ein
+Mindest-Penetrations-/Reclaim-Tiefen-Filter würde die Winner-Klasse
+treffen. **Mikro-Trigger sind kein Fehlerbild.**
+
+**Konsequenz:** Die Losses sind nicht über einfache geometrische
+Schwellen (Alter, Penetration, Reclaim-Tiefe) von den Winnern
+trennbar — eine Filter-Simulation wäre nach §8.7/§8.8-Methodik
+zwingend mit der Winner-Kontrollgruppe zu führen, bevor irgendein
+Gate in Betracht gezogen würde.
+
+#### 8.9.5 Strukturmuster (institutionelle Kategorisierung)
+
+**Muster A — Expansion-Trap / Kanten-Drift (dominant, 9–11 der 15):**
+Der Algorithmus shortet in eine laufende Aufwärtsbewegung bzw. longest
+in eine Abwärtsbewegung, während die **kausale Kante (U_zone aus dem
+kumulativen Profil ab Phasenstart, Min-Candles = 0) nachzieht**. Die
+P5-Serie (T9–T13) ist **zweigeteilt**, nicht homogen:
+
+| Sub-Phase | Trades | Kausale Kante | Marktkontext |
+|---|---|---|---|
+| Fr 14.08 (Erholung nach R1-Verlassen-Drop) | T9–T11 | 64.309 → 64.790 → **65.038** (zieht nach) | SHORT in die Erholung 64.2 → 65.0 |
+| Mo 17.08 (echte Expansion) | T12–T13 | 65.752 → **65.798** (zieht nach) | SHORT in die Expansion → 66.4 |
+
+Kritische Einordnung: **T14/T15 (+6.71R/+6.60R) shorteten exakt
+dieselbe Kante 66.284 wenige Bars nach T13 und trafen den Turn.** Die
+P5-Verlustserie ist damit die **Kostenstruktur des Fade-Edges**, nicht
+ein Einzelfehler — die Trend-Expansion kostet seriell, bevor der Turn
+vergütet. Dieselbe Mechanik in P6 (T16/T17: LONG in den Fall 63.5 →
+62.8) und P2/P3 (T4/T5/T7/T8: junge Phasen, Kante frisch).
+
+**Muster B — Junge Profile / unfertige POC-Bildung (11/15, überlappend
+mit A):** Bei Alter < 40 ist das Volumenprofil noch dünn; die
+`_laufende_zone` (kumulativ ab `i_start`) liefert eine Kante, die mit
+jeder Bar mitwandert (`MIN_RECLAIM_CANDLES = 0`, Z. 221/1110 —
+Signale ab Bar 1 einer Phase). Der „Reclaim" stützt sich auf eine
+Kante ohne etablierte institutionelle Relevanz. **Aber:** junge Profile
+gewinnen auch (T25 Alter 2, +1.83R) — Muster B ist eine
+**Risiko-Konzentration**, kein deterministischer Verlust.
+
+**Muster C — Teilverlust/TP2-Reichweite (T3, T22):** siehe §8.9.3 —
+TP1 (POC) erreicht, Restcharge vor TP2 ausgestoppt.
+
+#### 8.9.6 Zwischenfazit AUG & offene nächste Schritte
+
+1. **Trigger-Integrität: 100 % regelkonform** — kein Logikfehler im
+   Regelwerk; die 15 Losses sind regelkonforme Kosten des Fade-Edges.
+2. **13 Voll-SL = Kosten in Trend-Expansionen (Muster A) und jungen
+   Profilen (B); 2 Teilverluste = TP2-Reichweiten-Thema (C), kein
+   Signalfehler.**
+3. **Naive geometrische Filter (Alter, Penetration, Reclaim-Tiefe)
+   sind datenwiderlegt** — die Winner-Kontrollgruppe (T25/T1/T2/T19/T20)
+   überlappt die Loser-Klasse.
+4. **Nächste Schritte (strikt sequentiell, Benutzer-Freigabe):**
+   Schritt 2 = S1-Obduktion (2026, ~90 Verlust-Trades) mit derselben
+   Methodik — prüft, ob Muster A/B in S1 dominieren und ob die
+   Winner-Überlappung dort kleiner ist; Schritt 3 = S2 (2025,
+   Low-Vol-Regime); Schritt 4 = Synthese/Prüfbericht (echter Logikfehler
+   vs. statistische Reibungsverluste eines gesunden Edges).
+
+**Belege (gitignored, in `test/` als Quellen vorerst erhalten):**
+`test/tmp_baseline_loss_replay.py`, `test/tmp_baseline_loss_replay.txt`
+(104 Zeilen, vollständiger Report inkl. Winner-Kontrast und
+Phasen-Liste mit i_start/i_ende).

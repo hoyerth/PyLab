@@ -687,6 +687,7 @@ den aktiven R1-Kanten im Rückbau-Lauf.
 | 03.09.2026 | **Spread-Check S2/S1** (Log-Inspektion): nur handelbare Phasen median 3.45 % (S2) / 2.77 % (S1); handelbar < 2.0 %: S2 4/22, S1 8/40 → strukturell ähnliche Regime | `test/tmp_spread_check.py` (gitignored), Befunde §5.4.1 |
 | 03.09.2026 | **Dokumenten-Fixierung §5.4:** `MIN_ESTABLISH_SPREAD_PCT` = 1.5 % **verbindlich fixiert**, Anhebung auf 2.0 % **verworfen** (Low-Vol-Unterdrückung S2); R1–R4-Makro-Abbildung architektonisch **vollständig an `macro_persistence.py` (Tier 2)** übergeben (Inspektion abgeschlossen, kein Code-Eingriff) | `73e5166`, dieses Dokument §5.4 |
 | 03.09.2026 | **Cleanup I4 + Statischer Veto-Trocken-Check AUG (§5.5):** `tmp_makro_swings_trace.py` gelöscht. 26 Trades rechnerisch gegen R1-Puffer (0.25 %): **0/26 Veto-Treffer** (einziger Preis-Kandidat Trade 9 = SHORT 64.244, zeitlich nach R1_L-Ablauf & R1-Unterbruch verworfen); LONG im R1_U-Puffer: 0 | dieses Dokument, §5.5 |
+| 03.09.2026 | **OOS-Vorbereitung §8 (Grenzphasen-Inspektion S2, Log statisch):** Ph8/19/48 etablieren unter E3 vor C 46 (keine Reißleinen-Exposition); **Ph13 kritisch** (1.5 % erst nach ~124 C → 78 C exponiert, keine Auslösung im Kanten-Verlauf); finale-Spread-Distanz ≠ Etablierungs-Verzögerung. OOS-Prüfschritte S1/S2 fixiert | dieses Dokument, §8 |
 
 ---
 
@@ -720,3 +721,80 @@ den aktiven R1-Kanten im Rückbau-Lauf.
 6. **Veto-Check §5.5:** 0/26 Trades im aktiven R1-Puffer → kein
    Handlungsbedarf im Rückbau-Zustand. Der Check ist auf die übrigen
    Makro-Zonen (R2–R4) übertragbar, falls ein Veto-Filter konzipiert wird.
+7. **OOS-Prüfplan §8 fixiert** (nach Freigabe): OOS-Lauf S1/S2 der
+   Arbeitskopie gegen §3; Reißleinen-Audit; close-basierte Verifikation der
+   Ph13-Analogfälle; Grenzphasen-Bucket-Überleben; AUG-Regressionsanker
+   (11 Phasen / 26 Sig / +27.06 R).
+
+---
+
+## 8. OOS-Prüfplan S1/S2 — Grenzphasen-Inspektion (03.09.2026)
+
+**Vorbereitung des OOS-Laufs (S1/S2) gegen die Arbeitskopie mit E3-Gate
+(1.5 %) + Reißleine (46 C).** Reine Log-Inspektion von
+`test/tmp_default_run_S2.log` (Baseline, 62 Phasen), keine Läufe.
+
+### 8.1 Grenzphasen (finaler Spread 1.5–2.0 %, handelbar) — E3-Verzögerung
+
+Die 4 S2-Grenzphasen aus §5.4.1 — Wann erreichte die **live**
+Kanten-Spanne (U−L)/L erstmals ≥ 1.5 %? (Candle-Zählung ab Phasenstart,
+M15; Kanten-Werte aus den OBEN/UNTEN-Entwicklungsketten des Logs):
+
+| Phase | Start → Ende | Candles gesamt | finaler Spread | 1. Fixierung U+L | Live-Spread dort | **1.5 % erreicht bei** | Candles bis 1.5 % |
+|---|---|---|---|---|---|---|---|
+| Ph8 | Mon 02.06 19:30 → Wed 04.06 12:45 | 158 | 1.57 % | Tue 02:30 (C 28) | **10.19 %** | sofort (C 28) | **~28** |
+| Ph13 | Mon 14.07 17:15 → Thu 17.07 14:45 | 267 | 1.81 % | Mon 20:30 (C 13) | 0.23 % → 0.49 % → 0.33 % → 1.11 % | Wed 00:15 (L fällt auf 37.694, U 38.313) | **~124** |
+| Ph19 | Fri 22.08 16:45 → Wed 27.08 15:30 | 272 | 1.67 % | Fri 20:45 (C 16) | **4.08 %** | sofort (C 16) | **~16** |
+| Ph48 | Wed 29.10 04:15 → Thu 30.10 08:45 | 111 | 1.95 % | Wed 07:00 (C 11) | 0.39 % | Wed 13:45 (U steigt auf 48.386, L 47.383) | **~38** |
+
+**Detail Ph13 (einzige langsame Expansion, Kette):** Mon 20:30 U 38.374 /
+L 38.287 = 0.23 % → Tue 00:15 L 38.187 = 0.49 % → Tue 04:30 U 38.313 =
+0.33 % (Spread **sinkt** zwischenzeitlich) → Tue 16:30 L 37.891 = 1.11 % →
+**Wed 00:15 L 37.694 = 1.64 % ≥ 1.5 %** (nach ~31 h = ~124 C).
+
+### 8.2 Reißleinen-Exposition (46-Candle-Schwelle)
+
+Die Not-Reißleine ist scharf ab C 46, solange `est_idx` fehlt
+(`RUNAWAY_MIN_CANDLES = 46`, arretiert §5.3); Auslösung erst bei 2-Close-
+Bruch um `runaway_tol` = 3 % von `p0` (Close der Start-Bar):
+
+| Phase | E3-Etablierung (≈ C) | Reißleine scharf? | Exposition | Auslösung im Verlauf? |
+|---|---|---|---|---|
+| Ph8 | ~28 | **Nein** (vor C 46 etabliert) | 0 C | — |
+| Ph13 | ~124 | **Ja** | C 46–124 = **78 C exponiert** | **Nein** (enges Band: L-Kante max −1.7 % von p0 ≈ 38.3, U-Kante +0.2 %; kein 3 %-Move; Close-Näherung über Kanten) |
+| Ph19 | ~16 | **Nein** | 0 C | — |
+| Ph48 | ~38 | **Nein** (knapp vor C 46) | 0 C (8 C Reserve) | — |
+
+**Befund:**
+1. **3 von 4 Grenzphasen (Ph8/19/48) etablieren unter E3 vor C 46** — die
+   Reißleine wird nie scharf. Ihre finalen Spreads (1.57–1.95 %) täuschen
+   nicht über die **frühe live-Spread-Öffnung** hinweg (Ph8/19 bereits bei
+   der ersten Kanten-Fixierung ≥ 4 %).
+2. **Ph13 ist der einzige kritische Fall:** langsame Spread-Expansion
+   (0.23 % → 1.64 % über 124 C), dadurch 78 Candles Reißleinen-Exposition.
+   Eine Auslösung ist im Log nicht erkennbar (Kanten-Band max ~1.9 %
+   Gesamtbewegung < 3 %-Schwelle), aber die Close-Daten liegen nicht im
+   Log — **close-basierte Verifikation ist Pflichtpunkt des OOS-Laufs**.
+3. Die finale-Spread-Distanz zur 1.5 %-Schwelle (1.57–1.95 %) korreliert
+   **nicht** mit der Etablierungs-Verzögerung: Ph48 (1.95 %, am nächsten an
+   2.0 %) etablierte bei C 38, Ph19 (1.67 %) bei C 16 — entscheidend ist
+   die **Expansionsgeschwindigkeit** der live-Kanten, nicht der Endwert.
+
+### 8.3 OOS-Prüfschritte S1/S2 (nach Freigabe)
+
+1. **OOS-Lauf S1/S2** der Arbeitskopie (E3 1.5 % + Reißleine 46): Vergleich
+   gegen §3 (S1+S2 ≥ +292.14 R, Baseline-Referenz +297.14 R);
+   Phasen-Zählung und Signal-Delta je Fenster dokumentieren.
+2. **Reißleinen-Audit:** alle Auslöser im Log (Bruch-Pfad „nicht etabliert"
+   ab C 46) tabellarisch erfassen; Ph13-Analogfälle (Etablierung > C 46) in
+   S1/S2 zählen.
+3. **Close-basierte Verifikation** der Ph13-Analogfälle (DuckDB read_only):
+   2-Close-Bruch um 3 % von `p0` mit echten Closes prüfen — nicht über die
+   Kanten-Kette nähern.
+4. **Grenzphasen-Bucket (1.5–2.0 %) zählen:** Wie viele der handelbaren
+   22 (S2) / 40 (S1) überleben E3 unverändert, wie viele werden durch die
+   Reißleine vorzeitig beendet, wie viele verlieren den HANDELBAR-Status?
+   Ziel: 18/22 (S2) und 32/40 (S1) der ≥ 2.0 %-Phasen bleiben erhalten;
+   Verluste nur im dokumentierten Risiko-Bucket.
+5. **AUG-Regressionsanker:** Kontrolllauf bleibt bei 11 Phasen / 26 Sig /
+   +27.06 R (§5.3) — kein Drift durch allfällige OOS-Anpassungen.

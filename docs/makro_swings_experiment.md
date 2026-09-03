@@ -687,7 +687,9 @@ den aktiven R1-Kanten im Rückbau-Lauf.
 | 03.09.2026 | **Spread-Check S2/S1** (Log-Inspektion): nur handelbare Phasen median 3.45 % (S2) / 2.77 % (S1); handelbar < 2.0 %: S2 4/22, S1 8/40 → strukturell ähnliche Regime | `test/tmp_spread_check.py` (gitignored), Befunde §5.4.1 |
 | 03.09.2026 | **Dokumenten-Fixierung §5.4:** `MIN_ESTABLISH_SPREAD_PCT` = 1.5 % **verbindlich fixiert**, Anhebung auf 2.0 % **verworfen** (Low-Vol-Unterdrückung S2); R1–R4-Makro-Abbildung architektonisch **vollständig an `macro_persistence.py` (Tier 2)** übergeben (Inspektion abgeschlossen, kein Code-Eingriff) | `73e5166`, dieses Dokument §5.4 |
 | 03.09.2026 | **Cleanup I4 + Statischer Veto-Trocken-Check AUG (§5.5):** `tmp_makro_swings_trace.py` gelöscht. 26 Trades rechnerisch gegen R1-Puffer (0.25 %): **0/26 Veto-Treffer** (einziger Preis-Kandidat Trade 9 = SHORT 64.244, zeitlich nach R1_L-Ablauf & R1-Unterbruch verworfen); LONG im R1_U-Puffer: 0 | dieses Dokument, §5.5 |
-| 03.09.2026 | **OOS-Vorbereitung §8 (Grenzphasen-Inspektion S2, Log statisch):** Ph8/19/48 etablieren unter E3 vor C 46 (keine Reißleinen-Exposition); **Ph13 kritisch** (1.5 % erst nach ~124 C → 78 C exponiert, keine Auslösung im Kanten-Verlauf); finale-Spread-Distanz ≠ Etablierungs-Verzögerung. OOS-Prüfschritte S1/S2 fixiert | dieses Dokument, §8 |
+| 03.09.2026 | **OOS-Vorbereitung §8 (Grenzphasen-Inspektion S2, Log statisch):** Ph8/19/48 etablieren unter E3 vor C 46 (keine Reißleinen-Exposition); **Ph13 kritisch** (1.5 % erst nach ~124 C → 78 C exponiert, keine Auslösung im Kanten-Verlauf); finale-Spread-Distanz ≠ Etablierungs-Verzögerung. OOS-Prüfschritte S1/S2 fixiert | `cd132dc`, dieses Dokument §8 |
+| 03.09.2026 | **Phase-13-Close-Verifikation §8.2a (DuckDB read_only):** p0 38.288; max close 38.351 (+0.16 %), min close 37.628 (−1.72 %) in C 46–124; **0** × 2-Close-Bruch der 3 %-Barrieren (39.437/37.139) → **Reißleine NEIN**, E3-Etablierung greift stabil ~C 124 | dieses Dokument, §8.2a |
+| 03.09.2026 | **S2-OOS-Lauf §8.4 (isolierte Arbeitskopie, Baseline-Modus, Gesamtjahr 2025):** 52 Phasen (vs. 62 Baseline), 26 handelbare Ranges; 209 Trades (106 L/103 S), WR 34.0 %, **+102.16R** (+8.46R vs. OOS-Referenz +93.70R, +2.28R vs. Baseline +99.88R), PF 1.80; **0 Reißleinen-Auslösungen**; Grenzphasen Ph8/19/48 überleben eigenständig (neue Phasen 8/16/40), **Ph13 → Phase 12 (723 C) verschmolzen, unschädlich** (+1.98R) | `test/tmp_oos_S2_lauf.log`, `test/stats_trades_MAKRO_S2.txt`, `test/phasen_makro_swings_S2.png` (gitignored), dieses Dokument §8.4 |
 
 ---
 
@@ -725,6 +727,16 @@ den aktiven R1-Kanten im Rückbau-Lauf.
    Arbeitskopie gegen §3; Reißleinen-Audit; close-basierte Verifikation der
    Ph13-Analogfälle; Grenzphasen-Bucket-Überleben; AUG-Regressionsanker
    (11 Phasen / 26 Sig / +27.06 R).
+8. **Phase-13-Close-Verifikation §8.2a erledigt:** Reißleine in Ph13
+   **nicht ausgelöst** (0 2-Close-Brüche, Band +0.16 %/−1.72 % um p0) —
+   §8.3 Nr. 3 ist für Ph13 abgeschlossen; auf die übrigen Ph13-Analogfälle
+   in S1/S2 übertragbar.
+9. **OOS-Schritt §8.3 Nr. 1 für S2 erledigt (§8.4):** Der S2-OOS-Lauf der
+   Arbeitskopie (E3 1.5 % + Reißleine 46) liefert **+102.16R** bei 209
+   Trades / 52 Phasen (PF 1.80, **0 Reißleinen**) — +8.46R über der
+   OOS-Referenz v0.4.x (+93.70R) und +2.28R über der Baseline (+99.88R).
+   Der **S1-OOS-Lauf ist der nächste offene OOS-Schritt** (§3-Referenz
+   +199.65R; S1+S2-Ziel ≥ +292.14R). §8.4 ist committbar (Tracking-Log §6).
 
 ---
 
@@ -780,6 +792,33 @@ Bruch um `runaway_tol` = 3 % von `p0` (Close der Start-Bar):
    2.0 %) etablierte bei C 38, Ph19 (1.67 %) bei C 16 — entscheidend ist
    die **Expansionsgeschwindigkeit** der live-Kanten, nicht der Endwert.
 
+### 8.2a Close-basierte DuckDB-Verifikation Phase 13 (C 46–124) — erledigt
+
+**Prüfobjekt:** `data/market_data.duckdb` (DuckDB read_only, S2-Fenster
+2025), Start-Bar df 12527 = 2025-07-14 17:15 UTC. Temp-Helper
+`test/tmp_phase13_close_check.py` (I4-konform, nach Nutzung gelöscht).
+**Parameter:** `p0` = close der Start-Bar = **38.288**; Barrieren:
+oben `p0 × 1.03` = **39.437**, unten `p0 × 0.97` = **37.139**.
+
+| Bereich | Bars | max close | min close | 2er-Folge > 39.437 | 2er-Folge < 37.139 |
+|---|---|---|---|---|---|
+| C 46–124 (strikt §8.2) | 79 | **38.351** (+0.16 % vs p0) | **37.628** (−1.72 % vs p0) | **0** | **0** |
+| C 40–130 (Sensitivitäts-Puffer) | 91 | 38.351 | 37.628 | **0** | **0** |
+
+**Befund (stichpunktartig):**
+- **Reißleinen-Auslösung: NEIN.** Kein einziger 2-Close-Bruch der 3 %-
+  Barrieren im exponierten Fenster C 46–124 (und im erweiterten
+  Sensitivitäts-Bereich C 40–130).
+- Der Markt pendelte in einem engen Band: max **+0.16 %** / min **−1.72 %**
+  relativ zu `p0` — die 3 %-Schwellen (±1.149 USD) wurden nie erreicht.
+- Der min-Close 37.628 korrespondiert exakt mit der L-Kanten-Evolution aus
+  §8.1 (Wed 00:15: L 37.694, Close leicht darunter) — die Kanten-Näherung
+  war korrekt.
+- **E3-Etablierung greift stabil bei ~C 124** — die Reißleine bleibt in
+  Phase 13 ohne reales Risiko; die §8.2-Diagnose „keine Auslösung" ist
+  damit **close-basiert verifiziert** (Pflichtpunkt 8.3 Nr. 3 für Ph13
+  erledigt).
+
 ### 8.3 OOS-Prüfschritte S1/S2 (nach Freigabe)
 
 1. **OOS-Lauf S1/S2** der Arbeitskopie (E3 1.5 % + Reißleine 46): Vergleich
@@ -798,3 +837,60 @@ Bruch um `runaway_tol` = 3 % von `p0` (Close der Start-Bar):
    Verluste nur im dokumentierten Risiko-Bucket.
 5. **AUG-Regressionsanker:** Kontrolllauf bleibt bei 11 Phasen / 26 Sig /
    +27.06 R (§5.3) — kein Drift durch allfällige OOS-Anpassungen.
+
+### 8.4 S2-OOS-Lauf (Gesamtjahr 2025) — Befund (03.09.2026)
+
+**Ausführung:** Arbeitskopie `scripts/phasen_makro_swings.py`
+(E3-Gate 1.5 % + Reißleine 46 C, arretiert §5.3), Baseline-Modus,
+`--start=2025-01-01 --ende=2025-12-01`. Artefakte:
+`test/tmp_oos_S2_lauf.log`, `test/stats_trades_MAKRO_S2.txt`,
+`test/phasen_makro_swings_S2.png` (alle gitignored).
+
+**Ergebnis-Übersicht:**
+
+| Kennzahl | S2-OOS (E3+Reißleine) | S2 Baseline v0.4.x | S2 OOS-Referenz v0.4.x (`--macro-live`) |
+|---|---|---|---|
+| Phasen gesamt | **52** | 62 | — |
+| Handelbare Ranges | **26** | 22 | — |
+| Trades | **209** (106 L / 103 S) | 210 Sig | 216 Sig |
+| Win-Rate | **34.0 %** (71/138) | — | — |
+| **Summe R** | **+102.16R** | +99.88R | +93.70R |
+| Profit-Faktor | **1.80** | — | — |
+| Reißleinen-Auslösungen | **0** | — | — |
+
+**Delta:** **+8.46R über der OOS-Referenz** (+93.70R) und **+2.28R über
+der Baseline** (+99.88R) — der Rückbau-Zustand (E3 + Reißleine 46, ohne
+E4a-Hülle) ist im S2-OOS-Fenster **nicht schlechter, sondern besser** als
+beide v0.4.x-Vergleichslinien.
+
+**Grenzphasen-Bucket (§8.1/§8.2, 4 kritische Phasen):**
+
+| alte Phase | neue Phase | Überleben | Trades / R |
+|---|---|---|---|
+| Ph8 (02.06–04.06, 1.57 %) | **Phase 8** (identisch, 158 C) | **überlebt eigenständig** | 2 Tr / +0.05R |
+| Ph13 (14.07–17.07, 1.81 %) | **Phase 12** (14.07–24.07, 723 C) | **verschmolzen** (mit alter Ph12+Ph14) | 15 Tr / +1.98R |
+| Ph19 (22.08–27.08, 1.67 %) | **Phase 16** (identisch, 272 C) | **überlebt eigenständig** | 4 Tr / −3.42R |
+| Ph48 (29.10–30.10, 1.95 %) | **Phase 40** (29.10–30.10, 117 C) | **überlebt eigenständig** | 2 Tr / +4.27R |
+
+**Befund (stichpunktartig):**
+- **Reißleine: 0 Auslösungen im gesamten S2-Jahr** — kein einziger
+  Bruch-Pfad „nicht etabliert" ab C 46 (Log-Suche leer). Die in §8.2
+  diagnostizierte Ph13-Exposition (78 C) bleibt ohne reale Auslösung —
+  konsistent zur close-basierten Verifikation §8.2a.
+- **Ph13-Verschmelzung unschädlich:** Die alte Ph13 (langsame
+  Spread-Expansion, ~124 C bis E3) wird Teil der 723-C-Mega-Phase 12
+  (14.07–24.07) mit 15 Trades / +1.98R — **keine** AUG-artige
+  Monsterphase-Verlustserie (Unterschied zur AUG-Monsterphase §5.3: hier
+  kein Trend-SHORT-Hagel gegen die wandernde Oberkante; die Phase blieb
+  range-artig und die Reclaim-Signale blieben asymmetrisch).
+- **Bucket-Ziel §8.3 Nr. 4:** Die ≥ 2.0 %-Phasen bleiben erhalten;
+  der dokumentierte Risiko-Bucket (1.5–2.0 %) verliert nur durch die
+  Ph13-Verschmelzung eine eigene Phase — ohne Signalverlust (Trades der
+  alten Ph13 laufen in Phase 12 weiter).
+- **E3 + Reißleine sind OOS-robust:** Phasen-Zählung sinkt von 62 auf 52
+  (E3-Verschmelzungswirkung, −10), die handelbaren Ranges steigen von 22
+  auf 26 — die E3-Konsolidierung erzeugt keine Handelbarkeits-Verluste.
+
+**Nächster Schritt (§7 Punkt 9):** S1-OOS-Lauf (Vergleich §3: +199.65R;
+S1+S2-Ziel ≥ +292.14R) inkl. Reißleinen-Audit und
+Grenzphasen-Bucket-Zählung für S1.

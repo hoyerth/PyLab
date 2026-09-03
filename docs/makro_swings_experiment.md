@@ -702,6 +702,7 @@ den aktiven R1-Kanten im Rückbau-Lauf.
 | 03.09.2026 | **Wand-Obduktion §8.8 (Bar-Ebene, 3 Fenster; Helper `test/tmp_wall_obduktion.py`):** AUG 2 Wand-Zeilen (0 FP / 2 TP), S1 30 (14 FP +51.64R / 16 TP), S2 42 (5 FP +23.88R / 37 TP). **Interview-Frage 1 datenwiderlegt:** Intra-Phase-Durchbruch (n_ph > 0) verwirft 100 % der Veto-Wirkung (AUG 2/2, S1 16/16, S2 37/37) — Reclaim feuert nach Seitentausch, „unberührte Wand" existiert praktisch nie. **Frage 2 datenwiderlegt (Achse invertiert):** größtes Veto-Cluster S2-P7 = 38.5–67.3 d alt, schlimmster FP S2-P49 +8.63R = frischeste Wand (d_ph_last 1, 6.4 d); S1 Winner/Loser über denselben Altersbereich. **Sammelwand S2-P49:** 5 Loser + +8.63R-Winner teilen exakt Wand 48.360 — keine Zonen-Regel trennt Versuch 1–5 von 6. **S1-Trigger-Nähe:** P129-Wand 0.05 über Entry (Retail-Falle) | Logs `test/tmp_wall_obduktion_{AUG,S1,S2}.txt` | dieses Dokument §8.8.2 |
 | 03.09.2026 | **Veto-Bilanz & Distanz-Check §8.8 (naiv + 1.0R-Klausel; Helper `test/tmp_wall_distance.py`):** Naiv: S1 23 geflaggt (12W/11L, +31.16R) → Blocken kostet −31.16R, S1+S2 ≈ +269.7R < Ziel. **1.0R-Klausel:** 48 geflaggt → 13 rehabilitiert (+13.91R) / 35 verbleibende Veto-Kandidaten kumuliert **+11.51R Netto-Gewinner** (S1 12 Kandidaten +15.25R, AUG 2 +2.00R, S2 21 −1.74R) → S1+S2-Projektion ≈ **+283.6R < +292.14R**. **Verdikt arretiert:** geometrisches Wand-Veto (naiv & mit Klausel) empirisch abgeschlossen — v0.4-AUG-Erfolg kommt aus Tier-2-Kanten-Substitution, nicht LOWER-Wand-Blockade; `macro_persistence.py` unverändert. Optionen (offen): Regime-/Trigger-Hypothese, Veto-Gate-Simulation mit Cooldown-Kaskade, oder Pfad-A-Abschluss | Logs `test/tmp_wall_distance_{AUG,S1,S2}.txt` | dieses Dokument §8.8.3/§8.8.4 |
 | 03.09.2026 | **Baseline-Fehltrade-Audit AUG §8.9 (Pfad B, kausaler Replay; Helper `test/tmp_baseline_loss_replay.py`, Log `test/tmp_baseline_loss_replay.txt`):** exec-Import-Cut NACH Baseline-Signal-Loop → 27 original erzeugte Signale, Mapping Log↔Replay **27/27 bitgenau**. **Trigger-Integrität 100 % regelkonform** (Cooldown ≥ 12, CRV ≥ 1.0, Bounce ≥ 2, Reclaim-Bedingung — kein Bug). **13 Voll-SL + 2 Teilverluste** (T3 −0.29R / T22 −0.36R: TP1 = POC erreicht, Restcharge vor TP2 am SL — TP2-Reichweiten-Thema, kein Signalfehler). **Naive Filter datenwiderlegt:** Profilalter (5/12 Winner ebenfalls < 40, T25 Alter 2 +1.83R) und Mikro-Penetration (T22 Pen 0.001 vs. Winner T1/T6/T24 RcDepth 0.005–0.008) trennen Winner/Loser nicht. **Muster A** Expansion-Trap/Kanten-Drift (P5 zweigeteilt: Fr 14.08 Erholung 64.309→65.038, Mo 17.08 Expansion 65.752→65.798; T14/T15 shorteten dieselbe Kante 66.284 + Turn — Kostenstruktur des Fade-Edges), **Muster B** junge Profile (11/15, überlappend), **Muster C** TP2-Reichweite. Nächste Schritte: S1 → S2 → Synthese (strikt sequentiell) | dieses Dokument §8.9 |
+| 03.09.2026 | **Kanten-Anker-Audit AUG §8.10 (Pfad B, Vorlauf-Pivot-Pool; Helper `test/tmp_anchor_audit.py`, Log `test/tmp_anchor_audit_AUG.txt`):** Geister-Hypothese (T9/T10/T11, T26 shorteten unverankerte Kanten) auf 27 Baseline-Trades erweitert: erweitertes Fenster ab 01.07.2026 (3848 Bars, 1052 Pivots H532/L520, Identik `find_pivots` Lookback 2), je Trade Kante vs. Vorphasen-Pivots der Seite (ts < Phasenstart). **Distanz allein trennt nicht** (alle 6 sondierten Kanten haben Vorphasen-H-Pivots in 0.001-0.014 USD); **Diskriminator = Volumen-Ratio** am naechsten Pivot (T14/T15 2.40 an Bar 286 13.08 02:30 vs. T9/T10/T11/T26 1.07/0.96/0.69/0.48). Quellen-Korrektur: 66.284-Anker stammt aus P4-Endphase/Topping, nicht Phase 2/3. **Veto-Bilanz Variante B (naechster Pivot <= 0.15 UND Ratio >= 1.5): 12/15 Verlierer geblockt (+10.64R verhindert, inkl. T9/T10/T11-Geister korrekt), aber 9/12 Winner faelschlich geblockt (-23.48R) → Netto -12.84R: Anker-Veto netto-schaedlich** — der Fade-Edge lebt von frischen Kanten ohne historischen Spike-Pivot (P9-SHORTs T20/T21/T23 +7.83R, P1-T1/T2, P7-T19, P12-T27). Saubere Trennung gilt NUR isoliert fuer die 5 P5-Trades; ueber den Gesamt-AUG-Datensatz kollabiert sie | dieses Dokument §8.10 |
 
 ---
 
@@ -1675,3 +1676,94 @@ TP1 (POC) erreicht, Restcharge vor TP2 ausgestoppt.
 `test/tmp_baseline_loss_replay.py`, `test/tmp_baseline_loss_replay.txt`
 (104 Zeilen, vollständiger Report inkl. Winner-Kontrast und
 Phasen-Liste mit i_start/i_ende).
+
+### 8.10 Anker-Audit AUG: Kanten-Verankerung im leeren Raum (Geister-Trades) — 03.09.2026
+
+**Ausgangshypothese (Pfad B, Feintrieb nach §8.9):** Die Geister-Trades
+(T9/T10/T11 in P5, T26 in P12) shorteten gegen phasen-lokale
+`_laufende_zone`-Kanten, die im Chart standen, **ohne historischen Anker**
+(bestätigter Vorphasen-Pivot mit **Volumen-Spike**); T14/T15 (+6.71R/+6.60R)
+hingen dagegen am massiven 66.284-Anker. Fragestellung: Wie viele der 15
+AUG-Verluste fallen durch ein Anker-Veto, und wie viele der 12 Winner
+blieben unangetastet?
+
+#### 8.10.1 Methodik: Vorphasen-Pivot-Pool mit Volumen-Ratio (kausal)
+
+**Helper:** `test/tmp_anchor_audit.py` → Log `test/tmp_anchor_audit_AUG.txt`.
+**Vorgehen:** exec-Import der Arbeitskopie mit **Cut NACH dem Baseline-
+Signal-Loop** (wie §8.9.1, 27/27 bitgenau, Phasen-`i_start` verifiziert) +
+**erweitertes Fenster ab 01.07.2026** (Vorlauf für P1/P2-Anker-Pool):
+3848 Bars (2026-07-01 00:00 .. 2026-08-27 22:45), **1052 Pivots
+(H 532 / L 520)**, Pivot-Identik = `find_pivots` (Lookback 2). Je Trade:
+Kante (U für SHORT, L für LONG) gegen **Vorphasen-Pivots der eigenen Seite**
+(`ts < Phasenstart`). Metriken je Trade: `best_dist`/`best_ratio` (nächster
+Pivot), `n_015` (Pivots im ±0.15-Fenster), `s15`/`s20` (irgendein
+Spike-Pivot im Fenster, Ratio ≥ 1.5/2.0), `AN15/AN20` (der **nächste**
+Pivot ≤ 0.15 **und** Spike). Ratio = Pivot-`tick_volume` / avg20 **vor**
+der Pivot-Bar (kausal, kein Lookahead).
+
+#### 8.10.2 Sondierungsergebnis (6-Trade-Kontrast, vorgezogen)
+
+- **Distanz allein trennt NICHT:** Alle 6 sondierten Kanten (T9/T10/T11/
+  T14/T15/T26) haben Vorphasen-H-Pivots in 0.001–0.014 USD — die Geister
+  shorteten **nicht im luftleeren Raum** (These auf Distanz-Ebene widerlegt).
+- **Diskriminator = Volumen-Ratio am nächsten Pivot:** T14/T15 = **2.40**
+  (Bar 286, 13.08 02:30, massiv) vs. T9/T10/T11/T26 = **1.07 / 0.96 /
+  0.69 / 0.48** (kein Spike).
+- **Quellen-Korrektur:** Der 66.284-Anker ist aus der **P4-Endphase /
+  Topping** (13.08 02:30, Bar 286), **nicht** aus Phase 2/3. P2 liefert
+  66.459 (Bar 107, Ratio 2.11, Dist 0.175).
+- **Faktor-Empfehlung:** ≥ 1.5× als Primärschwelle (19 % der 178 H-Pivots
+  ≥ 1.5, 8 % ≥ 2.0; bei 2.0 drohen leere Anker-Fenster in S2-Low-Vol).
+
+#### 8.10.3 Veto-Bilanz über den Gesamt-AUG-Datensatz (Kernbefund)
+
+**Variante A — „irgendein Spike-Pivot im ±0.15-Fenster"** (wie ursprünglich
+spezifiziert):
+
+| Schwelle | Verlierer ohne Anker (korrekt geblockt) | Winner ohne Anker (fälschlich geblockt) | Netto |
+|---|---|---|---|
+| 1.5× | 7/15 | **8/12 (−22.62R)** | **−16.98R** |
+| 2.0× | 11/15 | **9/12 (−24.45R)** | **−14.81R** |
+
+**Variante B — „NÄCHSTER Pivot muss ≤ 0.15 UND Spike sein"** (präziser, da
+der nächste Pivot der eigentliche Anker ist):
+
+| Schwelle | Verlierer ohne Anker | Winner ohne Anker | Netto |
+|---|---|---|---|
+| 1.5× | 12/15 (+10.64R verhindert) | **9/12 (−23.48R)** | **−12.84R** |
+| 2.0× | 13/15 (+11.64R verhindert) | **10/12 (−25.31R)** | **−13.67R** |
+
+**Schlüssel-Detail (Variante B, 1.5×):** Verlierer ohne Anker = T3, T5, T7,
+**T9, T10, T11** (die 3 Geister!), T12, T13, T16, T18, T22, T26 (12/15 ✓);
+übersehene Verlierer = T4, T8, T17. Aber **9/12 Winner wären fälschlich
+geblockt**: T1, T2, T6, T19, T20, T21, T23, T24, T27 (nur T14/T15/T25
+hätten Anker). Verlorene Gewinnsumme −23.48R > verhinderte Verluste
++10.64R → **Netto −12.84R**.
+
+#### 8.10.4 Verdikt & Einordnung
+
+1. **Das Anker-Veto ist als Filter netto-schädlich** (−12.84R): Es erkennt
+   die 3 P5-Geister korrekt, opfert aber den Großteil der Winner — v. a. die
+   P9-SHORTs T20/T21/T23 (+7.83R), P1-T1/T2 (+2.98R), P7-T19 (+4.26R),
+   P12-T27 (+0.86R), die an **frischen Kanten ohne historischen Spike-Pivot**
+   handeln. **Der Fade-Edge lebt von frischen Zonen.**
+2. **Die ursprünglich behauptete saubere Trennung gilt nur isoliert** für die
+   5 P5-Trades (T9–T11 ohne, T14/T15 mit Anker) — über den Gesamt-AUG-Datensatz
+   kollabiert sie, weil andere Winner (T6, T19–T24) ebenfalls an unverankerten
+   Kanten liegen. Eine auf P5 zugeschnittene Regel wäre eine **In-Sample-
+   Kurvenanpassung**.
+3. **Anker-Qualität ≠ Fehltrade-Ursache:** T4/T8/T17 (Verlierer MIT Anker,
+   Ratio bis 2.39) zeigen, dass ein historischer Spike-Pivot Verluste nicht
+   verhindert — die Kante muss **aktuell** institutionell relevant sein, nicht
+   nur historisch (deckungsgleich mit §8.8: „unberührte Wand existiert
+   praktisch nie").
+4. **Weiterführung Pfad B:** Die Geister-Frage ist damit auf AUG-Ebene
+   beantwortet (kein Distanz-/Anker-Filter trennt sauber); der sequentielle
+   Plan bleibt: **Schritt 2 = S1-Obduktion** (gleiche Methodik, ~90
+   Verlust-Trades) → Schritt 3 = S2 → Schritt 4 = Synthese.
+
+**Belege (gitignored, in `test/` als Quellen vorerst erhalten):**
+`test/tmp_anchor_audit.py`, `test/tmp_anchor_audit_AUG.txt` (27-Trade-Tabelle
+mit `best_dist`/`best_ratio`/`n_015`/`s15`/`s20`/`AN15`/`AN20` + vier
+Bilanz-Blöcke), `test/tmp_pivot_vol_probe.py` (Sondierung 6-Trade-Kontrast).

@@ -703,6 +703,7 @@ den aktiven R1-Kanten im Rückbau-Lauf.
 | 03.09.2026 | **Veto-Bilanz & Distanz-Check §8.8 (naiv + 1.0R-Klausel; Helper `test/tmp_wall_distance.py`):** Naiv: S1 23 geflaggt (12W/11L, +31.16R) → Blocken kostet −31.16R, S1+S2 ≈ +269.7R < Ziel. **1.0R-Klausel:** 48 geflaggt → 13 rehabilitiert (+13.91R) / 35 verbleibende Veto-Kandidaten kumuliert **+11.51R Netto-Gewinner** (S1 12 Kandidaten +15.25R, AUG 2 +2.00R, S2 21 −1.74R) → S1+S2-Projektion ≈ **+283.6R < +292.14R**. **Verdikt arretiert:** geometrisches Wand-Veto (naiv & mit Klausel) empirisch abgeschlossen — v0.4-AUG-Erfolg kommt aus Tier-2-Kanten-Substitution, nicht LOWER-Wand-Blockade; `macro_persistence.py` unverändert. Optionen (offen): Regime-/Trigger-Hypothese, Veto-Gate-Simulation mit Cooldown-Kaskade, oder Pfad-A-Abschluss | Logs `test/tmp_wall_distance_{AUG,S1,S2}.txt` | dieses Dokument §8.8.3/§8.8.4 |
 | 03.09.2026 | **Baseline-Fehltrade-Audit AUG §8.9 (Pfad B, kausaler Replay; Helper `test/tmp_baseline_loss_replay.py`, Log `test/tmp_baseline_loss_replay.txt`):** exec-Import-Cut NACH Baseline-Signal-Loop → 27 original erzeugte Signale, Mapping Log↔Replay **27/27 bitgenau**. **Trigger-Integrität 100 % regelkonform** (Cooldown ≥ 12, CRV ≥ 1.0, Bounce ≥ 2, Reclaim-Bedingung — kein Bug). **13 Voll-SL + 2 Teilverluste** (T3 −0.29R / T22 −0.36R: TP1 = POC erreicht, Restcharge vor TP2 am SL — TP2-Reichweiten-Thema, kein Signalfehler). **Naive Filter datenwiderlegt:** Profilalter (5/12 Winner ebenfalls < 40, T25 Alter 2 +1.83R) und Mikro-Penetration (T22 Pen 0.001 vs. Winner T1/T6/T24 RcDepth 0.005–0.008) trennen Winner/Loser nicht. **Muster A** Expansion-Trap/Kanten-Drift (P5 zweigeteilt: Fr 14.08 Erholung 64.309→65.038, Mo 17.08 Expansion 65.752→65.798; T14/T15 shorteten dieselbe Kante 66.284 + Turn — Kostenstruktur des Fade-Edges), **Muster B** junge Profile (11/15, überlappend), **Muster C** TP2-Reichweite. Nächste Schritte: S1 → S2 → Synthese (strikt sequentiell) | dieses Dokument §8.9 |
 | 03.09.2026 | **Kanten-Anker-Audit AUG §8.10 (Pfad B, Vorlauf-Pivot-Pool; Helper `test/tmp_anchor_audit.py`, Log `test/tmp_anchor_audit_AUG.txt`):** Geister-Hypothese (T9/T10/T11, T26 shorteten unverankerte Kanten) auf 27 Baseline-Trades erweitert: erweitertes Fenster ab 01.07.2026 (3848 Bars, 1052 Pivots H532/L520, Identik `find_pivots` Lookback 2), je Trade Kante vs. Vorphasen-Pivots der Seite (ts < Phasenstart). **Distanz allein trennt nicht** (alle 6 sondierten Kanten haben Vorphasen-H-Pivots in 0.001-0.014 USD); **Diskriminator = Volumen-Ratio** am naechsten Pivot (T14/T15 2.40 an Bar 286 13.08 02:30 vs. T9/T10/T11/T26 1.07/0.96/0.69/0.48). Quellen-Korrektur: 66.284-Anker stammt aus P4-Endphase/Topping, nicht Phase 2/3. **Veto-Bilanz Variante B (naechster Pivot <= 0.15 UND Ratio >= 1.5): 12/15 Verlierer geblockt (+10.64R verhindert, inkl. T9/T10/T11-Geister korrekt), aber 9/12 Winner faelschlich geblockt (-23.48R) → Netto -12.84R: Anker-Veto netto-schaedlich** — der Fade-Edge lebt von frischen Kanten ohne historischen Spike-Pivot (P9-SHORTs T20/T21/T23 +7.83R, P1-T1/T2, P7-T19, P12-T27). Saubere Trennung gilt NUR isoliert fuer die 5 P5-Trades; ueber den Gesamt-AUG-Datensatz kollabiert sie | dieses Dokument §8.10 |
+| 03.09.2026 | **AUG-Stresstest Anker-Volumen-Ratio-Filter §8.11 (Arbeitsauftrag; Helper `test/tmp_stresstest_bilanz.py`, Log `test/tmp_stresstest_bilanz.txt`):** Filterwirkung ueber ALLE 27 Baseline-Trades aus dem kanonischen Audit-Log §8.10. **In keiner der 4 Varianten ist der Filter ein Alpha-Verstaerker:** A (irgendein Spike-Pivot im ±0.15-Fenster) 1.5×/2.0× → AUG nach Filter ≈ +8.0R/+10.2R (Δ −17.0R/−14.8R); B (naechster Pivot ≤ 0.15 UND Spike) 1.5×/2.0× → ≈ +12.1R/+11.3R (Δ −12.8R/−13.7R). Gegencheck Winner-Gruppe (strikt spikege15): **9/12 Winner geblockt** (−23.48R: T1/T2/T6/T19/T20/T21/T23/T24/T27) — nur T14/T15/T25 ueberleben; groesster Kollateralschaden T6 +4.59R und T19 +4.26R. Verbleibende Sets kollabieren auf 4–12 Trades (WR/PF scheinbar besser = Kleinstichproben-Artefakt). **Verdikt: blinder Overfit an den P5-Cluster** — der Fade-Edge handelt systematisch an frischen, unverankerten Kanten; Anker-Volumen-Filter endgueltig verworfen | dieses Dokument §8.11 |
 
 ---
 
@@ -1767,3 +1768,87 @@ hätten Anker). Verlorene Gewinnsumme −23.48R > verhinderte Verluste
 `test/tmp_anchor_audit.py`, `test/tmp_anchor_audit_AUG.txt` (27-Trade-Tabelle
 mit `best_dist`/`best_ratio`/`n_015`/`s15`/`s20`/`AN15`/`AN20` + vier
 Bilanz-Blöcke), `test/tmp_pivot_vol_probe.py` (Sondierung 6-Trade-Kontrast).
+
+### 8.11 AUG-Stresstest: Anker-Volumen-Ratio-Filter (spikege15/spikege20) — Bilanz & Overfitting-Verdikt — 03.09.2026
+
+**Arbeitsauftrag:** Wie wirkt ein strikter Anker-Volumen-Bedingung auf das
+**gesamte** AUG-Fenster (alle 27 Baseline-Trades, nicht nur die 5
+P5-Trades)? Frage: Ist der Volumen-Spike-Filter ein **echter
+Alpha-Verstärker** oder eine **blinde Überanpassung (Overfitting)**?
+
+**Methodik:** Filterregel = Trade wird nur zugelassen, wenn sich am
+Anker-Pivot ein Volumen-Spike nachweisen lässt: mindestens ein
+Vorphasen-Pivot (ts < Phasenstart) im **±0.15-USD-Fenster** um die
+phasen-lokale Kante mit `tick_volume`-Ratio ≥ Schwelle gegen das
+avg20 **vor** der Pivot-Bar (kausal). **spikege15** = Ratio ≥ 1.5,
+**spikege20** = Ratio ≥ 2.0. Zwei Lesarten (wie §8.10): **A** = irgendein
+Spike-Pivot im Fenster (Arbeitsauftrag-Spezifikation); **B** = der
+**nächste** Pivot muss ≤ 0.15 UND Spike sein (strikte Anker-Lesart).
+Werte = kanonischer Audit-Log §8.10 (Vollpräzision); Post-Filter-Gesamt =
+Baseline +24.97R − geblockte Verlierer-R + geblockte Winner-R.
+
+#### 8.11.1 Bilanz über alle 27 Trades
+
+| Lesart | Schwelle | geblockte Verlierer | verhinderte Verluste | geblockte Winner | verlorene Gewinne | AUG nach Filter | Δ vs. +24.97R | verbleibend |
+|---|---|---|---|---|---|---|---|---|
+| A | 1.5× (spikege15) | 7/15 | +5.64R | 8/12 | −22.62R | **≈ +8.0R** | **−17.0R** | 12 (4W/8L) |
+| A | 2.0× (spikege20) | 11/15 | +9.64R | 9/12 | −24.45R | **≈ +10.2R** | **−14.8R** | 7 (3W/4L) |
+| B | 1.5× | 12/15 | +10.64R | 9/12 | −23.48R | **≈ +12.1R** | **−12.8R** | 6 (3W/3L) |
+| B | 2.0× | 13/15 | +11.64R | 10/12 | −25.31R | **≈ +11.3R** | **−13.7R** | 4 (2W/2L) |
+
+**Keine einzige Variante übertrifft die ungefilterte Baseline.** Der
+höchste Post-Filter-Wert (B 1.5×: ≈ +12.1R) liegt **−12.8R unter
++24.97R** — der Filter halbiert das AUG-Ergebnis, selbst wenn er seine
+höchste Trefferquote (12/15 Verlierer) erreicht.
+
+#### 8.11.2 Gegencheck Winner-Gruppe (strikt spikege15, Lesart B)
+
+**9 der 12 Gewinner würden fälschlich geblockt** (−23.48R):
+
+| geblockter Winner | R | | geblockter Winner | R |
+|---|---|---|---|---|
+| T1 (P1) | +1.29 | | T21 (P9) | +2.67 |
+| T2 (P1) | +1.69 | | T23 (P9) | +2.10 |
+| T6 (P2) | **+4.59** | | T24 (P9) | +2.96 |
+| T19 (P7) | **+4.26** | | T27 (P12) | +0.86 |
+| T20 (P9) | +3.06 | | **Summe** | **−23.48R** |
+
+Überleben nur **T14/T15** (P5, 66.284-Anker, +6.71R/+6.60R) und **T25**
+(P12, +1.83R). Größter Kollateralschaden: **T6 (+4.59R)** und **T19
+(+4.26R)** — beide handeln an frischen Kanten ohne historischen
+Spike-Pivot. Die 3 „mit Anker" verbliebenen Verlierer (T4/T8/T17) zeigen
+zusätzlich: Ein historischer Spike-Pivot **verhindert Verluste nicht**
+(Kante muss aktuell relevant sein, deckungsgleich §8.10.4 Pkt. 3).
+
+#### 8.11.3 Verdikt: Alpha-Verstärker oder Überanpassung?
+
+**Verdikt: KEIN Alpha-Verstärker — der Filter ist eine blinde
+Überanpassung an den P5-Cluster.**
+
+1. **Statistisch netto-schädlich in allen 4 Varianten** (−12.8 … −17.0R):
+   Der Kollateralschaden an der Winner-Gruppe (−22.62 … −25.31R) übersteigt
+   die verhinderten Verluste (+5.64 … +11.64R) in jedem Fall.
+2. **Scheinbar „bessere" Kennzahlen nach Filter = Kleinstichproben-
+   Artefakt:** B 1.5× hinterlässt 6 Trades (3W/3L, WR 50 %, PF ~5.0) — bei
+   22 % Sample-Rest ist die PF-Schätzung wertlos; zugleich halbiert sich das
+   Gesamt-R. Ein Filter, der 15 von 27 Trades eliminiert und trotzdem −12.8R
+   verliert, ist keine Selektion, sondern Datenvernichtung.
+3. **Konzeptioneller Kern (warum der Filter strukturell falsch liegt):**
+   Der saubere P5-Kontrast (Geister T9–T11 ohne Anker vs. T14/T15 mit Anker)
+   ist **In-Sample**: Über den Gesamt-AUG-Datensatz handeln 8–10 der 12
+   Winner (v. a. P9-SHORTs T20/T21/T23 +7.83R, P1-T1/T2, P7-T19) an
+   **ebenso unverankerten frischen Kanten**. Der Fade-Edge lebt
+   **systematisch** von frischen Zonen — eine Anker-Pflicht würde genau
+   diese Edge-Qualität bestrafen. Die Geister-Verluste sind nicht
+   „fehlender Anker", sondern die serielle Kostenstruktur des Fade-Edges in
+   Trend-Expansionen (§8.9.5, Muster A).
+4. **Konsequenz:** Anker-Volumen-Ratio-Filter **endgültig verworfen**
+   (Pfad-B-Dokumentation abgeschlossen für AUG). Weiterführung gemäß
+   §8.10.4 Pkt. 4: **Schritt 2 = S1-Obduktion** (Replay + Trigger-Integrität
+   + Filter-Kontrast, ~90 Verlust-Trades aus 216 Baseline-Trades), dann S2,
+   dann Synthese.
+
+**Belege (gitignored, in `test/` vorerst erhalten):**
+`test/tmp_anchor_audit.py`, `test/tmp_anchor_audit_AUG.txt` (Kernquelle,
+27-Trade-Tabelle + 4 Bilanz-Blöcke), `test/tmp_stresstest_bilanz.py`,
+`test/tmp_stresstest_bilanz.txt` (Rechnung dieser Sektion).

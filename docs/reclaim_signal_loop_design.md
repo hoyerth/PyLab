@@ -604,7 +604,82 @@ wie im S3-Store, aber jetzt über die Baseline-Schnittmengen-Kante).
 
 ---
 
-## 9. Offene Review-Punkte (vor Implementierung)
+## 9. Standard-Artefakte (verbindliche Default-Ausgaben der Pipeline)
+
+> **Stand v0.4.x (03.09.):** Jeder produktive Durchlauf von
+> `scripts/phasen_volumen_profil.py` erzeugt **ohne Sonderflags** zwei
+> Standard-Artefakte unter `test/` — sie sind die verbindliche,
+> reproduzierbare Ausgabe jedes Laufs (Referenz-Verankerung der
+> §8-Zielzahlen). Die Legacy-Artefakte (`scripts/phasen_volumen_profil.png`
+> bzw. `.txt`) bleiben daneben aktiv (Parallelbetrieb, getrackt).
+
+| Artefakt | Default-Pfad | Inhalt |
+|---|---|---|
+| Statistik- & Trade-Report | `test/stats_trades_<FENSTER>.txt` | Kennzahlen-Kopf + vollständiger Trade-Log je Modus (§9.2) |
+| Standard-Chart | `test/phasen_volumen_profil_<FENSTER>.png` | Preis-Chart mit Kanten, Reclaim-Signalen, Overlays (§9.3) |
+
+### 9.1 Fenster-Label (Namens-Schlüssel)
+
+`fenster_label(start, ende)` bildet die bekannten Referenzfenster auf
+kompakte Labels ab: **AUG** (`2026-08-10`→`2026-08-28`), **S1**
+(`2026-02-05`→`2026-08-28`), **S2** (`2025-01-01`→`2025-12-01`); unbekannte
+Fenster erhalten ein datumsbasiertes Fallback-Label (`YYYYMMDD_YYYYMMDD`).
+Das Label steckt in beiden Standard-Dateinamen — AUG/S1/S2-Läufe
+überschreiben sich nie gegenseitig.
+
+### 9.2 .txt-Report (`export_stats_trades`, rein lesend)
+
+- **Aufbau:** Ein Abschnitt je Modus — der **Baseline**-Abschnitt läuft
+  immer; mit `--macro-live` kommt der **Macro-Live**-Abschnitt hinzu
+  (Kennung „Stand v0.4.x: OVERRUN_TOL=0.075, D2-asym, A3/B3").
+- **Kopfbereich:** Fenster/Modus + Kennzahlen (`_stats_kennzahlen`):
+  Signale/Trades gesamt, Long/Short, Win-Rate, Summe R, Avg Win, Avg Loss,
+  Profit-Faktor (`unendl.` bei keinem Verlust-Trade). Ableitung strikt aus
+  den bestehenden Trade-Ergebnissen (resultat + `r_mult` der Auflösung),
+  keine abweichenden R-Formeln.
+- **Trade-Log:** Tabellarisch je Trade: `Trade_Nr | Phase_ID | Bar_Signal |
+  Bar_Entry | Type | Direction | Entry_Price | Tier | R_Result |
+  Cumulative_R` — damit ist jeder Trade bar-genau auditierbar.
+- **Override:** Der .txt-Pfad ist via `--stats-txt=<pfad>` überschreibbar;
+  das Fenster-Label wird dann aus dem Datei-Stem abgeleitet
+  (`_label_aus_stem`, z. B. `stats_trades_AUG` → `AUG`).
+- **Verifikation:** Die §8-IST-Zeilen (AUG 25/+34.87R, S1 199/+199.65R,
+  S2 216/+93.70R; Baseline bitgenau 27/+24.97R) sind in den Reports
+  bitgenau reproduziert (Baseline- UND Macro-Live-Abschnitt).
+
+### 9.3 Chart (`render_standard_chart`, rein lesend)
+
+Layout wie der Hauptskript-Chart (Abschnitt 7): High/Low-Balken,
+Phasen-Hintergrund (`axvspan`), Volume-Zonen (Tier-1-Kanten
+`U_zone`/`L_zone`/`POC` + Sub-Berge), Reaktions-Extreme, Moves-Pfeile.
+Zusätzlich im Standard-Chart:
+
+- **Tier-2-Kanten:** distanzbegrenzte Makro-Anker (`edge_decision.tier ==
+  2`) als **lila gestrichelte** Linien über ihre Nutzungs-Spanne.
+- **Reclaim-Signale:** Dreiecke — SHORT unten (`v`, rot `#c00000`), LONG
+  oben (`^`, grün `#1a7d1a`); **gefüllt = `in_bar`**, offen = `next_bar`;
+  Tier-2-Signale zusätzlich mit Ring.
+- **Baseline-Kontrolllage** (nur `--macro-live`): Baseline-Signale als
+  **offene Kreise** — Differenz-Sicht: nur Kreis = entfallen, nur Dreieck
+  = neu.
+- **Benchmark-Overlay** (nur AUG): exakte historische Referenz-Musterlinien
+  `USER_LINES_AUG` (`R1_U`..`R4_L`), Zeitfenster via `np.searchsorted`.
+- **Statistik-Box** (`stat_lines`) oben links.
+- **Rendering-Trennung:** `SignalMarkerStil` (frozen Dataclass) statt
+  Ad-hoc-Plot-Dicts; die Funktion liest ausschließlich aus `df/phases/
+  moves/signals` und manipuliert **keinen** Berechnungszustand.
+
+### 9.4 Verifikation & Sichtprüfung (03.09.)
+
+- `.txt`-Reports: `test/stats_trades_{AUG,S1,S2}.txt` — bitgenau gegen §8.
+- `.png`-Charts: `test/phasen_volumen_profil_{AUG,S1,S2}.png` —
+  Zähl-Kontrolle im Konsolen-Hinweis (AUG-Baseline: 27 Dreiecke, 0 Kreise;
+  AUG-`--macro-live`: 25 Dreiecke + 27 Kreise, 3 Tier-2-Ringe, 8
+  Referenz-Linien; S1/S2: 1 Modus-Abschnitt, keine Referenz-Linien).
+
+---
+
+## 10. Offene Review-Punkte (vor Implementierung)
 
 1. **Tier-1-Bestätigung (E2):** Schwelle `|center - U_zone| <= DENSITY_BAND`
    ist der v1-Vorschlag. Alternativen: (a) direkter Dichte-Test ≥2 Pivots in
@@ -643,7 +718,7 @@ wie im S3-Store, aber jetzt über die Baseline-Schnittmengen-Kante).
 
 ---
 
-## 10. Implementierungsreihenfolge (nach Freigabe)
+## 11. Implementierungsreihenfolge (nach Freigabe)
 
 > **Stand v0.4 (03.09.):** Schritte 1–5 sind für v0.2/v0.3 abgeschlossen.
 > Für v0.4 folgten (alle ARRETIERT & implementiert):
@@ -654,6 +729,11 @@ wie im S3-Store, aber jetzt über die Baseline-Schnittmengen-Kante).
 >    (D2-asym, `last_bar_t1`/`last_bar_t2`) in `find_reclaim_signals`;
 >    Baseline-Pfad (keine States) bleibt bitgenau auf `last_bar_t1`.
 > 8. Verifikations-/Benchmark-Lauf §8/8 — alle Zielzahlen exakt erreicht.
+> 9. Standard-Artefakte (§9): `export_stats_trades` (`.txt`-Report) +
+>    `render_standard_chart` (`.png`-Chart) + Default-Erzeugung Block 7f —
+>    jeder Lauf ohne Sonderflags schreibt `test/stats_trades_<FENSTER>.txt`
+>    und `test/phasen_volumen_profil_<FENSTER>.png` (Parallelbetrieb mit
+>    den getrackten Legacy-Artefakten, `--stats-txt=`-Override).
 
 1. **Review dieses Dokuments** durch User/Mentor (v0.3: E3-Fallback,
    E5-Seiten-Konsistenz, Entscheidungs-Tabelle §3, P5-/P7-Beweis §2.1/§2.2).
@@ -678,12 +758,13 @@ wie im S3-Store, aber jetzt über die Baseline-Schnittmengen-Kante).
 
 ---
 
-## 11. Versions-Historie
+## 12. Versions-Historie
 
 | Version | Datum | Änderung |
 |---|---|---|
 | v0.1 | 02.09.2026 | Erster Entwurf E1–E5 (Tier 1/2, Penetrations-Gate, max_dist) |
-| v0.2 | 02.09.2026 | **E3-Fallback arretiert** nach OOS-Falsifikation (Σ −82.8R): kein `None` bei fehlendem Tier-2-Anker → Tier-1-Fallback (`tier=1`, `bestaetigt=False`); P5-Schutz-Beweis §2.1; Entscheidungs-Tabelle §3; E4-Geltungsbereich präzisiert (NUR Tier 2); §8-Regression + §10-Reihenfolge angepasst |
+| v0.2 | 02.09.2026 | **E3-Fallback arretiert** nach OOS-Falsifikation (Σ −82.8R): kein `None` bei fehlendem Tier-2-Anker → Tier-1-Fallback (`tier=1`, `bestaetigt=False`); P5-Schutz-Beweis §2.1; Entscheidungs-Tabelle §3; E4-Geltungsbereich präzisiert (NUR Tier 2); §8-Regression + §11-Reihenfolge angepasst |
 | v0.3 | 02.09.2026 | **E5-Seiten-Konsistenz arretiert** nach P7-Diagnose: `best_local_macro_anchor` filtert auf Vektor statt nur Radius (UPPER `center > close − tol`, LOWER `center < close + tol`; `tol = PENETRATION_TOL` = E4-Dual, kein neuer Freiheitsgrad). P7 +4.26R kehrt zurück (überrundeter Anker 65.994 verworfen → Fallback → U_zone 67.157); P5-Schutz unangetastet; next_bar-Tier-2 +6.90R bleibt (Toleranz statt strikt). **AUG-IST: 24 Sig / +28.17R = Baseline +3.20R** |
 | v0.4 | 03.09.2026 | **Kanten-Kapselung (D1-mid) + Cooldown-Entkopplung (D2-asym) arretiert & implementiert** nach S2-Diagnose (Klasse A: Anker-Verdrängung/E4-Fail; Klasse B: Cooldown-Killer). E6: `_anchor_verdraengt_erlaubt` (a_sym-Kapselung `center ≥ lokal_kante − tol` + Überrannt-Filter `overrun_tol = 0.5 × PENETRATION_TOL = 0.075`); D2-asym: `last_bar_t1`/`last_bar_t2` in `find_reclaim_signals` (Tier 1 sperrt Tier 2, nie umgekehrt). **IST (produktive Läufe): AUG 25/+34.87R (P5 4/4, T2-66.364 +6.90R), S1 199/+199.65R, S2 216/+93.70R (6/7), S1+S2 = +293.35R ≥ +292.14R; Baseline bitgenau 27/+24.97R.** c_sym0 (strikt tol=0.0) als Curve-Fitting verworfen (tötet AUG-T2-66.364); P27 +2.01R als legitimer Kompromiss akzeptiert. |
 | v0.4.x | 03.09.2026 | **Härtung (Pfad A, Mentor-Freigabe) — Doku + Code synchron:** §3-Signatur `resolve_active_edge` ohne `side`-Parameter (B3: `st.side` = Single Source of Truth; E2-typ/E4-Penetration/E6-Kapselung leiten sich aus `st.side` ab); B3-Invariante hart erzwungen in `update_touch` (`raise ValueError` bei `t.side != st.side`); A3-Bounds-Guard `k + 2 <= p.i_ende` in beiden `next_bar`-Zweigen (kein IndexError am Datenende, Variante 1 — keine in_bar-Umdeutung); Type-Safety: `MacroPhase`-Protocol + frozen `SideSnapshot`/`PhaseSnapshot` statt impliziter Dicts. Null-Einfluss: Baseline bitgenau 27 Sig/+24.97R. |
+| v0.4.x | 03.09.2026 | **Standard-Artefakte verankert (Referenz-Verankerung, Parallelbetrieb mit Legacy):** neuer Abschnitt §9 — jeder Pipeline-Lauf erzeugt ohne Sonderflags `test/stats_trades_<FENSTER>.txt` (Baseline- + optional Macro-Live-Abschnitt, `--stats-txt=`-Override) und `test/phasen_volumen_profil_<FENSTER>.png` (Tier-1/2-Kanten, Dreiecke gefüllt=`in_bar`/offen=`next_bar` + Tier-2-Ring, Baseline-Kreise bei `--macro-live`, AUG-Referenz-Overlay `USER_LINES_AUG`). `fenster_label` AUG/S1/S2/Fallback; Rendering strikt rein lesend (`SignalMarkerStil` frozen Dataclass). Verifiziert bitgenau gegen §8-IST; §9–§11 umnummeriert zu §10–§12. |

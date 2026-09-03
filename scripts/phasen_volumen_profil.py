@@ -50,7 +50,7 @@ import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Literal, Optional, Tuple
+from typing import Dict, List, Literal, Optional, Sequence, Tuple
 
 import duckdb
 import matplotlib
@@ -280,6 +280,38 @@ for _a in sys.argv[1:]:
     if _a.startswith("--trailing="):
         TRAILING_PCT = float(_a.split("=", 1)[1])
         print(f"==> TRAILING_PCT ueberschrieben: {TRAILING_PCT}")
+
+# ==============================================================================
+# FENSTER-LABEL & STANDARD-ARTEFAKTE (Default-Ausgaben JEDES Laufs)
+# ==============================================================================
+
+ROOT_DIR: Path = Path(__file__).resolve().parent.parent
+TEST_DIR: Path = ROOT_DIR / "test"
+
+
+def fenster_label(start: str, ende: str) -> str:
+    """Kompaktes Fenster-Label fuer die Standard-Dateinamen.
+
+    Args:
+        start: Start-Datum (YYYY-MM-DD) des geladenen Fensters.
+        ende: End-Datum (YYYY-MM-DD) des geladenen Fensters.
+
+    Returns:
+        "AUG" / "S1" / "S2" fuer die bekannten Referenzfenster, sonst ein
+        datumsbasiertes Fallback-Label (YYYYMMDD_YYYYMMDD).
+    """
+    if start == "2026-08-10" and ende == "2026-08-28":
+        return "AUG"
+    if start == "2026-02-05" and ende == "2026-08-28":
+        return "S1"
+    if start == "2025-01-01" and ende == "2025-12-01":
+        return "S2"
+    return f"{start[:10].replace('-', '')}_{ende[:10].replace('-', '')}"
+
+
+FENSTER_LABEL: str = fenster_label(START, ENDE)
+STATS_TXT_DEFAULT: Path = TEST_DIR / f"stats_trades_{FENSTER_LABEL}.txt"
+CHART_PNG_DEFAULT: Path = TEST_DIR / f"phasen_volumen_profil_{FENSTER_LABEL}.png"
 
 # ==============================================================================
 # 1) DATEN EINLESEN (Strikt DuckDB)
@@ -1770,3 +1802,577 @@ if "--macro" in sys.argv:
         _macro_dist_ref = (df["high"] - df["low"]).rolling(
             200, min_periods=20).mean().shift(1)
         print(macro_report(phases, df, level_schnittmenge, _macro_dist_ref))
+
+# ==============================================================================
+# 7e) STANDARD-ARTEFAKTE (verbindliche Standard-Ausgaben JEDES Durchlaufs)
+#     Default (ohne Sonderflags) werden bei jedem Lauf synchron erzeugt:
+#       1. test/stats_trades_<FENSTER>.txt           Statistik- & Trade-Log
+#       2. test/phasen_volumen_profil_<FENSTER>.png  Standard-Chart
+#     Der .txt-Pfad ist optional via --stats-txt=... ueberschreibbar.
+#     Zusaetzlich bleiben die Legacy-Ausgaben des Hauptskripts aktiv
+#     (scripts/phasen_volumen_profil.png/.txt, Abschnitte 6a/7).
+#
+#     Inhalt des Standard-Charts (rein lesend, KEIN Eingriff in Signal-,
+#     Kanten- oder Orderlogik - Rendering manipuliert keinen Zustand):
+#       * Phasen-Kanten Tier 1 (U_zone/L_zone je Phase) und Tier 2
+#         (distanzbegrenzte Makro-Anker als gestrichelte Linien + Ring)
+#       * Reclaim-Signale: Dreiecke, gefuellt = in_bar / offen = next_bar
+#       * AUG-Referenz: exakte historische User-Ideallinien (R1_U..R4_L)
+#         als Overlay fuer das August-Fenster (benchmark_lines)
+#       * im --macro-live-Lauf zusaetzlich Baseline-Kontroll-Kreise (o)
+#     Alle Kennzahlen werden AUSSCHLIESSLICH aus den bereits berechneten
+#     Trade-Ergebnissen abgeleitet (s.trade.resultat / s.trade.r_mult) -
+#     keine abweichenden Formeln, keine neuen Heuristiken.
+# ==============================================================================
+
+@dataclass(frozen=True, slots=True)
+class SignalMarkerStil:
+    """Rein darstellendes Marker-Styling eines Reclaim-Signals.
+
+    Enthaelt KEINE Logik und keinen Zustands-Zugriff - dient ausschliesslich
+    der Chart-Darstellung (Rendering manipuliert den Berechnungszustand nie).
+    """
+    marker: str          # "v" = SHORT (unten) / "^" = LONG (oben)
+    farbe: str           # Richtungsfarbe (rot = SHORT / gruen = LONG)
+    gefuellt: bool       # True = in_bar (gefuellt), False = next_bar (offen)
+    groesse: float       # Punktgroesse (matplotlib s)
+
+
+def signal_marker_stil(s: ReclaimSignal) -> SignalMarkerStil:
+    """Marker-Stil eines Reclaim-Signals (Richtung + Entry-Typ).
+
+    Args:
+        s: Reclaim-Signal (rein lesend).
+
+    Returns:
+        SignalMarkerStil mit Marker-Form, Richtungsfarbe, Fuell-Status
+        (in_bar gefuellt / next_bar offen) und Groesse.
+    """
+    if s.typ == "SHORT":
+        return SignalMarkerStil(marker="v", farbe="#c00000",
+                                gefuellt=s.reclaim == "in_bar", groesse=60.0)
+    return SignalMarkerStil(marker="^", farbe="#1a7d1a",
+                            gefuellt=s.reclaim == "in_bar", groesse=60.0)
+
+
+def _stats_kennzahlen(signals: List[ReclaimSignal]) -> Dict[str, object]:
+    """Aggregiert die Statistik-Kennzahlen eines Signal-/Trade-Satzes.
+
+    Ableitung ausschliesslich aus den bestehenden Trade-Ergebnissen:
+    resultat-Klassen GEWONNEN/VERLOREN/NEUTRAL + r_mult der vorhandenen
+    Aufloesung (keine abweichenden R-Formeln). Win-Rate = Gewinntrades /
+    Gesamttrades * 100 (Spezifikation Schritt 1).
+
+    Args:
+        signals: aufgeloeste Reclaim-Signale eines Modus (s.trade != None).
+
+    Returns:
+        Dict mit den Kennzahlen (n, long, short, win, loss, neutral,
+        winrate_pct, sum_r, avg_win, avg_loss, brutto_gewinn,
+        brutto_verlust, profit_faktor). profit_faktor = None bedeutet
+        "kein Verlust-Trade" (unendlich).
+    """
+    n = len(signals)
+    n_long = sum(1 for s in signals if s.typ == "LONG")
+    n_short = n - n_long
+    wins: List[float] = []
+    losses: List[float] = []
+    sum_r = 0.0
+    for s in signals:
+        assert s.trade is not None
+        sum_r += s.trade.r_mult
+        if s.trade.resultat == "GEWONNEN":
+            wins.append(s.trade.r_mult)
+        elif s.trade.resultat == "VERLOREN":
+            losses.append(s.trade.r_mult)
+    n_win = len(wins)
+    n_loss = len(losses)
+    n_neutral = n - n_win - n_loss
+    winrate_pct = 100.0 * n_win / n if n else 0.0
+    avg_win = sum(wins) / n_win if n_win else 0.0
+    avg_loss = sum(losses) / n_loss if n_loss else 0.0
+    brutto_gewinn = sum(wins)
+    brutto_verlust = abs(sum(losses))
+    if brutto_verlust > 0.0:
+        profit_faktor: Optional[float] = brutto_gewinn / brutto_verlust
+    elif brutto_gewinn > 0.0:
+        profit_faktor = None          # unendlich (kein Verlust-Trade)
+    else:
+        profit_faktor = 0.0
+    return {
+        "n": n, "long": n_long, "short": n_short,
+        "win": n_win, "loss": n_loss, "neutral": n_neutral,
+        "winrate_pct": winrate_pct, "sum_r": sum_r,
+        "avg_win": avg_win, "avg_loss": avg_loss,
+        "brutto_gewinn": brutto_gewinn, "brutto_verlust": brutto_verlust,
+        "profit_faktor": profit_faktor,
+    }
+
+
+def _trade_log_rows(
+    signals: List[ReclaimSignal],
+) -> List[Tuple[int, int, int, int, str, str, float, int, float, float]]:
+    """Baut die Trade-Log-Zeilen eines Modus (Handelsreihenfolge = ts).
+
+    Zeilen-Tupel: (Trade_Nr, Phase_ID, Bar_Signal, Bar_Entry, Type,
+    Direction, Entry_Price, Tier, R_Result, Cumulative_R). Cumulative_R
+    ist die fortlaufende R-Summe ueber die sortierte Handelsreihenfolge.
+    Tier = s.edge_decision.tier; Baseline-Signale ohne Kanten-Entscheidung
+    sind per Konstruktion Tier 1 (lokale Volume-Kante).
+    """
+    rows: List[Tuple[int, int, int, int, str, str, float, int, float, float]] = []
+    cum = 0.0
+    for nr, s in enumerate(sorted(signals, key=lambda x: (x.ts, x.bar)), 1):
+        assert s.trade is not None
+        tier = s.edge_decision.tier if s.edge_decision is not None else 1
+        r = s.trade.r_mult
+        cum += r
+        rows.append((nr, s.phase, s.bar, s.einstieg_bar, s.reclaim,
+                     s.typ, s.einstieg_preis, tier, r, cum))
+    return rows
+
+
+def export_stats_trades(
+    ziel_datei: Path,
+    fenster: str,
+    start: str,
+    ende: str,
+    baseline_signals: List[ReclaimSignal],
+    macro_signals: Optional[List[ReclaimSignal]] = None,
+) -> str:
+    """Schreibt den vollstaendigen Statistik- & Trade-Report eines Fensters.
+
+    Datei-Aufbau je Abschnitt (Modus):
+      Kopfbereich mit Fenster/Modus + Kennzahlen (Signale/Trades gesamt,
+      Long/Short, Win-Rate, Summe R, Avg Win, Avg Loss, Profit-Faktor),
+      danach der tabellarische Trade-Log (alle ausgefuhrten Trades mit
+      kumulierter R-Spalte).
+
+    Args:
+        ziel_datei: Ausgabe-Pfad der .txt-Datei (z. B. test/stats_trades_AUG.txt).
+        fenster: Fenster-Label (AUG, S1, S2) fuer den Kopfbereich.
+        start: Start-Datum des Fensters (Anzeige).
+        ende: End-Datum des Fensters (Anzeige).
+        baseline_signals: Signale/Trades des Baseline-Laufs.
+        macro_signals: optional Signale/Trades des --macro-live-Laufs
+            (v0.4.x); None -> nur Baseline-Abschnitt.
+
+    Returns:
+        Kompakte Konsolen-Zusammenfassung (mehrzeilig).
+    """
+    _modi: List[Tuple[str, str, List[ReclaimSignal]]] = [
+        ("Baseline", "Baseline (Standardlauf ohne Makro-Flag)", baseline_signals),
+    ]
+    if macro_signals is not None:
+        _modi.append((
+            "Macro-Live",
+            "--macro-live (Stand v0.4.x: OVERRUN_TOL=0.075, D2-asym, A3/B3)",
+            macro_signals,
+        ))
+
+    _w_nr, _w_ph, _w_sig, _w_ent = 8, 8, 10, 9
+    _w_typ, _w_dir, _w_pr, _w_tier = 10, 9, 11, 6
+    _w_r, _w_cum = 8, 12
+    _header = (
+        f"{'Trade_Nr':>{_w_nr}} | {'Phase_ID':>{_w_ph}} | "
+        f"{'Bar_Signal':>{_w_sig}} | {'Bar_Entry':>{_w_ent}} | "
+        f"{'Type':>{_w_typ}} | {'Direction':>{_w_dir}} | "
+        f"{'Entry_Price':>{_w_pr}} | {'Tier':>{_w_tier}} | "
+        f"{'R_Result':>{_w_r}} | {'Cumulative_R':>{_w_cum}}"
+    )
+
+    def _abschnitt(modus_txt: str,
+                   sigs: List[ReclaimSignal]) -> List[str]:
+        """Ein Modus-Abschnitt: Kopfbereich (Kennzahlen) + Trade-Log."""
+        k = _stats_kennzahlen(signals=sigs)
+        pf_txt: str
+        if k["profit_faktor"] is None:
+            pf_txt = "unendl. (kein Verlust-Trade)"
+        else:
+            pf_txt = f"{float(k['profit_faktor']):.2f}"
+        out = [
+            "-" * 118,
+            f"Fenster: {fenster}  ({start} - {ende})  |  Modus: {modus_txt}",
+            "-" * 118,
+            f"Signale/Trades gesamt : {k['n']}",
+            f"Long / Short          : {k['long']} / {k['short']}",
+            f"Win-Rate              : {float(k['winrate_pct']):.1f}%  "
+            f"({k['win']} Gewinn / {k['loss']} Verlust / {k['neutral']} Neutral)",
+            f"Summe R (kumuliert)   : {float(k['sum_r']):+.2f}",
+            f"Avg Win (R)           : {float(k['avg_win']):+.2f}  "
+            f"(ueber {k['win']} Gewinntrades)",
+            f"Avg Loss (R)          : {float(k['avg_loss']):+.2f}  "
+            f"(ueber {k['loss']} Verlusttrades)",
+            f"Profit-Faktor         : {pf_txt}  "
+            f"(Brutto-Gewinn-R {float(k['brutto_gewinn']):+.2f} / "
+            f"Brutto-Verlust-R {-float(k['brutto_verlust']):+.2f})",
+            "",
+            f"TRADE-LOG ({k['n']} Trades; R_Result und Cumulative_R in R; "
+            f"Cumulative_R fortlaufend in Handelsreihenfolge)",
+        ]
+        if sigs:
+            out.append(_header)
+            for (nr, ph, sig_bar, ent_bar, typ, direc, preis,
+                 tier, r, cum) in _trade_log_rows(sigs):
+                out.append(
+                    f"{nr:>{_w_nr}d} | {ph:>{_w_ph}d} | {sig_bar:>{_w_sig}d} | "
+                    f"{ent_bar:>{_w_ent}d} | {typ:>{_w_typ}s} | "
+                    f"{direc:>{_w_dir}s} | {preis:>{_w_pr}.3f} | "
+                    f"{('Tier ' + str(tier)):>{_w_tier}s} | "
+                    f"{r:+{_w_r}.2f} | {cum:+{_w_cum}.2f}"
+                )
+        else:
+            out.append("(keine Signale)")
+        return out
+
+    zeilen: List[str] = [
+        "=" * 118,
+        f"STATS & TRADE-REPORT | Fenster: {fenster}  ({start} - {ende})",
+        "=" * 118,
+        "Vergleich: Baseline (Standardlauf ohne Makro-Flag) vs. "
+        "--macro-live (v0.4.x).",
+    ]
+    for _kurz, _txt, _sigs in _modi:
+        zeilen.extend(_abschnitt(_txt, _sigs))
+        zeilen.append("")
+    zeilen.append("=" * 118)
+
+    with open(ziel_datei, "w", encoding="utf-8") as _f:
+        _f.write("\n".join(zeilen) + "\n")
+
+    # Kompakte Konsolen-Zusammenfassung
+    _sum: List[str] = [f"[STATS-EXPORT] Datei: {ziel_datei}"]
+    for _kurz, _txt, _sigs in _modi:
+        _k = _stats_kennzahlen(_sigs)
+        _pf = ("unendl." if _k["profit_faktor"] is None
+               else f"{float(_k['profit_faktor']):.2f}")
+        _sum.append(
+            f"[STATS-EXPORT] {fenster} | {_kurz:10s} | "
+            f"n={_k['n']:3d} | Long {_k['long']:3d} / Short {_k['short']:3d} | "
+            f"WR {float(_k['winrate_pct']):5.1f}% | SumR {float(_k['sum_r']):+8.2f}R | "
+            f"AvgW {float(_k['avg_win']):+5.2f}R | AvgL {float(_k['avg_loss']):+5.2f}R | "
+            f"PF {_pf}"
+        )
+    return "\n".join(_sum)
+
+
+def render_standard_chart(
+    ziel_png: Path,
+    fenster: str,
+    start: str,
+    ende: str,
+    df: pd.DataFrame,
+    phases: List[PhaseData],
+    moves: List[MoveData],
+    signals: List[ReclaimSignal],
+    baseline_signals: Optional[List[ReclaimSignal]] = None,
+    benchmark_lines: Optional[Sequence[UserMacroLine]] = None,
+    stat_lines: Optional[List[str]] = None,
+    modus_txt: str = "",
+) -> str:
+    """Erzeugt den Standard-Chart zur visuellen Kontrolle (rein lesend).
+
+    Rendering-Trennung: Die Funktion liest ausschliesslich aus df/phases/
+    moves/signals - sie manipuliert KEINEN Berechnungszustand (keine Mutation
+    von Phasen-, Signal- oder Trade-Objekten).
+
+    Layout wie Hauptskript-Chart (Abschnitt 7): High/Low-Balken, Phasen-
+    Hintergrund (axvspan), Volume-Zonen (Tier-1-Kanten U_zone/L_zone/POC +
+    Sub-Berge), Reaktions-Extreme, Moves-Pfeile. Zusaetzlich:
+      * Tier-2-Kanten: distanzbegrenzte Makro-Anker (edge_decision.tier==2)
+        als lila gestrichelte Linien ueber ihre Nutzungs-Spanne.
+      * Reclaim-Signale (signals): Dreiecke (SHORT unten / LONG oben),
+        gefuellt = in_bar, offen = next_bar; Tier-2-Signale mit Ring.
+      * baseline_signals (optional, --macro-live): offene Kreise als
+        Baseline-Kontrolllage (Differenz-Sicht: nur Kreis = entfallen,
+        nur Dreieck = neu).
+      * benchmark_lines (optional, AUG): exakte historische Referenz-
+        Musterlinien (USER_LINES_AUG: R1_U..R4_L) als Overlay.
+      * stat_lines (optional): Statistik-Box im Chart.
+
+    Args:
+        ziel_png: Ausgabe-Pfad der PNG-Datei
+            (Default test/phasen_volumen_profil_<FENSTER>.png).
+        fenster: Fenster-Label (AUG/S1/S2) fuer den Titel.
+        start: Start-Datum des Fensters (Titel).
+        ende: End-Datum des Fensters (Titel).
+        df: OHLCV-DataFrame der Baseline (Spalten idx/ts/high/low/...).
+        phases: Baseline-Phasen (Volume-Zonen fuer die Darstellung).
+        moves: Phasenwechsel (Pfeile wie Hauptskript).
+        signals: aktive Modus-Signale des Laufs (Dreiecke; Stil nach
+            signal_marker_stil + Tier-2-Ring).
+        baseline_signals: optional Baseline-Kontroll-Signale (offene Kreise),
+            z. B. _baseline_sigs im --macro-live-Lauf.
+        benchmark_lines: optional User-Ideallinien fuer das AUG-Overlay
+            (USER_LINES_AUG); None fuer Nicht-August-Fenster.
+        stat_lines: optional Statistik-Zeilen (Box oben links).
+        modus_txt: Modus-Kennung fuer den Titel (z. B. "Baseline").
+
+    Returns:
+        Konsolen-Hinweis (Datei + Signal-Zaehlungen).
+    """
+    fig, ax = plt.subplots(figsize=(17, 9))
+    idx = df["idx"].values
+    ax.plot(idx, df["high"], color="#bbb", lw=0.5)
+    ax.plot(idx, df["low"], color="#bbb", lw=0.5)
+
+    colors = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd"]
+    for i_p, p in enumerate(phases):
+        c = colors[i_p % len(colors)]
+        ax.axvspan(p.i_start, p.i_ende, color=c, alpha=0.07)
+        vz = p.vol_zone
+        if vz is None:
+            continue
+
+        ax.hlines(vz.U_zone, p.i_start, p.i_ende, color="#1a7d1a", lw=2.4, alpha=0.95)
+        ax.hlines(vz.L_zone, p.i_start, p.i_ende, color="#c00000", lw=2.4, alpha=0.95)
+        ax.hlines(vz.POC, p.i_start, p.i_ende, color="#e07b00", lw=1.8, ls="-.")
+        ax.text(p.i_start + 2, vz.U_zone + 0.10, f"OBEN(VAH) {vz.U_zone:.2f}",
+                fontsize=8, color="#1a7d1a", fontweight="bold", va="bottom")
+        ax.text(p.i_start + 2, vz.L_zone - 0.10, f"UNTEN(VAL) {vz.L_zone:.2f}",
+                fontsize=8, color="#c00000", fontweight="bold", va="top")
+        ax.text(p.i_start + 2, vz.POC + 0.10, f"POC {vz.POC:.2f}",
+                fontsize=8, color="#e07b00", fontweight="bold", va="bottom")
+
+        for j_pk, pk in enumerate(vz.peaks, 1):
+            if j_pk == 1 and vz.n_mountains == 1:
+                continue
+            ax.hlines(pk.vah, p.i_start, p.i_ende, color="#2ca02c", lw=1.0, ls=":", alpha=0.75)
+            ax.hlines(pk.val, p.i_start, p.i_ende, color="#d62728", lw=1.0, ls=":", alpha=0.75)
+            ax.hlines(pk.poc, p.i_start, p.i_ende, color="#e07b00", lw=0.9, ls=":", alpha=0.75)
+
+        if p.U_final is not None:
+            ax.hlines(p.U_final, p.i_start, p.i_ende, color="k", lw=1.6, ls="--", alpha=0.55)
+            ax.text(p.i_start + 2, p.U_final + 0.28, f"REAKTION OBEN {p.U_final:.2f}",
+                    fontsize=7.5, color="k", alpha=0.8, fontweight="bold", va="bottom")
+        if p.L_final is not None:
+            ax.hlines(p.L_final, p.i_start, p.i_ende, color="k", lw=1.6, ls="--", alpha=0.55)
+            ax.text(p.i_start + 2, p.L_final - 0.28, f"REAKTION UNTEN {p.L_final:.2f}",
+                    fontsize=7.5, color="k", alpha=0.8, fontweight="bold", va="top")
+
+    for m in moves:
+        ix = df["idx"][df["ts"] == m.von_ts].iloc[0] if (df["ts"] == m.von_ts).any() else np.nan
+        iy = df["idx"][df["ts"] == m.bis_ts].iloc[0] if (df["ts"] == m.bis_ts).any() else np.nan
+        if np.isnan(ix) or np.isnan(iy):
+            continue
+        ax.annotate("", xy=(iy, m.bis_pr), xytext=(ix, m.von_pr),
+                    arrowprops=dict(arrowstyle="->", color="k", lw=2.2,
+                                    connectionstyle="arc3,rad=0.0"))
+
+    # Tier-2-Kanten: distanzbegrenzte Makro-Anker als Linien-Segmente
+    _t2_spans: Dict[float, List[int]] = {}
+    for s in signals:
+        _ed = s.edge_decision
+        if _ed is not None and _ed.tier == 2:
+            _t2_spans.setdefault(float(_ed.edge_price), []).append(int(s.bar))
+    for _price, _bars in _t2_spans.items():
+        _x0, _x1 = min(_bars), max(_bars)
+        ax.hlines(_price, _x0, _x1, color="#7b1fa2", lw=1.2, ls="--",
+                  alpha=0.9, zorder=4)
+        ax.text(_x0, _price + 0.05, f"T2 {_price:.3f}", fontsize=7,
+                color="#7b1fa2", fontweight="bold", va="bottom")
+
+    # Baseline-Kontrolllage: offene Kreise (zuerst -> Dreiecke liegen darueber)
+    if baseline_signals is not None:
+        for s in baseline_signals:
+            x = s.bar
+            if s.typ == "SHORT":
+                y = float(df["high"].iloc[x])
+                col = "#c00000"
+            else:
+                y = float(df["low"].iloc[x])
+                col = "#1a7d1a"
+            ax.scatter(x, y, marker="o", s=26, facecolors="none",
+                       edgecolors=col, linewidths=0.9, zorder=5)
+
+    # Aktive Modus-Signale: Dreiecke (SHORT unten / LONG oben), gefuellt =
+    # in_bar / offen = next_bar; Tier-2-Signale zusaetzlich mit Ring.
+    for s in signals:
+        x = int(s.bar)
+        if s.typ == "SHORT":
+            y = float(df["high"].iloc[x])
+        else:
+            y = float(df["low"].iloc[x])
+        stil = signal_marker_stil(s)
+        if stil.gefuellt:
+            ax.scatter(x, y, marker=stil.marker, s=stil.groesse,
+                       color=stil.farbe, zorder=6, edgecolor="w",
+                       linewidths=0.4)
+        else:
+            ax.scatter(x, y, marker=stil.marker, s=stil.groesse,
+                       facecolors="none", edgecolors=stil.farbe,
+                       linewidths=1.0, zorder=6)
+        if s.edge_decision is not None and s.edge_decision.tier == 2:
+            ax.scatter(x, y, marker="o", s=stil.groesse + 70,
+                       facecolors="none", edgecolors="#7b1fa2",
+                       linewidths=1.1, zorder=5)
+
+    # AUG-Referenz-Musterlinien: exakte User-Ideallinien (R1_U..R4_L)
+    ts_arr = df["ts"].to_numpy()
+    if benchmark_lines is not None:
+        for ul in benchmark_lines:
+            if ul.end_ts < df["ts"].min() or ul.start_ts > df["ts"].max():
+                continue
+            x0 = int(np.searchsorted(ts_arr, np.datetime64(ul.start_ts),
+                                     side="left"))
+            x1 = int(np.searchsorted(ts_arr, np.datetime64(ul.end_ts),
+                                     side="right")) - 1
+            x0 = max(0, min(x0, len(df) - 1))
+            x1 = max(0, min(x1, len(df) - 1))
+            if x1 < x0:
+                continue
+            ax.hlines(ul.price, x0, x1, color="#0b5394", lw=2.0, alpha=0.9,
+                      zorder=3)
+            ax.text(x0, ul.price + 0.07, ul.name, fontsize=7.5,
+                    color="#0b5394", fontweight="bold", va="bottom")
+
+    step = max(8, len(df) // 16)
+    ticks = np.arange(0, len(df), step)
+    ax.set_xticks(ticks)
+    ax.set_xticklabels([df["ts"].iloc[t].strftime("%a %d.%m %H:%M")
+                        for t in ticks], rotation=45, ha="right", fontsize=8)
+    ax.set_xlim(-1, len(df))
+    _modus_ttl = f" | Modus {modus_txt}" if modus_txt else ""
+    _aug_ttl = " | AUG-Referenz-Overlay" if benchmark_lines is not None else ""
+    ax.set_title(f"SILVER M15 {start} - {ende} | Fenster {fenster}"
+                 f"{_modus_ttl} | STANDARD-CHART: Tier-1/2-Kanten, "
+                 f"Reclaims in_bar/next_bar{_aug_ttl}")
+    ax.set_ylabel("USD")
+    ax.grid(alpha=0.3)
+
+    legend_elements: List[Line2D] = [
+        Line2D([0], [0], color="#1a7d1a", lw=2.4, label="Tier-1 Kante OBEN (VAH)"),
+        Line2D([0], [0], color="#c00000", lw=2.4, label="Tier-1 Kante UNTEN (VAL)"),
+        Line2D([0], [0], color="#e07b00", lw=1.8, ls="-.", label="MITTE (POC)"),
+        Line2D([0], [0], color="#2ca02c", lw=1.0, ls=":", label="Sub-Berg VAH"),
+        Line2D([0], [0], color="#d62728", lw=1.0, ls=":", label="Sub-Berg VAL"),
+        Line2D([0], [0], color="k", lw=1.6, ls="--", label="REAKTIONS-Extreme"),
+        Line2D([0], [0], marker="v", color="w", mfc="#c00000", ms=8,
+               label="Reclaim SHORT in_bar"),
+        Line2D([0], [0], marker="v", color="w", mfc="none", mec="#c00000", ms=8,
+               label="Reclaim SHORT next_bar"),
+        Line2D([0], [0], marker="^", color="w", mfc="#1a7d1a", ms=8,
+               label="Reclaim LONG in_bar"),
+        Line2D([0], [0], marker="^", color="w", mfc="none", mec="#1a7d1a", ms=8,
+               label="Reclaim LONG next_bar"),
+    ]
+    if baseline_signals is not None:
+        legend_elements.append(
+            Line2D([0], [0], marker="o", color="w", mfc="none", mec="#c00000",
+                   ms=7, label="Baseline SHORT (o)"))
+        legend_elements.append(
+            Line2D([0], [0], marker="o", color="w", mfc="none", mec="#1a7d1a",
+                   ms=7, label="Baseline LONG (o)"))
+    if _t2_spans:
+        legend_elements.append(
+            Line2D([0], [0], color="#7b1fa2", lw=1.2, ls="--",
+                   label="Tier-2 Makro-Kante"))
+        legend_elements.append(
+            Line2D([0], [0], marker="o", color="w", mfc="none", mec="#7b1fa2",
+                   ms=10, label="Tier-2 Signal (Ring)"))
+    if benchmark_lines is not None:
+        legend_elements.append(
+            Line2D([0], [0], color="#0b5394", lw=2.0,
+                   label="AUG-Referenzlinie (User)"))
+    ax.legend(handles=legend_elements, loc="upper left", fontsize=7.5,
+              framealpha=0.95)
+
+    if stat_lines:
+        ax.text(0.30, 0.985, "\n".join(stat_lines), transform=ax.transAxes,
+                fontsize=7.5, va="top", ha="left", family="monospace",
+                bbox=dict(boxstyle="round,pad=0.45", facecolor="#fdf6e3",
+                          edgecolor="gray", alpha=0.95))
+
+    fig.tight_layout()
+    fig.savefig(ziel_png, dpi=130)
+    plt.close(fig)
+
+    n_t2 = len(_t2_spans)
+    n_bench = len(benchmark_lines) if benchmark_lines is not None else 0
+    n_b = len(baseline_signals) if baseline_signals is not None else 0
+    return (f"[STANDARD-CHART] Datei: {ziel_png} | Fenster {fenster} | "
+            f"Signale {len(signals)} (Dreiecke) | Baseline-Overlay {n_b} (o) "
+            f"| Tier-2-Kanten {n_t2} | AUG-Referenzlinien {n_bench}")
+
+
+# ==============================================================================
+# 7f) DEFAULT-ERZEUGUNG DER STANDARD-ARTEFAKTE (jeder Lauf, ohne Sonderflags)
+#     .txt-Pfad optional via --stats-txt=... ueberschreibbar; der Standard-
+#     Chart heisst immer test/phasen_volumen_profil_<FENSTER>.png.
+# ==============================================================================
+
+def _label_aus_stem(stem: str) -> str:
+    """Extrahiert das Fenster-Label aus einem Datei-Stem.
+
+    Args:
+        stem: Dateiname ohne Endung (z. B. stats_trades_AUG).
+
+    Returns:
+        Fenster-Label (z. B. AUG); unbekannte Stems bleiben unveraendert.
+    """
+    for _prefix in ("stats_trades_", "stats_", "phasen_volumen_profil_"):
+        if stem.startswith(_prefix):
+            return stem[len(_prefix):]
+    return stem
+
+
+_stats_txt_args = [a for a in sys.argv if a.startswith("--stats-txt=")]
+if _stats_txt_args:
+    _stats_txt_path = Path(_stats_txt_args[0].split("=", 1)[1])
+    _fenster_label = _label_aus_stem(_stats_txt_path.stem)
+else:
+    _stats_txt_path = STATS_TXT_DEFAULT
+    _fenster_label = FENSTER_LABEL
+
+_chart_png = TEST_DIR / f"phasen_volumen_profil_{_fenster_label}.png"
+_bench_lines: Optional[tuple[UserMacroLine, ...]] = (
+    USER_LINES_AUG if _fenster_label == "AUG" else None
+)
+
+if _macro_live:
+    _stats_summary = export_stats_trades(
+        ziel_datei=_stats_txt_path,
+        fenster=_fenster_label,
+        start=START,
+        ende=ENDE,
+        baseline_signals=_baseline_sigs,
+        macro_signals=reclaim_signals,
+    )
+    _chart_hinweis = render_standard_chart(
+        ziel_png=_chart_png,
+        fenster=_fenster_label,
+        start=START,
+        ende=ENDE,
+        df=df,
+        phases=phases,
+        moves=moves,
+        signals=reclaim_signals,
+        baseline_signals=_baseline_sigs,
+        benchmark_lines=_bench_lines,
+        stat_lines=_stat_lines,
+        modus_txt="--macro-live",
+    )
+else:
+    _stats_summary = export_stats_trades(
+        ziel_datei=_stats_txt_path,
+        fenster=_fenster_label,
+        start=START,
+        ende=ENDE,
+        baseline_signals=reclaim_signals,
+    )
+    _chart_hinweis = render_standard_chart(
+        ziel_png=_chart_png,
+        fenster=_fenster_label,
+        start=START,
+        ende=ENDE,
+        df=df,
+        phases=phases,
+        moves=moves,
+        signals=reclaim_signals,
+        baseline_signals=None,
+        benchmark_lines=_bench_lines,
+        stat_lines=_stat_lines,
+        modus_txt="Baseline",
+    )
+print("\n" + _stats_summary)
+print("\n" + _chart_hinweis)

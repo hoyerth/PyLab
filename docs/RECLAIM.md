@@ -161,6 +161,44 @@
 > aufrufen, sind durch die Signaturänderung obsolet (eingefroren,
 > nicht erneut ausführbar - kein Regressionsthema).
 > **Letzter Schritt (03.09.2026):** **PRODUKTIONSÜBERNAHME / UM-BENENNUNG ABGESCHLOSSEN** — `scripts/tmp_phasen_volumen_profil.py` → `scripts/phasen_volumen_profil.py` (2-Stufen-Reihenfolge, Mentor-Entscheid; Commit-Umfang = vollständiger Stand). Stufe 1 = Commit `cba2a93` (Härtung v0.4.x); Stufe 2 = `git mv` (R-Status 100 % Rename). **Stufe 3 (Referenz-Bereinigung, synchron):** `OUT_PNG`-Konstante → `phasen_volumen_profil.png` im Hauptskript; Docstring-Aufruf in `scripts/macro_persistence.py`; Pfad-Referenzen in `docs/RECLAIM.md` (13×), `docs/reclaim_signal_loop_design.md` (2×), `docs/reclaim_makro_persistenz_design.md` (1×, Design-Vertrag jetzt getrackt) sowie 15 lokale Pfad-Konstanten in `test/` (test/ bleibt gitignored); Artefakte `.png`/`.txt` via `git mv` mitgenommen. Historische Belege (`test/archiv/`, `test/SESSION_HANDOFF.md`, `tmp_v0x_*`-Protokolle) bewusst eingefroren. docs/reclaim_v04_mentor_vorlage.md bleibt als temporäres Arbeitspapier untracked (Mentor-Urteil: Living Docs vs. Sitzungsprotokoll). **Verifikation:** `py_compile` ✓ beider Scripts; `git grep` = 0 Alt-Referenzen auf getrackte Dateien. **Stufe 4 = Rename-/Konsolidierungs-Commit (`refactor(architektur)`).**
+> **Letzter Schritt (03.09.2026, Fortsetzung):** **SCHRITT 1 + STANDARD-ARTEFAKTE
+> VERANKERT** (Code + Doku fertig, UNCOMMITTET seit `aea6913`):
+> 1) **Stats-/Trade-Export (`.txt`):** Block 7e in
+> `scripts/phasen_volumen_profil.py` (`_stats_kennzahlen`,
+> `_trade_log_rows`, `export_stats_trades`) - rein lesend; Abschnitte:
+> Baseline immer, Macro-Live zusätzlich bei `--macro-live`. Erzeugt
+> `test/stats_trades_{AUG,S1,S2}.txt` (AUG 85 Z., S1 433, S2 459), bitgenau
+> gegen Referenz (Baseline AUG 27/+24.97R; `--macro-live` AUG 25/+34.87R).
+> 2) **Visuelle Kontrolle (`.png`):** `render_standard_chart` (o = Baseline-
+> Kreis, Dreieck = aktiver Modus) - Nutzer-Wahl: **Preis-Charts** (nicht
+> Equity), Charts `test/phasen_volumen_profil_{AUG,S1,S2}.png`.
+> 3) **Feste Verankerung (Default-Artefakte JEDES Laufs, ohne Sonderflags):**
+> `fenster_label()` (AUG/S1/S2, sonst YYYYMMDD_YYYYMMDD), `STATS_TXT_DEFAULT`
+> / `CHART_PNG_DEFAULT`; Block 7f schreibt jeden Lauf
+> `test/stats_trades_<FENSTER>.txt` (Override `--stats-txt=`, Label aus Stem)
+> + `test/phasen_volumen_profil_<FENSTER>.png`. Chart-Inhalt: Tier-1/2-Kanten
+> (Tier-2 lila gestrichelt über Nutzungs-Spanne aus
+> `edge_decision.tier==2`), Reclaim-Signale als Dreiecke (v/^ rot/grün,
+> gefüllt = in_bar, offen = next_bar, Tier-2-Ring), Baseline-Kreise bei
+> `--macro-live`, AUG-Referenz-Overlay `USER_LINES_AUG` (R1_U..R4_L, Zeitfenster
+> via `np.searchsorted`), Statistik-Box; `SignalMarkerStil` = frozen Dataclass
+> (Rendering manipuliert KEINEN Zustand). **Legacy-Artefakte**
+> `scripts/phasen_volumen_profil.png/.txt` bleiben aktiv (Parallelbetrieb,
+> getrackt; finaler AUG-macro-Lauf = Git-Referenzstand, kein Diff mehr).
+> 4) **Doku:** neuer Abschnitt **§9 „Standard-Artefakte
+> (verbindliche Default-Ausgaben der Pipeline)“** in
+> `docs/reclaim_signal_loop_design.md` (§9.1 Fenster-Label, §9.2
+> .txt-Report, §9.3 Chart, §9.4 Verifikation); §9–§11
+> zu §10–§12 umnummeriert (einzige interne Referenz
+> „§10-Reihenfolge“ → §11), §11-Schritt 9 +
+> §12-Historie-Zeile ergänzt.
+> **Verifiziert:** py_compile ✓, alle Läufe EXIT=0, Zahlen bitgenau,
+> PNG-Signaturen gültig (AUG-Baseline 27 △/0 ○; AUG-macro 25
+> △/27 ○/3 Ringe/8 Ref-Linien; S1/S2 1 Modus-Abschnitt, keine
+> Ref-Linien).
+> **Offen:** Commit des Gesamtstands (607 Insertions in
+> `scripts/phasen_volumen_profil.py` + Doku) mit Continue-Signatur.
+>
 > Bei jedem größeren Schritt hier aktualisieren (User-Vorgabe).
 
 ---

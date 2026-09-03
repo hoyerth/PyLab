@@ -78,12 +78,98 @@
 > (killt AUG-T2-66.364), mid 0.075 = marktmechanisch begründet (Fades
 > schießen 5–8 Cents übers Level), D2-asym = Pflicht (Tier-1-Vorrang)**;
 > Freigabe-Fragen 1 (Tier-1 sperrt Tier-2?) + 2 (Umsetzung freigegeben?)
-> GESTELLT — NICHT verarbeitet, siehe „NÄCHSTE ANFRAGE" unten.
+> GESTELLT & BEANTWORTET (03.09., Mentor: 1=Ja/D2-asym bestätigt, 2=Ja/Freigabe erteilt) — v0.4 umgesetzt & 3-Fenster-verifiziert, siehe unten.
+> **Letzter Schritt (03.09.2026):** **v0.4 UMSETZUNG ABGESCHLOSSEN &
+> VERIFIZIERT** — die letzte Anfrage („NÄCHSTE ANFRAGE“ unten) wurde als
+> Auftrag ausgeführt. Freigabe-Fragen 1+2 vom Mentor mit JA beantwortet
+> (D2-asym = Pflicht/Tier-1-Vorrang; mid 0.075 = marktmechanisch
+> begründet, Fades 5–8 Cents übers Level).
+> **Design-Doku `docs/reclaim_signal_loop_design.md` auf v0.4 gehoben**
+> (E6/D1-mid Kanten-Kapselung + D2-asym Cooldown, §2.3-Beweis P7/P26/
+> P49, §6-Parameter OVERRUN_TOL, §8-IST-Tabelle, §11-Historie).
+> **`scripts/macro_persistence.py`:** `OVERRUN_TOL=0.075`
+> (=0.5×PENETRATION_TOL) + Helfer `_anchor_verdraengt_erlaubt`
+> (a_sym-Kanten-Kapselung `center >= lokal_kante - tol` UND Überrannt-
+> Filter UPPER `close > center+tol` / LOWER `close < center-tol`) +
+> `overrun_tol`-Parameter in `resolve_active_edge` (E3-Zweig: nur
+> abriegelnde Anker verdrängen; sonst E3-Fallback = lokale Kante Tier 1).
+> **`scripts/tmp_phasen_volumen_profil.py`:** D2-asym-Cooldown in
+> `find_reclaim_signals` (getrennte Zähler `last_bar_t1`/`last_bar_t2`;
+> Tier-1-Signal sperrt Tier-2 für 12 Bars, Tier-2-Signal sperrt Tier-1
+> NIE; Baseline-Isolation st_u/st_l=None bitgenau über last_bar_t1).
+> **Produktive 3-Fenster-Verifikation (exakt reproduziert):** Baseline
+> AUG bitgenau **27 Sig/+24.97R/44%**; `--macro-live` **AUG 25 Sig/**
+> **+34.87R** (P5 4/4 eliminiert, T2-66.364 +6.90R da), **S1 199 Sig/**
+> **+199.65R**, **S2 216 Sig/+93.70R** (nur P27 +2.01R entfallen =
+> akzeptierter Kompromiss), **S1+S2 = +293.35R ≥ +292.14R** (Marge
+> +1.21R) — Akzeptanzkriterium erfüllt. Protokolle:
+> `test/tmp_v04_baseline_AUG.txt`, `test/tmp_v04_macrolive_{AUG,S1,S2}.txt`.
+> **Letzter Schritt (03.09.2026):** **RANDFALL-UNTERSUCHUNG (STATISCH,
+> rein lesend) ABGESCHLOSSEN — Phase §12 formal abgenommen.** Kein Code,
+> keine Tests, keine Läufe; nur Inspektion von
+> `scripts/tmp_phasen_volumen_profil.py` + `scripts/macro_persistence.py`.
+> **Befund A (Hauptskript):** A1 Cold-Start/Phase 1 KEIN Fehler
+> (Boundary-Skip `_pi>1`; leere States → E3-Fallback tier=1/bestaetigt=
+> False; erste ~20 Bars `_range_arr` NaN → Tier 2 deaktiviert); A2
+> ungebrochene End-Phase State-konsistent (kein Boundary-Event nötig);
+> **A3 LATENT — IndexError am Datenende (mittel):** `next_bar`-Zweige
+> lesen `op[k+2]` VOR der `e_bar<=p.i_ende`-Schranke → bei k=n-2 ohne
+> Phasen-Trim `op[n]` → IndexError (in den 3 Fenstern nicht ausgelöst,
+> nur glücklicher Phasen-Schnitt); Fix bei Konsolidierung: Bound-Check
+> vor die Lesung / `next_bar` nur bei `k+2<=p.i_ende`; A4 degenerierte
+> Auflösung auf letzter Bar (niedrig, Baseline-identisch). **Befund B
+> (macro_persistence.py):** B1 range_ref-Degeneration VOLL abgefangen
+> (np.isfinite-Guards Z.1090/599 → None; `is not None and >0` in
+> resolve_active_edge; keine Division → kein ZeroDivision); B2 leerer
+> Ledger KEIN Fehler (`_pick_anchor` → None → E3-Fallback); **B3
+> ungesicherte Invariante `side==st.side` (niedrig, F3-relevant:** zwei
+> Wahrheiten möglich → still falsche Seitenlogik bei Fehlaufruf; Fix:
+> Konsistenz-Assert oder Parameter-Reduktion); B4 kein center-NaN-Pfad
+> erreichbar. **Befund C:** Kausalitäts-Axiom `Boundary(p-1) → Scan(p)
+> → Touches(p)` im `--macro-live`-Hook exakt eingehalten. **Mentor-
+> Urteil (03.09.):** Entwarnung an den kritischen Stellen; A3 = klass.
+> Produktions-Bug (vor Live-Einsatz zwingend abfangen), B3 =
+> Silent-Failure-Vektor (keine zwei Wahrheiten); **§12 formal
+> abgenommen.** Offen: F2 (Pfad A Sofort-Konsolidierung vs. Pfad B
+> Symbol-Kreuzvalidierung Gold/M15) + F3 (Freigabe statischer
+> Code-Audit: Type Hints/PEP 8/B3-Härtung/A3-Bounds).
+> **Letzter Schritt (03.09.2026):** **v0.4.x-HÄRTUNG (PFAD A,
+> Mentor-Freigabe) ABGESCHLOSSEN & VERIFIZIERT** — Doku + Code synchron,
+> kein Verhaltens-Delta. **Doku `docs/reclaim_signal_loop_design.md`:**
+> §3-Signatur `resolve_active_edge` ohne `side` (B3: `st.side` = SSoT,
+> E2-typ/E4-Penetration/E6-Kapselung aus `st.side`), B3-Invariante
+> (`update_touch` erzwingt `t.side == st.side` via ValueError),
+> §5-Aufrufskizze + §11-Historie v0.4.x. **
+> `scripts/macro_persistence.py`:** `side`-Parameter aus
+> `resolve_active_edge` entfernt (alle Ableitungen aus `st.side`);
+> `update_touch`-Guard (ValueError bei Seiten-Mismatch); Type-Safety:
+> `MacroPhase`-Protocol (dependency-frei, strukturell statt PhaseData-
+> Import) + frozen `SideSnapshot`/`PhaseSnapshot` statt impliziter
+> Dict-Brücken (macro_replay/macro_report konsumieren Attribute);
+> `_state_stats` explizit typisiert. **
+> `scripts/tmp_phasen_volumen_profil.py`:** A3-Bounds-Guard
+> `k + 2 <= p.i_ende` in BEIDEN next_bar-Zweigen (Variante 1, keine
+> in_bar-Umdeutung; IndexError am Datenende konstruktiv ausgeschlossen);
+> `resolve_active_edge`-Aufrufe ohne `side="UPPER"/"LOWER"`.
+> **Verifikation (produktive Läufe, exakt reproduziert):** Baseline
+> AUG bitgenau **27 Sig/+24.97R/44%** (Null-Einfluss-Beweis);
+> `--macro-live` AUG bitgenau **25 Sig/+34.87R** (max R +6.90 =
+> T2-66.364 da, Δ +9.90R) — B3-Umstellung verändert die Tier-2-Logik
+> nicht. Protokolle: `test/tmp_v04x_baseline_AUG.txt`,
+> `test/tmp_v04x_macrolive_AUG.txt`. Historische Diagnose-Artefakte in
+> `test/` (tmp_v04_*_sim.py u.a.), die `resolve_active_edge` mit `side=`
+> aufrufen, sind durch die Signaturänderung obsolet (eingefroren,
+> nicht erneut ausführbar - kein Regressionsthema).
 > Bei jedem größeren Schritt hier aktualisieren (User-Vorgabe).
 
 ---
 
-## ⏭️ NÄCHSTE ANFRAGE (User-Text, UNVERARBEITET — nach Reset hiermit fortfahren)
+## ⏭️ NÄCHSTE ANFRAGE (ABGESCHLOSSEN 03.09.2026 — als letzte Anfrage ausgeführt)
+> **STATUS (03.09.2026): ABGESCHLOSSEN.** Die beiden Freigabe-Fragen am
+> Ende wurden vom Mentor mit Ja beantwortet; Design-Doku v0.4 +
+> scripts/-Implementierung (mid 0.075 + D2-asym) + 3-Fenster-Verifikation
+> sind ausgeführt (Details im SESSION-STATE oben). Der nachfolgende Text
+> ist die historische Anfrage.
 
 > Der folgende Text wurde vom User als nächste Anfrage übergeben (02.09.2026)
 > mit der Anweisung: NICHT verarbeiten, nur als nächste Anfrage speichern.

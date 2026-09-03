@@ -965,6 +965,61 @@ def _aufloesen(
     )
 
 
+def _cooldown_ok(k: int,
+                 richtung: Literal["SHORT", "LONG"],
+                 dec: Optional["ActiveEdgeDecision"],
+                 last_bar_t1: Dict[Literal["SHORT", "LONG"], int],
+                 last_bar_t2: Dict[Literal["SHORT", "LONG"], int],
+                 cooldown_bars: int) -> bool:
+    """D2-asym-Cooldown-Check (Signal-Loop-Design v0.4).
+
+    Asymmetrische Cooldown-Invariante (Mentor-Freigabe 03.09.):
+      * Tier 1 (dec is None ODER tier == 1) prueft NUR last_bar_t1 - ein
+        spekulatives Tier-2-Antestat kontaminiert die Baseline-Kette nicht.
+      * Tier 2 prueft last_bar_t2 UND last_bar_t1: Ein Tier-1-Signal
+        (Baseline-DNA) sperrt ein direkt folgendes Tier-2-Signal
+        (k - last_bar_t1 < cooldown_bars), nie umgekehrt.
+
+    Args:
+        k: aktueller Bar-Index.
+        richtung: Signalrichtung ("SHORT"/"LONG").
+        dec: Kanten-Entscheidung des Kandidaten (None = Baseline-Modus).
+        last_bar_t1: letzte Tier-1-Signal-Bar je Richtung.
+        last_bar_t2: letzte Tier-2-Signal-Bar je Richtung.
+        cooldown_bars: Mindestabstand (MIN_SIGNAL_ABSTAND_BARS).
+
+    Returns:
+        True, wenn der Cooldown eingehalten ist.
+    """
+    if dec is None or dec.tier == 1:
+        return k - last_bar_t1[richtung] >= cooldown_bars
+    return (k - last_bar_t2[richtung] >= cooldown_bars
+            and k - last_bar_t1[richtung] >= cooldown_bars)
+
+
+def _cooldown_set(k: int,
+                  richtung: Literal["SHORT", "LONG"],
+                  dec: Optional["ActiveEdgeDecision"],
+                  last_bar_t1: Dict[Literal["SHORT", "LONG"], int],
+                  last_bar_t2: Dict[Literal["SHORT", "LONG"], int]) -> None:
+    """D2-asym-Cooldown-Setzen (Signal-Loop-Design v0.4).
+
+    Tier 1 setzt last_bar_t1, Tier 2 setzt last_bar_t2. Ein Tier-2-Signal
+    blockiert die Baseline/Tier-1-Kette NIE (Asymmetrie).
+
+    Args:
+        k: aktueller Bar-Index.
+        richtung: Signalrichtung ("SHORT"/"LONG").
+        dec: Kanten-Entscheidung des ausgeloesten Signals (None = Baseline).
+        last_bar_t1: letzte Tier-1-Signal-Bar je Richtung.
+        last_bar_t2: letzte Tier-2-Signal-Bar je Richtung.
+    """
+    if dec is None or dec.tier == 1:
+        last_bar_t1[richtung] = k
+    else:
+        last_bar_t2[richtung] = k
+
+
 def find_reclaim_signals(
     df: pd.DataFrame,
     p: PhaseData,
@@ -977,15 +1032,20 @@ def find_reclaim_signals(
 ) -> List[ReclaimSignal]:
     """Setup-B-Signale (Reclaim/Fakeout) - reiner Echtzeit-Modus ohne Lookahead.
 
-    Makro-Persistenz (Signal-Loop-Design v0.1, E1-E5): Optional koennen die
-    MacroLineState-Objekte der Seiten injiziert werden (Zustand NACH Phase
-    p-1, inkl. R4-Boundary). Dann ersetzt die operative Kanten-Auswahl
-    (resolve_active_edge) die implizite U_zone/L_zone-Wahl:
+    Makro-Persistenz (Signal-Loop-Design v0.1-v0.4, E1-E5 + D2-asym):
+    Optional koennen die MacroLineState-Objekte der Seiten injiziert werden
+    (Zustand NACH Phase p-1, inkl. R4-Boundary). Dann ersetzt die operative
+    Kanten-Auswahl (resolve_active_edge) die implizite U_zone/L_zone-Wahl:
       * Tier 1 = U_zone/L_zone, sofern die lokale Pivot-Dichte sie traegt (E2);
-      * Tier 2 = distanzbegrenzter Makro-Anker (E3/E5);
+      * Tier 2 = distanzbegrenzter Makro-Anker (E3/E5) mit v0.4-Kanten-
+        Kapselung (nur abriegelnde Anker verdrängen);
       * Penetrations-Gate NUR auf Tier 2 (E4, Mentor §9.3);
-      * kein Intra-Phase-Bounce fuer Tier 2 (Mentor §9.4).
-    Default st_u/st_l = None -> exakt Baseline-Verhalten (bitgenau).
+      * kein Intra-Phase-Bounce fuer Tier 2 (Mentor §9.4);
+      * D2-asym-Cooldown (v0.4): getrennte Zaehler last_bar_t1/last_bar_t2
+        (Tier 1 sperrt Tier 2, nie umgekehrt).
+    Default st_u/st_l = None -> exakt Baseline-Verhalten (bitgenau; _dec_u/
+    _dec_l sind None -> _cooldown_ok/_cooldown_set arbeiten auf last_bar_t1
+    = gemeinsame Baseline-Kette).
     """
     sigs: List[ReclaimSignal] = []
     hi = df["high"].values
@@ -993,7 +1053,10 @@ def find_reclaim_signals(
     cl = df["close"].values
     op = df["open"].values
     ts = df["ts"].values
-    last_bar: Dict[Literal["SHORT", "LONG"], int] = {"SHORT": -10**9, "LONG": -10**9}
+    last_bar_t1: Dict[Literal["SHORT", "LONG"], int] = {
+        "SHORT": -10**9, "LONG": -10**9}
+    last_bar_t2: Dict[Literal["SHORT", "LONG"], int] = {
+        "SHORT": -10**9, "LONG": -10**9}
     tp2_puffer = TP2_PUFFER_PCT / 100.0
     sl_p = SL_PCT / 100.0
 
@@ -1030,7 +1093,7 @@ def find_reclaim_signals(
             _cur = float(cl[k])
             if st_u is not None:
                 _dec_u = resolve_active_edge(
-                    side="UPPER", st=st_u, lokal_kante=U,
+                    st=st_u, lokal_kante=U,
                     phasen_prices=p.h_prices, phasen_ts=p.h_ts, ts_k=ts_k,
                     current_price=_cur, extreme=float(hi[k]),
                     range_ref=_rr, level_schnittmenge=level_schnittmenge,
@@ -1042,7 +1105,7 @@ def find_reclaim_signals(
                 U_eff = U if hi[k] > U else None
             if st_l is not None:
                 _dec_l = resolve_active_edge(
-                    side="LOWER", st=st_l, lokal_kante=L,
+                    st=st_l, lokal_kante=L,
                     phasen_prices=p.l_prices, phasen_ts=p.l_ts, ts_k=ts_k,
                     current_price=_cur, extreme=float(lo[k]),
                     range_ref=_rr, level_schnittmenge=level_schnittmenge,
@@ -1072,7 +1135,10 @@ def find_reclaim_signals(
         if U_eff is not None:
             if cl[k] <= U_eff:
                 e_bar, e_preis, reclaim = k + 1, float(op[k + 1]), "in_bar"
-            elif k + 1 <= p.i_ende and cl[k + 1] <= U_eff:
+            # A3-Bounds-Guard (v0.4.x): Ausfuehrungs-Bar k+2 muss im Phasen-
+            # Kontext existieren (k+2 <= p.i_ende), sonst op[k+2]-IndexError
+            # am Datenende (Variante 1: kein Signal ohne Ausfuehrungs-Bar).
+            elif k + 2 <= p.i_ende and cl[k + 1] <= U_eff:
                 e_bar, e_preis, reclaim = k + 2, float(op[k + 2]), "next_bar"
             else:
                 e_bar, reclaim = None, None
@@ -1086,7 +1152,8 @@ def find_reclaim_signals(
                 and e_bar <= p.i_ende
                 and e_preis > POC
                 and _bounce_ok
-                and k - last_bar["SHORT"] >= cooldown_bars
+                and _cooldown_ok(k, "SHORT", _dec_u, last_bar_t1,
+                                 last_bar_t2, cooldown_bars)
             ):
                 sl = e_preis * (1.0 + sl_p)
                 tp1 = POC
@@ -1095,7 +1162,8 @@ def find_reclaim_signals(
                 crv = abs(tp1 - e_preis) / risk if risk > 0 else np.nan
                 crv2 = abs(tp2 - e_preis) / risk if risk > 0 else np.nan
                 if not np.isnan(crv) and crv >= min_crv:
-                    last_bar["SHORT"] = k
+                    _cooldown_set(k, "SHORT", _dec_u, last_bar_t1,
+                                  last_bar_t2)
                     sig = ReclaimSignal(
                         typ="SHORT",
                         bar=int(k),
@@ -1121,7 +1189,9 @@ def find_reclaim_signals(
         if L_eff is not None:
             if cl[k] >= L_eff:
                 e_bar, e_preis, reclaim = k + 1, float(op[k + 1]), "in_bar"
-            elif k + 1 <= p.i_ende and cl[k + 1] >= L_eff:
+            # A3-Bounds-Guard (v0.4.x): symmetrisch zum SHORT-Zweig -
+            # Ausfuehrungs-Bar k+2 muss im Phasen-Kontext existieren.
+            elif k + 2 <= p.i_ende and cl[k + 1] >= L_eff:
                 e_bar, e_preis, reclaim = k + 2, float(op[k + 2]), "next_bar"
             else:
                 e_bar, reclaim = None, None
@@ -1134,7 +1204,8 @@ def find_reclaim_signals(
                 and e_bar <= p.i_ende
                 and e_preis < POC
                 and _bounce_ok
-                and k - last_bar["LONG"] >= cooldown_bars
+                and _cooldown_ok(k, "LONG", _dec_l, last_bar_t1,
+                                 last_bar_t2, cooldown_bars)
             ):
                 sl = e_preis * (1.0 - sl_p)
                 tp1 = POC
@@ -1143,7 +1214,8 @@ def find_reclaim_signals(
                 crv = abs(tp1 - e_preis) / risk if risk > 0 else np.nan
                 crv2 = abs(tp2 - e_preis) / risk if risk > 0 else np.nan
                 if not np.isnan(crv) and crv >= min_crv:
-                    last_bar["LONG"] = k
+                    _cooldown_set(k, "LONG", _dec_l, last_bar_t1,
+                                  last_bar_t2)
                     sig = ReclaimSignal(
                         typ="LONG",
                         bar=int(k),

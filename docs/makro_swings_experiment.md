@@ -704,6 +704,7 @@ den aktiven R1-Kanten im Rückbau-Lauf.
 | 03.09.2026 | **Baseline-Fehltrade-Audit AUG §8.9 (Pfad B, kausaler Replay; Helper `test/tmp_baseline_loss_replay.py`, Log `test/tmp_baseline_loss_replay.txt`):** exec-Import-Cut NACH Baseline-Signal-Loop → 27 original erzeugte Signale, Mapping Log↔Replay **27/27 bitgenau**. **Trigger-Integrität 100 % regelkonform** (Cooldown ≥ 12, CRV ≥ 1.0, Bounce ≥ 2, Reclaim-Bedingung — kein Bug). **13 Voll-SL + 2 Teilverluste** (T3 −0.29R / T22 −0.36R: TP1 = POC erreicht, Restcharge vor TP2 am SL — TP2-Reichweiten-Thema, kein Signalfehler). **Naive Filter datenwiderlegt:** Profilalter (5/12 Winner ebenfalls < 40, T25 Alter 2 +1.83R) und Mikro-Penetration (T22 Pen 0.001 vs. Winner T1/T6/T24 RcDepth 0.005–0.008) trennen Winner/Loser nicht. **Muster A** Expansion-Trap/Kanten-Drift (P5 zweigeteilt: Fr 14.08 Erholung 64.309→65.038, Mo 17.08 Expansion 65.752→65.798; T14/T15 shorteten dieselbe Kante 66.284 + Turn — Kostenstruktur des Fade-Edges), **Muster B** junge Profile (11/15, überlappend), **Muster C** TP2-Reichweite. Nächste Schritte: S1 → S2 → Synthese (strikt sequentiell) | dieses Dokument §8.9 |
 | 03.09.2026 | **Kanten-Anker-Audit AUG §8.10 (Pfad B, Vorlauf-Pivot-Pool; Helper `test/tmp_anchor_audit.py`, Log `test/tmp_anchor_audit_AUG.txt`):** Geister-Hypothese (T9/T10/T11, T26 shorteten unverankerte Kanten) auf 27 Baseline-Trades erweitert: erweitertes Fenster ab 01.07.2026 (3848 Bars, 1052 Pivots H532/L520, Identik `find_pivots` Lookback 2), je Trade Kante vs. Vorphasen-Pivots der Seite (ts < Phasenstart). **Distanz allein trennt nicht** (alle 6 sondierten Kanten haben Vorphasen-H-Pivots in 0.001-0.014 USD); **Diskriminator = Volumen-Ratio** am naechsten Pivot (T14/T15 2.40 an Bar 286 13.08 02:30 vs. T9/T10/T11/T26 1.07/0.96/0.69/0.48). Quellen-Korrektur: 66.284-Anker stammt aus P4-Endphase/Topping, nicht Phase 2/3. **Veto-Bilanz Variante B (naechster Pivot <= 0.15 UND Ratio >= 1.5): 12/15 Verlierer geblockt (+10.64R verhindert, inkl. T9/T10/T11-Geister korrekt), aber 9/12 Winner faelschlich geblockt (-23.48R) → Netto -12.84R: Anker-Veto netto-schaedlich** — der Fade-Edge lebt von frischen Kanten ohne historischen Spike-Pivot (P9-SHORTs T20/T21/T23 +7.83R, P1-T1/T2, P7-T19, P12-T27). Saubere Trennung gilt NUR isoliert fuer die 5 P5-Trades; ueber den Gesamt-AUG-Datensatz kollabiert sie | dieses Dokument §8.10 |
 | 03.09.2026 | **AUG-Stresstest Anker-Volumen-Ratio-Filter §8.11 (Arbeitsauftrag; Helper `test/tmp_stresstest_bilanz.py`, Log `test/tmp_stresstest_bilanz.txt`):** Filterwirkung ueber ALLE 27 Baseline-Trades aus dem kanonischen Audit-Log §8.10. **In keiner der 4 Varianten ist der Filter ein Alpha-Verstaerker:** A (irgendein Spike-Pivot im ±0.15-Fenster) 1.5×/2.0× → AUG nach Filter ≈ +8.0R/+10.2R (Δ −17.0R/−14.8R); B (naechster Pivot ≤ 0.15 UND Spike) 1.5×/2.0× → ≈ +12.1R/+11.3R (Δ −12.8R/−13.7R). Gegencheck Winner-Gruppe (strikt spikege15): **9/12 Winner geblockt** (−23.48R: T1/T2/T6/T19/T20/T21/T23/T24/T27) — nur T14/T15/T25 ueberleben; groesster Kollateralschaden T6 +4.59R und T19 +4.26R. Verbleibende Sets kollabieren auf 4–12 Trades (WR/PF scheinbar besser = Kleinstichproben-Artefakt). **Verdikt: blinder Overfit an den P5-Cluster** — der Fade-Edge handelt systematisch an frischen, unverankerten Kanten; Anker-Volumen-Filter endgueltig verworfen | dieses Dokument §8.11 |
+| 03.09.2026 | **Initialisierungsphasen-Audit AUG §8.12 (Pullback-Struktur; Helper `test/tmp_init_phase_audit.py`, Log `test/tmp_init_phase_audit_AUG.txt`, `test/tmp_pb_def_vergleich.py`):** Relativ-Distanz + Pullback-Reife aller 27 Baseline-Trades (Mapping 27/27 bitgenau, kausal, Pivots nur bar <= k-2 bestaetigt). **Nur 2/27 Signale (T7, T25, beide Bar 2) in echter Initialisierung (INIT: keine bestaetigten Pivots, kein Gegenzug >= 0.15 USD); die 4 Geister T9-T11/T26 sind KEINE Initialisierungs-Trades** (0b-Distanz 23/35/47/38, 7/10/13/7 bestaetigte Pivots inkl. abgeschlossener Pullbacks; T9 nach vollstaendiger up-down-up-Struktur). INIT-Kontrast T7 (-1.00R) vs. T25 (+1.83R) -> Initialisierung nicht verlust-deterministisch; Filter netto -0.83R. Winner T14/T15 = reifste Struktur (Alter 156/182, 83.9/97.8 % Phasenanteil, 41/48 Pivots). **Definitionen-Vergleich: quantitative Kerzenschwelle willkuerlich** (einzige positive Schwelle <25 Kerzen +2.19R = In-Sample-Fit an T9-Position 0b 23; <20 -1.81R, <40 -1.84R); strukturelle Definition (Gegenzug vom laufenden Extrem >= 0.15 USD) empfohlen. **Verdikt: Vakuum-/Market-Maker-Hypothese auf AUG datenwiderlegt** — Geister = Muster A Kanten-Drift (§8.9.5), nicht Initialisierungs-Vakuum | dieses Dokument §8.12 |
 
 ---
 
@@ -1852,3 +1853,129 @@ zusätzlich: Ein historischer Spike-Pivot **verhindert Verluste nicht**
 `test/tmp_anchor_audit.py`, `test/tmp_anchor_audit_AUG.txt` (Kernquelle,
 27-Trade-Tabelle + 4 Bilanz-Blöcke), `test/tmp_stresstest_bilanz.py`,
 `test/tmp_stresstest_bilanz.txt` (Rechnung dieser Sektion).
+
+### 8.12 Initialisierungsphasen-Audit AUG (Pullback-Struktur vor dem ersten echten Swing) — Negativbefund — 03.09.2026
+
+**Fragestellung (Mentor):** Herrscht direkt nach Phasenstart ein Vakuum,
+in dem Market Maker gezielt Stops abfischen, bevor der echte Swing
+etabliert wird? Tradet die Engine in dieser initialen Phase (dünnes,
+unvollständiges Volumenprofil) gegen das Rauschen der Initialisierung
+statt gegen echte institutionelle Wände — und häufen sich die
+Fehl-Shorts (T9–T11, T26) systematisch in dieser Frühphase? Disziplin:
+**kein pauschales Verdammen früher Trades** — erst der Kontrast mit den
+Winnern (T14/T15) entscheidet.
+
+#### 8.12.1 Methodik & Definitionen (kausal, kein Lookahead)
+
+**Helper:** `test/tmp_init_phase_audit.py` → Log
+`test/tmp_init_phase_audit_AUG.txt`; `test/tmp_pb_def_vergleich.py`
+(Definitionen-Vergleich). **Vorgehen:** exec-Import der Arbeitskopie mit
+Cut NACH dem Baseline-Signal-Loop (27/27 bitgenau, wie §8.9.1). Analyse
+kausal im Fenster `p.i_start .. signal_bar`:
+
+- **Relativ-Distanz** = `signal_bar − p.i_start` (0-basiert) bzw.
+  Alter 1-basiert (= §8.9.3, konsistent); zusätzlich Phasen-Anteil
+  (Alter / `p.n_candles`).
+- **Pullback-Metrik** (strukturell): Rückfall des Close vom laufenden
+  Extrem der Fade-Richtung seit Phasenstart — SHORT: `M[j] − cl[j]`,
+  LONG: `cl[j] − m[j]` (`M`/`m` = laufendes max/min). Schwellen
+  **0.15 / 0.30 USD** (etablierte Distanzgröße §8.10, ≈ 0.23–0.46 %
+  bei 64–69 USD).
+- **Pivot-Struktur**: `find_pivots` (Produktions-Identik, Lookback 2),
+  nur bestätigt für `bar ≤ k − LOOKBACK` (kein Lookahead).
+- **Klassifikation**: `INIT` = nie Gegenzug ≥ 0.15 USD vor Signal;
+  `PB15` = Gegenzug 0.15–0.30 USD; `PB30` = etablierter Gegenzug
+  ≥ 0.30 USD. Alternativ (quantitativ) feste Kerzenschwelle `< N`.
+
+#### 8.12.2 Kernbefund 1: Nur 2/27 Signale in echter Initialisierung
+
+Nur **T7** (P3, 11.08 07:30, LONG, −1.00R) und **T25** (P12, 26.08 17:00,
+LONG, +1.83R) — beide **Bar 2 der Phase** — fielen vor jeglicher
+bestätigten Pivot-Struktur (0 Pivots, 0 Gegenzug ≥ 0.15 USD, `INIT`).
+
+**Die 4 Geister sind KEINE Initialisierungs-Trades:**
+
+| Trade | Signal | 0b-Distanz | Phasen-Anteil | best. Pivots | größter Rückfall (cl/intra) | erste Pullback-Struktur |
+|---|---|---|---|---|---|---|
+| T9 | 14.08 08:45 | **23** | 12.9 % | 7 | 0.47 / 0.70 USD | H 64.184 → **L 63.485** (B398, unterbietet Phasenstart-Tief 63.716!) → neues Hoch 64.384 (B400) → Signal 3 Bars danach |
+| T10 | 14.08 11:45 | **35** | 19.4 % | 10 | 0.47 / 0.70 USD | gleiche Basis + weitere Pullbacks (L 64.213 / L 64.472) |
+| T11 | 14.08 14:45 | **47** | 25.8 % | 13 | 0.47 / 0.70 USD | 13 Pivots, Kante bereits auf 65.038 nachgezogen |
+| T26 | 27.08 03:15 | **38** | 38.2 % | 7 | 0.83 / 0.93 USD | H 68.123 → L 67.807; H 68.285 → L 67.869 (Rücksetzer ~0.8 USD) |
+
+T9 (Phasenstart 14.08 03:00, B380): L 63.716 → H 64.077 → H 64.184 →
+L 63.916 → L **63.485** → H 64.384 → Signal B403. Der erste große
+Pullback durchbrach sogar das Phasenstart-Tief; das Signal shortete den
+**Anfang der zweiten Aufwärtswelle** (Ratschen-Struktur höherer Tiefs),
+nicht den ersten Impuls.
+
+#### 8.12.3 Kernbefund 2: Initialisierung ist nicht verlust-deterministisch
+
+Der INIT-Kontrast (strukturelle Definition) ist **1 Loss vs. 1 Winner**:
+
+- **T7** (LONG, Bar 2): −1.00R (Voll-SL)
+- **T25** (LONG, Bar 2): +1.83R (Winner!)
+
+Ein Veto „nur nach erstem Pullback" hätte exakt T7 geblockt (+1.00R
+gespart), aber T25 gekillt (−1.83R) → **Netto −0.83R**. Die
+Initialisierungsphase produziert Gewinner **und** Verlierer.
+
+#### 8.12.4 Kernbefund 3: Winner-Kontrast (T14/T15 = reifste Struktur)
+
+- Winner-Alter (1-bas.): [2, 9, 15, 31, 35, 43, 56, 97, 133, 154, 156,
+  182] — **Median 56** vs. Loser-Median 33; Spannweite über das gesamte
+  Phasenleben.
+- **T14/T15** sind die struktur-reifsten Trades des gesamten AUG-Fensters:
+  Alter 156/182, **83.9 % / 97.8 % Phasenanteil**, 41/48 bestätigte
+  Pivots, Kante 66.284 nach 3.5 Tagen etablierter, mehrfach getouchter
+  Ratschen-Struktur (letzter Pivot 6/8 Bars vor Signal). Sie sind das
+  **Gegenteil** von Frühphasen-Trades.
+- **Aber:** 5/12 Winner ebenfalls < 40 Bars (T25 +1.83R, T1 +1.29R,
+  T2 +1.69R, T19 +4.26R, T20 +3.06R = **+12.13R**, 31 % der Winner-R)
+  überlappen die junge Loser-Klasse → ein Reife-Gate würde nach §8.9.4
+  genau diese Winner opfern. Winner-R verteilt sich 69 % reif (≥ 40,
+  +26.49R) vs. 31 % jung (< 40, +12.13R) — Tendenz, aber kein sauberer
+  Schnitt.
+
+#### 8.12.5 Definitionen-Vergleich: Kerzenschwelle vs. Struktur
+
+| Schwelle `< N` Kerzen (0b) | geblockt (Voll-SL + Winner) | gespart | gekillt | Netto |
+|---|---|---|---|---|
+| < 10 | T4, T7 / T1, T25 | +2.00R | −3.12R | −1.12R |
+| < 15 | T4, T7 / T1, T2, T25 | +2.00R | −4.81R | −2.81R |
+| < 20 | T4, T7, T18 / T1, T2, T25 | +3.00R | −4.81R | −1.81R |
+| **< 25** | +T5, T8, T9, T16 / (unv.) | +7.00R | −4.81R | **+2.19R** |
+| < 30 | (identisch) | +7.00R | −4.81R | +2.19R |
+| < 40 | +T3, T10, T17, T26 / +T19, T20 | +10.29R | −12.13R | −1.84R |
+
+**Die einzige positive Schwelle (< 25, +2.19R) ist ein messerscharfer
+In-Sample-Fit an die T9-Position (0b-23)**: T9 wird exakt geblockt,
+T10/T11 (0b 35/47) bleiben knapp außerhalb. Bei < 20 −1.81R, bei < 40
+−1.84R — jede feste Kerzenzahl ist willkürlich und überall sonst negativ.
+Zudem misst eine reine Kerzenzahl nicht, ob ein Gegentrend-Swing
+stattfand (30 monotone Bars ≠ 10 Bars mit up-down-up). **Empfehlung:
+strukturelle Definition** (Gegenzug vom laufenden Extrem ≥ 0.15 USD),
+da sie den Marktzustand (Vakuum vs. etablierter Swing) erfasst.
+
+#### 8.12.6 Verdikt: Vakuum-/Market-Maker-Hypothese auf AUG datenwiderlegt
+
+1. **Keine Häufung der Fehl-Shorts in der Frühphase:** T9–T11/T26
+   liegen bei 0b-Distanz 23/35/47/38 (12.9–38.2 % Phasenanteil) mit
+   7–13 bereits bestätigten Pivots und abgeschlossenen Pullbacks — unter
+   **keiner** Definition Initialisierungs-Trades.
+2. **Echte Initialisierung (2/27) ist nicht verlust-deterministisch**
+   (T7 −1.00R vs. T25 +1.83R; Veto netto −0.83R).
+3. **Die einzige positive Kerzenschwelle ist ein In-Sample-Fit an T9** —
+   exakt der Retail-Fehler, vor dem der Mentor warnt.
+4. **Einordnung:** Die Geister-Verluste bleiben das, was §8.9.5 bereits
+   belegte — **Muster A** (Kanten-Drift in der Expansionswelle, Kante zog
+   64.309 → 64.790 → 65.038 mit, `_laufende_zone` kumulativ,
+   `MIN_RECLAIM_CANDLES = 0`), **nicht** ein Initialisierungs-Vakuum.
+5. Weiterführung Pfad B gemäß §8.10.4/§8.11.3: **Schritt 2 =
+   S1-Obduktion** (Replay + Trigger-Integrität + Filter-Kontrast), dann
+   S2, dann Synthese.
+
+**Belege (gitignored, in `test/` vorerst erhalten):**
+`test/tmp_init_phase_audit.py`, `test/tmp_init_phase_audit_AUG.txt`
+(27-Trade-Tabelle + 8 Fokus-Zeitlinien mit allen bestätigten Pivots),
+`test/tmp_pb_def_vergleich.py` (Schwellen-Tabelle), `test/tmp_init_verdichtung.py`
+(Aggregat-Zahlen).

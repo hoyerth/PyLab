@@ -232,6 +232,7 @@ TP2_PUFFER_PCT: float = 0.20
 
 ANTEIL_TP1: float = 25.0
 TRAILING_PCT: float = 0.0
+CHART_DPI: int = 300             # PNG-Aufloesung (dpi); --chart-dpi= ueberschreibbar
 START: str = "2026-08-10"
 ENDE: str = "2026-08-28"
 
@@ -285,6 +286,9 @@ for _a in sys.argv[1:]:
     if _a.startswith("--trailing="):
         TRAILING_PCT = float(_a.split("=", 1)[1])
         print(f"==> TRAILING_PCT ueberschrieben: {TRAILING_PCT}")
+    if _a.startswith("--chart-dpi="):
+        CHART_DPI = int(_a.split("=", 1)[1])
+        print(f"==> CHART_DPI ueberschrieben: {CHART_DPI}")
 
 # ==============================================================================
 # FENSTER-LABEL & STANDARD-ARTEFAKTE (Default-Ausgaben JEDES Laufs)
@@ -1585,7 +1589,7 @@ print(f"Trades-Textfile gespeichert: {OUT_TXT}")
 # 7) CHART
 # ==============================================================================
 
-fig, ax = plt.subplots(figsize=(17, 9))
+fig, ax = plt.subplots(figsize=(24, 13))
 idx = df["idx"].values
 ax.plot(idx, df["high"], color="#bbb", lw=0.5)
 ax.plot(idx, df["low"], color="#bbb", lw=0.5)
@@ -1685,7 +1689,7 @@ ax.text(0.28, 0.985, "\n".join(_stat_lines), transform=ax.transAxes,
                   edgecolor="gray", alpha=0.95))
 
 fig.tight_layout()
-fig.savefig(OUT_PNG, dpi=130)
+fig.savefig(OUT_PNG, dpi=CHART_DPI)
 print(f"\nChart gespeichert: {OUT_PNG}")
 # ==============================================================================
 # 7c) BENCHMARK-SET USER-IDEALLINIEN AUG (rein lesend, KEIN Signal-Einfluss)
@@ -2164,7 +2168,7 @@ def render_standard_chart(
     Returns:
         Konsolen-Hinweis (Datei + Signal-Zaehlungen).
     """
-    fig, ax = plt.subplots(figsize=(17, 9))
+    fig, ax = plt.subplots(figsize=(24, 13))
     idx = df["idx"].values
     ax.plot(idx, df["high"], color="#bbb", lw=0.5)
     ax.plot(idx, df["low"], color="#bbb", lw=0.5)
@@ -2357,7 +2361,7 @@ def render_standard_chart(
                           edgecolor="gray", alpha=0.95))
 
     fig.tight_layout()
-    fig.savefig(ziel_png, dpi=130)
+    fig.savefig(ziel_png, dpi=CHART_DPI)
     plt.close(fig)
 
     n_t2 = len(_t2_spans)

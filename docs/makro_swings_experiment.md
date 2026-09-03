@@ -690,6 +690,7 @@ den aktiven R1-Kanten im Rückbau-Lauf.
 | 03.09.2026 | **OOS-Vorbereitung §8 (Grenzphasen-Inspektion S2, Log statisch):** Ph8/19/48 etablieren unter E3 vor C 46 (keine Reißleinen-Exposition); **Ph13 kritisch** (1.5 % erst nach ~124 C → 78 C exponiert, keine Auslösung im Kanten-Verlauf); finale-Spread-Distanz ≠ Etablierungs-Verzögerung. OOS-Prüfschritte S1/S2 fixiert | `cd132dc`, dieses Dokument §8 |
 | 03.09.2026 | **Phase-13-Close-Verifikation §8.2a (DuckDB read_only):** p0 38.288; max close 38.351 (+0.16 %), min close 37.628 (−1.72 %) in C 46–124; **0** × 2-Close-Bruch der 3 %-Barrieren (39.437/37.139) → **Reißleine NEIN**, E3-Etablierung greift stabil ~C 124 | dieses Dokument, §8.2a |
 | 03.09.2026 | **S2-OOS-Lauf §8.4 (isolierte Arbeitskopie, Baseline-Modus, Gesamtjahr 2025):** 52 Phasen (vs. 62 Baseline), 26 handelbare Ranges; 209 Trades (106 L/103 S), WR 34.0 %, **+102.16R** (+8.46R vs. OOS-Referenz +93.70R, +2.28R vs. Baseline +99.88R), PF 1.80; **0 Reißleinen-Auslösungen**; Grenzphasen Ph8/19/48 überleben eigenständig (neue Phasen 8/16/40), **Ph13 → Phase 12 (723 C) verschmolzen, unschädlich** (+1.98R) | `test/tmp_oos_S2_lauf.log`, `test/stats_trades_MAKRO_S2.txt`, `test/phasen_makro_swings_S2.png` (gitignored), dieses Dokument §8.4 |
+| 03.09.2026 | **Ursachenanalyse 52-Tage-Lücke §8.5 (statische Inspektion, kein Lauf):** Phase 7 endet 11.04 12:45, Phase 8 startet 02.06 19:30 = **52 Tage / 3237 M15-Kerzen** (Datenintegrität 100 %, keine Lücke > 4 Tage); Ursache = Geburtsanker `birth_h` 34.193 fixierte Bruch-Schwelle 34.533 (0 Kanten-Verschiebungen) → 2-Close-Bruch erst 02.06 19:30/19:45; **kein Seed-Fehlschlag, kein E3-Artefakt** (Baseline v0.4.x identisch); **Stale Phase** blockierte Sequenzer ohne Trades (0 im Fenster) — Spiegelbild zur R1-Fragmentierung | dieses Dokument, §8.5; Quellen `test/tmp_oos_S2_lauf.log`, `test/tmp_default_run_S2.log` |
 
 ---
 
@@ -894,3 +895,60 @@ beide v0.4.x-Vergleichslinien.
 **Nächster Schritt (§7 Punkt 9):** S1-OOS-Lauf (Vergleich §3: +199.65R;
 S1+S2-Ziel ≥ +292.14R) inkl. Reißleinen-Audit und
 Grenzphasen-Bucket-Zählung für S1.
+
+### 8.5 Ursachenanalyse der 52-Tage-Segmentierungslücke S2 (Phase 7 -> Phase 8)
+
+**Befund (statische Code- & Daten-Inspektion, 03.09.2026; kein Lauf).**
+Quellen: `test/tmp_oos_S2_lauf.log` (E3-Lauf, 52 Phasen),
+`test/tmp_default_run_S2.log` (Baseline v0.4.x, 62 Phasen — beide mit
+identischer Lücke), DuckDB read_only (`time AT TIME ZONE 'UTC'`).
+
+**Kernfakten:**
+
+1. **Zeitraum & Datenintegrität:** Phase 7 (S2) endet im Log am
+   **Fri 11.04 2025 12:45 UTC** (letzter Touch der UNTEN-Kante, 456 C,
+   HANDELBAR); die nächste Phase 8 startet erst **Mon 02.06 2025 19:30 UTC**
+   (= exakt die Bruch-Bar von Phase 7). **Lücken-Spanne: 52 Tage / 3237
+   M15-Kerzen.** Datenintegrität **100 %**: Im Prüffenster 15.04–05.06
+   liegen 3302 kontinuierliche Kerzen; alle Unterbrechungen > 1 h sind
+   regulär (täglich 22:45→00:00, Wochenende Fr 22:45→Mo 00:00 = 49.2 h,
+   Karfreitag 17.04–21.04 = 73.2 h, 26.05 = 3.8 h). Kein einziges
+   Datenloch > 4 Tage.
+
+2. **Ursache — Geburtszonen-Anker fixiert die Bruch-Schwelle:**
+   Phase 7 erbte aus ihrem Geburtsfenster (31.03 10:00 → 04.04 13:30,
+   Pivots um das 34.19-Hoch) `birth_h = 34.193`. Die Bruch-Referenz ist
+   geburtszonen-verankert (`h_ref = max(U, birth_h)`, Z. 697–702 in der
+   Arbeitskopie) → **obere Bruch-Schwelle = 34.193 + TOL 0.34 = 34.533**.
+   Die OBEN-Entwicklung im Log bestätigt die Starre: **0 Verschiebungen,
+   Kante konstant 34.193** über die gesamte Phasenlaufzeit. Der Markt
+   konsolidierte 52 Tage **unterhalb** dieser Schwelle (max. Close vor
+   02.06 19:30: **34.508** am 02.06 19:15 — nie ein einzelner Close >
+   34.533, geschweige ein bestätigendes Paar). Erst **02.06 19:30/19:45**
+   folgte das erste 2-Close-Paar darüber (34.547 / 34.538) → UP-Bruch →
+   Move 329 im Log: „UP Fri 12:45 (31.197) → Mon 19:30 (34.577),
+   +3.380 USD in **75.285 min** (= 52,3 Tage)".
+
+3. **Kein Seed-Fehlschlag, kein E3-Artefakt:** Der Segmentierungs-Loop
+   verwirft **keine** Seeds (`U <= L`), scheitert **nicht** an
+   `MIN_PHASE_CANDLES = 46` (Phase 7 war seit ~07.04 etabliert, der
+   Bruch-Check lief die gesamte Zeit) und **nicht** am E3-Gate
+   (`MIN_ESTABLISH_SPREAD_PCT`). Die **Baseline v0.4.x ohne E3** (62
+   Phasen, `tmp_default_run_S2.log`) zeigt die **identische** Lücke
+   (Phase 7 identisch, Phase 8-Start identisch 02.06 19:30) — E3 und
+   Reißleine sind damit als Ursache **ausgeschlossen**. Ursache ist
+   ausschließlich die Geburtszonen-Verankerung der Bruch-Referenz
+   (Baseline-Verhalten, §5.3 R2).
+
+4. **Phänomen — „Stale Phase":** Phase 7 blockierte den Sequenzer über
+   52 Tage, ohne selbst Trades zu generieren (verifiziert im Log:
+   85 Reclaim-Trades bis 11.04, **0** zwischen 11.04 und 02.06, 4 ab
+   02.06). Eine neue Phase wird ausschließlich bei einem Bruch
+   initialisiert (`i = brk_idx`, Z. 782) — ohne Break-Ereignis läuft der
+   äußere while-Loop die gesamte Lücke in der Iteration von Phase 7.
+   **Strukturelle Einordnung:** Spiegelbild zur R1-Fragmentierung (§2):
+   Dort sterben Phasen an engen lokalen Kanten zu früh (Fragmentierung),
+   hier hält der Geburtsanker eine Phase künstlich am Leben (Verschmelzung/
+   Erstarren). Beides ist Tier-1-Segmentierungs-Verhalten, kein Daten- oder
+   E3-Problem; eine Auflösung (z. B. Stale-Phase-Guard / altersbasierte
+   Kanten-Erneuerung) wäre Gegenstand eines separaten Folge-Experiments.

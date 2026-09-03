@@ -697,6 +697,7 @@ den aktiven R1-Kanten im Rückbau-Lauf.
 | 03.09.2026 | **Entscheidung Option A — Rückbau E3 arretiert (§8.7):** OOS-Lücke wird in der **Segmentierung** adressiert (nicht Signalebene). Rückbau: `MIN_ESTABLISH_SPREAD_PCT` + Reißleinen-Konstanten (Z. 216–219) entfernen, E3-Gate (Z. 682–687) auf touch-basierte Etablierung (`MIN_ESTABLISH = 4`), Reißleinen-`elif` (Z. 713–722) entfernen → segmentierungs-bitgenau zur Produktions-Baseline (§3-Vergleich direkt möglich). **Revidiert:** §5.3 Pkt. 1 & §5.4.1 (beruhten auf AUG-only-Kalibrierung). Erwartung: S1+S2 ≈ +297.14R ≥ Ziel +292.14R. **Umsetzung erst nach Mentor-Freigabe** (Code-Audit + Diff-Vorschau: §7 Pkt. 12) | dieses Dokument §8.7 |
 | 03.09.2026 | **Cleanup I4 (Obduktions-Helper):** `test/tmp_obduktion_p46.py`, `test/tmp_obduktion_trace.py`, `test/tmp_obduktion_reissleine.py` gelöscht (in §8.6 als „am 03.09.2026 gelöscht (§8.7)" vermerkt — Löschung konsistent nachgezogen). OOS-Logs `test/tmp_oos_S1_lauf.log` / `test/tmp_oos_S2_lauf.log` bleiben als Belegquellen (§8.4/§8.6/§8.7) vorerst erhalten | dieses Dokument §8.6/§8.7, §7 Pkt. 5 |
 | 03.09.2026 | **Option A ausgeführt (Freigabe erteilt) & verifiziert:** Rückbau E3 + Reißleine in der Arbeitskopie exakt nach §7 Pkt. 12 (Konstanten-Block entfernt, E3-Gate auf Touch-Check Z. 677–680, Reißleinen-`elif` entfernt; 17 Zeilen netto, py_compile OK, keine E3-Identifier mehr). **AUG-Regression exakt bestanden: 12 Ph / 27 Sig / +24.97R** (= Baseline). **S1 exakt bestanden: 139 Ph / 201 Sig / +197.26R** (= S1-Baseline, bitgenau); B-Ph46-Riesenprofil aufgelöst (139 statt 130 Phasen), Referenzfall reproduziert: Phase 46 eigenständig Fr 10.04–Mo 13.04, 2 Tr **+10.21R** inkl. Mo 13.04 00:15 **+10.69R** (§8.6) | `test/tmp_optionA_AUG_lauf.log`, `test/tmp_optionA_S1_lauf.log`, `test/stats_trades_MAKRO_AUG.txt`, `test/stats_trades_MAKRO_S1.txt`, `test/phasen_makro_swings_AUG.png`, `test/phasen_makro_swings_S1.png` (gitignored), dieses Dokument §8.7 |
+| 03.09.2026 | **S2-Bestätigungslauf §8.7 (Arbeitskopie `d99abbb`, Gesamtjahr 2025, reine Messung):** **exakt 62 Phasen / 210 Signale / +99.88R** (WR 35.2 %, PF 1.80) = bitgenaue S2-Baseline (§3). **Gesamt S1+S2: 201 Phasen / 411 Signale / +297.14R** — Ziel ≥ +292.14R erreicht (**+5.00R Delta**), OOS-Referenz +293.35R übertroffen. OOS-Lücke empirisch geschlossen → Arbeitskopie `d99abbb` **bitgenau verifiziert & freigabefähig** | `test/tmp_optionA_S2_lauf.log`, `test/stats_trades_MAKRO_S2.txt`, `test/phasen_makro_swings_S2.png` (gitignored), dieses Dokument §8.7 |
 
 ---
 
@@ -1305,10 +1306,16 @@ CRV nahe 1.0).
   aufgelöst (Phase 46 wieder eigenständig: Fr 10.04 15:45 → Mo 13.04 17:00,
   98 C; 2 Trades **+10.21R** inkl. Mo 13.04 00:15 **+10.69R** — exakt der
   §8.6-Referenzfall).
-- **S1+S2-Prognose:** +197.26R (S1, gemessen) + S2-Baseline +99.88R
-  (210 Sig, §3) = **≈ +297.14R ≥ Ziel +292.14R** (S2-OOS-Lauf als
-  letzter Bestätigungslauf offen, Erwartung ≈ +93.70R OOS-Referenz).
+- **S1+S2-Prognose bestätigt (S2-Bestätigungslauf, 03.09.2026):**
+  S1 **+197.26R** (201 Sig) + S2 **+99.88R** (210 Sig, gemessen,
+  bitgenaue §3-Baseline) = **+297.14R ≥ Ziel +292.14R** (+5.00R Delta;
+  OOS-Referenz +293.35R übertroffen). S2-Messung: **62 Phasen /
+  210 Signale / +99.88R** (WR 35.2 %, PF 1.80). Damit ist die OOS-Lücke
+  empirisch geschlossen; die Arbeitskopie `d99abbb` ist **bitgenau
+  verifiziert & freigabefähig** (segmentierungs-bitgenau zur
+  Produktions-Baseline).
 - Belege (gitignored): `test/tmp_optionA_AUG_lauf.log`,
-  `test/tmp_optionA_S1_lauf.log`, `test/stats_trades_MAKRO_AUG.txt`,
-  `test/stats_trades_MAKRO_S1.txt`, `test/phasen_makro_swings_AUG.png`,
-  `test/phasen_makro_swings_S1.png`.
+  `test/tmp_optionA_S1_lauf.log`, `test/tmp_optionA_S2_lauf.log`,
+  `test/stats_trades_MAKRO_AUG.txt`, `test/stats_trades_MAKRO_S1.txt`,
+  `test/stats_trades_MAKRO_S2.txt`, `test/phasen_makro_swings_AUG.png`,
+  `test/phasen_makro_swings_S1.png`, `test/phasen_makro_swings_S2.png`.

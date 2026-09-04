@@ -709,6 +709,7 @@ den aktiven R1-Kanten im Rückbau-Lauf.
 | 04.09.2026 | **Consecutive-Loss Cap S1 (§8.15):** Cap=2 je Phase+Richtung getestet. Netto −20,55R (spart +9,48R, killt −30,03R an Top-Winnern wie T154 +7,82R, T188 +6,71R). Cap endgültig verworfen. | `docs/makro_swings_experiment.md` §8.15 |
 | 04.09.2026 | **Relative Kanten-Drift S1 (§8.16):** Schwellen 0,5–3,0 % getestet. Bei 1,0 % netto −36,55R. Big Winner haben maximale Drift (T59 4,17 %, T35 3,48 %, T188 3,07 %); Phase 102 liegt darunter (1,0–2,68 %). Filter verworfen. | `docs/makro_swings_experiment.md` §8.16 |
 | 04.09.2026 | **Kapitulations-Check S1 (§8.17, Mentor-Schritt 1):** Impuls-Größe |net8| (8 M15-Bars kausal vor Signal) über alle 201 Trades als Filter simuliert. Schwellen 1,0–3,0 % alle katastrophal (1,0 %: −115,72R, 3,0 %: −162,51R); nur 8 Winner ≥ 2,0 % (+49,30R von +295,31R Winner-Basis); Verteilung fast identisch (Median 0,71 vs. 0,57 %). KER (T142 0,94 ≈ T59 0,93) und Single-Print-/Imbalance-Signaturen trennen nicht. T142 = legitimer Bodentest mit Pech (Wendepunkt 1 Phase später, T144 +1,55R). **Verdikt arretiert:** kein statischer Impuls-Filter; Phase 102 = Regime-Problem (§8.16 bestätigt). Helper `test/tmp_capitulation_check.py` gelöscht (I4), Report behalten. | `docs/makro_swings_experiment.md` §8.17 |
+| 04.09.2026 | **Fehlversuch-Dichte vs. Regime-Pullback-Tiefe (§8.18):** Destruktive Streaks (−37,50R) obduziert. 5× LONG-Streaks (−23,05R) bluten in Folgephasen über 168h weiter (−1,21R, 25 % WR, Netto −24,26R). Kein Sequenzer-Vakuum, sondern Dichte-Problem in zähen Drifts. Trenner für Shorts ist Pullback-Tiefe. | `docs/makro_swings_experiment.md` §8.18 |
 
 
 ---
@@ -2164,3 +2165,34 @@ Der gesamte Diskriminator-Komplex aus dem Imbalance-Audit ist **arretiert**
 `test/tmp_capitulation_check_report.txt` (81 Zeilen; Helper
 `test/tmp_capitulation_check.py` nach Ausführung gelöscht, I4) und
 `test/tmp_imbalance_report.txt` (Phase-46/102-Kontrast).
+### 8.18 Fehlversuch-Dichte vs. Regime-Pullback-Tiefe — Audit & Synthese — 04.09.2026
+
+**Fragestellung:** Warum enden destruktive Streaks in S2 und S1 (Ph1/3/4/7/13/19 in
+S2, Ph102 in S1; −37,50R) ohne Turn in der Phase? Handelt es sich um ein
+Sequenzer-Vakuum (verpasster Turn durch Phasentod) oder um ein Dichte-Problem?
+
+#### 8.18.1 Empirischer Befund (Orphaned- und Folgephasen-Audit)
+
+- **Makro-Asymmetrie:** Die Streaks teilen sich scharf in zwei Klassen:
+  - **5× LONG-Streaks (−23,05R):** Dip-Käufe im übergeordneten Bullenmarkt
+    (S2 Ph3, Ph4, Ph13, Ph19; S1 Ph102). MFE innerhalb von 3 Tagen nach
+    Phasenende betrug +4,0 % bis +9,6 % (3,5 bis 7,7× ATR).
+  - **2× SHORT-Streaks (−14,45R):** Fades gegen den starken Trend (Ph1 Jan,
+    Ph7 Apr) ohne nennenswerten Rücklauf (MFE ≤ 0,07 %).
+- **Widerlegung des Ausführungs-Vakuums:** Der Test der Folgephasen in
+  Streak-Richtung (LONG) über 168 Stunden (7 Tage) ergab:
+  - 16 Trades: 4 Wins / 12 Losses (25 % WR), Saldo: **−1,21R**.
+  - Gesamtsaldo inklusive Ursprungsstreaks: **−24,26R**.
+  - Die Engine stand nie still; die Fehlversuch-Kaskade setzte sich über
+    Phasengrenzen hinweg fort (Ph4 verlor nach Ph3 weiter, Ph5 nach Ph4).
+- **Kernmechanik:**
+  1. Die Wunde ist reine **Fehlversuch-Dichte**: Das System re-entert in zähen
+     Liquidations-Drifts zu früh und zu häufig in dieselbe Richtung.
+  2. Die Streaks sind im Aggregat eine Nullsumme (−72,87R vs. +69,81R in S2).
+     Das eigentliche Alpha (+99,88R) entsteht außerhalb dieser Drift-Episoden.
+  3. Der Trenner zwischen erfolgreichen SHORT-Fades (S1, tiefe Pullbacks) und
+     tödlichen SHORT-Fades (S2 Ph7, zäher Trend) ist die **Pullback-Tiefe /
+     Volatilität** des Marktes, nicht die reine Trendrichtung.
+- **Verdikt:** Phasenabbruch verhindert keine Gewinne, sondern Dichte erzeugt
+  serielle Verluste. Belege: `test/tmp_orphaned_turns_report.txt` und
+  `test/tmp_post_phase_verification.txt`.

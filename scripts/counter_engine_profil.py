@@ -22,6 +22,10 @@ SETUP-A-LOGIK (NEU):
     F1 (arretiert): Touch + Ziel-Geometrie laufen gegen den Snapshot der
     VOR-Bar (vz_prev = Zone bis k-1) — die Signal-Bar verschiebt ihre
     eigene Kante nicht ("Kante flieht vor eigenem Touch" ist eliminiert).
+    F3 (arretiert): Outside-Bar (high >= vah UND low <= val in derselben
+    Bar) wird verworfen (continue, Zähler unverändert) — gleichzeitig an
+    VAH und VAL zu triggern ist ein mechanisches Backtest-Artefakt
+    (kein Hedge, keine Doppelzählung).
   - Signal nur wenn Zählerstand <= MAX_TOUCH_COUNT (Touch 1+2; Absorption
     ab Touch 3 wird verworfen — Setup-C-Disziplin).
   - Einstiegs-Modi:
@@ -899,9 +903,12 @@ def find_counter_signals(
     Ziel-Geometrie werden gegen den Snapshot der VOR-Bar evaluiert
     (vz_prev = _laufende_zone(df, p, k-1), Zone bis k-1) — die Signal-Bar k
     kann ihre eigene Kante nicht mehr durch ihr Volumen verschieben
-    (drift-stabiler Zähler). Ein Signal ist nur zulässig, solange der
-    Zählerstand (inklusive des aktuellen Touch) <= max_touch ist — Touch 3+
-    gilt als Absorption (Setup-C-Disziplin).
+    (drift-stabiler Zähler). F3 (Entscheid A): Eine Outside-Bar (high >= vah
+    UND low <= val in derselben Bar) wird verworfen (continue, Zähler
+    unverändert) — ein gleichzeitiges SHORT+LONG-Triggersignal wäre ein
+    Hedge-Artefakt mechanischer Backtests. Ein Signal ist nur zulässig,
+    solange der Zählerstand (inklusive des aktuellen Touch) <= max_touch
+    ist — Touch 3+ gilt als Absorption (Setup-C-Disziplin).
 
     Args:
         df: OHLCV-Frame mit idx-Spalte.
@@ -949,6 +956,17 @@ def find_counter_signals(
 
         touch_vah = bool(hi[k] >= vah)
         touch_val = bool(lo[k] <= val)
+
+        # F3 (Entscheid A): Outside-Bar verwerfen. Berührt Bar k BEIDE Kanten
+        # des vz_prev-Snapshots (high >= vah UND low <= val), ist das eine
+        # Volatilitäts-Expansion — gleichzeitig an VAH und VAL zu triggern
+        # wäre ein Artefakt mechanischer Backtests (die SHORT- und LONG-
+        # Blöcke würden sonst unabhängig feuern -> Hedge-Artefakt +
+        # Doppelzählung). Beide Seiten verwerfen; die Absorptionszähler
+        # bleiben unverändert.
+        if touch_vah and touch_val:
+            continue
+
         if touch_vah:
             touches_vah += 1
         if touch_val:

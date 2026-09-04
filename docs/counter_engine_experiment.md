@@ -82,10 +82,10 @@ class CounterConfig:
     min_signal_abstand_bars: int = 12  # Cooldown (M15 = 3 h), je Richtung getrennt
 ```
 
-### 3.2 Touch-Tracking (barweise, kausal)
+### 3.2 Touch-Tracking (barweise, kausal, drift-stabil)
 
-- **`touches_vah`** wird innerhalb der aktiven Phase für jede Bar `k` inkrementiert, deren `high >= U_zone` der **laufenden** Volume-Zone (bis einschließlich `k`, kein Lookahead über die finale Phasen-Hülle) ist.
-- **`touches_val`** analog für `low <= L_zone`.
+- **F1 (Entscheid A, umgesetzt):** `touches_vah` / `touches_val` werden innerhalb der aktiven Phase gegen den **Snapshot der VOR-Bar** evaluiert: `vz_prev = _laufende_zone(df, p, k-1)` (Volume-Zone bis einschließlich `k-1`, kein Lookahead über die finale Phasen-Hülle). Die Signal-Bar `k` kann ihre eigene Kante nicht mehr durch ihr Volumen verschieben („Kante flieht vor eigenem Touch" ist eliminiert).
+- **Ziel-Geometrie aus demselben Snapshot:** POC/TP1/TP2 sowie die Gültigkeits- und RR-Bedingungen (`entry > poc`, `e_preis > tp2`) nutzen ebenfalls `vz_prev` → deterministische, kausal geschlossene RR-Geometrie (Interview-Antwort F5, arretiert).
 - **Signal-Bedingung:** Zählerstand (inkl. aktuellem Touch) `<= MAX_TOUCH_COUNT` — Touch 1 und 2 sind handelbar, Touch 3+ wird als Absorption verworfen.
 
 ### 3.3 Signal-Definition (Setup A)
@@ -140,6 +140,7 @@ class CounterSignal:
 | Datum | Ereignis | Commit/Status |
 |---|---|---|
 | 04.09.2026 | **Initialisierung Counter-Engine (Setup A / Ping-Pong):** Doku `docs/counter_engine_experiment.md` + Skript `scripts/counter_engine_profil.py` angelegt (Infrastruktur-Basis `phasen_volumen_profil.py` v0.4.x, Segmentierung unverändert). Setup-A-Logik: Touch-Tracking (VAH/VAL, `MAX_TOUCH_COUNT = 2`), Entry-Modi DIRECT_TOUCH/CANDLE_REJECTION, TP1 50 % am POC mit Break-even-Nachzug, TP2 50 % an der Gegenseite ∓ 0,20 %, Cooldown 12 Bars. Keine Testläufe (Initialisierung). | `scripts/counter_engine_profil.py` (neu), `docs/counter_engine_experiment.md` (neu), Produktions-Baseline unverändert |
+| 03.09.2026 | **F1 (Kanten-Drift) umgesetzt (Schritt 1):** Signal-Scan in `find_counter_signals` auf `vz_prev = _laufende_zone(df, p, k-1)` umgestellt — Touch UND Ziel-Geometrie (POC/TP1/TP2/entry>poc/RR) aus dem Snapshot VOR der Signal-Bar; Guards `k-1 >= i_start` und `min_zone_candles` auf den vz_prev-Präfix. Interview-Antworten arretiert: **F5** = Geometrie-Bindung an vz_prev, **F6** = Default `--be-nachzug false` für den 1. Gesamtlauf (Revision des früheren Defaults, A/B-Protokoll-Pflicht). Checkpoint AUG (F1 isoliert, BE true): 8 Signale / −0,13R / PF 0,97 (Status quo: 9 / +4,69R / PF 2,56) — Zwischenstand, Gesamturteil erst nach Schritt 2+3. | Skript geändert, Baseline unverändert |
 
 ---
 

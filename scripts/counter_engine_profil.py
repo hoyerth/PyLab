@@ -18,7 +18,10 @@ INFRASTRUKTUR-BASIS (aus scripts/phasen_volumen_profil.py übernommen):
 
 SETUP-A-LOGIK (NEU):
   - Touch-Tracking: barweise Zähler touches_vah / touches_val gegen die
-    laufende Zonenkante (U_zone/L_zone) innerhalb der aktiven Phase.
+    Zonenkante (U_zone/L_zone) innerhalb der aktiven Phase.
+    F1 (arretiert): Touch + Ziel-Geometrie laufen gegen den Snapshot der
+    VOR-Bar (vz_prev = Zone bis k-1) — die Signal-Bar verschiebt ihre
+    eigene Kante nicht ("Kante flieht vor eigenem Touch" ist eliminiert).
   - Signal nur wenn Zählerstand <= MAX_TOUCH_COUNT (Touch 1+2; Absorption
     ab Touch 3 wird verworfen — Setup-C-Disziplin).
   - Einstiegs-Modi:
@@ -889,13 +892,16 @@ def find_counter_signals(
     cooldown_bars: int = MIN_SIGNAL_ABSTAND_BARS,
     min_zone_candles: int = MIN_ZONE_CANDLES,
 ) -> List[CounterSignal]:
-    """Scannt Setup-A-Signale bar für bar (kausal, laufende Zone).
+    """Scannt Setup-A-Signale bar für bar (kausal, drift-stabile Zone).
 
     Touch-Tracking: touches_vah / touches_val zählen barweise die Berührungen
-    der laufenden Zonenkante (high >= vah bzw. low <= val) innerhalb der
-    Phase. Ein Signal ist nur zulässig, solange der Zählerstand (inklusive
-    des aktuellen Touch) <= max_touch ist — Touch 3+ gilt als Absorption
-    (Setup-C-Disziplin).
+    der Zonenkante innerhalb der Phase. F1 (Entscheid A): Touch UND
+    Ziel-Geometrie werden gegen den Snapshot der VOR-Bar evaluiert
+    (vz_prev = _laufende_zone(df, p, k-1), Zone bis k-1) — die Signal-Bar k
+    kann ihre eigene Kante nicht mehr durch ihr Volumen verschieben
+    (drift-stabiler Zähler). Ein Signal ist nur zulässig, solange der
+    Zählerstand (inklusive des aktuellen Touch) <= max_touch ist — Touch 3+
+    gilt als Absorption (Setup-C-Disziplin).
 
     Args:
         df: OHLCV-Frame mit idx-Spalte.
@@ -923,9 +929,17 @@ def find_counter_signals(
     touches_val: int = 0
 
     for k in range(p.i_start, p.i_ende):
-        if k - p.i_start + 1 < min_zone_candles:
+        # F1 (Entscheid A): drift-stabiler Touch gegen die Kante der VOR-Bar.
+        # vz_prev = _laufende_zone(df, p, k-1) ist der Snapshot VOR der
+        # Signal-Bar k; Bar k kann ihre eigene Kante nicht mehr verschieben
+        # ("Kante flieht vor eigenem Touch"). Touch UND Ziel-Geometrie
+        # (POC/TP1/TP2/entry>poc) stammen aus DEMSELBEN Snapshot ->
+        # deterministische, kausal geschlossene RR-Geometrie.
+        if k - 1 < p.i_start:
             continue
-        vz = _laufende_zone(df, p, k)
+        if k - p.i_start < min_zone_candles:
+            continue
+        vz = _laufende_zone(df, p, k - 1)
         if vz is None:
             continue
         vah, val, poc = vz.U_zone, vz.L_zone, vz.POC

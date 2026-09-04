@@ -712,7 +712,8 @@ den aktiven R1-Kanten im Rückbau-Lauf.
 | 04.09.2026 | **Fehlversuch-Dichte vs. Regime-Pullback-Tiefe (§8.18):**
 | 04.09.2026 | **Mehrtages-Vola & Dichte-Caps (§8.19):**
 | 04.09.2026 | **Positiv-Wende & Auszahlungs-Anatomie (§8.20):**
-| 04.09.2026 | **Alpha-Landkarte & Robustheit (§8.21):** 163 Gewinner analysiert. Breite Mitte (2–8R) trägt 73,2 % des Gewinns (+380,96R). Stresstest ohne Top 5 Trades hält +236,61R (80 % Alpha). Exekutions-Effizienz vs. Zonen-Geometrie beträgt exakt 100 %. Kein Fat-Tail-Risiko; institutionell robust. | `docs/makro_swings_experiment.md` §8.21 | 410/411 Exits repliziert (Signal+1/+2). Topf B liefert 98,8 % (S1) / 76,8 % (S2) des Alphas (WR 50 %, PF 2,8–3,2). Einstiegssignaturen scheitern (−60R Netto). Binäre Asymmetrie nach Entry: Winner erreichen zu 99 % TP1 und zu 92 % TP2 (Gegenseite); Loser erreichen zu 0 % TP2. Alpha entsteht rein durch Laufenlassen bis TP2. | `docs/makro_swings_experiment.md` §8.20 | Vola-Filter scheitert (Feb 2025 hatte 2,4 % Tages-Range vs. März mit 1,9 %; Mai 2026 R72 7,6 %). Dichte-Caps vernichten netto Wert (killen T54 +14,1R, T65–69 +34,7R). Toxizität ist setupspezifisch. Negativ-Serie vollständig abgeschlossen. | `docs/makro_swings_experiment.md` §8.19 |
+| 04.09.2026 | **Alpha-Landkarte & Robustheit (§8.21):**
+| 04.09.2026 | **Gesamtsynthese & Architektur-Leitfaden (§9):** Audit-Serie vollständig abgeschlossen. Baseline v0.4.x (scripts/phasen_volumen_profil.py) offiziell eingefroren und gegen Signalfilter-Eingriffe gesperrt. Topf-B-Dominanz (98,8 %/76,8 % Alpha), 92 % TP2-Runner-Expansion, 73,2 % tragende Mitte und 100 % Exekutions-Effizienz als unabänderliche Invarianten arretiert. | `docs/makro_swings_experiment.md` §9 | 163 Gewinner analysiert. Breite Mitte (2–8R) trägt 73,2 % des Gewinns (+380,96R). Stresstest ohne Top 5 Trades hält +236,61R (80 % Alpha). Exekutions-Effizienz vs. Zonen-Geometrie beträgt exakt 100 %. Kein Fat-Tail-Risiko; institutionell robust. | `docs/makro_swings_experiment.md` §8.21 | 410/411 Exits repliziert (Signal+1/+2). Topf B liefert 98,8 % (S1) / 76,8 % (S2) des Alphas (WR 50 %, PF 2,8–3,2). Einstiegssignaturen scheitern (−60R Netto). Binäre Asymmetrie nach Entry: Winner erreichen zu 99 % TP1 und zu 92 % TP2 (Gegenseite); Loser erreichen zu 0 % TP2. Alpha entsteht rein durch Laufenlassen bis TP2. | `docs/makro_swings_experiment.md` §8.20 | Vola-Filter scheitert (Feb 2025 hatte 2,4 % Tages-Range vs. März mit 1,9 %; Mai 2026 R72 7,6 %). Dichte-Caps vernichten netto Wert (killen T54 +14,1R, T65–69 +34,7R). Toxizität ist setupspezifisch. Negativ-Serie vollständig abgeschlossen. | `docs/makro_swings_experiment.md` §8.19 |
 
 
 ---
@@ -2257,3 +2258,31 @@ Sequenzer-Vakuum (verpasster Turn durch Phasentod) oder um ein Dichte-Problem?
 #### 8.21.3 Deterministische Exekutions-Effizienz
 - Die realisierte R-Ausbeute im Verhältnis zur theoretischen Zonen-Auszahlung ($0,25 \cdot \text{crv} + 0,75 \cdot \text{crv2}$) beträgt über alle Kohorten hinweg **exakt 100 %**.
 - **Verdikt:** Das System besitzt echte institutionelle Robustheit. Das Alpha bricht bei Wegfall extremer Marktbewegungen nicht ein, sondern speist sich deterministisch aus der stabilen Ausnutzung der Value-Area-Geometrie. Beleg: `test/tmp_alpha_landkarte_report.txt`.
+## 9. Gesamtsynthese: Vom Streak-Dilemma zur deterministischen Exekution — 04.09.2026
+
+### 9.1 Die Anatomie des System-Edges
+Die umfassende Audit-Serie (§8.1–§8.21) hat das Fundament der Mean-Reversion-Engine offengelegt:
+1. **Topf-B-Dominanz (Non-Streak-Alpha):**
+   - Außerhalb der 14 Drift-Zyklen liefert Setup B verlässlich institutionelles Alpha: **+194,96R in S1** (98,8 % des S1-Ertrags) und **+76,66R in S2** (76,8 % des S2-Ertrags) bei einer Win Rate von 50,0 % und einem Profit Factor von 2,8 bis 3,2.
+   - Die Streak-Episoden (Topf A) sind im Aggregat eine statistische Nullsumme (−3,06R in S2) – sie stellen die Prämie dar, um die massiven Wendepunkte am Ende der Liquidationsphasen mitzunehmen.
+2. **Die binäre Pfad-Asymmetrie nach Entry:**
+   - Echte Reversals zeigen sofortige institutionelle Absorption: 99 % der Gewinner erreichen den POC (TP1), und **92 % expandieren direkt weiter zur Gegenseite der Zone (TP2)**.
+   - 75 % der Gewinner sahen nie mehr als −0,17R Buchverlust (MAE).
+   - Verlierer dagegen erreichen in 0 % der Fälle TP2 und sterben zu 83–93 % zügig vor dem POC am SL.
+3. **Deterministische Geometrie statt Fat-Tail:**
+   - Das Alpha hängt an keinem fragilen Fat-Tail: Die breite Mitte (2,0R bis 8,0R) trägt **73,2 % des Gewinns (+380,96R)**.
+   - Ein Stresstest ohne die 5 größten Trades des Gesamtsystems erhält **+236,61R (80 % des Alpha)**.
+   - Die Exekutions-Effizienz gegenüber der theoretischen Zonen-Formel ($0,25 \cdot \text{crv} + 0,75 \cdot \text{crv2}$) liegt über alle Kohorten hinweg bei **exakt 100 %**.
+
+### 9.2 Die vollständige Negativ-Kette (§8.7–§8.19)
+Elf aufeinanderfolgende, streng wissenschaftliche Gegenproben haben bewiesen, dass jede heuristische Einschränkung an der Ausführungskante das System zerstört:
+- Wände, Range-Spikes, POC-Distanzen, Richtungs-Caps, Kanten-Drift-Schranken, Kanten-Ablaufdaten, Impuls-Kapitulationen, Drift-Dichte-Pausen, Mehrtages-Vola-Gates und toxische Einstiegs-Signaturen führten ausnahmslos zu **Netto-Werteinbußen (−11R bis −225R)**, weil sie stets die Spitzen-Winner (T54, T188/T189, T65–T69) rasierten.
+- Die Toxizität langer Verlustserien ist **setupspezifisch**, nicht marktregimespezifisch (Februar 2025 war statistisch ununterscheidbar vom Rekordmonat März 2025).
+
+### 9.3 Architektonische Invarianten & Sperr-Deklaration
+1. **Laufenlassen bis TP2 als Grundgesetz:**
+   - Vorzeitige Gewinnsicherungen, enges Break-Even-Nachziehen oder Time-Stops sind strikt untersagt, da sie die 92 % der Runner abschneiden, die die gesamte Asymmetrie tragen.
+2. **Formale Sperre der Baseline v0.4.x:**
+   - Die Datei `scripts/phasen_volumen_profil.py` wird hiermit in ihrem aktuellen Zustand eingefroren.
+   - Jegliche künftige Modifikation an der Signal- oder Kantenlogik auf Signalebene ist untersagt.
+   - Zukünftige Entwicklungen (wie ein übergeordnetes Regime-Monitoring / Tier-2-Wächter) dürfen ausschließlich als externe, orthogonale Module (z. B. `macro_persistence.py`) realisiert werden, ohne den Kern zu verändern.

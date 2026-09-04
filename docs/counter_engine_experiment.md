@@ -1,0 +1,157 @@
+# Setup A: Counter-Engine (Ping-Pong) Experiment
+
+> **Status:** Initialisierung (04.09.2026) — keine Testläufe, kein Sandboxing.
+> **Bezug:** `scripts/counter_engine_profil.py` (neu) auf Infrastruktur-Basis von `scripts/phasen_volumen_profil.py` (v0.4.0-baseline-frozen, unverändert).
+
+---
+
+## 1. Ausgangslage & Motivation
+
+Die Produktions-Baseline (Setup B / Reclaim, `scripts/phasen_volumen_profil.py`) handelt die **Bestätigung eines Fehlausbruchs** (Candle schließt nach Durchstich wieder innerhalb der Zone) und erzielt auf SILVER M15 über S1+S2 **+297,14R / 411 Trades (PF 2,33, R/Trade +0,723)**. Der Edge entsteht nachweislich durch **Topf-B-Dominanz** (§8.20/§8.21): Winner erreichen zu 92 % das TP2 (Gegenseite) und expandieren — Alpha entsteht durch Laufenlassen.
+
+**Setup A (Counter-Engine / Ping-Pong)** ist die **antizipative Ergänzung**: Statt auf die Rückkehr *in* die Zone zu warten, wird bereits **am Kontakt mit der Kante (VAH/VAL)** in Mean-Reversion-Richtung gehandelt — der Markt *soll* von der Kante zur Gegenseite „ping-pongen". Abgrenzung zu Setup B:
+
+| Dimension | Setup B (Reclaim, Produktion) | Setup A (Counter / Ping-Pong, dieses Experiment) |
+|---|---|---|
+| Einstiegs-Trigger | Fehlausbruch: Durchstich + Schluss zurück in der Zone | Kanten-Kontakt (Touch) mit/ohne Rejection-Kerze |
+| Richtung | Gegen den Ausbruch (Reclaim) | Mit der Mean-Reversion (Kante → POC → Gegenseite) |
+| TP1 (50 %) | POC (Fair Value) | POC (Fair Value) |
+| TP2 (50 %) | Gegenseite minus 0,20 % Puffer | Gegenseite minus 0,20 % Puffer |
+| Rest-SL nach TP1 | KEIN SL-Nachzug (Baseline-Invariante) | **Break-Even** (Derisking am Fair Value) |
+| Risiko-Profil | Runner-Expansion (Topf B) | Absorptions-/Touch-Limitierung (Setup C) |
+
+**Motivation:** Wenn die Value-Area-Geometrie eine echte Marktkante ist (fraktal über TF und Asset belegt, §8.24–§8.27), dann sollte ein **antizipativer Einstieg direkt an der Kante** bei disziplinierter Auswahl (Rejection, Touch-Limit) ein eigenständiges, stabileres R-Profil liefern — mit früherem Derisking (Break-even nach TP1) als die Reclaim-Engine.
+
+---
+
+## 2. Hypothesen
+
+1. **Einstiegs-Disziplin:** *Candle Rejection* (Kante berührt, Schlusskurs verweigert die Seite: `close < vah` bei Short / `close > val` bei Long) liefert ein höheres kumuliertes R als *Direct Touch* (jeder Kantenkontakt), weil Momentum-Ausbrüche durch die Schlusskurs-Verweigerung gefiltert werden.
+2. **Liquiditäts-Absorptionsfilter (Setup-C-Disziplin):** Die Begrenzung auf **Touch 1 und Touch 2** (`MAX_TOUCH_COUNT = 2`) schützt vor ausbrechenden Spät-Touches: Eine mehrfach getestete Kante verliert ihre Rejektions-Kraft (Absorption durch Gegenseite), erst recht nach Touch 3+.
+3. **50 % POC-Derisking:** Die Teil-Realisation am Fair Value (POC) **mit Break-even-Nachzug der Restposition** erhöht die Systemstabilität: Die Gewinn-Hälfte sichert den Trade ab, die Rest-Hälfte läuft risikofrei zur Gegenseite — im Gegensatz zum vollen R-Risiko der Reclaim-Engine bis zum TP2.
+
+**Testdesign (später, nach Freigabe):** AUG → S1/S2 auf SILVER M15, Modus-Vergleich `DIRECT_TOUCH` vs. `CANDLE_REJECTION`, Touch-Count-Sweep, Break-even-Vergleich gegen die Baseline-Invariante „KEIN SL-NACHZUG".
+
+---
+
+## 3. Parameter & Datenverträge
+
+### 3.1 `CounterConfig` (verbindlicher Datenvertrag, Klassenebene im Skript)
+
+```python
+@dataclass(frozen=True, slots=True)
+class CounterConfig:
+    """Verbindliche Konfiguration der Counter-Engine (Setup A / Ping-Pong)."""
+    # --- Datenbasis ---
+    symbol: str = "SILVER"
+    timeframe: Literal["M15", "M5", "M10", "M30", "H1"] = "M15"
+    start: str = "2026-08-10"
+    ende: str = "2026-08-28"
+
+    # --- Phasen-Segmentierung (UNVERÄNDERT, Infrastruktur-Basis v0.4.x) ---
+    min_candles: int = 46            # Phasen-Mindestlänge (M15 = 11,5 h Balance)
+    min_phase_candles: int = 46      # Abbruch-Reifeschwelle (2-Close-Bruch)
+    min_establish: int = 4           # Etablierung: Touch-Summe beider Grenzen
+    pivot_lookback: int = 2          # Pivot-Bestätigung (M15 = 30 min, nachlaufend)
+    va_pct: float = 0.93             # Value-Area-Resonanzkante (§8.23, SILVER)
+    num_bins: int = 60
+    smooth_win: int = 3
+    valley_rel: float = 0.15
+    min_mountain_pct: float = 4.0
+    min_cluster: int = 2
+    min_touches: int = 3             # Handelbare Phase: Touches je Grenze (U_final/L_final)
+    min_spread_pct: float = 1.5      # Spread-Gate (relativ, SILVER-Kalibrierung)
+    density_band: float = 0.15       # USD-Touch-Band (Touch-/Cluster-Zählung)
+    tol: float = 0.34                # USD: 2-Close-Bruch-Toleranz (Z. 692/695)
+    tol_touch: float = 0.15          # USD: Touch-Toleranz beim Phasen-Ende
+    shift_tol: float = 0.05          # USD: Kanten-Verschiebungs-Schwelle
+    grenz_kontakt_tol: float = 0.0   # Regel-7-Finalize (letzter Grenz-Kontakt)
+    fenster_pivots: int = 100        # Schnittmengen-Fenster
+
+    # --- Setup A: Signal-Logik ---
+    max_touch_count: int = 2         # Liquiditäts-Absorptionsfilter (Touch 1+2)
+    entry_mode: Literal["DIRECT_TOUCH", "CANDLE_REJECTION"] = "CANDLE_REJECTION"
+    min_zone_candles: int = 30       # Mindest-Bars der laufenden Zone vor Signal-Scan
+    min_reclaim_bounce: int = 2      # (reserviert, Symmetrie zu Setup B)
+    min_reclaim_crv: float = 1.0     # (reserviert, Symmetrie zu Setup B)
+
+    # --- Setup A: Trade-Management ---
+    sl_pct: float = 0.45             # Stop-Loss relativ zum Einstieg
+    anteil_tp1: float = 50.0         # 50 % der Position am POC
+    tp2_puffer_pct: float = 0.20     # TP2 = Gegenseite abzüglich 0,20 % Puffer
+    min_signal_abstand_bars: int = 12  # Cooldown (M15 = 3 h), je Richtung getrennt
+```
+
+### 3.2 Touch-Tracking (barweise, kausal)
+
+- **`touches_vah`** wird innerhalb der aktiven Phase für jede Bar `k` inkrementiert, deren `high >= U_zone` der **laufenden** Volume-Zone (bis einschließlich `k`, kein Lookahead über die finale Phasen-Hülle) ist.
+- **`touches_val`** analog für `low <= L_zone`.
+- **Signal-Bedingung:** Zählerstand (inkl. aktuellem Touch) `<= MAX_TOUCH_COUNT` — Touch 1 und 2 sind handelbar, Touch 3+ wird als Absorption verworfen.
+
+### 3.3 Signal-Definition (Setup A)
+
+| Richtung | Kante | DIRECT_TOUCH | CANDLE_REJECTION | Gültigkeit |
+|---|---|---|---|---|
+| SHORT | VAH (`U_zone`) | `high >= vah` | `high >= vah und close < vah` | `touches_vah <= MAX_TOUCH_COUNT` |
+| LONG | VAL (`L_zone`) | `low <= val` | `low <= val und close > val` | `touches_val <= MAX_TOUCH_COUNT` |
+
+- Einstieg: **Open der Folge-Bar** (`k+1`), sofern `k+1 <= Phasenende` (A3-Bounds-Guard).
+- Strukturelle Gültigkeit: SHORT nur wenn `entry > POC`; LONG nur wenn `entry < POC`.
+
+### 3.4 Trade-Management (Auflösung, 2 Hälften)
+
+| Hälfte | Anteil | Ziel | Stop | Exit-Grund |
+|---|---|---|---|---|
+| 1 | 50 % | TP1 = **POC** (exakt) | `SL = entry × (1 ± 0,45 %)` | `TP1` / `SL` / `ENDE` |
+| 2 | 50 % | TP2 = **Gegenseite ∓ 0,20 % Puffer** (SHORT: `val × (1+0,002)`; LONG: `vah × (1−0,002)`) | **Break-even (`entry`)** sobald Hälfte 1 TP1 erreicht hat; vorher `SL_init` | `TP2` / `BE` / `SL` / `ENDE` |
+
+- **Break-even-Semantik:** Wird TP1 erreicht (`t1 < t_SL`), gilt für die Restposition ab der TP1-Bar der Stop auf `entry` (r = 0 bei Berührung). Wird TP1 nicht erreicht (voller SL), behält Hälfte 2 den ursprünglichen `SL_init`.
+- **Intrabar-Konvention (konsistent zur Baseline):** Jede Hälfte wird unabhängig über den Zeitraum `[einstieg_bar … Datenende]` simuliert; das zuerst erreichte Ziel gewinnt (`argmax`-Maske). Alle Trades werden vollständig aufgelöst (sonst Close zum letzten Kurs).
+
+### 3.5 Datenverträge (aus der Baseline-Infrastruktur übernommen)
+
+`VolumeProfileData`, `MountainPeak`, `VolumeZone`, `PhaseData`, `MoveData`, `TradeResolution` — unverändert; `CounterSignal` ersetzt `ReclaimSignal`:
+
+```python
+@dataclass(slots=True)
+class CounterSignal:
+    typ: Literal["SHORT", "LONG"]
+    mode: Literal["DIRECT_TOUCH", "CANDLE_REJECTION"]
+    bar: int
+    ts: pd.Timestamp
+    einstieg_bar: int
+    einstieg_preis: float
+    vah: float                # laufende U_zone (Kante)
+    val: float                # laufende L_zone (Kante)
+    poc: float                # laufender POC
+    touches_vah: int          # Zählerstand inkl. aktuellem Touch
+    touches_val: int
+    tp1: float
+    tp2: float
+    sl: float
+    phase: int = 0
+    trade: Optional[TradeResolution] = None
+```
+
+---
+
+## 4. Tracking-Log
+
+| Datum | Ereignis | Commit/Status |
+|---|---|---|
+| 04.09.2026 | **Initialisierung Counter-Engine (Setup A / Ping-Pong):** Doku `docs/counter_engine_experiment.md` + Skript `scripts/counter_engine_profil.py` angelegt (Infrastruktur-Basis `phasen_volumen_profil.py` v0.4.x, Segmentierung unverändert). Setup-A-Logik: Touch-Tracking (VAH/VAL, `MAX_TOUCH_COUNT = 2`), Entry-Modi DIRECT_TOUCH/CANDLE_REJECTION, TP1 50 % am POC mit Break-even-Nachzug, TP2 50 % an der Gegenseite ∓ 0,20 %, Cooldown 12 Bars. Keine Testläufe (Initialisierung). | `scripts/counter_engine_profil.py` (neu), `docs/counter_engine_experiment.md` (neu), Produktions-Baseline unverändert |
+
+---
+
+## 5. Session-Stand (04.09.2026) — Projektkontext
+
+**Gesamtprojekt:** Quant-Entwicklung & Backtesting-Framework, `F:\Python\PyLab`, Windows 11. Datenbank `data/market_data.duckdb` (`ohlcv_bars`, Symbole `SILVER` + `GOLD`, M15 in S1/S2/AUG vollständig). Baseline `scripts/phasen_volumen_profil.py` = **v0.4.0-baseline-frozen** (Tag `47b5c89`), nie verändern.
+
+**Arretierter Stand (Doku `docs/makro_swings_experiment.md`, „State of Truth", Commits bis `fd18d6f`):**
+- **Setup B / Reclaim-Baseline (SILVER M15):** S1+S2 = **+297,14R / 411 Trades / PF 2,33 / R-Tr +0,723** (WR 39,7 %). Produktions-Sperre auf M15/VA_PCT 0,93/SILVER empirisch zementiert. Topf-B-Dominanz: 92 % TP2-Expansion der Winner; Alpha durch Laufenlassen bis TP2 (§8.20–§8.21).
+- **Negativ-Kette §8.7–§8.19:** 11 Filterkandidaten (CRV2, Anker-Volumen-Ratio, Initialisierung, Gegenkanten-Distanz, Consecutive-Loss-Cap, Kanten-Drift, Kapitulation, Dichte-Caps u. a.) datenwiderlegt — kein statischer Signalfilter verbessert die Baseline.
+- **Parameter-Audit §8.22/§8.23:** VA_PCT 0,93 = Kuppe (empfindlichster Hebel), geometrische Resonanzkante; Code-Defaults = Optimum.
+- **Multi-Timeframe §8.24–§8.26:** Fraktale Edge über H1 (R/Tr +0,663), M5 (zeit-äquiv. +0,55), Sweet-Spot-Matrix S1+S2: **M15 (+0,723) > H1 (+0,663) > M10 (+0,609) > M30 (+0,356)** — M15 bleibt Produktions-Standard.
+- **Cross-Asset GOLD §8.27 (QS-3):** ATR-Ratio-Skalierung statt Preisratio; SL_PCT-Vola-Skalierung nötig; VA_PCT-Kuppe auf GOLD bei **0,95** (asset-spezifische Resonanz, +0,02 verschoben): +196,06R / 420 Trades, aber nur 34,8 % der SILVER-Kursrendite/Trade → Produktion bleibt exklusiv SILVER.
+
+**Jetziger Schritt (dieses Dokument):** Start des **Setup-A-Experiments (Counter-Engine / Ping-Pong)** als neues, eigenständiges Experiment neben der Setup-B-Produktion. Erste Implementierung rein dokumentarisch + Skript-Anlage; Testläufe (AUG → S1/S2) erst nach Freigabe in `test/tmp_*` mit In-Memory-Exec-Wrappern, ohne `scripts/`-Modifikation.

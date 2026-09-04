@@ -717,6 +717,7 @@ den aktiven R1-Kanten im Rückbau-Lauf.
 | 04.09.2026 | **Parameter-Sensitivitäts-Audit (§8.22):** 24 Läufe abgeschlossen. Baseline exakt bestätigt (+297,14R / 411 Tr, PF 2,33). Topologie zeigt Kuppe statt Plateau: Alle Abweichungen verlieren −13,5 % bis −53,8 %. VA_PCT ist der empfindlichste Hebel (0,88 bricht um −53,8 % ein). Code-Defaults als Optimum bestätigt; Baseline-Sperre bleibt zwingend. | `docs/makro_swings_experiment.md` §8.22 |
 | 04.09.2026 | **Regime-Dekonstruktion des VA-Drops (§8.23):** Weg-A-Replay (17 Monate, bitgenau) widerlegt Marktregime-Abhängigkeit (Pearson zu KER +0,134, Range +0,333). In 14/17 Monaten verliert 0.88. 88,3 % des Verlusts (+141,13R) entstehen durch die Zerstörung der TP2-Runner in Expansionsmonaten. Kuppe bei 0.93 ist als geometrische Resonanzkante bestätigt. | `docs/makro_swings_experiment.md` §8.23 |
 | 04.09.2026 | **Multi-Timeframe-Audit H1 (§8.24):** Skalierungs-Vorschrift (12h Balance, Vola ×2) verifiziert. H1 liefert +113,97R / 172 Trades (PF ~2,1). R/Trade-Effizienz bleibt mit 93,6 % (S1) und 104 % (S2) vollständig erhalten. Max Streak sinkt von 17 auf 11. Fraktaler Charakter der Value-Area-Geometrie zweifelsfrei bewiesen. | `docs/makro_swings_experiment.md` §8.24 |
+| 04.09.2026 | **Multi-Timeframe-Audit M5 (§8.25):** Scheingewinn (+63,09R) als Cooldown-Artefakt entlarvt. Bei zeit-äquivalenter Skalierung (3h Cooldown, 30m Pivot) verbleiben solide +12,62R (PF 2,20, R/Trade +0,55). R/Trade sinkt von H1 (+1,47) über M15 (+0,92) auf M5 (+0,55). M15 bleibt operativer Sweet-Spot. | `docs/makro_swings_experiment.md` §8.25 |
 
 
 ---
@@ -2341,6 +2342,32 @@ Sequenzer-Vakuum (verpasster Turn durch Phasentod) oder um ein Dichte-Problem?
 3. **Glättung von Verlustserien:** Die maximale Verlustserie im Krisenjahr 2025 sinkt von 17 auf 11 Trades.
 - **Belege:** `test/tmp_h1_full_run_report.txt`, `test/tmp_h1_aug_sanity_report.txt`.
 
+
+### 8.25 Multi-Timeframe-Audit M5: Artefakt-Demaskierung & Zeit-Äquivalenz — 04.09.2026
+
+**Fragestellung:** Überträgt sich der Edge auf den schnellen M5-Timeframe, und welche Risiken birgt die Übertragung balkenbasierter Logik?
+
+#### 8.25.1 Gegenüberstellung AUG-2026: Unskaliert vs. Zeit-Äquivalent
+
+| Metrik | M5 Unskaliert (1h-Cooldown) | M5 Zeit-äquivalent (3h / 30min) | M15-Referenz |
+|---|---|---|---|
+| Bars | 3.863 | 3.863 | 1.288 |
+| Phasen (handelbar) | 16 (5) | 21 (2) | 12 (hb) |
+| Trades | 42 | 23 | 27 |
+| Win Rate | 61,9 % | 47,8 % | 44,4 % |
+| Summe Netto-R | +63,09R | +12,62R | +24,97R |
+| Profit Factor | 5,28 | 2,20 | 2,83 |
+| Avg Win / Avg Loss | +2,99R / −0,92R | +2,10R / −0,88R | +3,22R / −0,91R |
+| TP1 / TP2 Quote | 66,7 % / 61,9 % | 56,5 % / 39,1 % | — |
+| Max Loss-Streak | 4 | 3 | — |
+| **R / Trade** | **+1,50R** | **+0,55R** | **+0,925R** |
+
+#### 8.25.2 Methodische Erkenntnis & Warnhinweise
+1. **Demaskierung des Scheingewinns:** Das unskalierte M5-Ergebnis (+63,09R, PF 5,28) war ein methodisches Artefakt. Die unskalierte Cooldown-Sperre (12 Bars = 1h statt 3h) und der feine Pivot-Lookback (2 Bars = 10min statt 30min) führten zu künstlichem Signal-Clustering.
+2. **Zeit-Äquivalenz-Invariante:** Bei korrekter zeitlicher Normalisierung (`MIN_SIGNAL_ABSTAND_BARS = 36`, `PIVOT_LOOKBACK = 6`, Balance 138 Bars) normalisieren sich die Metriken: WR 47,8 %, PF 2,20, +12,62R.
+3. **Phasen-Konzentration & Alpha-Abfall:** Nur 2 von 21 Phasen bestehen das 1,5 %-Spread-Gate. Die Trade-Ausbeute sinkt auf +0,55R/Trade (vs. +0,925R auf M15 und +1,47R auf H1). M5 ist profitabel, aber durch Intraday-Rauschen signifikant alpha-gedämpft.
+- **Belege:** `test/tmp_m5_aug_zeit_aequivalent_report.txt`, `test/tmp_m5_aug_sanity_report.txt`.
+
 ## 9. Gesamtsynthese: Vom Streak-Dilemma zur deterministischen Exekution — 04.09.2026
 
 ### 9.1 Die Anatomie des System-Edges
@@ -2369,6 +2396,7 @@ Elf aufeinanderfolgende, streng wissenschaftliche Gegenproben haben bewiesen, da
    - Die Datei `scripts/phasen_volumen_profil.py` wird hiermit in ihrem aktuellen Zustand eingefroren.
    - Jegliche künftige Modifikation an der Signal- oder Kantenlogik auf Signalebene ist untersagt.
    - Zukünftige Entwicklungen (wie ein übergeordnetes Regime-Monitoring / Tier-2-Wächter) dürfen ausschließlich als externe, orthogonale Module (z. B. `macro_persistence.py`) realisiert werden, ohne den Kern zu verändern.
+
 
 
 

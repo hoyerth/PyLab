@@ -705,6 +705,7 @@ den aktiven R1-Kanten im Rückbau-Lauf.
 | 03.09.2026 | **Kanten-Anker-Audit AUG §8.10 (Pfad B, Vorlauf-Pivot-Pool; Helper `test/tmp_anchor_audit.py`, Log `test/tmp_anchor_audit_AUG.txt`):** Geister-Hypothese (T9/T10/T11, T26 shorteten unverankerte Kanten) auf 27 Baseline-Trades erweitert: erweitertes Fenster ab 01.07.2026 (3848 Bars, 1052 Pivots H532/L520, Identik `find_pivots` Lookback 2), je Trade Kante vs. Vorphasen-Pivots der Seite (ts < Phasenstart). **Distanz allein trennt nicht** (alle 6 sondierten Kanten haben Vorphasen-H-Pivots in 0.001-0.014 USD); **Diskriminator = Volumen-Ratio** am naechsten Pivot (T14/T15 2.40 an Bar 286 13.08 02:30 vs. T9/T10/T11/T26 1.07/0.96/0.69/0.48). Quellen-Korrektur: 66.284-Anker stammt aus P4-Endphase/Topping, nicht Phase 2/3. **Veto-Bilanz Variante B (naechster Pivot <= 0.15 UND Ratio >= 1.5): 12/15 Verlierer geblockt (+10.64R verhindert, inkl. T9/T10/T11-Geister korrekt), aber 9/12 Winner faelschlich geblockt (-23.48R) → Netto -12.84R: Anker-Veto netto-schaedlich** — der Fade-Edge lebt von frischen Kanten ohne historischen Spike-Pivot (P9-SHORTs T20/T21/T23 +7.83R, P1-T1/T2, P7-T19, P12-T27). Saubere Trennung gilt NUR isoliert fuer die 5 P5-Trades; ueber den Gesamt-AUG-Datensatz kollabiert sie | dieses Dokument §8.10 |
 | 03.09.2026 | **AUG-Stresstest Anker-Volumen-Ratio-Filter §8.11 (Arbeitsauftrag; Helper `test/tmp_stresstest_bilanz.py`, Log `test/tmp_stresstest_bilanz.txt`):** Filterwirkung ueber ALLE 27 Baseline-Trades aus dem kanonischen Audit-Log §8.10. **In keiner der 4 Varianten ist der Filter ein Alpha-Verstaerker:** A (irgendein Spike-Pivot im ±0.15-Fenster) 1.5×/2.0× → AUG nach Filter ≈ +8.0R/+10.2R (Δ −17.0R/−14.8R); B (naechster Pivot ≤ 0.15 UND Spike) 1.5×/2.0× → ≈ +12.1R/+11.3R (Δ −12.8R/−13.7R). Gegencheck Winner-Gruppe (strikt spikege15): **9/12 Winner geblockt** (−23.48R: T1/T2/T6/T19/T20/T21/T23/T24/T27) — nur T14/T15/T25 ueberleben; groesster Kollateralschaden T6 +4.59R und T19 +4.26R. Verbleibende Sets kollabieren auf 4–12 Trades (WR/PF scheinbar besser = Kleinstichproben-Artefakt). **Verdikt: blinder Overfit an den P5-Cluster** — der Fade-Edge handelt systematisch an frischen, unverankerten Kanten; Anker-Volumen-Filter endgueltig verworfen | dieses Dokument §8.11 |
 | 03.09.2026 | **Initialisierungsphasen-Audit AUG §8.12 (Pullback-Struktur; Helper `test/tmp_init_phase_audit.py`, Log `test/tmp_init_phase_audit_AUG.txt`, `test/tmp_pb_def_vergleich.py`):** Relativ-Distanz + Pullback-Reife aller 27 Baseline-Trades (Mapping 27/27 bitgenau, kausal, Pivots nur bar <= k-2 bestaetigt). **Nur 2/27 Signale (T7, T25, beide Bar 2) in echter Initialisierung (INIT: keine bestaetigten Pivots, kein Gegenzug >= 0.15 USD); die 4 Geister T9-T11/T26 sind KEINE Initialisierungs-Trades** (0b-Distanz 23/35/47/38, 7/10/13/7 bestaetigte Pivots inkl. abgeschlossener Pullbacks; T9 nach vollstaendiger up-down-up-Struktur). INIT-Kontrast T7 (-1.00R) vs. T25 (+1.83R) -> Initialisierung nicht verlust-deterministisch; Filter netto -0.83R. Winner T14/T15 = reifste Struktur (Alter 156/182, 83.9/97.8 % Phasenanteil, 41/48 Pivots). **Definitionen-Vergleich: quantitative Kerzenschwelle willkuerlich** (einzige positive Schwelle <25 Kerzen +2.19R = In-Sample-Fit an T9-Position 0b 23; <20 -1.81R, <40 -1.84R); strukturelle Definition (Gegenzug vom laufenden Extrem >= 0.15 USD) empfohlen. **Verdikt: Vakuum-/Market-Maker-Hypothese auf AUG datenwiderlegt** — Geister = Muster A Kanten-Drift (§8.9.5), nicht Initialisierungs-Vakuum | dieses Dokument §8.12 |
+| 04.09.2026 | **Gegenkanten-Distanz-Audit AUG §8.13 (Typ-2-Hindernis / Vorphasen-Wand):** Reclaim-Fade nur bei unmittelbarer Naehe zu einer uebergeordneten Makro-Widerstandszone (U_zone/U_final aus Vorphasen)? **Scheinbare Bestaetigung im P5/P12-Cluster** (T10/T11 0.43/0.27 USD unter P3-Wand 65.181; T26 0.30 USD unter P11-Wand 69.344; Winner T14/T15/T27 klebten < 0.08 USD an der Wand), **widerlegt durch Kontrollgruppe:** Wand schuetzt nicht vor Verlust (T9 verlor bei 0.081 USD Distanz zur P1-Wand 64.325; T18 bei 0.009 USD zur P2-Wand 66.325); massiver Kollateralschaden an Trend-Gewinnern im offenen Raum ohne Vorphasen-Wand (P7/P9-Ausbrueche auf Monatshochs: T19/T20/T21/T23 = **+12.09R**). **Verdikt: Anbindungs-Pflicht spart ~3R, zerstoert >12R → netto-schaedlich, als starrer Filter verworfen; Baseline v0.4.x bleibt agnostisch gegenueber Vorphasen-Waenden** | dieses Dokument §8.13 |
 
 ---
 
@@ -1979,3 +1980,31 @@ da sie den Marktzustand (Vakuum vs. etablierter Swing) erfasst.
 (27-Trade-Tabelle + 8 Fokus-Zeitlinien mit allen bestätigten Pivots),
 `test/tmp_pb_def_vergleich.py` (Schwellen-Tabelle), `test/tmp_init_verdichtung.py`
 (Aggregat-Zahlen).
+
+### 8.13 Gegenkanten-Distanz-Audit AUG (Typ-2-Hindernis / Vorphasen-Wand) — Negativbefund — 04.09.2026
+
+**Fragestellung:** Lässt sich das „Konter-Trading im Trend" (insb. P5-Fehl-
+SHORTs T9–T13 und P12-T26) dadurch filtern, dass ein Reclaim-Fade nur bei
+unmittelbarer Nähe zu einer übergeordneten Makro-Widerstandszone
+(U_zone/U_final aus Vorphasen) zugelassen wird?
+
+#### 8.13.1 Empirischer Befund (27 Trades AUG)
+
+- **Scheinbare Bestätigung im P5/P12-Cluster:** T10/T11 standen 0.43 bzw.
+  0.27 USD unterhalb der P3-Wand (65.181 USD); T26 stand 0.30 USD unterhalb
+  der P11-Wand (69.344 USD). Die Gewinner T14/T15 (P5) und T27 (P12) klebten
+  dagegen mit < 0.08 USD direkt an der Makro-Wand.
+- **Widerlegung durch die Kontrollgruppe:**
+  1. *Wand schützt nicht vor Verlust:* T9 verlor bei nur 0.081 USD Distanz
+     zur P1-Wand (64.325 USD); T18 verlor bei winzigen 0.009 USD Distanz zur
+     P2-Wand (66.325 USD).
+  2. *Massiver Kollateralschaden an Trend-Gewinnern:* In dynamischen
+     Trend-Ausbrüchen auf neue Monatshochs (Phase 7 und Phase 9) existiert
+     historisch keine Vorphasen-Wand darüber. Die Trades T19 (+4.26R),
+     T20 (+3.06R), T21 (+2.67R) und T23 (+2.10R) wurden im völlig offenen
+     Raum gefadet und lieferten zusammen **+12.09R**.
+- **Verdikt:** Eine Pflicht zur Anbindung an eine Vorphasen-Wand spart zwar
+  ~3R an Fehltrades ein, zerstört jedoch über 12R an echten
+  Ausbruchs-Gewinnern. Die Gegenmaßnahme ist netto-schädlich und als starrer
+  Filter verworfen. Die Baseline v0.4.x bleibt agnostisch gegenüber
+  Vorphasen-Wänden.

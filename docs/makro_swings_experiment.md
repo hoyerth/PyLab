@@ -710,7 +710,7 @@ den aktiven R1-Kanten im Rückbau-Lauf.
 | 04.09.2026 | **Relative Kanten-Drift S1 (§8.16):** Schwellen 0,5–3,0 % getestet. Bei 1,0 % netto −36,55R. Big Winner haben maximale Drift (T59 4,17 %, T35 3,48 %, T188 3,07 %); Phase 102 liegt darunter (1,0–2,68 %). Filter verworfen. | `docs/makro_swings_experiment.md` §8.16 |
 | 04.09.2026 | **Kapitulations-Check S1 (§8.17, Mentor-Schritt 1):** Impuls-Größe |net8| (8 M15-Bars kausal vor Signal) über alle 201 Trades als Filter simuliert. Schwellen 1,0–3,0 % alle katastrophal (1,0 %: −115,72R, 3,0 %: −162,51R); nur 8 Winner ≥ 2,0 % (+49,30R von +295,31R Winner-Basis); Verteilung fast identisch (Median 0,71 vs. 0,57 %). KER (T142 0,94 ≈ T59 0,93) und Single-Print-/Imbalance-Signaturen trennen nicht. T142 = legitimer Bodentest mit Pech (Wendepunkt 1 Phase später, T144 +1,55R). **Verdikt arretiert:** kein statischer Impuls-Filter; Phase 102 = Regime-Problem (§8.16 bestätigt). Helper `test/tmp_capitulation_check.py` gelöscht (I4), Report behalten. | `docs/makro_swings_experiment.md` §8.17 |
 | 04.09.2026 | **Fehlversuch-Dichte vs. Regime-Pullback-Tiefe (§8.18):**
-| 04.09.2026 | **Drift-Dauer & Dichte-Audit v2 (§8.19):** Dichte-Caps (K=2, K=5) und Zeit-Pausen (Sim A/B) in allen Varianten stark negativ (S1 K=2: −26,2R; S2 K=2: −47,9R). T54 (+14,1R) und T188/T189 (+13,3R) sitzen am Ende der Dichte. Negativ-Kette endgültig abgeschlossen. | `docs/makro_swings_experiment.md` §8.19 | Destruktive Streaks (−37,50R) obduziert. 5× LONG-Streaks (−23,05R) bluten in Folgephasen über 168h weiter (−1,21R, 25 % WR, Netto −24,26R). Kein Sequenzer-Vakuum, sondern Dichte-Problem in zähen Drifts. Trenner für Shorts ist Pullback-Tiefe. | `docs/makro_swings_experiment.md` §8.18 |
+| 04.09.2026 | **Mehrtages-Vola & Dichte-Caps (§8.19):** Vola-Filter scheitert (Feb 2025 hatte 2,4 % Tages-Range vs. März mit 1,9 %; Mai 2026 R72 7,6 %). Dichte-Caps vernichten netto Wert (killen T54 +14,1R, T65–69 +34,7R). Toxizität ist setupspezifisch. Negativ-Serie vollständig abgeschlossen. | `docs/makro_swings_experiment.md` §8.19 |
 
 
 ---
@@ -2198,20 +2198,16 @@ Sequenzer-Vakuum (verpasster Turn durch Phasentod) oder um ein Dichte-Problem?
   serielle Verluste. Belege: `test/tmp_orphaned_turns_report.txt` und
   `test/tmp_post_phase_verification.txt`.
 
-### 8.19 Drift-Dauer, Fehlversuch-Dichte & Snap2-Pausen (Sim A & B) — Negativbefund — 04.09.2026
+### 8.19 Mehrtages-Volatilität, Drift-Gate & Dichte-Caps (v2) — Negativbefund — 04.09.2026
 
-**Fragestellung:** Kann eine Begrenzung der Fehlversuch-Dichte (Cap ab K Fehlversuchen je Phase/Richtung) oder eine zeitbasierte Snap2-Pause (24/48/72 h) destruktive Streaks isolieren, ohne Big Winner zu zerstören?
+**Fragestellung:** Kann ein Mehrtages-Volatilitätsfilter (24h/48h/72h-Range), ein Drift-Gate (G_tox) oder ein Dichte-Cap (K Fehlversuche / Snap2-Pause) Verlustmonate wie Feb 2025 isolieren?
 
-#### 8.19.1 Empirischer Befund (Sim A & B über S1 und S2)
-- **Sim A (Dichte-Cap ab K Fehlversuchen): In JEDER Konfiguration netto destruktiv:**
-  - S1 (K=2): Netto **−26,2R** (spart +10,5R, killt −36,6R)
-  - S1 (K=5): Netto **−11,3R** (spart +2,0R, killt −13,3R via T188/T189)
-  - S2 (K=2): Netto **−47,9R** (spart +59,3R, killt −107,2R)
-  - S2 (K=5): Netto **−42,5R** (spart +24,3R, killt −66,8R)
-- **Sim B (Snap2-Pause):** Pausen von 24/48/72 h führen zu katastrophaler Wertvernichtung (in S1 bei 24h: 153 blockierte Trades = 252,6R Winner-R vernichtet; ~82 % des gesamten Gewinner-Alphas).
-- **Kollateralschaden an Top-Alpha:** Die profitabelsten Wendepunkte des Gesamtsystems entstehen ausnahmslos am Ende extremer Dichte:
-  - T54 (+14,1R, 12 Vorverluste, 351 h Phasenalter)
-  - T65–T69 (+34,7R kumuliert)
-  - T188/T189 (+13,3R kumuliert)
-  - T197 (+8,6R)
-- **Verdikt:** Die Drift-Dichte ist die Prämienquelle des asymmetrischen Mean-Reversion-Edges. Jedes regelbasierte Pausieren schneidet die Auszahlung ab. Die Negativ-Reihe (§8.7–§8.19) ist damit vollständig abgeschlossen. Beleg: `test/tmp_drift_dichte_v2.txt`.
+#### 8.19.1 Empirischer Befund (DuckDB SILVER M15, S1 & S2)
+- **Widerlegung des Vola-Mythos:**
+  - Feb 2025 (17er-Verlustserie) war **kein** Niedrig-Vola-Monat (mittlere Tages-Range 2,4 % vs. gesunder März 2025 mit 1,9 %!).
+  - Mai 2026 (+44,68R) war keine "tote Hose", sondern eine hochvolatile, breite Balance (R72-Median 7,6 %, p90 11,7 %).
+  - Eine reine Vola-Untergrenze trifft gesunde Monate härter als Verlustmonate (März 2025: 19,4 % Exposition; Feb 2025: nur 5,0 %).
+- **Dichte-Caps & Snap2-Pausen (Sim A & B):**
+  - Alle Schwellen vernichten netto massiv Wert (S1 K=2: −26,2R; S2 K=2: −47,9R).
+  - Die profitabelsten Wendepunkte (T54 +14,1R, T65–T69 +34,7R, T188/T189 +13,3R) sitzen ausnahmslos am Ende extremer Fehlversuch-Dichte.
+- **Synthese:** Der Markt in Verlustmonaten ist auf Makro- und Vola-Ebene ununterscheidbar von Gewinner-Monaten. Die Toxizität ist **setupspezifisch**, nicht marktregimespezifisch. Externe Schranken scheiden endgültig aus. Belege: `test/tmp_vola_range_audit.txt`, `test/tmp_drift_dichte_v2.txt`.

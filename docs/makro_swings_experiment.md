@@ -714,6 +714,7 @@ den aktiven R1-Kanten im Rückbau-Lauf.
 | 04.09.2026 | **Positiv-Wende & Auszahlungs-Anatomie (§8.20):**
 | 04.09.2026 | **Alpha-Landkarte & Robustheit (§8.21):**
 | 04.09.2026 | **Gesamtsynthese & Architektur-Leitfaden (§9):** Audit-Serie vollständig abgeschlossen. Baseline v0.4.x (scripts/phasen_volumen_profil.py) offiziell eingefroren und gegen Signalfilter-Eingriffe gesperrt. Topf-B-Dominanz (98,8 %/76,8 % Alpha), 92 % TP2-Runner-Expansion, 73,2 % tragende Mitte und 100 % Exekutions-Effizienz als unabänderliche Invarianten arretiert. | `docs/makro_swings_experiment.md` §9 | 163 Gewinner analysiert. Breite Mitte (2–8R) trägt 73,2 % des Gewinns (+380,96R). Stresstest ohne Top 5 Trades hält +236,61R (80 % Alpha). Exekutions-Effizienz vs. Zonen-Geometrie beträgt exakt 100 %. Kein Fat-Tail-Risiko; institutionell robust. | `docs/makro_swings_experiment.md` §8.21 | 410/411 Exits repliziert (Signal+1/+2). Topf B liefert 98,8 % (S1) / 76,8 % (S2) des Alphas (WR 50 %, PF 2,8–3,2). Einstiegssignaturen scheitern (−60R Netto). Binäre Asymmetrie nach Entry: Winner erreichen zu 99 % TP1 und zu 92 % TP2 (Gegenseite); Loser erreichen zu 0 % TP2. Alpha entsteht rein durch Laufenlassen bis TP2. | `docs/makro_swings_experiment.md` §8.20 | Vola-Filter scheitert (Feb 2025 hatte 2,4 % Tages-Range vs. März mit 1,9 %; Mai 2026 R72 7,6 %). Dichte-Caps vernichten netto Wert (killen T54 +14,1R, T65–69 +34,7R). Toxizität ist setupspezifisch. Negativ-Serie vollständig abgeschlossen. | `docs/makro_swings_experiment.md` §8.19 |
+| 04.09.2026 | **Parameter-Sensitivitäts-Audit (§8.22):** 24 Läufe abgeschlossen. Baseline exakt bestätigt (+297,14R / 411 Tr, PF 2,33). Topologie zeigt Kuppe statt Plateau: Alle Abweichungen verlieren −13,5 % bis −53,8 %. VA_PCT ist der empfindlichste Hebel (0,88 bricht um −53,8 % ein). Code-Defaults als Optimum bestätigt; Baseline-Sperre bleibt zwingend. | `docs/makro_swings_experiment.md` §8.22 |
 
 
 ---
@@ -2258,6 +2259,30 @@ Sequenzer-Vakuum (verpasster Turn durch Phasentod) oder um ein Dichte-Problem?
 #### 8.21.3 Deterministische Exekutions-Effizienz
 - Die realisierte R-Ausbeute im Verhältnis zur theoretischen Zonen-Auszahlung ($0,25 \cdot \text{crv} + 0,75 \cdot \text{crv2}$) beträgt über alle Kohorten hinweg **exakt 100 %**.
 - **Verdikt:** Das System besitzt echte institutionelle Robustheit. Das Alpha bricht bei Wegfall extremer Marktbewegungen nicht ein, sondern speist sich deterministisch aus der stabilen Ausnutzung der Value-Area-Geometrie. Beleg: `test/tmp_alpha_landkarte_report.txt`.
+
+### 8.22 Parameter-Sensitivitäts-Audit (QS-Stufe 1): Kuppe statt Plateau — 04.09.2026
+
+**Fragestellung:** Sitzt die Baseline v0.4.x (+297,14R, PF 2,33) auf einem breiten, stabilen Parameter-Plateau, oder bricht die Performance bei Parameterverschiebungen ein (Klippen-Gefahr)?
+
+#### 8.22.1 Empirische Befunde (24 Läufe über AUG, S1 und S2)
+- **Baseline-Validierung (Sanity Check):**
+  - Exakt reproduziert: AUG (+24,97R / 27 Trades), S1 (+197,26R / 201 Trades), S2 (+99,88R / 210 Trades).
+  - Gesamtbasis (S1 + S2): **+297,14R / 411 Trades, PF 2,33, WR 39,7 %** (AUG ist Teilmenge von S1).
+- **Sweep-Ergebnisse im Überblick:**
+  - **VA_PCT (Default 0,93):** Empfindlichster Parameter. Abweichung auf 0,88 führt zum Performance-Kollaps (−53,8 % auf +137,28R; AUG kippt auf −6,99R). 0,96 verliert −34,5 % (+194,60R); 0,98 verliert −20,8 % (+235,26R).
+  - **TOL (Default 0.34):** Schmale Kuppe. Abweichungen (0.26 / 0.42) kosten −19,0 % bzw. −27,5 % Netto-R (+240,76R / +215,39R).
+  - **MIN_CANDLES (Default 46):** Robustester Parameter. 35 Candles (−13,5 %, +257,15R) liegt nahe am Plateau; 58 Candles verliert −19,2 % (+240,22R).
+
+#### 8.22.2 Topologische Bewertung & Warnhinweis
+- **Kein flaches Plateau:** Alle Parameterwerte sitzen auf einer ausgeprägten Kuppe (jeder Schritt weg vom Default kostet mindestens −13,5 %, maximal −53,8 %).
+- **Bestätigung der Code-Defaults:** Kein getesteter Alternativwert übertrifft die Baseline. Die Standardeinstellungen sind optimal kalibriert.
+- **Robustheits-Warnung für Cross-Asset:** Die hohe Sensitivität bei `VA_PCT` bedeutet, dass das System stark auf die geometrische Resonanz von Silver M15 abgestimmt ist. Für zukünftige Tests auf anderen Symbolen (Gold, DAX) muss diese Resonanzfrequenz separat kalibriert werden.
+
+#### 8.22.3 Protokoll-Notizen zur Test-Integrität
+- **AUG ⊂ S1:** AUG (10.–28.08.2026) ist eine Teilmenge von S1. Summation S1 + S2 ist der korrekte Gesamtmaßstab (keine Doppelzählung).
+- **Twin-Konstanten:** `MIN_CANDLES` und `MIN_PHASE_CANDLES` (beide Default 46) müssen für Sweeps synchron gepatcht werden.
+- **Beleg:** `test/tmp_param_sweep_report.txt`.
+
 ## 9. Gesamtsynthese: Vom Streak-Dilemma zur deterministischen Exekution — 04.09.2026
 
 ### 9.1 Die Anatomie des System-Edges
@@ -2286,3 +2311,4 @@ Elf aufeinanderfolgende, streng wissenschaftliche Gegenproben haben bewiesen, da
    - Die Datei `scripts/phasen_volumen_profil.py` wird hiermit in ihrem aktuellen Zustand eingefroren.
    - Jegliche künftige Modifikation an der Signal- oder Kantenlogik auf Signalebene ist untersagt.
    - Zukünftige Entwicklungen (wie ein übergeordnetes Regime-Monitoring / Tier-2-Wächter) dürfen ausschließlich als externe, orthogonale Module (z. B. `macro_persistence.py`) realisiert werden, ohne den Kern zu verändern.
+

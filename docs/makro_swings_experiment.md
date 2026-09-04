@@ -708,6 +708,7 @@ den aktiven R1-Kanten im Rückbau-Lauf.
 | 04.09.2026 | **Gegenkanten-Distanz-Audit AUG (§8.13):** Typ-2-Wand-Hypothese empirisch geprüft (27 Trades). Wand schützt nicht vor Verlust (T9/T18 verlieren bei <0.08 USD Abstand); Kollateralschaden: Neuland-Gewinner T19/T20/T21/T23 (+12.09R) im offenen Raum würden gelöscht. Filter verworfen. | `docs/makro_swings_experiment.md` §8.13 |
 | 04.09.2026 | **Consecutive-Loss Cap S1 (§8.15):** Cap=2 je Phase+Richtung getestet. Netto −20,55R (spart +9,48R, killt −30,03R an Top-Winnern wie T154 +7,82R, T188 +6,71R). Cap endgültig verworfen. | `docs/makro_swings_experiment.md` §8.15 |
 | 04.09.2026 | **Relative Kanten-Drift S1 (§8.16):** Schwellen 0,5–3,0 % getestet. Bei 1,0 % netto −36,55R. Big Winner haben maximale Drift (T59 4,17 %, T35 3,48 %, T188 3,07 %); Phase 102 liegt darunter (1,0–2,68 %). Filter verworfen. | `docs/makro_swings_experiment.md` §8.16 |
+| 04.09.2026 | **Kapitulations-Check S1 (§8.17, Mentor-Schritt 1):** Impuls-Größe |net8| (8 M15-Bars kausal vor Signal) über alle 201 Trades als Filter simuliert. Schwellen 1,0–3,0 % alle katastrophal (1,0 %: −115,72R, 3,0 %: −162,51R); nur 8 Winner ≥ 2,0 % (+49,30R von +295,31R Winner-Basis); Verteilung fast identisch (Median 0,71 vs. 0,57 %). KER (T142 0,94 ≈ T59 0,93) und Single-Print-/Imbalance-Signaturen trennen nicht. T142 = legitimer Bodentest mit Pech (Wendepunkt 1 Phase später, T144 +1,55R). **Verdikt arretiert:** kein statischer Impuls-Filter; Phase 102 = Regime-Problem (§8.16 bestätigt). Helper `test/tmp_capitulation_check.py` gelöscht (I4), Report behalten. | `docs/makro_swings_experiment.md` §8.17 |
 
 
 ---
@@ -2060,3 +2061,106 @@ Verluste je Phase und Richtung neutralisieren?
   Phase 102 ist kein Kanten-Drift-Problem, sondern ein makroskopisches
   Regime-Problem (anhaltender Trend ohne Snap-back). Beleg:
   `test/tmp_edge_drift_report.txt`.
+### 8.17 Kapitulations-Check S1 (Netto-Impuls 8 Bar, Mentor-Schritt 1) — Negativbefund — 04.09.2026
+
+**Fragestellung:** Der Imbalance-Audit (Phase 46 vs. Phase 102, Report
+`test/tmp_imbalance_report.txt`) hatte als einzigen trennenden Kandidaten die
+**Impuls-Größe der 8 Vor-Bars** (`net8`, strikt kausal k−8..k−1, M15) identifiziert
+und eine Schwelle von ≥ 2,5–3 % in 2 h empfohlen. Mentor-Schritt 1
+(Kapitulations-Check) prüft diese Schwelle jetzt über **alle 201 S1-Trades** als
+Filter-Simulation (Trade wird geblockt, wenn `|net8|` unter der Schwelle liegt).
+
+#### 8.17.1 Empirischer Befund (201 Trades S1)
+
+- **Filter-Simulation (blockt |net8| < Schwelle):**
+
+| Schwelle | blockt | Verluste gespart | Winner gekillt | Netto |
+|---|---|---|---|---|
+| 1,0 % | 140 | +68,36R | −184,08R | **−115,72R** |
+| 1,5 % | 168 | +81,82R | −222,24R | **−140,42R** |
+| 2,0 % | 181 | +87,82R | −246,01R | **−158,19R** |
+| 2,5 % | 189 | +92,70R | −252,05R | **−159,35R** |
+| 3,0 % | 191 | +93,70R | −256,21R | **−162,51R** |
+
+  → **Alle Schwellen katastrophal negativ** — der Filter spart nie mehr als
+  +93,70R, killt aber ab 184R an Winner-R.
+
+- **Impuls-Filter = Gewinner-Killer:** Die stärksten Erholungs-Winner kamen
+  gerade NICHT nach Panik-Impulsen, sondern nach **Mini-Impulsen < 0,6 %**:
+  T154 (+7,82R) |net8| = 0,56 %, T188 (+6,71R) = 0,18 %, T189 (+6,60R) = 0,39 %,
+  T35 (+5,94R) = 0,06 %, T84 (+5,06R) = 0,05 %, T2 (+5,29R) = 0,15 %. Bereits die
+  1,0 %-Schwelle killt **13 der 22 Top-Winner** (R ≥ +4,0): T154/T188/T189/T35/T2/
+  T84/T73/T182/T193/T21/T177/T132/T180.
+
+- **Verteilung fast identisch (keine Trennschärfe):** Gewinner (n=89)
+  |net8|-Median **0,71 %** / Mittel 0,94 % vs. Verlierer (n=112) **0,57 %** /
+  0,87 %; Q25/Q75 exakt gleich (0,35/1,19). Verlierer haben mit 12 sogar **mehr**
+  Trades ≥ 2,0 % als Gewinner (8); bei ≥ 2,5 % und ≥ 3,0 % Gleichstand (6/6, 5/5).
+
+- **Gegenprobe:** Nur 8 Gewinner kamen nach |net8| ≥ 2,0 % (T27 +17,79R,
+  T59 +10,69R, T70 +5,62R, T43 +4,21R, T45 +4,16R, T11 +3,98R, T94 +2,06R,
+  T30 +0,79R = **+49,30R**) — von insgesamt **+295,31R Winner-Basis** (89 Winner).
+  Ein 2,0 %-Gate würde das Winner-Alpha um **83 %** kappen.
+
+#### 8.17.2 Antwort Leitfrage 1 — Verwirft sich der Impuls-Filter selbst?
+
+**Ja.** Der Kandidat aus dem Imbalance-Audit („Schwelle ≥ 2,5–3 %") ist über die
+volle S1-Grundgesamtheit datenwiderlegt (−159,35R bzw. −162,51R). Das Alpha des
+Systems entsteht überwiegend an **ruhigen, mini-impulsiven Reclaims** (Median
+0,71 %), nicht an Kapitulations-Flushs. Echte Kapitulations-Setups sind in S1 eine
+Seltenheit: T27 (−4,01 %) und T59 (−4,09 %) sind die einzigen Flush-Longs, T70
+(+3,07 %) der einzige Impuls-SHORT-Winner.
+
+#### 8.17.3 Antwort Leitfrage 2 — KER, Single-Prints, Impuls-Schwelle (Arretierung)
+
+Der gesamte Diskriminator-Komplex aus dem Imbalance-Audit ist **arretiert**
+(Negativbefund, analog §8.15/§8.16):
+
+- **KER/Effizienz:** T142 (Verlierer) hat KER 0,94 ≈ T59 (Winner) 0,93; unter den
+  Top-Winnern liegen KER-Werte zwischen −0,93 (T59) und +0,97 (T70) inklusive ≈ 0
+  (T35 +0,03, T84 +0,07) → Richtungs-Effizienz trennt nicht.
+- **Single-Prints/Imbalances:** T139/T140/T142 haben 2–4 Abwärts-Imbalances,
+  **mehr** als T59 (1) → kein Gate.
+- **Netto-Impuls-Schwelle:** §8.17.1 — alle Schwellen negativ.
+- Phase 102 bleibt damit (konsistent zu §8.16) ein **Regime-Problem** (anhaltende
+  Drift ohne Snap-back), kein Filter-Problem auf Signalebene.
+
+#### 8.17.4 Antwort Leitfrage 3 — Menschliche Einordnung T142
+
+**T142 ist ein legitimer Bodentest mit Pech, kein Pflicht-Pausen-Trigger:**
+
+- Fakten: T142 (Phase 102, 30.06. 03:30, LONG, Entry 57.707, −1.00R) war der
+  zweitletzte der 7er-Kaskade T137–T143. KER 0,94 / Netto −1,71 % (8 Bar) —
+  KER-Profil wie T59, aber Impuls nur −1,71 % statt −4,09 % und body_dom 0,59
+  statt 0,39 → **keine bestätigte Absorption** am Tief.
+- Der Markt bodete unmittelbar danach aus: Phase 102 endete 30.06. 07:30, ab
+  01.07. Erholung, T144 (01.07. 09:15, LONG) **+1,55R**. Selbst der letzte
+  Kaskaden-Verlust T143 (30.06. 06:15, KER 0,07, net8 −0,12 %) kam **ohne**
+  Kapitulations-Impuls — der Boden entstand leise. Eine Impuls-Pflicht hätte damit
+  auch die gesamte Erholungsphase 104 geblockt.
+- Einordnung: Die −1R-Stopps an T142/T143 sind die **Versicherungsprämie** des
+  Mean-Reversion-Ansatzes. §8.15 belegt: Genau nach solchen Kaskaden entstehen die
+  größten Erholungs-Winner (T154/T188/T35/T84). Ein „Pause nach 2 Verlusten"- oder
+  „nur nach Flush"-Gate killt exakt dieses Alpha. T142 retrospektiv als Fehler zu
+  verbuchen wäre Retrospektiv-Bias — der Wendepunkt war erst 1–2 Phasen später
+  bestätigt.
+
+#### 8.17.5 Verdikt & Abschluss Mentor-Schritt 1
+
+1. **Mentor-Schritt 1 (Kapitulations-Check) ist abgeschlossen: Negativbefund
+   arretiert.** Kein statischer Impuls-/Absorptions-Filter kann Phase-102-Verluste
+   von T59-Trades trennen, ohne das System-Alpha zu zerstören.
+2. Das unterscheidende Merkmal von T59 ist nicht der Impuls allein, sondern die
+   Kombination aus Extrem-Impuls UND Absorption (body_dom 0,39, lange Dochte) —
+   in S1 mit n=1 (T59) zu selten für ein generalisierbares Gate
+   (Overfitting-Lektion §8.11).
+3. Die Phase-102-Verluste sind die Kosten des Regimes „Drift ohne Snap-back" und
+   nur makroskopisch (Segmentierung/Regime-Erkennung auf Tier-2-Ebene)
+   adressierbar — konsistent zur Option-A-Entscheidung §8.7.
+4. Weiterführung Pfad B gemäß §8.10.4/§8.11.3: nächster offener Schritt =
+   S1-Obduktion/Synthese bzw. S2-Übertrag der Negativbefund-Kette.
+
+**Belege (gitignored, in `test/` erhalten):**
+`test/tmp_capitulation_check_report.txt` (81 Zeilen; Helper
+`test/tmp_capitulation_check.py` nach Ausführung gelöscht, I4) und
+`test/tmp_imbalance_report.txt` (Phase-46/102-Kontrast).

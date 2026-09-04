@@ -80,6 +80,7 @@ class CounterConfig:
     anteil_tp1: float = 50.0         # 50 % der Position am POC
     tp2_puffer_pct: float = 0.20     # TP2 = Gegenseite abzüglich 0,20 % Puffer
     min_signal_abstand_bars: int = 12  # Cooldown (M15 = 3 h), je Richtung getrennt
+    use_be: bool = False             # F6-Default: KEIN BE-Nachzug (Runner)
 ```
 
 ### 3.2 Touch-Tracking (barweise, kausal, drift-stabil)
@@ -129,6 +130,7 @@ class CounterSignal:
     tp1: float
     tp2: float
     sl: float
+    use_be: bool = False              # Abrechnungsvariante (True = BE-Nachzug)
     phase: int = 0
     trade: Optional[TradeResolution] = None
 ```
@@ -142,7 +144,8 @@ class CounterSignal:
 | 04.09.2026 | **Initialisierung Counter-Engine (Setup A / Ping-Pong):** Doku `docs/counter_engine_experiment.md` + Skript `scripts/counter_engine_profil.py` angelegt (Infrastruktur-Basis `phasen_volumen_profil.py` v0.4.x, Segmentierung unverändert). Setup-A-Logik: Touch-Tracking (VAH/VAL, `MAX_TOUCH_COUNT = 2`), Entry-Modi DIRECT_TOUCH/CANDLE_REJECTION, TP1 50 % am POC mit Break-even-Nachzug, TP2 50 % an der Gegenseite ∓ 0,20 %, Cooldown 12 Bars. Keine Testläufe (Initialisierung). | `scripts/counter_engine_profil.py` (neu), `docs/counter_engine_experiment.md` (neu), Produktions-Baseline unverändert |
 | 03.09.2026 | **F1 (Kanten-Drift) umgesetzt (Schritt 1):** Signal-Scan in `find_counter_signals` auf `vz_prev = _laufende_zone(df, p, k-1)` umgestellt — Touch UND Ziel-Geometrie (POC/TP1/TP2/entry>poc/RR) aus dem Snapshot VOR der Signal-Bar; Guards `k-1 >= i_start` und `min_zone_candles` auf den vz_prev-Präfix. Interview-Antworten arretiert: **F5** = Geometrie-Bindung an vz_prev, **F6** = Default `--be-nachzug false` für den 1. Gesamtlauf (Revision des früheren Defaults, A/B-Protokoll-Pflicht). Checkpoint AUG (F1 isoliert, BE true): 8 Signale / −0,13R / PF 0,97 (Status quo: 9 / +4,69R / PF 2,56) — Zwischenstand, Gesamturteil erst nach Schritt 2+3. | Skript geändert, Baseline unverändert |
 | 03.09.2026 | **F3 (Outside-Bar) umgesetzt (Schritt 2):** In `find_counter_signals` wird eine Outside-Bar (high ≥ vah UND low ≤ val gegen den vz_prev-Snapshot in derselben Bar) verworfen (`continue`, Absorptionszähler bleiben unverändert) — eliminiert das Hedge-Artefakt (SHORT+LONG-Block feuerten unabhängig) und die Doppelzählung. Checkpoint AUG (F1+F3, BE true): **8 Signale / −0,13R / PF 0,97 — bitidentisch zu F1 isoliert** → in AUG existiert kein Outside-Bar-Doppelfeuer unter dem vz_prev-Regime; F3 ist in diesem Fenster verhaltensneutral (Schutzwirkung ist fensterabhängig, Urteil erst im Gesamtlauf S1/S2 mit größerer Stichprobe). | Skript geändert, Baseline unverändert |
-| 03.09.2026 | **F2/F6 `--be-nachzug` umgesetzt (Schritt 3):** Konstante `USE_BE: bool = False` (F6-Default = KEIN BE-Nachzug, Runner-Philosophie), CLI `--be-nachzug=true|false`, Parameter `use_be` durch `find_counter_signals` → `_aufloesen_counter` durchgereicht; Hälfte-2-Logik: `if tp1_hit and use_be` → BE ab t1+1 (Kontroll-Arm), sonst `sl_init` aktiv bis TP2/SL/ENDE. Konsolen-/Stats-Header drucken die aktive BE-Variante (A/B-Protokoll-Pflicht). **A/B AUG 2026 (F1+F3, 8 identische Signale):** BE=false **+0,31R / PF 1,06 / TP2 2/8** vs. BE=true **−0,13R / PF 0,97 / TP2 1/8** → Delta **+0,44R** zugunsten BE=false. Trade-2-Beleg des BE-Trugschlusses: Runner P3 LONG erreicht nach TP1 die Gegenseite (+0,95R durch BE abgeschnitten); Trade 4 zeigt die reale Versicherungswirkung (−0,50R gespart bei Dreher zum SL). n=8 = Rauschen; F2-Urteil erst im Gesamtlauf AUG+S1+S2. | Skript geändert, Baseline unverändert |
+| 03.09.2026 | **F2/F6 `--be-nachzug` umgesetzt (Schritt 3):** Konstante `USE_BE: bool = False` (F6-Default = KEIN BE-Nachzug, Runner-Philosophie), CLI `--be-nachzug=true|false`, Parameter `use_be` durch `find_counter_signals` → `_aufloesen_counter` durchgereicht; Hälfte-2-Logik: `if tp1_hit and use_be` → BE ab t1+1 (Kontroll-Arm), sonst `sl_init` aktiv bis TP2/SL/ENDE. Konsolen-/Stats-Header drucken die aktive BE-Variante (A/B-Protokoll-Pflicht). **A/B AUG 2026 (F1+F3, 8 identische Signale):** BE=false **+0,31R / PF 1,06 / TP2 2/8** vs. BE=true **−0,13R / PF 0,97 / TP2 1/8** → Delta **+0,44R** zugunsten BE=false. Trade-2-Beleg des BE-Trugschlusses: Runner P3 LONG erreicht nach TP1 die Gegenseite (+0,95R durch BE abgeschnitten); Trade 4 zeigt die reale Versicherungswirkung (−0,50R gespart bei Dreher zum SL). n=8 = Rauschen; F2-Urteil erst im Gesamtlauf AUG+S1+S2. Commit `5f6f28d`. | Skript geändert, Baseline unverändert |
+| 03.09.2026 | **Schritt 4 (Typ-Integrität & Datenverträge):** `CounterConfig` um `use_be: bool = USE_BE` ergänzt (F6-Default False); `CounterSignal` um Abrechnungs-Kennzeichen `use_be` erweitert (beide Signal-Konstruktoren setzen es explizit → DataFrame-Auswertungen der A/B-Arme ohne Lookup auf die Lauf-Konfiguration). Doku §3.1/§3.5 nachgezogen. Verifikation: A/B-Läufe reproduzieren bitidentisch (BE=false +0,31R / BE=true −0,13R) — Schritt 4 ist verhaltensneutral. | Skript geändert, Baseline unverändert |
 
 ---
 

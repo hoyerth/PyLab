@@ -151,6 +151,7 @@ class CounterConfig:
     anteil_tp1: float = ANTEIL_TP1
     tp2_puffer_pct: float = TP2_PUFFER_PCT
     min_signal_abstand_bars: int = MIN_SIGNAL_ABSTAND_BARS
+    use_be: bool = USE_BE  # F6-Default: False = KEIN BE-Nachzug (Runner)
 
 
 @dataclass(slots=True)
@@ -274,6 +275,8 @@ class CounterSignal:
     sl: float
     crv: float                    # |tp1-entry| / risk (Info, kein Filter)
     crv2: float                   # |tp2-entry| / risk (Info, kein Filter)
+    use_be: bool = USE_BE         # F2/F6: Abrechnungsvariante des Trades
+                                  # (True = BE-Nachzug, False = Runner)
     phase: int = 0
     trade: Optional[TradeResolution] = None
 
@@ -1013,6 +1016,7 @@ def find_counter_signals(
                                 tp1=tp1, tp2=tp2, sl=sl,
                                 crv=float(crv) if not np.isnan(crv) else 0.0,
                                 crv2=float(crv2) if not np.isnan(crv2) else 0.0,
+                                use_be=use_be,
                             )
                             sig.trade = _aufloesen_counter(df, sig, use_be=use_be)
                             sigs.append(sig)
@@ -1044,6 +1048,7 @@ def find_counter_signals(
                                 tp1=tp1, tp2=tp2, sl=sl,
                                 crv=float(crv) if not np.isnan(crv) else 0.0,
                                 crv2=float(crv2) if not np.isnan(crv2) else 0.0,
+                                use_be=use_be,
                             )
                             sig.trade = _aufloesen_counter(df, sig, use_be=use_be)
                             sigs.append(sig)

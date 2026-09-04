@@ -715,6 +715,7 @@ den aktiven R1-Kanten im Rückbau-Lauf.
 | 04.09.2026 | **Alpha-Landkarte & Robustheit (§8.21):**
 | 04.09.2026 | **Gesamtsynthese & Architektur-Leitfaden (§9):** Audit-Serie vollständig abgeschlossen. Baseline v0.4.x (scripts/phasen_volumen_profil.py) offiziell eingefroren und gegen Signalfilter-Eingriffe gesperrt. Topf-B-Dominanz (98,8 %/76,8 % Alpha), 92 % TP2-Runner-Expansion, 73,2 % tragende Mitte und 100 % Exekutions-Effizienz als unabänderliche Invarianten arretiert. | `docs/makro_swings_experiment.md` §9 | 163 Gewinner analysiert. Breite Mitte (2–8R) trägt 73,2 % des Gewinns (+380,96R). Stresstest ohne Top 5 Trades hält +236,61R (80 % Alpha). Exekutions-Effizienz vs. Zonen-Geometrie beträgt exakt 100 %. Kein Fat-Tail-Risiko; institutionell robust. | `docs/makro_swings_experiment.md` §8.21 | 410/411 Exits repliziert (Signal+1/+2). Topf B liefert 98,8 % (S1) / 76,8 % (S2) des Alphas (WR 50 %, PF 2,8–3,2). Einstiegssignaturen scheitern (−60R Netto). Binäre Asymmetrie nach Entry: Winner erreichen zu 99 % TP1 und zu 92 % TP2 (Gegenseite); Loser erreichen zu 0 % TP2. Alpha entsteht rein durch Laufenlassen bis TP2. | `docs/makro_swings_experiment.md` §8.20 | Vola-Filter scheitert (Feb 2025 hatte 2,4 % Tages-Range vs. März mit 1,9 %; Mai 2026 R72 7,6 %). Dichte-Caps vernichten netto Wert (killen T54 +14,1R, T65–69 +34,7R). Toxizität ist setupspezifisch. Negativ-Serie vollständig abgeschlossen. | `docs/makro_swings_experiment.md` §8.19 |
 | 04.09.2026 | **Parameter-Sensitivitäts-Audit (§8.22):** 24 Läufe abgeschlossen. Baseline exakt bestätigt (+297,14R / 411 Tr, PF 2,33). Topologie zeigt Kuppe statt Plateau: Alle Abweichungen verlieren −13,5 % bis −53,8 %. VA_PCT ist der empfindlichste Hebel (0,88 bricht um −53,8 % ein). Code-Defaults als Optimum bestätigt; Baseline-Sperre bleibt zwingend. | `docs/makro_swings_experiment.md` §8.22 |
+| 04.09.2026 | **Regime-Dekonstruktion des VA-Drops (§8.23):** Weg-A-Replay (17 Monate, bitgenau) widerlegt Marktregime-Abhängigkeit (Pearson zu KER +0,134, Range +0,333). In 14/17 Monaten verliert 0.88. 88,3 % des Verlusts (+141,13R) entstehen durch die Zerstörung der TP2-Runner in Expansionsmonaten. Kuppe bei 0.93 ist als geometrische Resonanzkante bestätigt. | `docs/makro_swings_experiment.md` §8.23 |
 
 
 ---
@@ -2283,6 +2284,31 @@ Sequenzer-Vakuum (verpasster Turn durch Phasentod) oder um ein Dichte-Problem?
 - **Twin-Konstanten:** `MIN_CANDLES` und `MIN_PHASE_CANDLES` (beide Default 46) müssen für Sweeps synchron gepatcht werden.
 - **Beleg:** `test/tmp_param_sweep_report.txt`.
 
+
+### 8.23 Regime-Dekonstruktion des VA-Drops: Strukturelle Geometrie statt Marktregime — 04.09.2026
+
+**Fragestellung:** Ist der Performance-Einbruch bei `VA_PCT = 0.88` (−53,8 % / −159,86R) ein marktregimespezifisches Artefakt (Abhängigkeit von Trendstärke KER oder Volatilität), oder liegt eine universelle Zerstörung der Zonen-Geometrie vor?
+
+#### 8.23.1 Empirische Befunde (Weg A: Instrumentierter 4-Lauf-Replay, 17 Monate)
+- **Sanity-Abgleich (bitgenau):**
+  - S1 (0.93 vs. 0.88): +197,26R (201 Tr) vs. +79,43R (192 Tr) → ΔR = +117,83R (−59,7 %)
+  - S2 (0.93 vs. 0.88): +99,88R (210 Tr) vs. +57,85R (196 Tr) → ΔR = +42,03R (−42,1 %)
+  - Gesamt: **ΔR = +159,86R (−53,8 %)** exakt reproduziert.
+- **Monats-Partition:**
+  - In **14 von 17 Monaten** verliert 0.88 gegenüber 0.93. Der Verlust ist universell über die Zeitachse verteilt, kein isoliertes Cluster.
+  - Größte Einbrüche: 2026-08 (+32,18R), 2026-05 (+31,06R), 2025-03 (+27,77R), 2026-03 (+25,06R).
+  - Anomalien: 2025-01 (0.88 besser um +20,71R: +15,44R vs. −5,27R), 2025-07 (ΔR = 0,00, identisches Trade-Set).
+
+#### 8.23.2 Prüfung der Leitfragen & Kausal-Mechanik
+1. **Regime-Korrelation widerlegt (Szenario B bestätigt):**
+   - Pearson(ΔR, KER) = **+0,134** (keine Korrelation mit Trendstärke).
+   - Pearson(ΔR, Range %) = **+0,333** (inkonsistenter Split: S1 KER +0,444 / Range +0,025 vs. S2 KER +0,190 / Range −0,136).
+   - Der Performance-Drop ist regime-unabhängig.
+2. **Runner-Destruktion als primäre Ursache:**
+   - Monate mit Top-Runnern (≥ 4R in Baseline 0.93) tragen **88,3 % des gesamten Schadens (+141,13R von +159,86R)**.
+   - Mai und August 2026 tragen allein 39,6 % des Gesamt-Deltas.
+- **Synthese:** `VA_PCT = 0.88` rückt die Kanten $U$ und $L$ in die Volumen-Schultern. Dadurch wird der Reclaim vor Erreichen der eigentlichen Erschöpfungszone ausgelöst. Dies reduziert das Chance-Risiko-Verhältnis zur Gegenseite und zerstört deterministisch die 92 %-TP2-Runner-Expansion. Die Kuppe bei 0.93 ist eine **robuste geometrische Resonanzkante**, kein fragiles Marktregime-Artefakt. Beleg: `test/tmp_regime_dekonstruktion_report.txt`.
+
 ## 9. Gesamtsynthese: Vom Streak-Dilemma zur deterministischen Exekution — 04.09.2026
 
 ### 9.1 Die Anatomie des System-Edges
@@ -2311,4 +2337,5 @@ Elf aufeinanderfolgende, streng wissenschaftliche Gegenproben haben bewiesen, da
    - Die Datei `scripts/phasen_volumen_profil.py` wird hiermit in ihrem aktuellen Zustand eingefroren.
    - Jegliche künftige Modifikation an der Signal- oder Kantenlogik auf Signalebene ist untersagt.
    - Zukünftige Entwicklungen (wie ein übergeordnetes Regime-Monitoring / Tier-2-Wächter) dürfen ausschließlich als externe, orthogonale Module (z. B. `macro_persistence.py`) realisiert werden, ohne den Kern zu verändern.
+
 

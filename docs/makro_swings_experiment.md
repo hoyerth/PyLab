@@ -706,6 +706,9 @@ den aktiven R1-Kanten im Rückbau-Lauf.
 | 03.09.2026 | **AUG-Stresstest Anker-Volumen-Ratio-Filter §8.11 (Arbeitsauftrag; Helper `test/tmp_stresstest_bilanz.py`, Log `test/tmp_stresstest_bilanz.txt`):** Filterwirkung ueber ALLE 27 Baseline-Trades aus dem kanonischen Audit-Log §8.10. **In keiner der 4 Varianten ist der Filter ein Alpha-Verstaerker:** A (irgendein Spike-Pivot im ±0.15-Fenster) 1.5×/2.0× → AUG nach Filter ≈ +8.0R/+10.2R (Δ −17.0R/−14.8R); B (naechster Pivot ≤ 0.15 UND Spike) 1.5×/2.0× → ≈ +12.1R/+11.3R (Δ −12.8R/−13.7R). Gegencheck Winner-Gruppe (strikt spikege15): **9/12 Winner geblockt** (−23.48R: T1/T2/T6/T19/T20/T21/T23/T24/T27) — nur T14/T15/T25 ueberleben; groesster Kollateralschaden T6 +4.59R und T19 +4.26R. Verbleibende Sets kollabieren auf 4–12 Trades (WR/PF scheinbar besser = Kleinstichproben-Artefakt). **Verdikt: blinder Overfit an den P5-Cluster** — der Fade-Edge handelt systematisch an frischen, unverankerten Kanten; Anker-Volumen-Filter endgueltig verworfen | dieses Dokument §8.11 |
 | 03.09.2026 | **Initialisierungsphasen-Audit AUG §8.12 (Pullback-Struktur; Helper `test/tmp_init_phase_audit.py`, Log `test/tmp_init_phase_audit_AUG.txt`, `test/tmp_pb_def_vergleich.py`):** Relativ-Distanz + Pullback-Reife aller 27 Baseline-Trades (Mapping 27/27 bitgenau, kausal, Pivots nur bar <= k-2 bestaetigt). **Nur 2/27 Signale (T7, T25, beide Bar 2) in echter Initialisierung (INIT: keine bestaetigten Pivots, kein Gegenzug >= 0.15 USD); die 4 Geister T9-T11/T26 sind KEINE Initialisierungs-Trades** (0b-Distanz 23/35/47/38, 7/10/13/7 bestaetigte Pivots inkl. abgeschlossener Pullbacks; T9 nach vollstaendiger up-down-up-Struktur). INIT-Kontrast T7 (-1.00R) vs. T25 (+1.83R) -> Initialisierung nicht verlust-deterministisch; Filter netto -0.83R. Winner T14/T15 = reifste Struktur (Alter 156/182, 83.9/97.8 % Phasenanteil, 41/48 Pivots). **Definitionen-Vergleich: quantitative Kerzenschwelle willkuerlich** (einzige positive Schwelle <25 Kerzen +2.19R = In-Sample-Fit an T9-Position 0b 23; <20 -1.81R, <40 -1.84R); strukturelle Definition (Gegenzug vom laufenden Extrem >= 0.15 USD) empfohlen. **Verdikt: Vakuum-/Market-Maker-Hypothese auf AUG datenwiderlegt** — Geister = Muster A Kanten-Drift (§8.9.5), nicht Initialisierungs-Vakuum | dieses Dokument §8.12 |
 | 04.09.2026 | **Gegenkanten-Distanz-Audit AUG (§8.13):** Typ-2-Wand-Hypothese empirisch geprüft (27 Trades). Wand schützt nicht vor Verlust (T9/T18 verlieren bei <0.08 USD Abstand); Kollateralschaden: Neuland-Gewinner T19/T20/T21/T23 (+12.09R) im offenen Raum würden gelöscht. Filter verworfen. | `docs/makro_swings_experiment.md` §8.13 |
+| 04.09.2026 | **Consecutive-Loss Cap S1 (§8.15):** Cap=2 je Phase+Richtung getestet. Netto −20,55R (spart +9,48R, killt −30,03R an Top-Winnern wie T154 +7,82R, T188 +6,71R). Cap endgültig verworfen. | `docs/makro_swings_experiment.md` §8.15 |
+| 04.09.2026 | **Relative Kanten-Drift S1 (§8.16):** Schwellen 0,5–3,0 % getestet. Bei 1,0 % netto −36,55R. Big Winner haben maximale Drift (T59 4,17 %, T35 3,48 %, T188 3,07 %); Phase 102 liegt darunter (1,0–2,68 %). Filter verworfen. | `docs/makro_swings_experiment.md` §8.16 |
+
 
 ---
 
@@ -2009,3 +2012,51 @@ unmittelbarer Nähe zu einer übergeordneten Makro-Widerstandszone
   Filter verworfen. Die Baseline v0.4.x bleibt agnostisch gegenüber
   Vorphasen-Wänden.
 
+### 8.15 Intra-Phase Consecutive-Loss Cap (Cap = 2) — Negativbefund — 04.09.2026
+
+**Fragestellung:** Lässt sich die 7er-Verlustserie in Phase 102 (T137–T143,
+−6,01R) durch eine pauschale Begrenzung auf maximal 2 aufeinanderfolgende
+Verluste je Phase und Richtung neutralisieren?
+
+#### 8.15.1 Empirischer Befund (201 Trades S1)
+
+- **Ergebnis:** Netto massiv schädlich (**−20,55R**). Verhältnis gespart zu
+  gekillt: 9,48R : 30,03R (Ratio 0,32×).
+- **Kollateralschaden an Top-Alpha:** Genau die Konstellation „2 Verluste,
+  dann Turn" produziert die stärksten Erholungs-Trades des gesamten
+  Halbjahres:
+  - T154 (+7,82R, Phase 112 SHORT)
+  - T188 (+6,71R, Phase 132 SHORT)
+  - T35 (+5,94R, Phase 25 SHORT)
+  - T84 (+5,06R, Phase 63 LONG)
+  - T131 (+2,88R, Phase 95 SHORT) und T136 (+1,62R, Phase 100 LONG).
+- **Verdikt:** Ein harter Richtungs-Cap je Phase ist endgültig verworfen. Er
+  bestraft systematisch die lukrativsten Mean-Reversion-Erholungen nach
+  Kaskaden. Beleg: `test/tmp_consecutive_loss_audit.txt`.
+
+---
+
+### 8.16 Relative Kanten-Drift (ΔL / ΔU Extension) — Negativbefund — 04.09.2026
+
+**Fragestellung:** Lässt sich Phase 102 (wo L von 58,856 auf 57,281 driftete)
+über eine Schwelle der relativen Kantenverschiebung
+(|Kante_laufend − Kante_init| / Kante_init) von gesunden Reversals trennen?
+
+#### 8.16.1 Empirischer Befund (201 Trades S1)
+
+- **Ergebnis:** In allen Schwellen (0,5 % bis 3,0 %) netto stark negativ
+  (bei 1,0 %: **−36,55R**; gespart +16,12R vs. gekillt +52,67R).
+- **Widerlegung der Hypothese:** Die Big Winner laufen keineswegs an stabilen
+  Kanten, sondern weisen die **höchste Drift im gesamten Datensatz** auf:
+  - T59 (+10,69R, Phase 46): **4,17 % Drift** (Spitzenwert in S1)
+  - T35 (+5,94R, Phase 25): **3,48 % Drift**
+  - T188 (+6,71R) / T189 (+6,60R) (Phase 132): je **3,07 % Drift**
+  - T84 (+5,06R, Phase 63): **2,37 % Drift**
+  - T154 (+7,82R, Phase 112): **1,96 % Drift**
+  - Phase 102 (T139–T143): nur **1,00 % bis 2,68 % Drift** (niedriger als die
+    Gewinner!).
+- **Verdikt:** Das System-Alpha beruht fundamental auf Reclaims an stark
+  überdehnten Kanten. Die Kantenverschiebung besitzt null Trennschärfe.
+  Phase 102 ist kein Kanten-Drift-Problem, sondern ein makroskopisches
+  Regime-Problem (anhaltender Trend ohne Snap-back). Beleg:
+  `test/tmp_edge_drift_report.txt`.

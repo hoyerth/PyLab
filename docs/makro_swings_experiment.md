@@ -710,7 +710,8 @@ den aktiven R1-Kanten im Rückbau-Lauf.
 | 04.09.2026 | **Relative Kanten-Drift S1 (§8.16):** Schwellen 0,5–3,0 % getestet. Bei 1,0 % netto −36,55R. Big Winner haben maximale Drift (T59 4,17 %, T35 3,48 %, T188 3,07 %); Phase 102 liegt darunter (1,0–2,68 %). Filter verworfen. | `docs/makro_swings_experiment.md` §8.16 |
 | 04.09.2026 | **Kapitulations-Check S1 (§8.17, Mentor-Schritt 1):** Impuls-Größe |net8| (8 M15-Bars kausal vor Signal) über alle 201 Trades als Filter simuliert. Schwellen 1,0–3,0 % alle katastrophal (1,0 %: −115,72R, 3,0 %: −162,51R); nur 8 Winner ≥ 2,0 % (+49,30R von +295,31R Winner-Basis); Verteilung fast identisch (Median 0,71 vs. 0,57 %). KER (T142 0,94 ≈ T59 0,93) und Single-Print-/Imbalance-Signaturen trennen nicht. T142 = legitimer Bodentest mit Pech (Wendepunkt 1 Phase später, T144 +1,55R). **Verdikt arretiert:** kein statischer Impuls-Filter; Phase 102 = Regime-Problem (§8.16 bestätigt). Helper `test/tmp_capitulation_check.py` gelöscht (I4), Report behalten. | `docs/makro_swings_experiment.md` §8.17 |
 | 04.09.2026 | **Fehlversuch-Dichte vs. Regime-Pullback-Tiefe (§8.18):**
-| 04.09.2026 | **Mehrtages-Vola & Dichte-Caps (§8.19):** Vola-Filter scheitert (Feb 2025 hatte 2,4 % Tages-Range vs. März mit 1,9 %; Mai 2026 R72 7,6 %). Dichte-Caps vernichten netto Wert (killen T54 +14,1R, T65–69 +34,7R). Toxizität ist setupspezifisch. Negativ-Serie vollständig abgeschlossen. | `docs/makro_swings_experiment.md` §8.19 |
+| 04.09.2026 | **Mehrtages-Vola & Dichte-Caps (§8.19):**
+| 04.09.2026 | **Positiv-Wende & Auszahlungs-Anatomie (§8.20):** 410/411 Exits repliziert (Signal+1/+2). Topf B liefert 98,8 % (S1) / 76,8 % (S2) des Alphas (WR 50 %, PF 2,8–3,2). Einstiegssignaturen scheitern (−60R Netto). Binäre Asymmetrie nach Entry: Winner erreichen zu 99 % TP1 und zu 92 % TP2 (Gegenseite); Loser erreichen zu 0 % TP2. Alpha entsteht rein durch Laufenlassen bis TP2. | `docs/makro_swings_experiment.md` §8.20 | Vola-Filter scheitert (Feb 2025 hatte 2,4 % Tages-Range vs. März mit 1,9 %; Mai 2026 R72 7,6 %). Dichte-Caps vernichten netto Wert (killen T54 +14,1R, T65–69 +34,7R). Toxizität ist setupspezifisch. Negativ-Serie vollständig abgeschlossen. | `docs/makro_swings_experiment.md` §8.19 |
 
 
 ---
@@ -2211,3 +2212,25 @@ Sequenzer-Vakuum (verpasster Turn durch Phasentod) oder um ein Dichte-Problem?
   - Alle Schwellen vernichten netto massiv Wert (S1 K=2: −26,2R; S2 K=2: −47,9R).
   - Die profitabelsten Wendepunkte (T54 +14,1R, T65–T69 +34,7R, T188/T189 +13,3R) sitzen ausnahmslos am Ende extremer Fehlversuch-Dichte.
 - **Synthese:** Der Markt in Verlustmonaten ist auf Makro- und Vola-Ebene ununterscheidbar von Gewinner-Monaten. Die Toxizität ist **setupspezifisch**, nicht marktregimespezifisch. Externe Schranken scheiden endgültig aus. Belege: `test/tmp_vola_range_audit.txt`, `test/tmp_drift_dichte_v2.txt`.
+
+### 8.20 Positiv-Wende: Auszahlungs-Anatomie, Topf-B-Dominanz & Pfad-Asymmetrie — 04.09.2026
+
+**Fragestellung:** Woher stammt das System-Alpha (+297,14R), wenn alle Einstiegsfilter versagen? Was unterscheidet Winner von Losern NACH dem Einstieg?
+
+#### 8.20.1 Methodische Replikation & Korrektur (Signal- vs. Entry-Bar)
+- **Kausale Validierung:** Die Monatsbericht-Zeit entspricht der Signal-Bar (UTC). Der tatsächliche Einstieg erfolgt bei `Signal + 1` (`in_bar`) bzw. `Signal + 2` (`next_bar`), validiert per Open-Matching (0 Mismatches).
+- **Replikation:** Mit dieser Bereinigung repliziert der Audit die Engine-Exits (`_aufloesen`) mit **410 von 411 Treffern (99,8 %)** fehlerfrei.
+- **Hinweis zur Belegkette:** Die Verweildauer-/Rebound-Reports dieser Serie (`tmp_dwell_time_report.txt`, `tmp_rebound_report.txt`) wurden noch mit Signal-Bar-Position erstellt; ihre Metrikwerte sind dadurch um 1–2 Bars verschoben. Die Richtung und Trennung der Befunde bleibt gültig.
+
+#### 8.20.2 Empirische Befunde der Positiv-Wende
+1. **Topf-B-Dominanz (Non-Streak-Alpha):**
+   - **S1:** 187 Trades, 46,5 % WR, **+194,96R** (98,8 % des S1-Alphas), PF 3,24.
+   - **S2:** 90 Trades, **50,0 % WR**, **+76,66R** (76,8 % des S2-Alphas), PF 2,79.
+   - Streak-Zyklen (Topf A) sind ein Nullsummenspiel; das Alpha entsteht vollständig im regulären Schwingungsverhalten.
+2. **Asymmetrie-Check der Einstiegs-Signatur (Treibsand + späte Rebounds):**
+   - Ein Block dieser Signatur ist in jeder Variante hochgradig destruktiv: **Netto −60,38R bis −61,96R**.
+   - Vernichtet Top-Winner: T54 (+14,05R), T188/T189 (+13,31R), T35, T84, T171. Das blockierte Set vernichtet > 2R Gewinn je 1R gespartem Verlust.
+3. **Binäre Pfad-Asymmetrie nach Entry (MFE/MAE):**
+   - **Winner (n=163):** Erreichen zu **99 % TP1 (POC)** (162/163). Nach TP1 laufen **92 % (150/163) direkt bis TP2 (Gegenseite der Zone)** durch. Der MAE ist minimal (75 % der Winner sahen nie mehr als −0,17R Buchverlust).
+   - **Loser (n=175):** Erreichen in **0 % der Fälle TP2** (0/175) und sterben zu 83–93 % vor dem POC am SL (Haltezeit-Median: 1,0 h).
+- **Verdikt:** Der mathematische Edge des Systems entsteht weder an der Einstiegskante noch durch Exit-Management (Time-Stops oder Break-Even-Nachzüge würden TP2-Läufer abschneiden), sondern ausschließlich durch das **reibungslose Laufenlassen der Runner bis zur Gegenseite der Zone (TP2)**. Belege: `test/tmp_dwell_time_report.txt`, `test/tmp_rebound_report.txt`, `test/tmp_signature_asymmetry_report.txt`, `test/tmp_payout_anatomy_report.txt`.

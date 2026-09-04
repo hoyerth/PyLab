@@ -719,6 +719,7 @@ den aktiven R1-Kanten im Rückbau-Lauf.
 | 04.09.2026 | **Multi-Timeframe-Audit H1 (§8.24):** Skalierungs-Vorschrift (12h Balance, Vola ×2) verifiziert. H1 liefert +113,97R / 172 Trades (PF ~2,1). R/Trade-Effizienz bleibt mit 93,6 % (S1) und 104 % (S2) vollständig erhalten. Max Streak sinkt von 17 auf 11. Fraktaler Charakter der Value-Area-Geometrie zweifelsfrei bewiesen. | `docs/makro_swings_experiment.md` §8.24 |
 | 04.09.2026 | **Multi-Timeframe-Audit M5 (§8.25):** Scheingewinn (+63,09R) als Cooldown-Artefakt entlarvt. Bei zeit-äquivalenter Skalierung (3h Cooldown, 30m Pivot) verbleiben solide +12,62R (PF 2,20, R/Trade +0,55). R/Trade sinkt von H1 (+1,47) über M15 (+0,92) auf M5 (+0,55). M15 bleibt operativer Sweet-Spot. | `docs/makro_swings_experiment.md` §8.25 |
 | 04.09.2026 | **Sweet-Spot-Audit Multi-Timeframe (§8.26):** S1+S2-Vollläufe über M10, M15, M30, H1 abgeschlossen. M15 verteidigt Platz 1 (+297,14R, PF 2,33, R/Tr +0,723). M10 überrascht mit S2-Stärke (+163,10R), landet gesamt auf Platz 3 (+266,11R). M30 bricht als systematisches Tal ein (PF 1,55, R/Tr +0,356). M15 als Produktions-Standard zementiert. | `docs/makro_swings_experiment.md` §8.26 |
+| 04.09.2026 | **Cross-Asset-Audit GOLD (§8.27):** Resonanzkanten-Sweep (0,85–0,97) isoliert Kuppe bei VA_PCT = 0,95 (+196,06R / 420 Trades, Kursrendite +0,113 %/Trade). Generative Natur der Engine bestätigt: Kante verschiebt sich asset-spezifisch (+0,02 vs. Silber). Produktion verbleibt exklusiv auf SILVER (+297,14R / Kursrendite +0,325 %/Trade). QS-3 abgeschlossen. | `docs/makro_swings_experiment.md` §8.27 |
 
 
 ---
@@ -2391,6 +2392,43 @@ Sequenzer-Vakuum (verpasster Turn durch Phasentod) oder um ein Dichte-Problem?
 1. **M15 als Produktions-Standard bestätigt:** M15 bleibt in Summe R, Profit Factor und R/Trade unangefochten an der Spitze. Die Produktions-Sperre auf M15 ist empirisch zementiert.
 2. **Keine Arbitrage durch M30:** Die Annahme, Zwischen-Timeframes seien automatisch robuster, wird durch das M30-Tal falsifiziert.
 - **Beleg:** `test/tmp_tf_s1s2_report.txt`.
+
+### 8.27 Cross-Asset-Audit GOLD (XAUUSD): Resonanzverschiebung & Skalierung — 04.09.2026
+
+**Fragestellung:** Ist die Reclaim-Engine ein isoliertes Zufallsprodukt für Silber, oder existiert eine generative Marktkante, die sich mit asset-spezifischer Skalierung auf GOLD (XAUUSD) übertragen lässt?
+
+#### 8.27.1 Der Weg zur GOLD-Kalibrierung
+1. **Inventur & Preisbasis:** Verwerfung starrer Preisratios zugunsten fensterspezifischer ATR-Ratios (SILVER $37–$72 statt $30).
+2. **SL-Vola-Skalierung:** Das unskalierte `SL_PCT = 0.45 %` (1,85 ATR auf Gold) erstickte R-Multiples. Skalierung auf ~0.87 ATR (S1: 0,21 %, S2: 0,29 %) verdoppelte den R-Ertrag auf +124,83R.
+3. **Topologie-Auflösung VA_PCT (0,85–0,97):** Die SILVER-Resonanz (0,93) liegt auf GOLD-S1 in einem lokalen Tal. Die vollständige Sondierung belegt die Kuppe eindeutig bei **VA_PCT = 0,95**.
+
+#### 8.27.2 Gesamttopologie GOLD S1+S2 (SL-skaliert)
+
+| VA_PCT | S1 SumR | S2 SumR | S1+S2 SumR | Trades | Kurs%/Tr gew. | Status |
+|---|---|---|---|---|---|---|
+| 0,85 | +103,34R | +9,90R | +113,24R | 388 | +0,063 | S2 schwach |
+| 0,87 | +101,70R | +9,65R | +111,35R | 389 | +0,062 | S2 schwach |
+| 0,89 | +74,00R | +43,52R | +117,52R | 405 | +0,070 | Transition |
+| 0,91 | +35,96R | +33,86R | +69,82R | 400 | +0,043 | lokales Minimum |
+| 0,93 (SILVER-Kante) | +46,81R | +78,02R | +124,83R | 409 | +0,079 | S1-Tal |
+| **0,95 (GOLD-Kuppe)** | **+115,75R** | **+80,31R** | **+196,06R** | **420** | **+0,113** | **Globales Optimum** |
+| 0,96 | +95,72R | +77,86R | +173,58R | 403 | +0,106 | Kanten-Abfall |
+| 0,97 | +98,24R | +80,85R | +179,09R | 398 | +0,111 | Plateau-Erschöpfung |
+
+#### 8.27.3 Gegenüberstellung: GOLD-Optimum vs. SILVER-Baseline (S1+S2)
+
+| Metrik | GOLD M15 (VA 0,95, SL-skaliert) | SILVER M15 (VA 0,93, Baseline) | Relative Effizienz |
+|---|---|---|---|
+| Trades | 420 | 411 | 102 % (Parität) |
+| Summe Netto-R | +196,06R | +297,14R | 66,0 % |
+| Profit Factor | ~1,80 | 2,33 | solide |
+| Kursrendite / Trade | **+0,113 %** | **+0,325 %** | **34,8 %** |
+
+#### 8.27.4 Synthese & Strategisches Verdikt
+1. **Generative Natur bewiesen:** Die Engine ist kein Zufallsprodukt für Silber. Unter Berücksichtigung der höheren Verteilungs-Kurtosis im Interbankenmarkt greift die Value-Area-Erschöpfung bei Gold bei `VA_PCT = 0.95` (+196,06R).
+2. **Asset-spezifische Resonanz:** Es gibt kein universelles `VA_PCT = 0.93`. Die Resonanzkante verschiebt sich mit der Liquiditätsstruktur des Instruments (+0,02 von Silber zu Gold).
+3. **Produktions-Fokus bleibt SILVER:** Trotz Validierung auf Gold generiert Silber aufgrund seiner dünneren Orderbücher die dreifache Kursrendite je Trade (Topf-B-Runner-Expansion). Die Produktions-Baseline verbleibt unverändert auf SILVER (M15, VA 0,93).
+- **Belege:** `test/tmp_gold_va_probe_report.txt`, `test/tmp_gold_va_sweep_S1.txt`, `test/tmp_gold_va_sweep_S2.txt`.
 
 ## 9. Gesamtsynthese: Vom Streak-Dilemma zur deterministischen Exekution — 04.09.2026
 

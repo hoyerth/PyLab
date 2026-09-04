@@ -718,6 +718,7 @@ den aktiven R1-Kanten im Rückbau-Lauf.
 | 04.09.2026 | **Regime-Dekonstruktion des VA-Drops (§8.23):** Weg-A-Replay (17 Monate, bitgenau) widerlegt Marktregime-Abhängigkeit (Pearson zu KER +0,134, Range +0,333). In 14/17 Monaten verliert 0.88. 88,3 % des Verlusts (+141,13R) entstehen durch die Zerstörung der TP2-Runner in Expansionsmonaten. Kuppe bei 0.93 ist als geometrische Resonanzkante bestätigt. | `docs/makro_swings_experiment.md` §8.23 |
 | 04.09.2026 | **Multi-Timeframe-Audit H1 (§8.24):** Skalierungs-Vorschrift (12h Balance, Vola ×2) verifiziert. H1 liefert +113,97R / 172 Trades (PF ~2,1). R/Trade-Effizienz bleibt mit 93,6 % (S1) und 104 % (S2) vollständig erhalten. Max Streak sinkt von 17 auf 11. Fraktaler Charakter der Value-Area-Geometrie zweifelsfrei bewiesen. | `docs/makro_swings_experiment.md` §8.24 |
 | 04.09.2026 | **Multi-Timeframe-Audit M5 (§8.25):** Scheingewinn (+63,09R) als Cooldown-Artefakt entlarvt. Bei zeit-äquivalenter Skalierung (3h Cooldown, 30m Pivot) verbleiben solide +12,62R (PF 2,20, R/Trade +0,55). R/Trade sinkt von H1 (+1,47) über M15 (+0,92) auf M5 (+0,55). M15 bleibt operativer Sweet-Spot. | `docs/makro_swings_experiment.md` §8.25 |
+| 04.09.2026 | **Sweet-Spot-Audit Multi-Timeframe (§8.26):** S1+S2-Vollläufe über M10, M15, M30, H1 abgeschlossen. M15 verteidigt Platz 1 (+297,14R, PF 2,33, R/Tr +0,723). M10 überrascht mit S2-Stärke (+163,10R), landet gesamt auf Platz 3 (+266,11R). M30 bricht als systematisches Tal ein (PF 1,55, R/Tr +0,356). M15 als Produktions-Standard zementiert. | `docs/makro_swings_experiment.md` §8.26 |
 
 
 ---
@@ -2367,6 +2368,29 @@ Sequenzer-Vakuum (verpasster Turn durch Phasentod) oder um ein Dichte-Problem?
 2. **Zeit-Äquivalenz-Invariante:** Bei korrekter zeitlicher Normalisierung (`MIN_SIGNAL_ABSTAND_BARS = 36`, `PIVOT_LOOKBACK = 6`, Balance 138 Bars) normalisieren sich die Metriken: WR 47,8 %, PF 2,20, +12,62R.
 3. **Phasen-Konzentration & Alpha-Abfall:** Nur 2 von 21 Phasen bestehen das 1,5 %-Spread-Gate. Die Trade-Ausbeute sinkt auf +0,55R/Trade (vs. +0,925R auf M15 und +1,47R auf H1). M5 ist profitabel, aber durch Intraday-Rauschen signifikant alpha-gedämpft.
 - **Belege:** `test/tmp_m5_aug_zeit_aequivalent_report.txt`, `test/tmp_m5_aug_sanity_report.txt`.
+
+### 8.26 Multi-Timeframe-Sweet-Spot-Audit (S1+S2 über M10, M15, M30, H1) — 04.09.2026
+
+**Fragestellung:** Wo liegt der mathematische Sweet-Spot aus Signal-Frequenz und Trade-Effizienz (R/Trade) über die gesamte Timeframe-Kaskade?
+
+#### 8.26.1 Gesamtergebnis S1 + S2 (Kombinierter Benchmark)
+
+| Timeframe | Bars | Trades | Win Rate % | Summe Netto-R | Profit Factor | R / Trade | Rangfolge (R/Tr) |
+|---|---|---|---|---|---|---|---|
+| **M15 (Baseline)** | 34.913 | 411 | **39,7 %** | **+297,14R** | **2,33** | **+0,723R** | **1 (Sweet-Spot)** |
+| **H1** | 8.733 | 172 | 33,7 % | +113,96R | 2,14 | +0,663R | 2 |
+| **M10** | 52.364 | 437 | 37,1 % | +266,11R | 2,11 | +0,609R | 3 |
+| **M30** | 17.459 | 417 | 28,8 % | +148,37R | 1,55 | +0,356R | 4 (Tal) |
+
+#### 8.26.2 Einzelfenster-Dynamik (S1 vs. S2)
+- **M10-Überraschung in S2:** Im zähen Konsolidierungsjahr 2025 übertrifft M10 (+163,10R, PF 2,32, WR 39,8 %) die M15-Baseline (+99,88R). Im Bullenmarkt S1 zahlt M10 dagegen Effizienz ein (+103,02R / R/Tr +0,51 vs. M15 +197,26R / R/Tr +0,98).
+- **M30-Bestätigung des Tals:** M30 versagt in beiden Fenstern systematisch (S1: +87,65R, PF 1,69; S2: +60,72R, PF 1,42). Die zeitliche Taktung von 30 Minuten erweist sich als strukturell ungünstig für die Reclaim-Kanten-Auflösung.
+- **H1 als Rauschfilter:** H1 liefert mit +0,663R/Trade nahezu die Effizienz von M15, reduziert jedoch das Trade-Aufkommen um 58 % und dämpft Verlustserien.
+
+#### 8.26.3 Synthese & Arretierung
+1. **M15 als Produktions-Standard bestätigt:** M15 bleibt in Summe R, Profit Factor und R/Trade unangefochten an der Spitze. Die Produktions-Sperre auf M15 ist empirisch zementiert.
+2. **Keine Arbitrage durch M30:** Die Annahme, Zwischen-Timeframes seien automatisch robuster, wird durch das M30-Tal falsifiziert.
+- **Beleg:** `test/tmp_tf_s1s2_report.txt`.
 
 ## 9. Gesamtsynthese: Vom Streak-Dilemma zur deterministischen Exekution — 04.09.2026
 

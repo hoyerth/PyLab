@@ -43,11 +43,15 @@ TRADE-MANAGEMENT (2 Hälften):
       Stop: SL_PCT = 0,45 % relativ zum Einstieg.
   - Hälfte 2 (50 %): TP2 = Gegenseite abzüglich 0,20 % Puffer
       (SHORT: val*(1+puffer); LONG: vah*(1-puffer)).
-      Stop: BREAK-EVEN (entry), sobald Hälfte 1 TP1 erreicht hat;
-      vorher ursprünglicher SL (sl_init).
-  - Break-even-Semantik: BE-Stop für Hälfte 2 wirkt ab der Bar NACH der
-    TP1-Bar (t1+1). Wird TP1 nie erreicht (voller SL), behält Hälfte 2
-    sl_init. TP1 und TP2 in derselben Bar => beide Hälften gewinnen.
+      Stop: sl_init (SL_PCT relativ zum Einstieg) — solange USE_BE=False
+      (F2/F6-Default: KEIN BE-Nachzug, Runner-Philosophie wie Setup B,
+      Baseline-Invariante); bei USE_BE=True Break-even (entry), sobald
+      Hälfte 1 TP1 erreicht hat.
+  - Break-even-Semantik (USE_BE=True): BE-Stop für Hälfte 2 wirkt ab der
+    Bar NACH der TP1-Bar (t1+1). Wird TP1 nie erreicht (voller SL), behält
+    Hälfte 2 in BEIDEN Varianten sl_init. TP1 und TP2 in derselben Bar =>
+    beide Hälften gewinnen. USE_BE=False: Hälfte 2 läuft nach TP1 ungestoppt
+    bis TP2 / sl_init / ENDE (kein BE-Nachzug, A/B-Hebel F2/F6).
   - Intrabar-Konvention wie Baseline: Ziele werden unabhängig über
     [einstieg_bar .. Datenende] per erster-erreicht-Maske aufgelöst;
     unaufgelöste Reste schließen am letzten Close (ENDE).
@@ -106,6 +110,9 @@ MIN_SIGNAL_ABSTAND_BARS: int = 12  # Cooldown (M15 = 3 h), je Richtung
 SL_PCT: float = 0.45           # Stop relativ zum Einstieg
 ANTEIL_TP1: float = 50.0       # 50 % am POC (Derisking), Rest 50 %
 TP2_PUFFER_PCT: float = 0.20   # TP2 = Gegenseite abzüglich Puffer
+USE_BE: bool = False           # F2/F6: False = KEIN BE-Nachzug (Default,
+                               # Runner wie Baseline/Setup B); True = BE
+                               # nach TP1 (Kontroll-Arm, Status quo)
 
 # ==============================================================================
 # DATENVERTRÄGE (Typisierung, slots)
@@ -332,6 +339,10 @@ for _a in sys.argv[1:]:
     if _a.startswith("--min-zone-candles="):
         MIN_ZONE_CANDLES = int(_a.split("=", 1)[1])
         print(f"==> MIN_ZONE_CANDLES ueberschrieben: {MIN_ZONE_CANDLES}")
+    if _a.startswith("--be-nachzug="):
+        _be_val: str = _a.split("=", 1)[1].lower()
+        USE_BE = _be_val in ("true", "1", "yes")
+        print(f"==> USE_BE (--be-nachzug) ueberschrieben: {USE_BE}")
 
 FENSTER_LABEL = fenster_label(START, ENDE)
 STATS_TXT_DEFAULT = TEST_DIR / f"stats_counter_{FENSTER_LABEL}.txt"
@@ -895,6 +906,7 @@ def find_counter_signals(
     max_touch: int = MAX_TOUCH_COUNT,
     cooldown_bars: int = MIN_SIGNAL_ABSTAND_BARS,
     min_zone_candles: int = MIN_ZONE_CANDLES,
+    use_be: bool = USE_BE,
 ) -> List[CounterSignal]:
     """Scannt Setup-A-Signale bar für bar (kausal, drift-stabile Zone).
 
@@ -918,6 +930,8 @@ def find_counter_signals(
         max_touch: MAX_TOUCH_COUNT (Absorptionsfilter).
         cooldown_bars: Mindestabstand gleichgerichteter Signale (Bars).
         min_zone_candles: Mindest-Bars der laufenden Zone vor dem Scan.
+        use_be: True = BE-Nachzug nach TP1 (Kontroll-Arm, Status quo);
+            False = KEIN BE-Nachzug (F2/F6-Default, Runner-Philosophie).
 
     Returns:
         Liste der CounterSignals (trade bereits aufgelöst).
@@ -1000,7 +1014,7 @@ def find_counter_signals(
                                 crv=float(crv) if not np.isnan(crv) else 0.0,
                                 crv2=float(crv2) if not np.isnan(crv2) else 0.0,
                             )
-                            sig.trade = _aufloesen_counter(df, sig)
+                            sig.trade = _aufloesen_counter(df, sig, use_be=use_be)
                             sigs.append(sig)
 
         # ---- LONG an VAL ----
@@ -1031,17 +1045,26 @@ def find_counter_signals(
                                 crv=float(crv) if not np.isnan(crv) else 0.0,
                                 crv2=float(crv2) if not np.isnan(crv2) else 0.0,
                             )
-                            sig.trade = _aufloesen_counter(df, sig)
+                            sig.trade = _aufloesen_counter(df, sig, use_be=use_be)
                             sigs.append(sig)
     return sigs
 
 
-def _aufloesen_counter(df: pd.DataFrame, s: CounterSignal) -> TradeResolution:
-    """Löst ein Setup-A-Signal in 2 Hälften auf (TP1 + Break-even-Hälfte 2).
+def _aufloesen_counter(
+    df: pd.DataFrame,
+    s: CounterSignal,
+    use_be: bool = USE_BE,
+) -> TradeResolution:
+    """Löst ein Setup-A-Signal in 2 Hälften auf (TP1 + Hälfte 2).
 
     Hälfte 1 (ANTEIL_TP1 %): TP1 = POC; Stop sl_init (SL_PCT relativ).
-    Hälfte 2 (Rest): TP2 = Gegenseite ∓ TP2_PUFFER_PCT; Stop = Break-even
-    (entry) sobald Hälfte 1 TP1 erreicht hat (wirkt ab Bar t1+1), sonst
+    Hälfte 2 (Rest): TP2 = Gegenseite ∓ TP2_PUFFER_PCT.
+      - use_be=False (F2/F6-Default): Stop bleibt sl_init — Hälfte 2 läuft
+        nach TP1 ungestoppt bis TP2 / sl_init / ENDE (Runner-Philosophie
+        wie Setup B, Baseline-Invariante).
+      - use_be=True: Stop = Break-even (entry) sobald Hälfte 1 TP1 erreicht
+        hat (wirkt ab Bar t1+1); vorher sl_init.
+    Wird TP1 nie erreicht (voller SL), behält Hälfte 2 in BEIDEN Varianten
     sl_init. TP1 und TP2 in derselben Bar => beide Hälften gewinnen.
     Unaufgelöste Reste schließen am letzten Close (ENDE).
 
@@ -1051,6 +1074,8 @@ def _aufloesen_counter(df: pd.DataFrame, s: CounterSignal) -> TradeResolution:
     Args:
         df: OHLCV-Frame.
         s: CounterSignal mit einstieg_bar/einstieg_preis/tp1/tp2.
+        use_be: True = BE-Nachzug nach TP1 (Kontroll-Arm, Status quo);
+            False = KEIN BE-Nachzug (F2/F6-Default, Runner-Philosophie).
 
     Returns:
         TradeResolution (r1/r2/resultat/Flags).
@@ -1095,8 +1120,9 @@ def _aufloesen_counter(df: pd.DataFrame, s: CounterSignal) -> TradeResolution:
 
     # ---- Hälfte 2: TP2 (Gegenseite) vs. Break-even / SL_init ----
     tp1_hit = (g1 == "TP1")
-    if tp1_hit:
-        # BE-Stop wirkt ab der Bar NACH der TP1-Bar (t1+1).
+    if tp1_hit and use_be:
+        # F2/F6-Kontroll-Arm (use_be=True): BE-Stop wirkt ab der Bar NACH
+        # der TP1-Bar (t1+1).
         if t2 <= t1:
             # TP1 und TP2 in derselben Bar erreicht -> Rest gewinnt TP2.
             r2, ex2, g2 = _r(tp2), tp2, "TP2"
@@ -1114,7 +1140,8 @@ def _aufloesen_counter(df: pd.DataFrame, s: CounterSignal) -> TradeResolution:
             else:
                 r2, ex2, g2 = _r(float(cl[-1])), float(cl[-1]), "ENDE"
     else:
-        # TP1 nie erreicht: Hälfte 2 behält sl_init.
+        # F2/F6-Default (use_be=False, Runner-Philosophie) ODER TP1 nie
+        # erreicht: Hälfte 2 behält sl_init und läuft bis TP2 / SL / ENDE.
         if t2 < t_sl0:
             r2, ex2, g2 = _r(tp2), tp2, "TP2"
         elif t_sl0 < n_bars:
@@ -1176,7 +1203,8 @@ _pf = (_gross_w / _gross_l) if _gross_l else float("inf")
 print("\n" + "=" * 110)
 print(f"SETUP A (COUNTER/PING-PONG) {SYMBOL} {TIMEFRAME} {START} - {ENDE}")
 print(f"Entry-Mode: {ENTRY_MODE} | MAX_TOUCH_COUNT: {MAX_TOUCH_COUNT} | "
-      f"Cooldown: {MIN_SIGNAL_ABSTAND_BARS} | TP1 {ANTEIL_TP1:.0f}% @ POC + BE")
+      f"Cooldown: {MIN_SIGNAL_ABSTAND_BARS} | TP1 {ANTEIL_TP1:.0f}% @ POC | "
+      f"BE-Nachzug: {'AN (Kontroll-Arm)' if USE_BE else 'AUS (F6-Default, Runner)'}")
 print("=" * 110)
 print(f"Phasen gesamt: {len(phases)} | handelbar: "
       f"{sum(1 for p in phases if p.handelbar)} | Moves: {len(moves)}")
@@ -1200,8 +1228,9 @@ _out_lines = [
     f"MIN_CANDLES: {MIN_CANDLES}",
     f"Entry-Mode: {ENTRY_MODE} | MAX_TOUCH_COUNT: {MAX_TOUCH_COUNT} | "
     f"MIN_ZONE_CANDLES: {MIN_ZONE_CANDLES}",
-    f"Trade-Management: SL_PCT={SL_PCT} | Split {_ant_txt} (TP1=POC, BE-Nachzug) | "
+    f"Trade-Management: SL_PCT={SL_PCT} | Split {_ant_txt} (TP1=POC) | "
     f"TP2_PUFFER_PCT={TP2_PUFFER_PCT} | Cooldown={MIN_SIGNAL_ABSTAND_BARS} Bars",
+    f"BE-Variante (F2/F6): {'BE-Nachzug nach TP1 (Kontroll-Arm, Status quo)' if USE_BE else 'KEIN BE-Nachzug (Default, Runner-Philosophie)'}",
     "=" * 110,
     f"Phasen gesamt: {len(phases)} | handelbar: "
     f"{sum(1 for p in phases if p.handelbar)}",

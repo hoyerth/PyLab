@@ -239,3 +239,9 @@ __marimo__/
 
 # Ignore secrets in '.env'
 .env
+
+# Nie committen (persoenliche Laufzeit-/Workspace-Dateien)
+.marimo.toml
+Notebooks/03_Backtest_Lab.py
+data/backtest_ui_state.json
+docs/Archiv/reclaim_v04_mentor_vorlage.md

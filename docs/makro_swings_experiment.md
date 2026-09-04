@@ -711,7 +711,8 @@ den aktiven R1-Kanten im Rückbau-Lauf.
 | 04.09.2026 | **Kapitulations-Check S1 (§8.17, Mentor-Schritt 1):** Impuls-Größe |net8| (8 M15-Bars kausal vor Signal) über alle 201 Trades als Filter simuliert. Schwellen 1,0–3,0 % alle katastrophal (1,0 %: −115,72R, 3,0 %: −162,51R); nur 8 Winner ≥ 2,0 % (+49,30R von +295,31R Winner-Basis); Verteilung fast identisch (Median 0,71 vs. 0,57 %). KER (T142 0,94 ≈ T59 0,93) und Single-Print-/Imbalance-Signaturen trennen nicht. T142 = legitimer Bodentest mit Pech (Wendepunkt 1 Phase später, T144 +1,55R). **Verdikt arretiert:** kein statischer Impuls-Filter; Phase 102 = Regime-Problem (§8.16 bestätigt). Helper `test/tmp_capitulation_check.py` gelöscht (I4), Report behalten. | `docs/makro_swings_experiment.md` §8.17 |
 | 04.09.2026 | **Fehlversuch-Dichte vs. Regime-Pullback-Tiefe (§8.18):**
 | 04.09.2026 | **Mehrtages-Vola & Dichte-Caps (§8.19):**
-| 04.09.2026 | **Positiv-Wende & Auszahlungs-Anatomie (§8.20):** 410/411 Exits repliziert (Signal+1/+2). Topf B liefert 98,8 % (S1) / 76,8 % (S2) des Alphas (WR 50 %, PF 2,8–3,2). Einstiegssignaturen scheitern (−60R Netto). Binäre Asymmetrie nach Entry: Winner erreichen zu 99 % TP1 und zu 92 % TP2 (Gegenseite); Loser erreichen zu 0 % TP2. Alpha entsteht rein durch Laufenlassen bis TP2. | `docs/makro_swings_experiment.md` §8.20 | Vola-Filter scheitert (Feb 2025 hatte 2,4 % Tages-Range vs. März mit 1,9 %; Mai 2026 R72 7,6 %). Dichte-Caps vernichten netto Wert (killen T54 +14,1R, T65–69 +34,7R). Toxizität ist setupspezifisch. Negativ-Serie vollständig abgeschlossen. | `docs/makro_swings_experiment.md` §8.19 |
+| 04.09.2026 | **Positiv-Wende & Auszahlungs-Anatomie (§8.20):**
+| 04.09.2026 | **Alpha-Landkarte & Robustheit (§8.21):** 163 Gewinner analysiert. Breite Mitte (2–8R) trägt 73,2 % des Gewinns (+380,96R). Stresstest ohne Top 5 Trades hält +236,61R (80 % Alpha). Exekutions-Effizienz vs. Zonen-Geometrie beträgt exakt 100 %. Kein Fat-Tail-Risiko; institutionell robust. | `docs/makro_swings_experiment.md` §8.21 | 410/411 Exits repliziert (Signal+1/+2). Topf B liefert 98,8 % (S1) / 76,8 % (S2) des Alphas (WR 50 %, PF 2,8–3,2). Einstiegssignaturen scheitern (−60R Netto). Binäre Asymmetrie nach Entry: Winner erreichen zu 99 % TP1 und zu 92 % TP2 (Gegenseite); Loser erreichen zu 0 % TP2. Alpha entsteht rein durch Laufenlassen bis TP2. | `docs/makro_swings_experiment.md` §8.20 | Vola-Filter scheitert (Feb 2025 hatte 2,4 % Tages-Range vs. März mit 1,9 %; Mai 2026 R72 7,6 %). Dichte-Caps vernichten netto Wert (killen T54 +14,1R, T65–69 +34,7R). Toxizität ist setupspezifisch. Negativ-Serie vollständig abgeschlossen. | `docs/makro_swings_experiment.md` §8.19 |
 
 
 ---
@@ -2234,3 +2235,25 @@ Sequenzer-Vakuum (verpasster Turn durch Phasentod) oder um ein Dichte-Problem?
    - **Winner (n=163):** Erreichen zu **99 % TP1 (POC)** (162/163). Nach TP1 laufen **92 % (150/163) direkt bis TP2 (Gegenseite der Zone)** durch. Der MAE ist minimal (75 % der Winner sahen nie mehr als −0,17R Buchverlust).
    - **Loser (n=175):** Erreichen in **0 % der Fälle TP2** (0/175) und sterben zu 83–93 % vor dem POC am SL (Haltezeit-Median: 1,0 h).
 - **Verdikt:** Der mathematische Edge des Systems entsteht weder an der Einstiegskante noch durch Exit-Management (Time-Stops oder Break-Even-Nachzüge würden TP2-Läufer abschneiden), sondern ausschließlich durch das **reibungslose Laufenlassen der Runner bis zur Gegenseite der Zone (TP2)**. Belege: `test/tmp_dwell_time_report.txt`, `test/tmp_rebound_report.txt`, `test/tmp_signature_asymmetry_report.txt`, `test/tmp_payout_anatomy_report.txt`.
+
+### 8.21 Alpha-Landkarte: Breit getragene Mitte & Robustheits-Stresstest — 04.09.2026
+
+**Fragestellung:** Hängt das System-Alpha (+297,16R Baseline) an einem fragilen Fat-Tail (wenige Ausreißer-Trades), oder ruht es auf einer stabilen, wiederholbaren Ertrags-Basis?
+
+#### 8.21.1 Empirische Befunde der R-Klassen (n=163 Gewinner, +520,45R Brutto)
+- **Die Verteilung nach Ertragsklassen:**
+  - **K1 (< 2,0R):** 55 Trades (33,7 %), +70,57R (13,6 % Anteil), Median-R +1,49.
+  - **K2 (2,0–3,99R):** 70 Trades (42,9 %), +209,38R (40,2 % Anteil), Median-R +2,95.
+  - **K3 (4,0–7,99R):** 32 Trades (19,6 %), +171,58R (33,0 % Anteil), Median-R +5,06.
+  - **K4 (>= 8,0R):** 6 Trades (3,7 %), +68,92R (13,2 % Anteil), Median-R +10,04.
+- **Die tragende Mitte:** K2 und K3 (2,0 bis 8,0R) tragen zusammen **62,5 % aller Gewinner und 73,2 % des gesamten Gewinns (+380,96R)**. Das System ist kein Fat-Tail-Produkt.
+
+#### 8.21.2 Stresstests & Institutionelle Robustheit
+- **Stresstest ohne Top 5 Trades:** System-Netto verbleibt bei **+236,61R** (Erhalt von 80 % des System-Alphas).
+- **Stresstest ohne Top 10 Trades:** System-Netto verbleibt bei **+199,16R**.
+- **Stresstest ohne gesamte Klasse K4 (alle 6 Trades >= 8R):** System-Netto verbleibt bei **+228,24R**.
+- **Pareto-Verteilung:** Top 5 % = 16,1 % Ertrag, Top 10 % = 26,7 %, Top 20 % = 42,2 % (gesunde, unverzerrte Struktur).
+
+#### 8.21.3 Deterministische Exekutions-Effizienz
+- Die realisierte R-Ausbeute im Verhältnis zur theoretischen Zonen-Auszahlung ($0,25 \cdot \text{crv} + 0,75 \cdot \text{crv2}$) beträgt über alle Kohorten hinweg **exakt 100 %**.
+- **Verdikt:** Das System besitzt echte institutionelle Robustheit. Das Alpha bricht bei Wegfall extremer Marktbewegungen nicht ein, sondern speist sich deterministisch aus der stabilen Ausnutzung der Value-Area-Geometrie. Beleg: `test/tmp_alpha_landkarte_report.txt`.

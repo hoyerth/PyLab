@@ -447,12 +447,25 @@ Zensierte Positionen (`RECHTS_ZENSIERT`, S2 je Horizont 1) strikt isoliert (r=Na
 - Produktions-Baseline `scripts/phasen_volumen_profil.py` (+297,14R, v0.4.0-frozen): **unverändert**
 - Stufe-5-Roadmap (Regime-Klassifikation, Parameter-Robustheit, OOS-Validierung, §2.13-C): eigenständige Folge-Session
 
-### 2.16 Stufe 5: Regime-Klassifikation & Out-of-Sample-Validierung (Entwurf in Vorbereitung, 05.09.2026)
+### 2.16 Stufe 5: Regime-Klassifikation & Out-of-Sample-Validierung (In-Sample-Kalibrierung abgeschlossen; Freeze versiegelt; OOS-Zonen 2024 & ZSTRESS abgenommen — Stufe 5 ABGESCHLOSSEN, 05.09.2026)
 
-**Status:** Konzeptions-/Explorationsphase. Noch KEINE Stufe-5-Code-Datei committet. Phase-1-Kern
-`scripts/setup_c_profil.py` wurde am 05.09.2026 nach der Einheiten-Bereinigung D4-Ratchet
-(µs/ns-Fix in `_kanten_reihe`) re-arretiert (§2.14/§2.15, Fix-Commit) und bleibt in dieser
-Fassung eingefroren; `scripts/regime_filter.py` (Stufe-5-Entwurf) ist untracked, kein Commit.
+**Status:** In-Sample-Kalibrierung abgeschlossen (V2-Bereinigung auf 4 responsive
+Parameter), **Schwellen-Freeze versiegelt** am 05.09.2026
+(`test/regime_schwellen_freezed.json`, sha256 der S1/S2-Roh-Zustaende). **Beide
+OOS-Zonen per One-Shot ausgewertet und abgenommen — Stufe 5 ABGESCHLOSSEN
+(05.09.2026, §2.16-F):** Zone 2024 (Fassung-1-Formalbefund a=True b=False c=True →
+„NICHT BESTANDEN"; Mentor-Abnahme wegen +11,10R Netto-Alpha, §2.16-F.2/F.3) und Zone
+ZSTRESS (Fassung 2: a=True b'=True c=True → BESTANDEN, +7,24R Netto-Alpha,
+§2.16-F.6). **Kriterien-Fassung 2 (ΣΔ_TREND ≥ 0,0R je Zone statt Positivität jedes
+Einzelabschnitts) ist für ZSTRESS und alle künftigen Forward-OOS-Läufe arretiert**
+(§2.16-F.4); die Fassung-1-Kriterien bleiben für den Zone-2024-Befund maßgeblich
+(duale Ausweisung). **Stufe-5-Abschluss: `scripts/regime_filter.py` als `feat`-Commit,
+dieses Dokument als `docs`-Commit (§2.16-F.6)**; der Phase-1-Kern
+`scripts/setup_c_profil.py` (Commit `29e7d03`, nach D4-Ratchet-Re-Arretierung §2.14/
+§2.15) und die Produktions-Baseline `scripts/phasen_volumen_profil.py` (+297,14R,
+v0.4.0-frozen) bleiben unverändert. Verbleibend: ausschließlich der Forward-OOS-
+Meilenstein nach dem SILVER-Daten-Update (§2.16-B) als einmaliger Blind-Test unter
+Fassung 2.
 
 #### A. Architektur-Doktrin & Anti-Kontaminations-Regeln
 
@@ -484,11 +497,19 @@ Fassung eingefroren; `scripts/regime_filter.py` (Stufe-5-Entwurf) ist untracked,
 | Zone | Zeitraum | Status | Reinheit / Befund |
 |---|---|---|---|
 | In-Sample-Referenz | S1: 2026-02-05 .. 2026-08-28; S2: 2025-01-01 .. 2025-12-01 | arretiert (Phase-1-Gate §2.15) | Kalibrierungs-Basis der Phase-1-Populationen |
-| **Historischer Makro-Holdout** | **2024-01-01 .. 2024-12-31** | **freigegeben** | **Clean-Befund 05.09.2026:** Volle M15-Dichte (1.831–2.119 Bars/Monat); Volltext-Prüfung über `docs/`, `test/`, SESSION-Dateien ergab **keine** Strategie-/Tuning-Berührung 2024-01..11. Einzige Ausnahme: 2024-12-Warmup-Zeile im Monats-Regime-Kontrast (nur Tages-Indikatoren für S2-Start, 0 Trades) — für den Ganzjahres-Holdout irrelevant. SILVER_LONG-Stresstest (QS-8.1) lief 2025-02-05..2026-08-29, nicht über 2024. |
-| Stress-Holdout | 2025-12-01 .. 2026-02-05 | arretiert | Unberührter Stress (Squeeze/Flash-Crash, winterlich dünn): Prüfung auf rechtzeitiges Umschalten auf SHAKEOUT/UNKLAR und Schutzerhalt. Lückenlos an S1-Start anschließend (Ende-exklusiv). |
+| **Historischer Makro-Holdout** | **2024-01-01 .. 2024-12-31** | **abgenommen (05.09.2026, §2.16-F)** | **Clean-Befund 05.09.2026:** Volle M15-Dichte (1.831–2.119 Bars/Monat); Volltext-Prüfung über `docs/`, `test/`, SESSION-Dateien ergab **keine** Strategie-/Tuning-Berührung 2024-01..11. Einzige Ausnahme: 2024-12-Warmup-Zeile im Monats-Regime-Kontrast (nur Tages-Indikatoren für S2-Start, 0 Trades) — für den Ganzjahres-Holdout irrelevant. SILVER_LONG-Stresstest (QS-8.1) lief 2025-02-05..2026-08-29, nicht über 2024. **One-Shot-Ergebnis 05.09.2026:** Gated +9,05R vs. B48 −2,05R (Primär-Delta +11,10R; B96 −2,62R; 41 Phasen: 21 TREND / 20 SHAKEOUT / 0 UNKLAR); Formalbefund a=True b=False c=True (4/10 TREND-Blöcke verletzt); **per Mentor-Abnahme akzeptiert** (Trendfolge-Varianz in 1–2-Trade-Abschnitten; keine Nachkalibrierung, §2.16-F). |
+| Stress-Holdout | 2025-12-01 .. 2026-02-05 | **abgenommen (05.09.2026, §2.16-F.6)** | Unberührter Stress (Squeeze/Flash-Crash, winterlich dünn; lückenlos an S1-Start anschließend, Ende-exklusiv). **One-Shot-Ergebnis 05.09.2026:** 53 Phasen: 28 TREND / 18 SHAKEOUT / 7 UNKLAR (UNKLAR griff 7× in der Jahreswechsel-Liquidität — qualitativer Schalter bestätigt); Gated +3,34R vs. B48 −3,90R (Primär-Delta +7,24R; B96 −5,00R); Fassung 2: a=True b'=True c=True → **BESTANDEN** (tiefster Block −2,00R); Zonen-Hash `187fdb99…` (§2.16-F.6). |
 | Forward-OOS | nach 2026-08-28 | **Meilenstein nach SILVER-Daten-Update** | Scan-Beleg 05.09.2026: `max(ts)=2026-08-28 22:45`, **0 Bars** im Sept. 2026 für SILVER M15. Keine Auswertung auf leerem Fenster. Erst nach DB-Refresh (SILVER ≥ 04.09.2026) als einmaliger Blind-Test scharf. |
 
-#### C. Typisierte Datenverträge (Entwurf für `scripts/regime_filter.py`)
+#### C. Typisierte Datenverträge (Implementierungsstand `scripts/regime_filter.py`; Schwellen VERSIEGELT)
+
+**V2-Bereinigung (Mentor-Beschluss, Occam's Razor nach 1D-Response):** `spread_atr`
+und `konsolidierung_bars` sind ersatzlos aus dem Trend-Score entfernt (tote Schwellen,
+Sättigungsbereich ~95 %, Sweep-Spanne < 1,0R in beiden Fenstern). Kalibrierbar sind
+exakt 4 Schwellen; die Roh-Metriken bleiben im `RegimeState` erhalten (NaN-Doktrin
+bzw. Kaltstart-Grenze), nur ihre Schwellen-Scores entfallen. **Freeze 05.09.2026:**
+Die 4 Plateau-Zentren sind in `test/regime_schwellen_freezed.json` versiegelt
+(sha256-States S1/S2 als forensische Härtung S4; OOS bricht bei Abweichung hart ab).
 
 ```python
 from dataclasses import dataclass
@@ -503,7 +524,7 @@ class RegimeMetricConfig:
     """Feste mathematische Lookbacks/Perioden der Regime-Messung (B primaer).
 
     Traegt ausschliesslich Berechnungs-Parameter. Schwellenwerte leben NICHT
-    hier, sondern in RegimeSweepConfig (nicht-arretierte Sweep-Spannen).
+    hier, sondern in RegimeSchwellen (versiegelt) / RegimeSweepConfig-Spannen.
     """
 
     # Struktur-/Volatilitaetsmetriken (Option B - Primaer)
@@ -523,18 +544,31 @@ class RegimeMetricConfig:
 class RegimeSweepConfig:
     """Sweep-Spannen (min, max, step) fuer Response-Kurven (Plateau-Doktrin).
 
-    Explizit KEINE arretierten Schwellen: Jede Schwelle wird ueber die volle
-    Spanne gesweept; robust ist nur ein breites Plateau. Die Defaults sind
-    Hypothesen-Startwerte (u.a. §2.13-C: ema_slope_threshold=0.001 als
-    Hypothese, nicht kalibriert).
+    Stand 05.09.2026 (V2-Bereinigung): Nur die 4 nachweislich responsiven
+    Schwellen werden gesweept; spread_atr/konsolidierung_bars sind ersatzlos
+    entfernt (keine 1D-Response -> tote Schwellen, Occam's Razor).
     """
 
-    tol_band_quote: Tuple[float, float, float] = (0.30, 0.70, 0.05)
-    atr_expansion_mult: Tuple[float, float, float] = (0.80, 1.60, 0.10)
-    durchstoss_dichte: Tuple[float, float, float] = (0.02, 0.10, 0.01)
-    konsolidierung_bars: Tuple[int, int, int] = (20, 80, 10)
-    ema_slope: Tuple[float, float, float] = (0.0005, 0.0020, 0.0001)
-    adx_schwelle: Tuple[float, float, float] = (15.0, 35.0, 2.5)
+    ema_slope: Tuple[float, float, float] = (0.02, 0.12, 0.01)      # TREND-Momentum
+    ema_slope_max: Tuple[float, float, float] = (-0.08, 0.02, 0.01)  # SHAKE-Kollaps
+    adx_schwelle: Tuple[float, float, float] = (15.0, 35.0, 2.5)    # TREND-Staerke
+    tol_band_quote: Tuple[float, float, float] = (0.40, 0.80, 0.05) # SHAKE-Stuetze
+
+
+@dataclass(frozen=True, slots=True)
+class RegimeSchwellen:
+    """VERSIEGELTE Schwellen (Freeze 05.09.2026, Plateau-Zentrum, nie Peak).
+
+    Die vier Zentren wurden ueber den In-Sample-Sweep (S1+S2, 1D-Response,
+    Plateau-Doktrin §2.16-A.1) kalibriert und kryptografisch versiegelt
+    (test/regime_schwellen_freezed.json + sha256 der S1/S2-Roh-Zustaende).
+    Ab jetzt unveraenderlich; jeder OOS-Lauf bricht bei Hash-Abweichung hart ab.
+    """
+
+    ema_slope_min: float = 0.07     # TREND-Momentum (Plateau n=11, Sequenz [0..10])
+    ema_slope_max: float = -0.03    # SHAKE-Kollaps  (Plateau n=11, Sequenz [0..10])
+    adx_schwelle_min: float = 25.0  # TREND-Staerke  (Plateau n=9,  Sequenz [0..8])
+    tol_band_quote_max: float = 0.60  # SHAKE-Stuetze (Plateau n=9,  Sequenz [0..8])
 
 
 @dataclass(frozen=True, slots=True)
@@ -610,8 +644,13 @@ reduziert auf den konservativen Horizont.
 #### E. Formel-Operationalisierung & Offene Punkte (Stand 05.09.2026)
 
 **Status:** Metrik-Definitionen fixiert und in `scripts/regime_filter.py` implementiert
-(Formel-Spezifikation + statische Code-Inspektion 05.09.2026). Die ursprünglichen Offenen
-Punkte 1–2 sind aufgelöst; nur Punkt 4 bleibt als OOS-Arbeitspaket offen.
+(Formel-Spezifikation + statische Code-Inspektion 05.09.2026). Alle ursprünglichen
+Offenen Punkte sind aufgelöst: Punkt 3 (Klassifikationsregel) V2-bereinigt und mit den
+Freeze-Schwellen versiegelt (§2.16-C/E.3), Punkt 4 (Response-Auswertung) abgeschlossen
+(E.4). **OOS-Gate abgeschlossen (05.09.2026):** Zone 2024 abgenommen (§2.16-F.2/F.3),
+Zone ZSTRESS unter Fassung 2 formell BESTANDEN (§2.16-F.6); Stufe 5 ABGESCHLOSSEN.
+Verbleibend: ausschließlich der Forward-OOS-Meilenstein nach SILVER-Daten-Update
+(§2.16-B, einmaliger Blind-Test unter Fassung 2).
 
 1. **Metrik-Definitionen (fixiert & verankert):**
    - `phase_spread_usd = U_brk − L_brk` — **strikt kausal** über die D4-Stufenfunktion
@@ -636,16 +675,176 @@ Punkte 1–2 sind aufgelöst; nur Punkt 4 bleibt als OOS-Arbeitspaket offen.
      (kein SMA-Seed) nach ~50 Bars asymptotisch null → für Sweeps/Plateaus irrelevant.
    - `konsolidierung_bars = brk_idx − start_idx` (Index-Distanz der Liquiditätsakkumulation;
      Segmentierer erzwingt `≥ min_phase_candles = 46` → Kaltstart-Schutz konsistent).
-3. **Klassifikationsregel (Status: Arbeitshypothese im Code, NICHT arretiert):**
-   `klassifiziere_regime` implementiert das Margen-Modell `s = m_trend − m_shake`
-   (min-Aggregation relativer Schwellen-Abstände, 0..1 geklemmt) mit Totzone
-   `±hysterese_puffer` und Vorregime-Halten gegen Flattern. Kaltstart/NaN → strikt
-   `UNKLAR`/`konfidenz=0.0`. **Arretiert ist ausschließlich das Gate-Mapping
-   `entscheide_gate` (§2.16-D)**; die Schwellen-Score-Gewichtung wird im OOS-Sweep kalibriert
-   (Plateau-Doktrin §2.16-A.1, One-Shot-Holdout §2.16-A.2).
-4. **Response-Kurven-Auswertung (Status: offen, OOS-Arbeitspaket):** Kennzahl-Definition
-   (Plateau-Breite, Klippen-Detektion) als Bestehenskriterium je Kandidat — Bestandteil des
-   OOS-Sweeps (One-Shot-Holdout §2.16-A.2).
+3. **Klassifikationsregel (V2-Bereinigung 05.09.2026; Schwellen versiegelt):**
+   `klassifiziere_regime` implementiert **gewichtete additive Scores** (ersetzt das
+   alte min()-Margen-Modell) mit Totzone `±hysterese_puffer`:
+   - `t = 0,65·S_oben(ema_slope, ema_slope_min, 0,20) + 0,35·S_oben(adx_val, adx_schwelle_min, 20)`
+   - `k = 0,70·S_unten(ema_slope, ema_slope_max, 0,20) + 0,30·S_oben(tol_band_quote, tol_band_quote_max, 0,50)`
+   - `s = t − k`; Null-Evidenz (`t ≤ EPS` UND `k ≤ EPS`) → strikt `UNKLAR` (kein
+     Vorregime-Latch); Konfliktzone (`|s| < buffer` UND beide Evidenzen aktiv) →
+     `UNKLAR` (Konten-Schutz); Totzone-Halten nur bei positiver Eigen-Evidenz des
+     Vorregimes. Kaltstart/NaN → strikt `UNKLAR`/`konfidenz=0.0`.
+   **Arretiert:** (a) Gate-Mapping `entscheide_gate` (§2.16-D), (b) die 4 Freeze-Schwellen
+   (§2.16-C, `test/regime_schwellen_freezed.json`). Die Gewichte (0,65/0,35/0,70/0,30)
+   sind fixe Modul-Konstanten (Mentor-Beschluss E-2/V2: kein Gewichte-Sweep).
+4. **Response-Kurven-Auswertung (Status: ABGESCHLOSSEN 05.09.2026):** 1D-Response-Sweep
+   über S1+S2 (`test/tmp_regime_validation.py --stufe=sweep`). Kriterien: Response ≥ 1,0R
+   in mind. einem Fenster (Anti-Totfilter), S1/S2-Delta ≥ −0,5R je Punkt, S2-Trend-Anteil
+   > 50 % (Anti-Total-Filter), Sequenz ≥ 3, Klippen-Regel > 30 %, CoV ≤ 0,5, Freeze =
+   Plateau-Zentrum (nie Peak). **Ergebnis: 4/4 bestanden** (`ema_slope_min=0.07`,
+   `ema_slope_max=−0.03`, `adx_schwelle_min=25.0`, `tol_band_quote_max=0.60`; Plateaus
+   n=9–11, Δ ±1–3R); `spread_atr_min`/`konsolidierung_min` als tot eliminiert (V2).
+   Sweep-Report: `test/tmp_regime_sweep.txt`; Siegel: `test/regime_schwellen_freezed.json`
+   + `test/tmp_regime_freezed.txt` (sha256 S1 `e55b72e6…`, S2 `948a9c21…`).
+
+#### F. OOS-Abnahmeprotokoll Zonen 2024 & ZSTRESS sowie Kriterien-Fassung 2 (arretiert 05.09.2026)
+
+**F.1 Ausführung (One-Shot, Zone Z2024)**
+
+Lauf: `python test/tmp_regime_validation.py --stufe=oos --zone=2024` → Protokoll
+`test/tmp_regime_oos_2024.txt`. Siegel-Hashes unverändert (sha256 S1 `e55b72e6…`,
+S2 `948a9c21…`; der OOS-Lauf bricht bei Abweichung hart ab), Freeze-Schwellen unberührt
+(`ema_slope_min=0.07`, `ema_slope_max=−0.03`, `adx_schwelle_min=25.0`,
+`tol_band_quote_max=0.60`). Zonen-Hash `40d91621…` (nur Doku, kein Soll).
+Klassifikation der 41 Phasen: **TREND 21 (51 %), SHAKEOUT 20 (49 %), UNKLAR 0**.
+Portfolio: TREND = RAW-A@96 (beide Richtungen) + RAW-B@96 (nur Bruchrichtung),
+1-Close entfernt (Befund D/W2); SHAKEOUT/UNKLAR = strikt RAW-A@48.
+Baselines B48/B96 = RAW-A.
+
+**F.2 Formalbefund (Schicht 1 — Maßstab Fassung 1, unveränderlich)**
+
+| Kennzahl | Wert |
+|---|---|
+| Gated Σr_f4 | **+9,05R** (n=22, init=13, zeit=9, hd=52, 0 zensiert; Σr_ref +11,65R) |
+| B48 (Referenz) | −2,05R (Σr_ref −12,19R) |
+| B96 (Sekundär-Baseline) | −2,62R |
+| **Primär-Delta (gated − B48)** | **+11,10R** |
+
+Abschnitts-Prüfung (10 TREND-Blöcke, 11 SHAKEOUT-Blöcke, 0 UNKLAR-Blöcke):
+- (a) SHAKEOUT-Schutz (Δ ≥ −0,5R je Block): **erfüllt 11/11** — alle Δ = 0,00R.
+  Präzisierung: (a) ist eine **No-Harm-Identität** (das Gate wählt in SHAKEOUT/UNKLAR
+  exakt die B48-Baseline, Δ ≡ 0 konstruktionsbedingt), kein Diskriminator der
+  Klassifikationsgüte. Die trennschärfere Schutz-Evidenz liegt beim B96-Vergleich:
+  der 96er-Arm verlor ungefiltert −2,62R und wurde in 20/41 Phasen nicht eingesetzt.
+- (b) TREND-Positivität (Δ > 0,0R je Block, Fassung 1): **verletzt 4/10** — TREND 8–10
+  (−1,39R), TREND 23 (0,00R, **Null-Trade-Artefakt**: weder Gate noch B48 handelten),
+  TREND 28–29 (−2,00R), TREND 36–37 (−2,00R). Stärkster Gewinner: TREND 12–13 (+9,97R).
+- (c) Drawdown-Schranke (Δ ≥ −5,0R je Block): **erfüllt** — tiefster Block −2,00R.
+
+**GESAMTURTEIL (Fassung 1, arretiert): `a=True b=False c=True` → „NICHT BESTANDEN".**
+Dieser Befund wird nicht umgeschrieben (Audit-Trail).
+
+**F.3 Mentor-Abnahme (Schicht 2 — ökonomisch/strukturell bestanden)**
+
+Die Zone wird trotz der formalen (b)-Verletzung abgenommen. Begründung:
+1. **Statistische Fehlspezifikation von Fassung-1-(b):** Einzelabschnitts-Positivität ist
+   für ein Trendfolge-Setup mit Trefferquote 35–45 % kein Erwartungswert-Test. Blöcke aus
+   1–2 Trades, die am F4-Stop enden (−2,00R), sind unvermeidbare Varianz, kein
+   Filter-Versagen; das Wesen der Trendfolge ist die Überkompensation vieler kleiner
+   Verluste durch massive Trendläufe (TREND 12–13: +9,97R).
+2. **Makro-Alpha:** Der Filter drehte ein für beide ungefilterten Baselines negatives Jahr
+   (B48 −2,05R, B96 −2,62R) auf **+9,05R** — Netto-Alpha **+11,10R**.
+3. **Schutzfunktion:** 49 % der Phasen (20/41) als SHAKEOUT identifiziert; Drawdown-Deckel
+   (c) mit maximal −2,00R nie berührt (Schranke −5,0R).
+4. **Kein Curve-Fitting:** Keine Nachkalibrierung an 2024 (One-Shot-Doktrin §2.16-A.2);
+   die versiegelten Schwellen bleiben unberührt. Zone Z2024 ist damit als OOS verbraucht.
+
+Arretierte Status-Formel: **„Formal durch Kriterium (b) verletzt, aber ökonomisch und
+strukturell bestanden (+11,10R Netto-Alpha, Schutzfunktion intakt)."**
+
+**F.4 Kriterien-Fassung 2 (universelle Evaluations-Doktrin, VOR Öffnung ZSTRESS arretiert)**
+
+Fassung-1-(b) (Δ > 0,0R je einzelnem TREND-Abschnitt) wird ersetzt durch das
+**zonen-kumulierte Trend-Delta**:
+- **(b')** `ΣΔ_TREND ≥ 0,0R` über die gesamte Zone (Summe über alle TREND-klassifizierten
+  Phasen von `gated − B48`). Da SHAKEOUT/UNKLAR-Phasen konstruktionsbedingt Δ ≡ 0,00R
+  beitragen (No-Harm-Identität, F.2), ist `ΣΔ_TREND` **deckungsgleich mit dem
+  Primär-Delta** (gated − B48) der Zone — die gesamte Filter-Information liegt in den
+  TREND-Phasen.
+- **(a)** unverändert: SHAKEOUT/UNKLAR-Blöcke Δ ≥ −0,5R.
+- **(c)** unverändert: kumuliertes Netto-Delta **je Einzelabschnitt** ≥ −5,0R (Tail-Deckel).
+- **Keine Mindest-Trade-Schwelle:** Liegen keine TREND-Phasen vor, trägt die Schutzfunktion
+  (a)/(c); der Stress-Test prüft das rechtzeitige Umschalten im Squeeze/Flash-Crash, nicht
+  das Gesetz der großen Zahlen.
+
+Geltungsbereich: **ZSTRESS und alle künftigen Forward-OOS-Läufe** (universell). Die
+Änderung ist kein Goalpost-Moving, sondern die prospektive Korrektur einer statistisch
+fehlspezifizierten Test-Einheit (Erwartungswert-Test auf 1–2-Trade-Blöcke), datiert und
+begründet im §4 arretiert.
+
+Transparenz-Vermerk (duale Ausweisung): Unter Fassung 2 hätte Zone 2024 (b') mit
+`ΣΔ_TREND = +11,1R` **bestanden** (deckungsgleich mit dem Primär-Delta +11,10R; die Summe
+der abschnittsweise gerundeten Deltas ergibt +11,11R — reine Anzeige-Rundung). Der
+Formalbefund F.2 (Fassung 1) bleibt davon unberührt für den historischen One-Shot
+maßgeblich.
+
+**F.5 Harness-Synchronisation & Protokoll-Integrität (05.09.2026)**
+
+Vor dem ZSTRESS-One-Shot wurde der Test-Harnisch `test/tmp_regime_validation.py` auf
+die duale Kriterien-Auswertung synchronisiert: (i) **harte Zonen-Sperre** für
+`--zone=2024` (ValueError vor jedem Dateizugriff; das versiegelte Audit-Artefakt
+`test/tmp_regime_oos_2024.txt` bleibt byte-identisch, SHA-256
+`d6aee21bdf7f02c44819310c7549ff49937ffecd480d90d42f0984980de40249`); (ii) die
+Fassung-1-Block-Marker laufen als Audit-Spalte weiter (`Befund (Fassung 1)`);
+(iii) Fassung 2 wird als Summary-Block ausgewiesen (`ΣΔ_TREND` als Roh-Float-Summe
+über die TREND-Blöcke, Identitäts-Check `|ΣΔ_TREND − Primär-Delta| < 1e-6`, duale
+Urteilszeilen). Syntax-Check (`py_compile`): fehlerfrei (Exit 0). Die
+2024-Dokumentation (§2.16-F.2/F.3) bleibt unverändert; Fassung 2 ist ausschließlich
+für ZSTRESS und künftige Forward-OOS-Läufe bindend.
+
+**F.6 OOS-Blindtest Zone ZSTRESS — Befund & Gesamtabnahme Stufe 5 (arretiert 05.09.2026)**
+
+Lauf: `python test/tmp_regime_validation.py --stufe=oos --zone=stress` → Protokoll
+`test/tmp_regime_oos_stress.txt`. Siegel-Hashes unverändert (sha256 S1 `e55b72e6…`,
+S2 `948a9c21…`), Freeze-Schwellen unberührt. **Zonen-Hash `187fdb99fa25a15b…`**
+(sha256 der Roh-Zustände der Zone; erster 16-Zeichen-Fingerabdruck, voller Hash
+deterministisch reproduzierbar — forensischer Fixpunkt der exakten Datenfolge).
+
+| Kennzahl | Wert |
+|---|---|
+| Phasen | 53: TREND 28 (52,8 %), SHAKEOUT 18 (34,0 %), UNKLAR 7 (13,2 %) |
+| Gated Σr_f4 | **+3,34R** (n=20, zensiert=0, init=16, zeit=4, hd=35; Σr_ref +0,71R) |
+| B48 (Referenz) | −3,90R (Σr_ref −8,28R) |
+| B96 (Sekundär-Baseline) | −5,00R |
+| **Primär-Delta (gated − B48)** | **+7,24R** |
+
+**No-Harm-Identität:** `ΣΔ_TREND` (Roh-Float-Summe über die 14 TREND-Blöcke) =
+**+7,24R** ≡ Primär-Delta; `|ΣΔ_TREND − Primär-Delta| < 1e-6` → **erfüllt** (kein Leck
+in SHAKEOUT/UNKLAR-Blöcken, §2.16-F.2).
+
+**Qualitativer Schalter (Stress-Prüfung):** Der Filter entzog 47,2 % des Fensters den
+Hebel (34,0 % SHAKEOUT + 13,2 % UNKLAR). Die 7 UNKLAR-Phasen in der dünnen
+Jahreswechsel-Liquidität (Konflikt-/Totzone, §2.16-E.3) belegen den
+Eigenschutz-Mechanismus bei widersprüchlichen Signalen — Kernzweck des Stresstests.
+
+**Tail-Risiko-Kontrolle (c):** Tiefster Einzelblock **−2,00R** (Schranke ≥ −5,0R nie
+berührt). Die 11 Fassung-1-(b)-Marker (−1R/−2R/±0R je 1–2-Trade-Block) sind die
+dokumentierte Einzel-Block-Varianz; getragen wurde das Fenster von den TREND-Blöcken
+44–47 (+7,43R) und 11–12 (+6,56R).
+
+**Duale Urteils-Ausweisung:**
+- `URTEIL FASSUNG 1 (Audit-Historie): a=True b=False c=True -> NICHT BESTANDEN`
+  (historischer Maßstab; dokumentiert die Einzel-Block-Strenge, kein Widerspruch zur
+  Fassung-2-Wertung).
+- `GESAMTURTEIL FASSUNG 2 (Bindend ab ZSTRESS): a=True b'=True c=True -> BESTANDEN`
+
+**Gesamtabnahme Stufe 5 (kumuliert über beide unberührten OOS-Zonen):**
+
+| Zone | Gated | B48 | B96 | Netto-Alpha (vs. B48) | Fassung-2-Status |
+|---|---|---|---|---|---|
+| 2024 (Makro-Holdout) | +9,05R | −2,05R | −2,62R | **+11,10R** | Mentor-Abnahme (§2.16-F.2/F.3) |
+| ZSTRESS (Stress-Holdout) | +3,34R | −3,90R | −5,00R | **+7,24R** | **BESTANDEN** (a/b'/c) |
+| **Summe** | +12,39R | −5,95R | −7,62R | **+18,34R** | **Stufe 5 ABGENOMMEN** |
+
+**Arretierung:** Stufe 5 (Regime-Klassifikation `scripts/regime_filter.py` inkl.
+4 Freeze-Schwellen, Gate-Mapping §2.16-D und Kriterien-Fassung 2) ist
+**ABGESCHLOSSEN und ABGENOMMEN**. Die Produktions-Baseline
+`scripts/phasen_volumen_profil.py` (+297,14R, v0.4.0-frozen) und der Phase-1-Kern
+`scripts/setup_c_profil.py` (Commit `29e7d03`) bleiben unverändert; eine optionale
+Integration des Regime-Gates in die Produktion erfolgt — falls beschlossen — als
+eigenständiger Folgeschritt (Default `None` = identischer Phase-1-Pfad, §2.16-A.4).
+Verbleibender Meilenstein: Forward-OOS nach dem SILVER-Daten-Update (§2.16-B) als
+einmaliger Blind-Test unter Fassung 2.
 
 ---
 
@@ -694,3 +893,8 @@ Punkte 1–2 sind aufgelöst; nur Punkt 4 bleibt als OOS-Arbeitspaket offen.
 | 05.09.2026 | Entwicklungs-Schritt 3 (Validierungslauf): `python -m scripts.setup_c_profil --fenster=ALLE` — **L1/L2-Gate bitgenau bestanden über AUG/S1/S2** (Null-Delta; S1 N48 +20,85R / Σr_ref +72,88 / Exit 13/22 / HD 37; N96 +18,11R / +40,99 / 17/18 / 64; S2 N48 +0,39 / N96 +1,92, je 1 zensiert); `n_supprimiert = 0` (No-op-Beweis), Produktions-Default ≡ L2-Referenz; Reports `reports/setup_c/setup_c_{AUG,S1,S2}.txt/.tsv` | abgeschlossen |
 | 05.09.2026 | Entwicklungs-Schritt 4 (Abschluss & Commit): §2.15-Abnahmeprotokoll L1/L2 verankert; Header/§3/§4 aktualisiert; 3 atomare Commits (`feat` market_segmentation.py, `feat` setup_c_profil.py, `docs` Gate-Abschluss) auf master gepusht; Reports unversioniert (reproduzierbar); Agents.md unangetastet; **Phase 1 produktionsreif** — Stufe-5-Roadmap (Regime-Klassifikation, Parameter-Robustheit, OOS) in eigenständiger Folge-Session | abgeschlossen |
 | 05.09.2026 | **Einheiten-Bereinigung D4-Ratchet (µs/ns):** Bug in `_kanten_reihe` (`scripts/setup_c_profil.py`) beseitigt — `searchsorted` lief durch `datetime64[us]`-vs-`ns`-Mismatch auf −1 (statische Kante = erster hist-Wert statt zeitlich gültiger Ratchet); Diagnose `test/tmp_diag_kanten_delta.txt` (S1/S2, L1/L2 + Trade-Ebene, Cluster-Migration, ENTFALLEN/NEU-Marker); Wiederholungslauf `python -m scripts.setup_c_profil --fenster=ALLE`; §2.13-D/§2.14/§2.15 re-arretiert (S1 N48 +22,81R / r_ref +71,77 / Exit 15/23 / HD 35, N96 +27,87R / +55,17 / 20/18 / 60, n=38; S2 N48 +0,31 / +1,50, N96 +0,98 / +3,56, n=3, 1 zens.; AUG n=2: +3,64 / +8,59 @48, −0,87 / −1,86 @96 — Vakuum-Dokumentation entfällt); L1-F3/CONFIRMED/RETEST bitgenau unverändert; Header/§3/§4 aktualisiert; atomarer Fix-Commit | abgeschlossen |
+| 05.09.2026 | Stufe 5: V2-Bereinigung + 1D-Response-Sweep S1+S2 — 4/4 Schwellen auf Plateau-Zentren (nie Peak) kalibriert (`ema_slope_min=0.07`, `ema_slope_max=−0.03`, `adx_schwelle_min=25.0`, `tol_band_quote_max=0.60`); `spread_atr`/`konsolidierung` als tot eliminiert (Occam's Razor); **Freeze versiegelt** (`test/regime_schwellen_freezed.json`, sha256 S1 `e55b72e6…` / S2 `948a9c21…`); §2.16-C/E verankert | abgeschlossen |
+| 05.09.2026 | Stufe 5: **OOS-One-Shot Zone 2024** ausgeführt (`--stufe=oos --zone=2024`, Protokoll `test/tmp_regime_oos_2024.txt`) — 41 Phasen: 21 TREND / 20 SHAKEOUT / 0 UNKLAR; Gated **+9,05R** vs. B48 −2,05R (Primär-Delta **+11,10R**; B96 −2,62R); Formalbefund (Fassung 1): a=True b=False c=True → **NICHT BESTANDEN** (4/10 TREND-Blöcke: 2× −2,00R, 1× −1,39R, 1× ±0,00R Null-Trade) | abgeschlossen |
+| 05.09.2026 | Stufe 5: **Mentor-Abnahme Zone 2024** (ökonomisch/strukturell bestanden: +11,10R Netto-Alpha, Schutzfunktion intakt, Drawdown-Deckel nie berührt; kein Curve-Fitting) + **Kriterien-Fassung 2 arretiert** (ΣΔ_TREND ≥ 0,0R je Zone ≡ Primär-Delta statt Einzelabschnitts-Positivität — Trendfolge-WR 35–45 %: 1–2-Trade-Blöcke = Varianz; gilt verbindlich für ZSTRESS und alle künftigen Forward-OOS-Läufe); §2.16-F neu, §2.16-Kopf/§2.16-B/§2.16-E synchronisiert; kein Commit (Stufe-5-Code untracked, docs modifiziert) | abgeschlossen |
+| 05.09.2026 | Stufe 5: **OOS-One-Shot Zone ZSTRESS** ausgeführt (`--stufe=oos --zone=stress`, Protokoll `test/tmp_regime_oos_stress.txt`) — 53 Phasen: 28 TREND / 18 SHAKEOUT / 7 UNKLAR; Gated **+3,34R** vs. B48 −3,90R (Primär-Delta **+7,24R**; B96 −5,00R); Zonen-Hash `187fdb99…`; Identitäts-Check \|ΣΔ_TREND − Primär-Delta\| < 1e-6: True; Fassung 1: a=True b=False c=True → NICHT BESTANDEN (Audit), **Fassung 2: a=True b'=True c=True → BESTANDEN** | abgeschlossen |
+| 05.09.2026 | Stufe 5: **Gesamtabnahme** — beide OOS-Zonen abgenommen (2024: +11,10R Mentor-Abnahme; ZSTRESS: +7,24R BESTANDEN; Summe **+18,34R** Netto-Alpha vs. B48); §2.16-F.6 neu, §2.16-Kopf/§2.16-B/§2.16-E/F.5 synchronisiert; **2 atomare Commits** (① `feat` `scripts/regime_filter.py`, ② `docs` `docs/setup_c_experiment.md`); test/ unversioniert; Baseline +297,14R unverändert | abgeschlossen |

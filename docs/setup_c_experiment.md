@@ -1,6 +1,6 @@
 # Setup C: Trendfolge, Sägezahn-Expansion & Ausbruchs-Engine
 
-> **Status:** Schritte 1–3 + 4a abgeschlossen (B1–B4 §2.5, C1–C5 §2.7, D1–D5 §2.9, 05.09.2026); 274R-Artefakt eliminiert; F4+Zeit-Exit schlägt Stufen-Trailing in 16/18 Zellen; Schritt 4b-Design arretiert (G1–G5 in §2.10, 05.09.2026) — 1-Close-CONFIRMED-Test zur Einstiegs-Reparatur; Code-Entwurf `test/tmp_setup_c_1close.py` folgt — Baseline unverändert.
+> **Status:** Schritte 1–3 + 4a + 4b-Stufe 1 abgeschlossen (B1–B4 §2.5, C1–C5 §2.7, D1–D5 §2.9, H1–H4 §2.11, 05.09.2026); 274R-Artefakt eliminiert; F4+Zeit-Exit schlägt Stufen-Trailing in 16/18 Zellen; 1-Close-CONFIRMED rehabilitiert S1 (−8,6R → +18,2R @48, +28,3R @96); G5-Stufe-2-Bedingung eingetreten → Whipsaw-Scan (`test/tmp_setup_c_whipsaw.py`) ist nächster Schritt, Design-Fragen F1–F3 offen — Baseline unverändert.
 > **Bezug:** `scripts/setup_c_profil.py` (neu anzulegen) auf Infrastruktur-Basis von `scripts/phasen_volumen_profil.py` (v0.4.0-baseline-frozen, unverändert).
 
 ---
@@ -235,6 +235,27 @@ RETEST ist in S2 (+3,4 bis +6,8R) und AUG (+5,1 bis +5,8R) über alle Horizonte 
 
 **Datenvertrag (freigegeben, wird in `test/tmp_setup_c_1close.py` §1 umgesetzt):** `OneCloseConfig` (frozen, slots): `fenster`, `symbol`, `timeframe`, `zeit_horizonte: tuple[int, ...] = (48, 96)`, `fixed_buffer: float = 0.15`, `sl_pct_ref: float = 0.45`. `EntryTyp = Literal["CONFIRMED_1CLOSE", "CONFIRMED_2CLOSE"]`. `OneCloseResult` (slots): `entry_typ`, `phase`, `dir`, `horizont_bars`, `entry_idx`/`entry_ts`/`entry_preis`, `f4_initial_stop`, `sl_usd`, `exit_idx`/`exit_ts`/`exit_preis`, `exit_grund` (`INITIAL_SL_INTRABAR`/`ZEIT_EXIT_CLOSE`/`RECHTS_ZENSIERT`), `haltezeit_bars`, `r_f4`, `r_ref`, `sl_delta_ratio` (nur 1-Close befüllt). Exit-Semantik und Rechts-Zensierung identisch zu Schritt 4a (E2: Stop-Vorrang an der Exit-Bar, Zensierte strikt isoliert).
 
+### 2.11 Schritt-4b-Stufe-1-Befunde (1-Close vs. 2-Close A/B, 05.09.2026)
+
+Ausführung: `test/tmp_setup_c_1close.py` (gepaarte A/B-Simulation auf der F3-Population; Einstieg 1-Close `open[b+1]` vs. 2-Close `open[b+2]`; identischer Exit F4 intrabar + Zeit-Exit 48/96; Rechts-Zensierung E2; SL-Delta/r_ref-Kontrolle G4). Verifikationsanker **bestanden**: gepaarte Paare deckungsgleich (AUG 11 / S1 138 / S2 61; S2 je Zelle 1 `RECHTS_ZENSIERT` isoliert → 60 gewertet). Reports: `test/tmp_setup_c_1close_{AUG,S1,S2}.txt`. **Kernfrage:** Bringt der 1-Close-Einstieg bei echten 2-Close-Brüchen einen echten Timing-Vorteil?
+
+**H1 — SL-Delta minimal (kein Scheingewinn-Mechanismus):** Der 1-Close-Stop (G2: nur Bruchkerze `j`) ist nur **3–8 % enger** als der 2-Close-Stop: `sl_delta_ratio` median AUG **0,919** / S1 **0,922** / S2 **0,967** (p25 0,77–0,86, p75 1,03–1,08). Ein r_f4-Zuwachs kann also nicht aus systematisch kleinerem R-Nenner stammen — `sum r_ref` (0,45 %-Basis) bleibt die neutrale Währung.
+
+**H2 — S1-Delta massiv (echter Timing-Vorteil):**
+
+| Fenster | N | 1-Close r_f4 (r_ref) | 2-Close r_f4 (r_ref) | Δ r_f4 | Δ r_ref |
+|---|---|---|---|---|---|
+| S1 | 48 | **+18,22** (+46,95) | −8,56 (+0,50) | +26,78 | **+46,44** |
+| S1 | 96 | **+28,31** (+15,61) | −7,32 (−36,47) | +35,64 | **+52,08** |
+| S2 | 48 | **+11,93** (+36,32) | +6,94 (+19,48) | +4,99 | +16,84 |
+| S2 | 96 | **+16,60** (+52,54) | +13,15 (+38,53) | +3,45 | +14,01 |
+| AUG | 48 | **+5,42** (+9,85) | +3,42 (+6,45) | +2,00 | +3,39 |
+| AUG | 96 | **+0,65** (−1,92) | −1,80 (−7,46) | +2,46 | +5,55 |
+
+**H3 — 1-Close schlägt 2-Close in 6/6 Zellen (auch r_ref):** Die G1-Hypothese (2-Close kauft an b+2 die Banken-Liquiditätserschöpfung) ist bestätigt — in **allen sechs Zellen** gewinnt 1-Close auf r_f4- **und** r_ref-Basis. Der S1-Einstiegs-Defekt aus C4/D4 (2-Close S1 −8,6R/−7,3R) ist damit **rehabilitiert**: 1-Close dreht S1 auf **+18,2R (N=48)** bzw. **+28,3R (N=96)**. Die positive r_ref-Differenz (bis **+52,08R** in S1 N=96) belegt: Es ist die um eine Bar frühere Exekution, nicht der engere Stop. S2/AUG folgen qualitativ (AUG N=96 bleibt 1-Close schwach positiv bei negativer 2-Close-Referenz −1,80R).
+
+**H4 — G5-Stufe-2-Bedingung ist eingetreten (Whipsaw-Scan wird Pflicht):** Die Vorbedingung aus G5 („S1 positiv überrascht") ist erfüllt. Vor jeder Produktions-Empfehlung auf 1-Close-Basis müssen die **1-Close-Fehlausbrüche** gegengerechnet werden (Piercings, die nie eine 2. Bestätigungskerze bekamen → Fakeout/Trap): Die F3-Stichprobe von Stufe 1 enthält ausschließlich echte Brüche und ist damit survivorship-verzerrt zu Gunsten von 1-Close. Nächster Schritt: `test/tmp_setup_c_whipsaw.py` (Stufe 2) mit **kausaler Kantenreferenz** aus der Baseline-Schleife (`h_ref = max(U_j, birth_h)` / `l_ref = min(L_j, birth_l)`, Z. 715–722 in `test/tmp_phasen_volumen_profil_symbol.py`) — Design-Fragen F1–F3 (Whipsaw-Definition, Abwicklung, Mehrfach-Trigger/Cooldown) sind zu beantworten, dann Code-Entwurf zur Freigabe.
+
 ---
 
 ## 3. Explorations- und Prüfplan
@@ -244,7 +265,8 @@ RETEST ist in S2 (+3,4 bis +6,8R) und AUG (+5,1 bis +5,8R) über alle Horizonte 
 3. **Schritt 3 (A/B-Auswertung Trailing):** Vergleich von festem Dollar-Puffer ($0.15\text{ USD}$) gegen dynamische 7er-ATR — **abgeschlossen** (F9–F11, DV1–DV6 in §2.6; Ausführung AUG → S1/S2, Verifikationsanker bestanden, Befunde C1–C5 in §2.7, Reports `test/tmp_setup_c_trailing_{AUG,S1,S2}.txt`). **Fazit:** Stufen-Trailing regime-kontingent — S1 +30,14R (VAR_B) vs. KEIN_TRAILING −43,08R, aber S2 +6,57R (bestes Trailing) vs. KEIN_TRAILING +274,48R.
 4. **Schritt 4 (Prüfbericht):** Vorlage der Ergebnisse vor jeglicher Produktions-Integration — in Vorbereitung; übergibt §2.9-Implikationen (F4+Zeit-Exit 48/96 als Exit-Empfehlung, RAW-Cluster-A als Setup-Kern, CONFIRMED-Einstiegsdefizit → 4b) als Entscheidungsvorlagen.
 5. **Schritt 4a (Zeit-Exit-Matrix `test/tmp_setup_c_zeitexit.py`):** Bereinigung des 274R-Artefakts — **abgeschlossen** (E1–E5 + Datenvertrag in §2.8; Lauf AUG/S1/S2, Verifikationsanker bestanden, Befunde D1–D5 in §2.9, Reports `test/tmp_setup_c_zeitexit_{AUG,S1,S2}.txt`). **Fazit:** 274R-Phantom eliminiert; `F4 + Zeit-Exit (48/96)` schlägt die Stufen-Ratsche in 16/18 Zellen; RAW-Cluster A = stabiler Setup-Kern.
-6. **Schritt 4b (1-Close-CONFIRMED `test/tmp_setup_c_1close.py`):** Einstiegs-Reparatur für das C4/D4-Defizit — **Design arretiert** (G1–G5 + Datenvertrag in §2.10); Code-Entwurf folgt zur Durchsicht (ohne Ausführung). Zweistufig: 4b-Kern (A/B auf F3-Population) → Whipsaw-Scan nur falls S1 positiv überrascht. Danach finale Überführung in Schritt 4 (Prüfbericht).
+6. **Schritt 4b (1-Close-CONFIRMED `test/tmp_setup_c_1close.py`):** Einstiegs-Reparatur für das C4/D4-Defizit — **Stufe 1 abgeschlossen** (G1–G5 + Datenvertrag in §2.10; Lauf AUG/S1/S2, Verifikationsanker bestanden, Befunde H1–H4 in §2.11, Reports `test/tmp_setup_c_1close_{AUG,S1,S2}.txt`). **Fazit Stufe 1:** 1-Close schlägt 2-Close in 6/6 Zellen (Δ r_ref bis +52R); S1-CONFIRMED rehabilitiert (−8,6R → +18,2R @48); SL-Delta nur 3–8 % → echter Timing-Vorteil. **G5-Stufe-2-Bedingung eingetreten.**
+7. **Schritt 4b-Stufe 2 (Whipsaw-Scan `test/tmp_setup_c_whipsaw.py`):** Gegenrechnen der 1-Close-Fehlausbrüche (Fakeout/Trap ohne 2. Bestätigungskerze) — **offen**; Design-Fragen F1–F3 (Whipsaw-Definition mit kausaler Kantenreferenz, Abwicklung über den regulären Simulationskern, Mehrfach-Trigger/Cooldown) sind zu beantworten, danach Code-Entwurf zur Freigabe (ohne Ausführung), Lauf AUG/S1/S2, Netto-Kante in Schritt 4 (Prüfbericht).
 
 ---
 
@@ -266,3 +288,5 @@ RETEST ist in S2 (+3,4 bis +6,8R) und AUG (+5,1 bis +5,8R) über alle Horizonte 
 | 05.09.2026 | Schritt 4a: `test/tmp_setup_c_zeitexit.py` erstellt (KeyError-Fix REPORT_GRUPPE_KEY); Lauf AUG/S1/S2 ausgeführt — Verifikationsanker bestanden (11/10/3, 138/110/59 mit A=35/B=75, 61/78/18 mit A=5/B=73; RECHTS_ZENSIERT S2=2); Befunde D1–D5 in §2.9 (274R-Phantom → S2 +2R bis +9R; F4+Zeit-Exit schlägt Trailing in 16/18 Zellen; RAW-A stabil, RAW-B regime-toxisch S2; CONFIRMED S1-Defizit bestätigt; RETEST Qualitätsanker) | abgeschlossen |
 | 05.09.2026 | Schritt 4 (Prüfbericht): in Vorbereitung — §2.9-Implikationen zur Entscheidung (Exit-Empfehlung F4+Zeit-Exit 48/96; RAW-Cluster-A-Kern; CONFIRMED-Einstiegsdefizit → 4b; Regime-Filter EMA-Slope) | offen |
 | 05.09.2026 | Schritt 4b: Beschlüsse G1–G5 arretiert (1-Close-Einstieg open[j+1]; RAW-analoger kausaler Stop min(low[j], kante)−0,15; Exit-Konstante F4+Zeit-Exit 48/96 ohne Trailing; 2-Close-Referenz + SL-Delta/R_ref-Verzerrungs-Kontrolle; zweistufige Auswertung mit bedingtem Whipsaw-Scan) + typisierter Datenvertrag `OneCloseConfig`/`OneCloseResult` in §2.10 | arretiert |
+| 05.09.2026 | Schritt 4b Stufe 1: `test/tmp_setup_c_1close.py` erstellt; Lauf AUG/S1/S2 ausgeführt — Verifikationsanker bestanden (Paare 11/138/61, S2 je Zelle 1× RECHTS_ZENSIERT isoliert); Befunde H1–H4 in §2.11 (SL-Delta 3–8 %; 1-Close gewinnt 6/6 Zellen auch r_ref, S1 Δ r_ref +46,44/+52,08; CONFIRMED S1 rehabilitiert −8,6R → +18,2R; G5-Stufe-2-Bedingung eingetreten) | abgeschlossen |
+| 05.09.2026 | Schritt 4b Stufe 2 (Whipsaw-Scan `test/tmp_setup_c_whipsaw.py`): offen — Design-Fragen F1–F3 (Definition kausal aus Baseline `h_ref = max(U_j, birth_h)`; Abwicklung regulärer Simulationskern; Mehrfach-Trigger/Cooldown-Semantik) vor Code-Entwurf | offen |

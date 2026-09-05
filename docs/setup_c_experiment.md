@@ -1,6 +1,6 @@
 # Setup C: Trendfolge, Sägezahn-Expansion & Ausbruchs-Engine
 
-> **Status:** Schritt 1 + 2 + 3 abgeschlossen (Befunde C1–C5 in §2.7, 05.09.2026); Schritt 4a-Design arretiert (E1–E5 in §2.8, 05.09.2026) — Zeit-Exit-Matrix 24/48/96 mit Rechts-Zensierung & RAW-Cluster-Segmentierung zur Artefakt-Bereinigung; Code-Entwurf `test/tmp_setup_c_zeitexit.py` folgt — Baseline unverändert.
+> **Status:** Schritte 1–3 + 4a abgeschlossen (Befunde B1–B4 §2.5, C1–C5 §2.7, D1–D5 §2.9, 05.09.2026); 274R-Artefakt eliminiert (S2 → +2R bis +9R); F4+Zeit-Exit schlägt Stufen-Trailing in 16/18 Zellen; Schritt 4 (Prüfbericht) in Vorbereitung — Baseline unverändert.
 > **Bezug:** `scripts/setup_c_profil.py` (neu anzulegen) auf Infrastruktur-Basis von `scripts/phasen_volumen_profil.py` (v0.4.0-baseline-frozen, unverändert).
 
 ---
@@ -167,6 +167,62 @@ Ausführung: `test/tmp_setup_c_trailing.py` (bar-genaue Ratsche auf Schritt-2-Si
 
 **Datenvertrag (freigegeben, wird in `test/tmp_setup_c_zeitexit.py` §1 umgesetzt):** `ZeitexitConfig` (frozen, slots): `fenster`, `symbol`, `timeframe`, `zeit_horizonte: tuple[int, ...] = (24, 48, 96)`, `cluster_a_max_vorlauf: int = 1`, `fixed_buffer: float = 0.15`, `sl_pct_ref: float = 0.45`. `ZeitexitResult` (slots): `arm`, `raw_cluster: RawCluster` (`CLUSTER_A_ENG`/`CLUSTER_B_WEIT`/`NICHT_RAW`), `phase`, `dir`, `horizont_bars`, `modus`, `entry_idx`/`entry_ts`/`entry_preis`, `f4_initial_stop`, `sl_usd`, `exit_idx`/`exit_ts`/`exit_preis`, `exit_grund`, `haltezeit_bars`, `r_f4`/`r_ref` (**NaN bei RECHTS_ZENSIERT**). `ExitGrund`: `INITIAL_SL_INTRABAR`, `TRAILING_SL_CLOSE`, `ZEIT_EXIT_CLOSE`, `RECHTS_ZENSIERT`.
 
+### 2.9 Schritt-4a-Befunde (Zeit-Exit-Matrix, 05.09.2026)
+
+Ausführung: `test/tmp_setup_c_zeitexit.py` (bar-genaue Ratsche auf Schritt-2-Signalen mit terminalem Zeit-Exit; Rechts-Zensierung E2; RAW-Cluster E3). Verifikationsanker **bestanden**: Signalzahlen deckungsgleich (AUG 11/10/3, S1 138/110/59 mit CLUSTER_A=35/CLUSTER_B=75, S2 61/78/18 mit CLUSTER_A=5/CLUSTER_B=73); `RECHTS_ZENSIERT` korrekt isoliert (S2: 2 Signale = 1 CONFIRMED + 1 RAW_A; S1/AUG: 0). Reports: `test/tmp_setup_c_zeitexit_{AUG,S1,S2}.txt`. **Kernfrage:** Wie groß ist das Setup-C-Ergebnis unter produktionsnahem Zeit-Exit statt DATEN_ENDE?
+
+**Vergleichstabelle GESAMT `sum(r_f4)` (F4-R-Basis; KT = KEIN_TRAILING, VA = VAR_A_FIXED):**
+
+| Fenster | N=24 KT / VA | N=48 KT / VA | N=96 KT / VA | Schritt-3 offen (DATEN_ENDE) KT / VA |
+|---|---|---|---|---|
+| AUG | +13,89 / +13,81 | +14,57 / +12,87 | +6,46 / +7,17 | +4,49 / +7,17 |
+| S1 | +2,62 / +0,69 | **+49,25** / +21,92 | **+46,33** / +8,35 | −43,08 / +8,96 |
+| S2 | +4,28 / +3,30 | +2,02 / +5,03 | **+8,67** / +2,19 | **+274,48** / +0,63 |
+
+**D1 — Das 274R-Phantom ist geplatzt (S2 schrumpft auf +2R bis +9R):** Mit terminalem Horizont statt unendlichem `DATEN_ENDE` fällt S2 von **+274,48R auf +2,02R bis +8,67R** (−96 bis −99 %). Nur 2 von 157 S2-Signalen waren tatsächlich rechts-zensiert (beide isoliert) — das Artefakt kam fast vollständig aus den *gewerteten* offenen Läufern (Haltedauer bis 1048 Bars = verstecktes Buy-and-Hold im Silber-Bullenmarkt 2025, WR 3–18 %). Institutionelle Realität statt Retail-Wunschdenken: Der Zeit-Exit erzwingt die Kapital-Freisetzung, die der offene Benchmark nie leistete.
+
+**D2 — Entzauberung des Stufen-Trailing (F4 + Zeit-Exit schlägt die Ratsche):** In **16 von 18 Matrix-Zellen** übertrifft `KEIN_TRAILING + Zeit-Exit` das VAR_A-Stufen-Trailing (Ausnahmen: S2 N=48, AUG N=96). Der Mechanismus: Ein Stufen-Stop unter kurzfristigen Pivot-Tiefs schneidet systematisch Trades ab, die nach dem ersten Impuls gesund konsolidieren. Der harte Zeit-Exit (48/96) in Kombination mit dem weiten F4-Strukturstop gibt der echten Expansion den Sauerstoff. **S1 kehrt das Schritt-3-Bild vollständig:** KEIN_TRAILING mit offenem Ende war −43R (weil die WR 3–8 %-Positionen bis zum eventualen −1R-Stop weiterliefen); mit N=48 ist es **+49,25R** und schlägt das beste Schritt-3-Trailing (VAR_B +30,14R). Das Trailing kostet in S1 bis zu **38R** (N=96: +46,33R vs. +8,35R). Die arretierte Ratsche (F9–F11) erweist sich unter sauberem Benchmark als **Performanz-Bremse**, nicht als R:R-Retter.
+
+**D3 — RAW-Cluster-Segmentierung trennt Regime-Populationen (E3 bestätigt, aber nicht als Filter):**
+
+| RAW `sum(r_f4)` (KT) | N=24 | N=48 | N=96 | n |
+|---|---|---|---|---|
+| S1 CLUSTER_A (≤1 Bar) | +16,09 | **+20,85** | +18,11 | 35 (mean 0,46–0,60R, WR 40–54 %) |
+| S1 CLUSTER_B (>1 Bar) | +12,45 | +31,78 | **+36,02** | 75 (mean 0,17–0,48R, WR 21–33 %) |
+| S2 CLUSTER_A | −0,45 | +0,39 | +1,92 | 5 (1 zensiert) |
+| S2 CLUSTER_B | −3,21 | **−12,10** | **−12,49** | 73 |
+| AUG (nur B) | +6,01 | +5,37 | +3,20 | 10 |
+
+**Cluster A ist der Fels in der Brandung:** In S1 über alle Horizonte stabil positiv (+16 bis +21R, nie unter 0,46R mean) — der natürliche Kern von Setup C (frische Ausbrüche ≤ 1 Bar vor dem 2-Close-Bruch). **Cluster B ist extrem regime-toxisch in S2** (−12R bei N=48/96 = der eigentliche S2-Verlierer), aber in S1 der **größte Einzelgewinner** (+36R bei N=96). Die Trennung ist diagnostisch wertvoll, aber nicht als pauschaler Filter nutzbar — sie separiert *regime-abhängige Verhaltensweisen* (Range-Akkumulation vs. Momentum-Drift), nicht gut/schlecht.
+
+**D4 — C4 für CONFIRMED bestätigt (Einstiegs-Defizit S1, nicht Exit):**
+
+| CONFIRMED `sum(r_f4)` | N=24 | N=48 | N=96 |
+|---|---|---|---|
+| S1 KT | −9,30 | −8,56 | −7,32 |
+| S1 VA | −10,40 | −18,20 | −21,19 |
+| S2 KT | +4,54 | +6,94 | **+13,15** |
+| AUG KT (N=48) | | +3,42 | |
+
+S1 CONFIRMED bleibt unter **jeder** Exit-Architektur negativ (KT −7,3 bis −9,3R; Trailing verschärft auf −18 bis −21R, weil es die wenigen Läufer vorzeitig kappt). Der späte 2-Close-Einstieg kauft in S1 die Erschöpfung am Hoch/Tief von b+2 — ein reines Einstiegs-Timing-Defizit. In S2 (Trend) ist derselbe Arm dagegen positiv (+4,5 bis +13,2R), sobald er nicht unbegrenzt weiterträgt.
+
+**D5 — RETEST als selektiver Qualitätsanker:**
+
+| RETEST `sum(r_f4)` | N=24 | N=48 | N=96 |
+|---|---|---|---|
+| S1 KT | −16,61 | **+5,18** | −0,47 |
+| S2 KT | +3,40 | +6,79 | +6,09 |
+| AUG KT | +5,56 | +5,78 | +5,07 |
+
+RETEST ist in S2 (+3,4 bis +6,8R) und AUG (+5,1 bis +5,8R) über alle Horizonte positiv, in S1 nur bei N=48 (+5,18R) — konsistent zur Schritt-2-Qualität (engster Stop, höchste MFE@48). Der Zeit-Exit wirkt dort als reiner Cap (RETEST-Haltedauern liegen meist < 48 Bars) und schadet nicht.
+
+**Implikation für Schritt 4 (Prüfbericht):**
+1. **Exit-Architektur vereinfacht sich:** `F4-Stop (intrabar) + terminaler Zeit-Exit (48/96)` ist die regime-stabilste und gleichzeitig einfachste Exit-Regel — die Stufen-Ratsche (F9–F11) ist unter sauberem Benchmark nicht mehr erste Wahl. Kandidaten für die Produktions-Empfehlung: S1/AUG N=48, S2 N=96 (KT jeweils +8,7R bis +49,3R).
+2. **RAW-Cluster A ist der Setup-Kern** (stabil positiv über alle Fenster/Horizonte); RAW-Cluster B nur mit Regime-Filter bespielbar.
+3. **CONFIRMED braucht Einstiegs-Reparatur** (1-Close-Variante o. Ä.) vor jeder Produktions-Integration — unabhängig vom Exit (4b).
+4. **N=24 (6h) ist überall nur Mittelmaß** — der kurze Horizont schneidet die nachlaufende Energie ab (Bestätigung der Schritt-1-Δ48−12-Befunde); 48/96 sind die produktionsrelevanten Horizonte.
+5. **Regime-Klassifikation (EMA-Slope, §2.1) bleibt Voraussetzung**, um zwischen S1-artigem (Stop-Räumung, N=48) und S2-artigem (Trend, N=96, Cluster-B-Drift) Verhalten zu unterscheiden.
+
 ---
 
 ## 3. Explorations- und Prüfplan
@@ -174,8 +230,8 @@ Ausführung: `test/tmp_setup_c_trailing.py` (bar-genaue Ratsche auf Schritt-2-Si
 1. **Schritt 1 (Statische Move-Analyse):** Untersuchung aller MoveData-Objekte der Baseline über AUG, S1 und S2 auf Ausbruchs-MFE/MAE. — **abgeschlossen** (Befunde in §2.5-Bezug, Details `test/tmp_setup_c_schritt1_mfe_mae_verteilung.txt`).
 2. **Schritt 2 (Replay-Skript `test/tmp_setup_c_audit.py`):** Rein lesende Erfassung der Signale gegen DuckDB für alle drei Einstiegs-Arme. — **abgeschlossen** (F4–F8 + D4, Befunde B1–B4 in §2.5, Reports `test/tmp_setup_c_audit_{AUG,S1,S2}.txt`).
 3. **Schritt 3 (A/B-Auswertung Trailing):** Vergleich von festem Dollar-Puffer ($0.15\text{ USD}$) gegen dynamische 7er-ATR — **abgeschlossen** (F9–F11, DV1–DV6 in §2.6; Ausführung AUG → S1/S2, Verifikationsanker bestanden, Befunde C1–C5 in §2.7, Reports `test/tmp_setup_c_trailing_{AUG,S1,S2}.txt`). **Fazit:** Stufen-Trailing regime-kontingent — S1 +30,14R (VAR_B) vs. KEIN_TRAILING −43,08R, aber S2 +6,57R (bestes Trailing) vs. KEIN_TRAILING +274,48R.
-4. **Schritt 4 (Prüfbericht):** Vorlage der Ergebnisse vor jeglicher Produktions-Integration — in Vorbereitung; übergibt §2.7-Implikationen (Mess-Artefakt DATEN_ENDE, Regime-Filter, CONFIRMED-Einstiegsproblem) als Entscheidungsvorlagen.
-5. **Schritt 4a (Zeit-Exit-Matrix `test/tmp_setup_c_zeitexit.py`):** Bereinigung des 274R-Artefakts — **Design arretiert** (E1–E5 + Datenvertrag in §2.8); Code-Entwurf folgt zur Durchsicht (ohne Ausführung), danach Lauf über AUG/S1/S2 als Basis für den Schritt-4-Abschlussbericht.
+4. **Schritt 4 (Prüfbericht):** Vorlage der Ergebnisse vor jeglicher Produktions-Integration — in Vorbereitung; übergibt §2.9-Implikationen (F4+Zeit-Exit 48/96 als Exit-Empfehlung, RAW-Cluster-A als Setup-Kern, CONFIRMED-Einstiegsdefizit → 4b) als Entscheidungsvorlagen.
+5. **Schritt 4a (Zeit-Exit-Matrix `test/tmp_setup_c_zeitexit.py`):** Bereinigung des 274R-Artefakts — **abgeschlossen** (E1–E5 + Datenvertrag in §2.8; Lauf AUG/S1/S2, Verifikationsanker bestanden, Befunde D1–D5 in §2.9, Reports `test/tmp_setup_c_zeitexit_{AUG,S1,S2}.txt`). **Fazit:** 274R-Phantom eliminiert; `F4 + Zeit-Exit (48/96)` schlägt die Stufen-Ratsche in 16/18 Zellen; RAW-Cluster A = stabiler Setup-Kern.
 
 ---
 
@@ -194,3 +250,5 @@ Ausführung: `test/tmp_setup_c_trailing.py` (bar-genaue Ratsche auf Schritt-2-Si
 | 05.09.2026 | Schritt 3: NaN-Fix `_agg_block` (Stufen-Nachzüge/mittl. Haltedauer zeigten "-"); AUG-Kontrolllauf verifiziert; Gesamtlauf AUG/S1/S2 ausgeführt — Verifikationsanker bestanden (11/10/3, 138/110/59, 61/78/18); Befunde C1–C5 in §2.7 | abgeschlossen |
 | 05.09.2026 | Schritt 4 (Prüfbericht): offen — §2.7-Implikationen zur Entscheidung (Regime-Filter vor Exit-Design; Mess-Artefakt DATEN_ENDE in S2; CONFIRMED-Einstiegsproblem S1) | offen |
 | 05.09.2026 | Schritt 4a: Beschlüsse E1–E5 arretiert (Zeit-Exit-Matrix 24/48/96 als terminale Exit-Regel; Rechts-Zensierung `RECHTS_ZENSIERT` strikt isoliert; RAW-Cluster A ≤1 Bar / B >1 Bar getrennt; Arm-Fokus RAW mit CONFIRMED/RETEST-Referenz; Exit-Matrix `{24,48,96}` × `{KEIN_TRAILING, VAR_A_FIXED}`) + typisierter Datenvertrag `ZeitexitConfig`/`ZeitexitResult` in §2.8 | arretiert |
+| 05.09.2026 | Schritt 4a: `test/tmp_setup_c_zeitexit.py` erstellt (KeyError-Fix REPORT_GRUPPE_KEY); Lauf AUG/S1/S2 ausgeführt — Verifikationsanker bestanden (11/10/3, 138/110/59 mit A=35/B=75, 61/78/18 mit A=5/B=73; RECHTS_ZENSIERT S2=2); Befunde D1–D5 in §2.9 (274R-Phantom → S2 +2R bis +9R; F4+Zeit-Exit schlägt Trailing in 16/18 Zellen; RAW-A stabil, RAW-B regime-toxisch S2; CONFIRMED S1-Defizit bestätigt; RETEST Qualitätsanker) | abgeschlossen |
+| 05.09.2026 | Schritt 4 (Prüfbericht): in Vorbereitung — §2.9-Implikationen zur Entscheidung (Exit-Empfehlung F4+Zeit-Exit 48/96; RAW-Cluster-A-Kern; CONFIRMED-Einstiegsdefizit → 4b; Regime-Filter EMA-Slope) | offen |

@@ -1,6 +1,6 @@
 # Setup C: Trendfolge, Sägezahn-Expansion & Ausbruchs-Engine
 
-> **Status:** Schritte 1–4b + Schritt 4 abgeschlossen (B1–B4 §2.5, C1–C5 §2.7, D1–D5 §2.9, H1–H4 §2.11, W1–W4 §2.12, Produktions-Blueprint §2.13, 05.09.2026); 274R-Artefakt eliminiert; F4+Zeit-Exit schlägt Stufen-Trailing in 16/18 Zellen; 1-Close-Vorteil Whipsaw-korrigiert (S1 N48 +18,2R → Netto +1,8R); **Schritt 4 abgeschlossen — Entscheidungsvorlage arretiert (Phase-1-Kern RAW-A + F4 + Zeit-Exit 48/96 + Suppression; Regime-Schalter = Stufe-5-Validierungs-Rückstellung) — Übergabe an Entwicklungsphase (`scripts/setup_c_profil.py`)** — Baseline unverändert.
+> **Status:** Schritte 1–4b + Schritt 4 abgeschlossen (B1–B4 §2.5, C1–C5 §2.7, D1–D5 §2.9, H1–H4 §2.11, W1–W4 §2.12, Produktions-Blueprint §2.13, 05.09.2026); 274R-Artefakt eliminiert; F4+Zeit-Exit schlägt Stufen-Trailing in 16/18 Zellen; 1-Close-Vorteil Whipsaw-korrigiert (S1 N48 +18,2R → Netto +1,8R); **Schritt 4 abgeschlossen — Entscheidungsvorlage arretiert (Phase-1-Kern RAW-A + F4 + Zeit-Exit 48/96 + Suppression; Regime-Schalter = Stufe-5-Validierungs-Rückstellung) — Übergabe an Entwicklungsphase (`scripts/setup_c_profil.py`)** — **Entwicklungs-Schritt 1 verankert (§2.14: Acceptance-Gates L1/L2 + Architektur-Beschlüsse)** — Baseline unverändert.
 > **Bezug:** `scripts/setup_c_profil.py` (neu anzulegen) auf Infrastruktur-Basis von `scripts/phasen_volumen_profil.py` (v0.4.0-baseline-frozen, unverändert).
 
 ---
@@ -345,6 +345,45 @@ Ausführung: `test/tmp_setup_c_whipsaw.py` (F1-Negativ-Spiegel `close[j+1] ≤ k
 
 §2.13 schließt die **Explorations- und Prüfphase Setup C** ab. Damit ist die Entscheidungsvorlage für die Entwicklungsphase `scripts/setup_c_profil.py` vollständig: Phase-1-Kern (RAW-A + F4 + Zeit-Exit 48/96 + Suppression) als arretierte Architektur, Regime-Schalter als nachgelagertes Stufe-5-Arbeitspaket. Die Produktions-Baseline `scripts/phasen_volumen_profil.py` bleibt unverändert (+297,14R, v0.4.0-frozen).
 
+### 2.14 Entwicklungs-Schritt 1: Acceptance-Gates L1/L2 & Architektur-Beschlüsse (05.09.2026)
+
+**A. Zweistufiges Acceptance-Gate (verbindlich für die Entwicklungsphase)**
+
+Die Verifikation des Shared-Utility `scripts/market_segmentation.py` und des Profil-Skripts `scripts/setup_c_profil.py` erfolgt ausschließlich gegen die nachfolgend arretierten Soll-Werte. Quelle: Reports `test/tmp_setup_c_zeitexit_{AUG,S1,S2}.txt` (Schritt 4a; Produktions-Exit-Konfiguration `KEIN_TRAILING` = F4 intrabar + terminaler Zeit-Exit, vgl. §2.13-C). Alle Verifikationsanker der Schritte 2–4a wurden bitgenau bestanden.
+
+**L1 – Pipeline-Anker (Struktur/Selektion, zählende Verifikation):** Die Signal-Population des Replays muss die arretierten Zahlen reproduzieren, bevor irgendeine R-Performance gemessen wird.
+
+| Fenster | F3-Brüche | CONFIRMED | RAW gesamt (A / B) | RETEST |
+|---|---|---|---|---|
+| AUG | 11 | 11 | 10 (0 / 10) | 3 |
+| S1 | 138 | 138 | 110 (35 / 75) | 59 |
+| S2 | 61 | 61 | 78 (5 / 73) | 18 |
+
+**L2 – RAW-Cluster A (Σr_f4, Σr_ref, Exit-Verteilung, Haltedauer):** Der Produktions-Kern (§2.13: RAW-A Vorlauf ≤ 1, F4 intrabar, Zeit-Exit, ohne Trailing) muss je Horizont die folgenden Kennzahlen reproduzieren.
+
+Horizont N=48 (S1/AUG-Betrieb):
+
+| Fenster | n (zensiert) | Σr_f4 | Σr_ref | Exit F4 / ZEIT | Haltedauer Ø |
+|---|---|---|---|---|---|
+| S1 | 35 (0) | **+20,85** | **+72,88** | 13 / 22 | 37 |
+| AUG | 0 (0) | – | – | – | – |
+| S2 | 5 (1) | +0,39 | +3,24 | 2 / 2 | 30 |
+
+Horizont N=96 (Trend-Betrieb):
+
+| Fenster | n (zensiert) | Σr_f4 | Σr_ref | Exit F4 / ZEIT | Haltedauer Ø |
+|---|---|---|---|---|---|
+| S1 | 35 (0) | **+18,11** | **+40,99** | 17 / 18 | 64 |
+| S2 | 5 (1) | +1,92 | +8,16 | 2 / 2 | 54 |
+
+**Toleranz:** Ziel **bitgenau**; harte Fail-Obergrenze **±0,05R** je Σr-Spalte (Σr_f4 und Σr_ref). Zensierte Positionen (`RECHTS_ZENSIERT`, §2.8/E2) bleiben strikt isoliert (r=NaN) und zählen weder in n noch in Σr – identisch zur Schritt-4a-Referenz.
+
+**B. Architektur-Beschlüsse Entwicklungsphase (arretiert)**
+
+1. **Shared-Utility `scripts/market_segmentation.py` (Domain-Name, keine Setup-C-Spezifik):** Die Baseline `scripts/phasen_volumen_profil.py` ist **nicht importierbar** – kein `__main__`-Guard, 2.432 Zeilen (ein Import liefe die gesamte Datei durch). Sie ist funktionsbasiert zerlegbar: `load_data` (Z. 320), `find_pivots` (Z. 343), Dataclasses `PhaseData`/`MoveData` (Z. 97–170). ⇒ **Mechanische Extraktion** der linearen Phasen-Hauptschleife in `def`-Wrapper; Konstanten als frozen `SegmentConfig`; **kein `exec()` in Produktion**.
+2. **Profil-Skript `scripts/setup_c_profil.py`:** Implementiert den arretierten Phase-1-Kern (§2.13-C): RAW-Cluster A (Vorlauf ≤ 1) + F4-Stop intrabar (Puffer 0,15 USD) + terminaler Zeit-Exit 48/96 + phasenlokale Open-Position-Suppression; 0,45 %-SL ausschließlich als r_ref-Messung (nie Produktions-Stop).
+3. **Ausgabeordner `reports/setup_c/`:** Konfigurierbarer Default in der jeweiligen Config. Phase 1 = **Text-Export only** (Console + `.txt` + maschinenlesbarer Trade-Block); Charts nachgelagert.
+
 ---
 
 ## 3. Explorations- und Prüfplan
@@ -385,3 +424,4 @@ Ausführung: `test/tmp_setup_c_whipsaw.py` (F1-Negativ-Spiegel `close[j+1] ≤ k
 | 05.09.2026 | Schritt 4b Stufe 2: Design-Fragen F1–F3 ratifiziert (Negativ-Spiegel `close[j+1] ≤ kante(j)+TOL` + Sub-Typen RETRACE/TOL_BAND; volle Simulation statt pauschal −1R; phasenlokale Open-Position-Suppression) + Scope bestätigt (F3-Population, Bruchrichtung); Datenvertrag `WhipsawConfig`/`WhipsawResult`; Entwurf `test/tmp_setup_c_whipsaw.py` zur Durchsicht vorgelegt | arretiert |
 | 05.09.2026 | Schritt 4b Stufe 2: `test/tmp_setup_c_whipsaw.py` freigegeben; Lauf AUG/S1/S2 ausgeführt — Verifikationsanker bitgenau (11/138/61 [OK]); Befunde W1–W4 in §2.12 (Kanten-Erosion S1 N48 +18,2R → Netto +1,8R; Suppression überlebensnotwendig, ohne −20,1R; TOL_BAND 49/53; S2-Whipsaws positiv → 1-Close trend-regime-tauglich) | abgeschlossen |
 | 05.09.2026 | Schritt 4 (Prüfbericht & Entscheidungsvorlage): **abgeschlossen** — §2.13-Produktions-Blueprint arretiert (Phase-1-Kern RAW-A + F4 + Zeit-Exit 48/96 + Suppression; verworfen: Stufen-Ratsche, 2-Close-CONFIRMED, 1-Close ohne Suppression, DATEN_ENDE-Exit, N=24; Stufe-5-Rückstellung: Regime-Klassifikation, Parameter-Robustheit, OOS-Validierung); §3 formal abgeschlossen; **Übergabe an Entwicklungsphase `scripts/setup_c_profil.py`** | abgeschlossen |
+| 05.09.2026 | Entwicklungs-Schritt 1: Acceptance-Gates L1/L2 + Architektur-Beschlüsse verbindlich in §2.14 verankert (zweistufiges Gate: L1 Pipeline-Anker, L2 RAW-A N=48/N=96; market_segmentation.py als Shared-Utility; reports/setup_c/; Toleranz ±0,05R, Ziel bitgenau) | abgeschlossen |

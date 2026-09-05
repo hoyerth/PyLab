@@ -179,7 +179,7 @@ class RegimeGateConfig:
 
 @dataclass(frozen=True, slots=True)
 class RegimeSchwellen:
-    """Skalares Schwellen-Tupel eines konkreten Sweep-Punkts.
+    """VERSIEGELTE Schwellen (Freeze 05.09.2026, Plateau-Zentrum, nie Peak).
 
     ``RegimeSweepConfig`` traegt Spannen-Tupel (Generator-Spezifikation);
     ``RegimeSchwellen`` ist der konkret instanziierte, skalare Parameter-
@@ -187,18 +187,23 @@ class RegimeSchwellen:
     instantiiert je Kombination EIN Objekt und wertet alle vorberechneten
     ``RegimeState``-Vektoren identisch aus (Plateau-Doktrin).
 
-    Alle Werte sind Arbeitshypothesen (nicht arretiert); sie werden ueber
-    ``RegimeSweepConfig``-Spannen im In-Sample-Sweep kalibriert und danach
-    im OOS als One-Shot verwendet. Felder (Stand 05.09.2026, nach Diagnose
-    UND V2-Bereinigung - nur die 4 responsiven Schwellen):
+    Die vier Zentren wurden ueber den In-Sample-Sweep (S1+S2, 1D-Response,
+    Plateau-Doktrin §2.16-A.1) kalibriert und kryptografisch versiegelt
+    (test/regime_schwellen_freezed.json + sha256 der S1/S2-Roh-Zustaende).
+    Die Klassen-Defaults wurden am 05.09.2026 nachtraeglich auf die
+    Siegel-Werte korrigiert (0.05->0.07, -0.02->-0.03): Zuvor standen hier
+    die Vor-Freeze-Arbeitshypothesen, was gegenueber dem abgenommenen
+    OOS-Portfolio (§2.16-F, +18,34R) stillen Model Drift erzeugt haette.
+    Felder (Stand 05.09.2026, nach Diagnose UND V2-Bereinigung - nur die
+    4 responsiven Schwellen):
       ema_slope_min       TREND: Momentum klar positiv (> Schwelle)
       ema_slope_max       SHAKE: Momentum-Kollaps (Wert <= Schwelle)
       adx_schwelle_min    TREND: Richtungsstaerke
       tol_band_quote_max  SHAKE: Fakeout-Stuetze (Quote > Schwelle)
     """
 
-    ema_slope_min: float = 0.05            # TREND-Momentum (Diagnose q50 S1 0.007 / S2 0.185)
-    ema_slope_max: float = -0.02           # SHAKE-Kollaps (Diagnose q25 S1 -0.14 / S2 +0.09)
+    ema_slope_min: float = 0.07            # VERSIEGELT 05.09.2026 (Plateau-Zentrum, nie Peak)
+    ema_slope_max: float = -0.03           # VERSIEGELT 05.09.2026 (Plateau-Zentrum, nie Peak)
     adx_schwelle_min: float = 25.0         # TREND-Staerke
     tol_band_quote_max: float = 0.60       # SHAKE-Stuetze (vorher 0.50)
 

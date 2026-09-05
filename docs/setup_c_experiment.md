@@ -1,6 +1,6 @@
 # Setup C: Trendfolge, Sägezahn-Expansion & Ausbruchs-Engine
 
-> **Status:** Schritt 1 + Schritt 2 abgeschlossen (05.09.2026, F4–F8 umgesetzt, Audit-Läufe AUG/S1/S2 validiert); Schritt 3 (Trailing A/B) als nächster Schritt.
+> **Status:** Schritt 1 + 2 abgeschlossen; Schritt-3-Design arretiert (F9–F11 + DV1–DV6, 05.09.2026); A/B-Lauf vorbereitet — Baseline unverändert.
 > **Bezug:** `scripts/setup_c_profil.py` (neu anzulegen) auf Infrastruktur-Basis von `scripts/phasen_volumen_profil.py` (v0.4.0-baseline-frozen, unverändert).
 
 ---
@@ -110,13 +110,26 @@ Die institutionelle Stop-Räumung unterhalb der Ausbruchsstruktur wird durch die
 
 **Implikation für Schritt 3:** Der F4-Stop entschärft den 55-%-Shakeout, aber das R:R auf F4-Basis ist zu flach für einen statischen Exit. Die Energie läuft nach (Schritt 1), daher muss das Stufen-/Pivot-Trailing das R:R verdichten. RETEST als qualitativ stärkstes, aber seltenes Signal (43 %) vs. CONFIRMED als Volumen-Signal mit engem Stop sind die beiden Pole der A/B-Trailing-Auswertung.
 
+### 2.6 Schritt-3-Beschlüsse (Trailing-Architektur A/B, F9–F11 + DV1–DV6 arretiert)
+
+| ID | Thema | Beschluss |
+|---|---|---|
+| F9 | Trailing-Trigger | F4-Initial-Stop bleibt **starr**, bis eine bestätigte Stufe die Einstiegsseite überschreitet. **DV1:** Aktivierung an der **Stufe** (nach Puffer), nicht am nackten Pivot — LONG `pivot_low − Puffer > entry`, SHORT gespiegelt. Kein Nachziehen unter den Einstieg. Option A (Sensitivität): Nachzug ab Stufe > F4-Initial-Stop. |
+| F10 | ATR-Puffer Variante B | `buffer = max(atr_mult × ATR₇, buffer_floor)` mit `atr_mult = 1.5` (Default), `buffer_floor = fixed_buffer = 0.15 USD`. Sensitivitäten: 1,0× / 2,0×. Begründung: 1,0× = ATR-Schrumpfungsfalle, 2,0× = Impuls-Überschwingen; Floor vererbt Robustheit der Fix-Variante. |
+| F11 | Exit-Execution | **Differenziert:** F4-Initial-Stop **intrabar** (`low ≤ stop` / `high ≥ stop`); Trailing-Stufe **close-basiert** (Vollausstieg erst bei M15-Close jenseits des Stops). Sensitivität: Trailing intrabar. |
+| DV2 | Kausalitäts-Laufzeit | Pivot bei Bar `p` ist nach Close von `p+2` bestätigt; Stop-Änderung wirksam ab Bar `p+3` (Exit-Check von `k=p+2` zuerst, neuer Stop ab `k+1`). ATR für den Puffer wird an der Bestätigungs-Bar `k=p+2` abgegriffen (ATR über Bars ≤ k). `ATR_n = SMA(TrueRange, n)`, `TR = max(H−L, \|H−Cₚᵣₑᵥ\|, \|L−Cₚᵣₑᵥ\|)`. |
+| DV3 | Stop-Ablösung / Locked-in | Sobald der Stop auf eine Stufe > F4-Level gewandert ist, ist der F4-Stop obsolet. Intrabar-Dip unter das alte F4-Level bei Close über der aktiven Stufe = **kein Exit**. |
+| DV4 | Datenvertrag | `TrailingConfig` + `TrailingResult` (siehe `test/tmp_setup_c_trailing.py` §1): Felder `trailing_trigger` (Default `STUFE_UEBER_ENTRY`), `trailing_exit` (Default `CLOSE`), `buffer_floor`; `ExitGrund` inkl. `TRAILING_SL_INTRABAR`. |
+| DV5 | Sensitivitäten | F9-Option A (`STUFE_UEBER_INITIAL`), F10 (`atr_mult` 1,0/2,0), F11 (`trailing_exit=INTRABAR`) — je als Vergleichsspalte im Report. |
+| DV6 | Kontroll-Benchmark | Modus `KEIN_TRAILING` (nur F4-Stop intrabar, Exit bei Datenende) als 7. Lauf im Report — belegt die R:R-Wiedergewinnung gegenüber dem Status quo. Auswertungs-Anker: `sum(r_f4)`, `mean`, WR, PF, `n(INITIAL_SL_INTRABAR)` vs. `n(TRAILING_SL_CLOSE)`. |
+
 ---
 
 ## 3. Explorations- und Prüfplan
 
 1. **Schritt 1 (Statische Move-Analyse):** Untersuchung aller MoveData-Objekte der Baseline über AUG, S1 und S2 auf Ausbruchs-MFE/MAE. — **abgeschlossen** (Befunde in §2.5-Bezug, Details `test/tmp_setup_c_schritt1_mfe_mae_verteilung.txt`).
 2. **Schritt 2 (Replay-Skript `test/tmp_setup_c_audit.py`):** Rein lesende Erfassung der Signale gegen DuckDB für alle drei Einstiegs-Arme. — **abgeschlossen** (F4–F8 + D4, Befunde B1–B4 in §2.5, Reports `test/tmp_setup_c_audit_{AUG,S1,S2}.txt`).
-3. **Schritt 3 (A/B-Auswertung Trailing):** Vergleich von festem Dollar-Puffer ($0.15\text{ USD}$) gegen dynamische 7er-ATR — in Arbeit (R:R-Wiedergewinnung auf F4-Basis, B2).
+3. **Schritt 3 (A/B-Auswertung Trailing):** Vergleich von festem Dollar-Puffer ($0.15\text{ USD}$) gegen dynamische 7er-ATR — Design arretiert (F9–F11, DV1–DV6 in §2.6); Ausführung AUG → S1/S2 nach Freigabe.
 4. **Schritt 4 (Prüfbericht):** Vorlage der Ergebnisse vor jeglicher Produktions-Integration.
 
 ---
@@ -131,4 +144,5 @@ Die institutionelle Stop-Räumung unterhalb der Ausbruchsstruktur wird durch die
 | 05.09.2026 | Beschlüsse F7–F8 (Retest-Timeout 16 Bars, Invalidierung vor Retest → verwerfen) | arretiert |
 | 05.09.2026 | Schritt 2: Replay-Design spezifiziert (Doku §2.4); Code-Entwurf tmp_setup_c_audit.py zur Freigabe | abgeschlossen |
 | 05.09.2026 | Schritt 2: `test/tmp_setup_c_audit.py` erstellt; Review-Korrektur D4 (RAW-Kanten strikt kausal, KEINE_KANTE) + exec-Slice-Modulregistrierung; Audit-Läufe AUG/S1/S2 ausgeführt — Verifikationsanker bitgenau (11/138/61), Befunde B1–B4 in §2.5 | abgeschlossen |
-| 05.09.2026 | Schritt 3 (Trailing A/B): offen — Pivot-Stufen-Trailing vs. ATR-Puffer zur R:R-Wiedergewinnung auf F4-Basis | in Arbeit |
+| 05.09.2026 | Schritt 3 (Trailing A/B): offen — Pivot-Stufen-Trailing vs. ATR-Puffer zur R:R-Wiedergewinnung auf F4-Basis | arretiert |
+| 05.09.2026 | Schritt 3: Beschlüsse F9–F11 (starr bis Stufe>Entry; ATR 1,5×+Floor; Exit differenziert intrabar/close) + Datenvertrag DV1–DV6 in §2.6; `test/tmp_setup_c_trailing.py` als Entwurf freigegeben | arretiert |

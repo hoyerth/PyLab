@@ -16,3 +16,9 @@
    - Arm 2: BREAKOUT_CONFIRMED (2-Close-Bruch)
    - Arm 3: RETEST_OUTSIDE (Kantenkontakt +/- 0.15 USD mit Close-Verteidigung)
 3. Initial-Stop-Architektur: Berücksichtigung des 55-%-Shakeouts (struktureller Stop vs. Puffer-Stop).
+
+## Nachtrag 05.09.2026: Artefakt-Cleanup in test/ abgeschlossen
+- **Gelöscht (147 Dateien):** Alle abgeschlossenen Symbol-Testlauf-Artefakte QS-4..QS-8 (Brent/Cocoa/EURUSD/Ger40/NGas PNGs, stats_trades_*, tmp_* Engine-Logs/Sweeps/Params/Reports), GOLD- & MAKRO-Testläufe, SILVER_LONG-Stresstest-Artefakte (inkl. stats_trades_SILVER_LONG_equity.txt), `tmp_monthly_agg.py`, `tmp_dbcheck.py`.
+- **Verifiziert:** RESTMATCH 0 / MISSING KEEPERS 0 (gitignored → kein Commit, Working Tree sauber).
+- **Erhalten (Setup-C-/Analyse-Kontext):** SILVER-Baseline (phasen_volumen_profil{AUG,S1,S2}.*, stats_trades{AUG,S1,S2}.*), `tmp_phasen_volumen_profil_symbol.py` (Engine-Arbeitskopie), Bruch-Matrizen, Setup-C-Schritt-1-Artefakte, `tmp_setup_c_antworten_f1f3.txt`, generische Symbol-Helper (`tmp_symbol_{params,sweep,equity,summary,vorabcheck}.py`), Session-Handoffs.
+- Doku zentraler Ergebnisse bleibt in `docs/archiv/Symbole Testläufe.md` (§§1–26).

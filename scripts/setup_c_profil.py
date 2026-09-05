@@ -54,13 +54,32 @@ Ausgabe (Phase 1 = Text-Export only, §2.14-B3): Console + ``.txt``-Report +
 maschinenlesbarer Trade-Block (``.tsv``) unter ``reports/setup_c/``.
 Aufruf (Projekt-Root, Namespace-Package ohne __init__.py):
     python -m scripts.setup_c_profil --fenster=AUG|S1|S2|ALLE [--ohne-suppression]
+    python -m scripts.setup_c_profil --fenster=ALLE --mit-regime-gate
+
+Gate-Modus (optional, Luecke-1-Integration; §2.16-A.4): ``--mit-regime-gate``
+aktiviert das Gated-Portfolio exakt wie im OOS abgenommen (§2.16-F.1:
+TREND -> RAW-A@96 + RAW-B@96 nur Bruchrichtung; SHAKEOUT/UNKLAR -> strikt
+RAW-A@48 = No-Harm-Baseline). Ohne das Flag bleibt der Kern bitgenau der
+Phase-1-Pfad (No-Harm-Invarianz, L2-Referenz §2.15/§2.14). Schwellen: die
+versiegelten Klassen-Defaults von ``scripts.regime_filter.RegimeSchwellen``
+(Freeze 05.09.2026, §2.16-C) - bewusst KEIN Zugriff auf gitignored
+test-Artefakte.
 """
 from __future__ import annotations
 
 import sys
 from dataclasses import dataclass, field, replace
 from pathlib import Path
-from typing import Dict, List, Literal, Optional, Sequence, Tuple
+from typing import (
+    TYPE_CHECKING,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Protocol,
+    Sequence,
+    Tuple,
+)
 
 import numpy as np
 import pandas as pd
@@ -73,6 +92,9 @@ from scripts.market_segmentation import (
     segmentiere_markt,
 )
 
+if TYPE_CHECKING:  # Nur fuer Typ-Checker; Laufzeit-Import bleibt im Gate-Pfad
+    from scripts.regime_filter import RegimeState
+
 __all__ = [
     "TrendConfig",
     "SetupCSignal",
@@ -81,6 +103,52 @@ __all__ = [
     "bericht_fenster",
     "main",
 ]
+
+# =============================================================================
+# 1a) GATE-PROVIDER (entkoppelt, §2.16-A.4: regime_filter-Import NUR im Gate-Pfad)
+# =============================================================================
+
+
+class IRegimeProvider(Protocol):
+    """Entkoppelte Regime-Klassifikation (Luecke-1, §2.16-A.4).
+
+    Ermoeglicht Injektion von Fakes/Alternativen im Test ohne harte
+    Kopplung an ``scripts.regime_filter``. Eine Implementierung muss je
+    echter 2-Close-Bruch-Phase (``phase_nr`` 1..n) genau EINEN
+    klassifizierten ``RegimeState`` liefern (Join-Schluessel zu
+    ``KernelTrade.phase``, deckungsgleich §2.16-C).
+    """
+
+    def klassifiziere(
+        self, df: pd.DataFrame, sr: SegmentResult
+    ) -> "List[RegimeState]":
+        """Klassifizierte RegimeState je Phase (kausal bis brk_idx)."""
+        ...
+
+
+class RegimeFilterProvider:
+    """Duenne Adaption der regime_filter-Free-Functions (versiegelte Defaults).
+
+    Nutzt ausschliesslich die Klassen-Defaults von ``RegimeSchwellen``
+    (= Freeze-Zentren nach Hunk-0-Bereinigung, §2.16-C) - bewusst KEIN
+    Zugriff auf ``test/regime_schwellen_freezed.json`` (gitignored,
+    unversioniert, nicht reproduzierbar aus dem Repo).
+    """
+
+    def klassifiziere(
+        self, df: pd.DataFrame, sr: SegmentResult
+    ) -> "List[RegimeState]":
+        import scripts.regime_filter as rf  # Modul-Isolation: nur Gate-Pfad
+
+        cfg_metrik = rf.RegimeMetricConfig()
+        df_ind: pd.DataFrame = rf.berechne_zeitreihen_indikatoren(df, cfg_metrik)
+        states_roh: "List[RegimeState]" = rf.berechne_regime_metriken(
+            df_ind, sr, cfg_metrik, rand_phasen="ZENSIERT_UEBERGEHEN"
+        )
+        return rf.klassifiziere_regime(
+            states_roh, rf.RegimeSchwellen(), rf.RegimeGateConfig()
+        )
+
 
 # =============================================================================
 # 1) FENSTER & KONFIGURATION (Datenvertrag)
@@ -154,6 +222,12 @@ class TrendConfig:
     # Produktions-Schutzschicht (Whipsaw-F3, §2.12/§2.13)
     suppression_phasenlokal: bool = True
 
+    # Regime-Gate (optional, §2.16-A.4): False = bitgenau identischer
+    # Phase-1-Pfad (No-Harm-Invarianz); True = Gated-Portfolio exakt wie
+    # OOS-abgenommen (§2.16-F.1: TREND -> RAW-A@96 + RAW-B@96 nur
+    # Bruchrichtung; SHAKEOUT/UNKLAR -> strikt RAW-A@48).
+    mit_regime_gate: bool = False
+
     # E3: RAW-Cluster A (frische Ausbrueche an der Kante)
     cluster_a_max_vorlauf: int = 1
 
@@ -226,6 +300,12 @@ class KernelTrade:
     haltezeit_bars: int
     r_f4: float
     r_ref: float
+
+    # Gate-Metadaten (NUR im Gate-Modus gefuellt; Baseline: None -> No-Harm).
+    # Mutation ist seiteneffektfrei: _simuliere_kern/_kern_lauefe liefern
+    # frische Objekte; Aggregation/TSV lesen nur die numerischen Felder.
+    regime: Optional[str] = None  # "TREND" | "SHAKEOUT" | "UNKLAR"
+    arm: Optional[str] = None     # "RAW-A" | "RAW-B" (nur Bruchrichtungs-Fallback)
 
 
 @dataclass(slots=True)
@@ -777,6 +857,120 @@ def _kern_lauefe(
     return trades, n_supprimiert
 
 
+def _gate_portfolio_laeufe(
+    df: pd.DataFrame,
+    signale: Sequence[SetupCSignal],
+    cfg: TrendConfig,
+    sr: SegmentResult,
+    states: Sequence["RegimeState"],
+) -> Tuple[
+    List[KernelTrade], List[KernelTrade], List[KernelTrade], List[KernelTrade]
+]:
+    """Assembliert das Gated-Portfolio (1:1-Spiegel der OOS-Harness-Logik).
+
+    Exakte Uebernahme der verifizierten Assemblierung aus
+    test/tmp_regime_validation.py (``_baue_cache`` + ``_gated_trades_fuer_phase``,
+    §2.16-F.1), damit die Produktion bitgenau das abgenommene Portfolio
+    reproduziert:
+
+      SHAKEOUT/UNKLAR: RAW-A @48, beide Richtungen (= B48-Beitrag, No-Harm).
+      TREND:           RAW-A @96, beide Richtungen; RAW-B @96 NUR auf
+                       (phase, Bruchrichtung) und NUR als Fallback, wenn dort
+                       KEIN RAW-A @96 existiert. RAW-A/RAW-B sind ueber
+                       ``vorlauf_bars`` disjunkt (A <= 1 XOR B > 1) -> keine
+                       Kollision, keine zeitliche Merge-Ratsche.
+
+    F3-Suppression ist fuer RAW-A ein No-op (Harness-Assert) - der Lauf
+    bricht hart ab, falls die No-op-Garantie je verletzt wuerde.
+
+    Args:
+        df: OHLCV-DataFrame.
+        signale: Alle erfassten Signale (unveraendert, L1-Populationen).
+        cfg: TrendConfig.
+        sr: SegmentResult (fuer break_dir je Phase).
+        states: Klassifizierte RegimeState (len == echte Bruch-Phasen).
+
+    Returns:
+        (gated, a48, a96, b96): gated chronologisch sortiert; a48/a96/b96
+        als vollstaendige Listen fuer die Breakdown-/Referenz-Zeilen.
+    """
+    echte: List[PhaseData] = [
+        p for p in sr.phases if p.break_dir is not None and p.brk_idx is not None
+    ]
+    if len(states) != len(echte):
+        raise RuntimeError(
+            f"Gate: {len(states)} RegimeState != {len(echte)} echte Phasen "
+            "(Join-Schluessel phase_nr inkonsistent)."
+        )
+
+    # RAW-A-Basen (beide Horizonte); F3-Suppression muss No-op sein
+    a48, ns48 = _kern_lauefe(df, signale, cfg, 48)
+    a96, ns96 = _kern_lauefe(df, signale, cfg, 96)
+    if ns48 != 0 or ns96 != 0:
+        raise RuntimeError(
+            f"Gate: RAW-A-Suppression nicht No-op (n48={ns48}, n96={ns96})."
+        )
+    a48d: Dict[Tuple[int, str], KernelTrade] = {
+        (int(t.phase), str(t.dir)): t for t in a48
+    }
+    a96d: Dict[Tuple[int, str], KernelTrade] = {
+        (int(t.phase), str(t.dir)): t for t in a96
+    }
+    brk_dir: Dict[int, str] = {}
+    for nr, p in enumerate(echte, start=1):
+        assert p.break_dir is not None and p.brk_idx is not None
+        brk_dir[nr] = str(p.break_dir)
+
+    # RAW-B @96: vorlauf > 1, NUR Bruchrichtung, NUR wo kein RAW-A @96
+    b96d: Dict[Tuple[int, str], KernelTrade] = {}
+    for sig in signale:
+        if (
+            sig.arm == "RAW"
+            and sig.status == "SIGNAL"
+            and sig.entry_idx >= 0
+            and np.isfinite(sig.sl_usd)
+            and sig.sl_usd > 0.0
+            and sig.vorlauf_bars is not None
+            and sig.vorlauf_bars > cfg.cluster_a_max_vorlauf
+        ):
+            nr = int(sig.phase)
+            d = str(sig.dir)
+            if d != brk_dir.get(nr):
+                continue  # nur Bruchrichtung
+            if (nr, d) in a48d or (nr, d) in a96d:
+                continue  # Sicherheit: disjunkt (darf nicht auftreten)
+            b96d[(nr, d)] = _simuliere_kern(df, sig, cfg, 96)
+    b96: List[KernelTrade] = list(b96d.values())
+
+    # Assemblierung je Phase gemaess Regime (Harness-Semantik, 1:1)
+    gated: List[KernelTrade] = []
+    for st in states:
+        nr = int(st.phase_nr)
+        r: str = str(st.regime)
+        if r == "TREND":
+            bdir: str = brk_dir.get(nr) or "up"
+            for d in ("up", "down"):
+                key = (nr, d)
+                t: Optional[KernelTrade] = a96d.get(key)
+                if t is not None:
+                    t.regime, t.arm = r, "RAW-A"
+                elif d == bdir:
+                    t = b96d.get(key)
+                    if t is not None:
+                        t.regime, t.arm = r, "RAW-B"
+                if t is not None:
+                    gated.append(t)
+        else:
+            # SHAKEOUT/UNKLAR: strikt RAW-A @48 (No-Harm = B48-Beitrag)
+            for d in ("up", "down"):
+                t = a48d.get((nr, d))
+                if t is not None:
+                    t.regime, t.arm = r, "RAW-A"
+                    gated.append(t)
+    gated.sort(key=lambda x: (x.entry_idx, x.phase, x.dir))
+    return gated, a48, a96, b96
+
+
 # =============================================================================
 # 5) AGGREGATION (E2: Zensierte strikt isoliert)
 # =============================================================================
@@ -918,12 +1112,127 @@ def _trade_block_tsv(
     return "\n".join(zeilen)
 
 
-def bericht_fenster(fenster: str, cfg: TrendConfig) -> str:
+def _trade_block_gate_tsv(
+    trades: Sequence[KernelTrade], fenster: str, cfg: TrendConfig
+) -> str:
+    """Maschinenlesbarer Gate-Trade-Block (TSV) inkl. regime/arm-Spalten."""
+    kopf: List[str] = [
+        f"# setup_c Gate-Modus (Gated-Portfolio, --mit-regime-gate) - Fenster: {fenster}",
+        f"# suppression_phasenlokal: {cfg.suppression_phasenlokal} | "
+        f"cluster_a_max_vorlauf: {cfg.cluster_a_max_vorlauf} | "
+        f"stop_puffer: {cfg.stop_puffer} | sl_pct_ref: {cfg.sl_pct_ref}",
+        "# Portfolio (§2.16-F.1): TREND -> RAW-A@96 + RAW-B@96 (Bruchrichtung) | "
+        "SHAKEOUT/UNKLAR -> RAW-A@48",
+        "# RECHTS_ZENSIERT: r_f4/r_ref = NaN (E2, strikt isoliert)",
+    ]
+    header: str = (
+        "regime\tarm\thorizont\tphase\tdir\tentry_idx\tentry_ts\tentry_preis\t"
+        "f4_initial_stop\tsl_usd\texit_idx\texit_ts\texit_preis\t"
+        "exit_grund\thaltezeit_bars\tr_f4\tr_ref"
+    )
+    zeilen: List[str] = [*kopf, header]
+    for t in sorted(trades, key=lambda x: (x.entry_idx, x.phase, x.dir)):
+        zeilen.append(
+            f"{t.regime}\t{t.arm}\t{t.horizont_bars}\t{t.phase}\t{t.dir}\t"
+            f"{t.entry_idx}\t{t.entry_ts}\t{t.entry_preis:.5f}\t"
+            f"{t.f4_initial_stop:.5f}\t{t.sl_usd:.5f}\t{t.exit_idx}\t"
+            f"{t.exit_ts}\t{t.exit_preis:.5f}\t{t.exit_grund}\t"
+            f"{t.haltezeit_bars}\t{_fmt(t.r_f4)}\t{_fmt(t.r_ref)}"
+        )
+    return "\n".join(zeilen)
+
+
+def _bericht_gate(
+    fenster: str,
+    cfg: TrendConfig,
+    df: pd.DataFrame,
+    sr: SegmentResult,
+    signale: Sequence[SetupCSignal],
+    states: Sequence["RegimeState"],
+) -> str:
+    """Baut den Gate-Report (konsolidiert + Breakdown + No-Harm-Nachweis).
+
+    Primaer-Sicht = Gated-Portfolio (konsolidiert, exakt OOS-vergleichbar,
+    §2.16-F.6-Muster); darunter Breakdown RAW-A@48 / RAW-A@96 / RAW-B@96
+    (forensisch) und die B48/B96-Referenz-Baselines mit Primaer-Delta.
+    Dateien getrennt (``setup_c_gate_*``) -> historische Baseline-Artefakte
+    ``setup_c_*.txt/.tsv`` bleiben byte-identisch unberuehrt.
+    """
+    gated, a48, a96, b96 = _gate_portfolio_laeufe(
+        df, signale, cfg, sr, states
+    )
+    n_trend: int = sum(1 for st in states if st.regime == "TREND")
+    n_shake: int = sum(1 for st in states if st.regime == "SHAKEOUT")
+    n_unklar: int = sum(1 for st in states if st.regime == "UNKLAR")
+    agg_g: AggBlock = _agg_block(gated)
+    agg_a48: AggBlock = _agg_block(a48)   # Referenz-Baseline B48
+    agg_a96: AggBlock = _agg_block(a96)   # Sekundaer-Baseline B96
+    brk_48: List[KernelTrade] = [
+        t for t in gated if t.arm == "RAW-A" and t.horizont_bars == 48
+    ]
+    brk_96: List[KernelTrade] = [
+        t for t in gated if t.arm == "RAW-A" and t.horizont_bars == 96
+    ]
+    brk_b: List[KernelTrade] = [t for t in gated if t.arm == "RAW-B"]
+
+    linie: str = "=" * 120
+    txt: List[str] = [
+        linie,
+        "SETUP C - GATE-MODUS (Gated-Portfolio, --mit-regime-gate)",
+        f"Fenster: {fenster} | Symbol: {cfg.symbol} {cfg.timeframe} | "
+        f"Segmente: {len(sr.phases)} | F3-Brueche: {len(states)}",
+        "Portfolio (§2.16-F.1, OOS-abgenommen): TREND -> RAW-A@96 + RAW-B@96 "
+        "(nur Bruchrichtung) | SHAKEOUT/UNKLAR -> strikt RAW-A@48",
+        f"Regime: TREND {n_trend} | SHAKEOUT {n_shake} | UNKLAR {n_unklar}",
+        linie,
+        "",
+        "GATED-PORTFOLIO (konsolidiert, Primaer-Sicht):",
+    ]
+    txt.extend(_block_text("    GATED", agg_g))
+    txt.append("")
+    txt.append("BREAKDOWN (Arm/Horizont, forensisch):")
+    for titel, grp in (
+        ("RAW-A@48", brk_48),
+        ("RAW-A@96", brk_96),
+        ("RAW-B@96", brk_b),
+    ):
+        if grp:
+            txt.extend(_block_text(f"    {titel}", _agg_block(grp)))
+        else:
+            txt.append(f"    {titel}: (keine Trades)")
+    txt.append("")
+    txt.append("REFERENZ-BASELINES (No-Harm-Nachweis):")
+    txt.extend(_block_text("    B48 (RAW-A@48, alle Phasen)", agg_a48))
+    txt.extend(_block_text("    B96 (RAW-A@96, alle Phasen)", agg_a96))
+    txt.append("")
+    delta_b48: float = agg_g.sum_r_f4 - agg_a48.sum_r_f4
+    txt.append(f"PRIMAER-DELTA (gated - B48): {delta_b48:+.2f}R")
+    txt.append("HINWEIS (No-Harm-Identitaet): SHAKEOUT/UNKLAR-Phasen tragen")
+    txt.append("konstruktionsbedingt Delta = 0.00R (Gate waehlt exakt B48).")
+    txt.append(linie)
+
+    cfg.report_dir.mkdir(parents=True, exist_ok=True)
+    out_txt: Path = cfg.report_dir / f"setup_c_gate_{fenster}.txt"
+    out_txt.write_text("\n".join(txt), encoding="utf-8")
+    out_tsv: Path = cfg.report_dir / f"setup_c_gate_trades_{fenster}.tsv"
+    out_tsv.write_text(
+        _trade_block_gate_tsv(gated, fenster, cfg), encoding="utf-8"
+    )
+    return "\n".join(txt)
+
+
+def bericht_fenster(
+    fenster: str,
+    cfg: TrendConfig,
+    gate_provider: Optional[IRegimeProvider] = None,
+) -> str:
     """Baut den Phase-1-Report fuer ein Fenster (L1 + L2, Text + TSV).
 
     Args:
         fenster: AUG | S1 | S2.
         cfg: TrendConfig.
+        gate_provider: Optionaler Regime-Provider (nur bei
+            ``cfg.mit_regime_gate``; Default = RegimeFilterProvider).
 
     Returns:
         Reporttext (wird zusaetzlich nach reports/setup_c/ geschrieben).
@@ -935,6 +1244,14 @@ def bericht_fenster(fenster: str, cfg: TrendConfig) -> str:
     df: pd.DataFrame = load_data(seg_cfg.db_path, seg_cfg.start, seg_cfg.ende)
     sr: SegmentResult = segmentiere_markt(df, seg_cfg)
     signale: List[SetupCSignal] = _erfasse_signale(sr, cfg)
+
+    # --- Gate-Modus: eigenstaendiger Report; Baseline-Pfad bleibt unberuehrt
+    if cfg.mit_regime_gate:
+        provider: IRegimeProvider = (
+            gate_provider if gate_provider is not None else RegimeFilterProvider()
+        )
+        states: "List[RegimeState]" = provider.klassifiziere(df, sr)
+        return _bericht_gate(fenster, cfg, df, sr, signale, states)
 
     # --- L1: Pipeline-Anker (Populationen) ----------------------------------
     n_f3: int = sum(
@@ -1034,22 +1351,30 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
     fenster: str = "AUG"
     suppression: bool = True
+    mit_gate: bool = False
     for a in args:
         if a.startswith("--fenster="):
             fenster = a.split("=", 1)[1].upper()
         elif a == "--ohne-suppression":
             suppression = False
+        elif a == "--mit-regime-gate":
+            mit_gate = True
     if fenster == "ALLE":
         fenster_list: List[str] = ["AUG", "S1", "S2"]
     elif fenster in ("AUG", "S1", "S2"):
         fenster_list = [fenster]
     else:
         raise SystemExit(f"Unbekanntes Fenster: {fenster} (AUG|S1|S2|ALLE)")
-    cfg = TrendConfig(suppression_phasenlokal=suppression)
+    cfg = TrendConfig(
+        suppression_phasenlokal=suppression, mit_regime_gate=mit_gate
+    )
     for f in fenster_list:
         text = bericht_fenster(f, cfg)
         print(text)
-        print(f"\nReport geschrieben: {cfg.report_dir / f'setup_c_{f}.txt'}")
+        name: str = (
+            f"setup_c_gate_{f}.txt" if cfg.mit_regime_gate else f"setup_c_{f}.txt"
+        )
+        print(f"\nReport geschrieben: {cfg.report_dir / name}")
     return 0
 
 

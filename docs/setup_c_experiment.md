@@ -846,6 +846,172 @@ eigenständiger Folgeschritt (Default `None` = identischer Phase-1-Pfad, §2.16-
 Verbleibender Meilenstein: Forward-OOS nach dem SILVER-Daten-Update (§2.16-B) als
 einmaliger Blind-Test unter Fassung 2.
 
+### 2.17 Forward-OOS: Spezifikation & Ausführungsprotokoll (arretiert 05.09.2026 als Vorgriff; Ausführung ausstehend)
+
+**Status:** Spezifikation arretiert. Der verbleibende Meilenstein (§2.16-B: Forward-OOS
+nach SILVER-Daten-Update) ist als **einmaliger Blind-Test** definiert: eine einzige,
+bis zur Ausführung unberührte Zone aus Daten, die nach dem Scan-Stand
+2026-08-28 22:45 importiert werden. Es gelten ausschließlich die Kriterien
+**Fassung 2** (§2.16-F.4) und die **One-Shot-Doktrin** (§2.16-A.2). Der Lauf wird
+ausschließlich durch den manuellen Import-Vermerk des Anwenders ausgelöst — es
+existiert kein automatischer Selbst-Entsiegeltest. **Ausführung blockiert**, bis der
+Datenvertrag A (R1–R7) vollständig erfüllt ist.
+
+#### A. Auslöser & Datenvertrag (Refresh-Kriterien R1–R7)
+
+Referenz-Schnittstelle (unverändert, `scripts/market_segmentation.py::load_data`):
+Tabelle `ohlcv_bars`, `symbol='SILVER'`, `timeframe='M15'`, Wanduhr-SQL
+`time AT TIME ZONE 'UTC'`, Fenster Ende-exklusiv, Zugriff strikt
+`duckdb.connect(..., read_only=True)`. Scan-Beleg 05.09.2026 (arretierte Referenz):
+`max(ts) = 2026-08-28 22:45`, 0 Bars im September 2026.
+
+Der Forward-OOS-Lauf darf **erst** entsiegelt werden, wenn **alle** harten
+Kriterien erfüllt sind; die Prüfung erfolgt read-only als Bestandteil des Laufs
+und wird vollständig ins Protokoll geschrieben. Der Lauf bricht bei Verletzung
+einer harten Bedingung ab, **bevor** irgendeine Klassifikation ausgewertet wird.
+
+| # | Kriterium | Schärfe |
+|---|---|---|
+| R1 | **Zeitzuwachs:** `max(ts) > 2026-08-28 22:45` | hart (sonst leeres Fenster) |
+| R2 | **Mindest-Zonenlänge:** Zeitspanne Scan-Stand → neues `max(ts)` ≥ 3 Kalendermonate (frühester zulässiger Stichtag: 2026-11-28 22:45) **UND** Bar-Zuwachs nach dem Scan-Stand ≥ 5.200 M15-Bars (≈ 3 volle Monate bei dokumentierter Dichte 1.750–2.120 Bars/Monat, §2.16-A.6) | hart |
+| R3 | **Monotonie:** `ts` strikt aufsteigend, keine Duplikat-Zeitstempel | hart |
+| R4 | **Naht-Kontinuität:** erster Bar nach dem Scan-Stand ≤ 2026-08-28 23:00 (letzter alter Bar + 15 min); keine Lücke, keine Überlappung an der Naht | hart |
+| R5 | **Schema-Identität:** Spalten `time/open/high/low/close/tick_volume`, `symbol`/`timeframe`-Selektion unverändert | hart |
+| R6 | **Handelslücken:** keine fehlenden M15-Bars an Handelstagen (Wochenenden/Feiertage zulässig) | weich (Doku-Pflicht) |
+| R7 | **Forensik:** `min(ts)/max(ts)/count` des Forward-Fensters + Zonen-Hash (sha256 der Roh-Zustände, Muster §2.16-F.6) ins Protokoll | hart |
+
+**Erwartungsband:** Bei erfülltem R2 werden ≥ 20 Phasen im Fenster erwartet
+(~20–30 bei mittlerer Phasen-Aktivität). Die Phasenanzahl wird ausgewiesen und
+dokumentarisch eingeordnet, ist aber **keine eigenständige Bestehens-Hürde**
+(Phasen-Dichte ist eine nicht steuerbare Marktgröße; die harte Absicherung
+liefert R2).
+
+#### B. Zonen-Definition & Lauf-Konfiguration
+
+- **Fenster-Start:** 2026-08-28 00:00 UTC (inklusive) — lückenlos und
+  überlappungsfrei anschließend an das arretierte In-Sample-Fenster S1
+  (Ende exklusiv 2026-08-28, §2.16-B). **Reinheits-Vermerk:** Die am Scan-Stand
+  05.09.2026 bereits vorhandenen Bars des 2026-08-28 (00:00–22:45) waren in
+  **keinem** Kalibrierungs-, Sweep- oder OOS-Lauf enthalten (S1 endete exklusiv)
+  und sind damit unberührter OOS-Bestandteil der Zone — sie werden nicht
+  ausgeblendet, sondern transparent als Vorlauf-Stück ausgewiesen.
+- **Fenster-Ende:** Letzter **vollständiger** Handelstag (00:00–23:45 UTC) vor
+  `max(ts)` nach Refresh; Fenster Ende-exklusiv bis 00:00 UTC des Folgetags
+  (`load_data`-Konvention). Angebrochene Handelstage werden ausgeschlossen
+  (Rechts-Zensierung: keine unfertigen Phasen/Konsolidierungs-Ranges am
+  Zonenende).
+- **Methodik (identisch zu Z2024/ZSTRESS, Harness-Muster `_baue_cache`):**
+  Segmentierung (`segmentiere_markt`) und Zeitreihen-Indikatoren
+  (`berechne_zeitreihen_indikatoren`) laufen über den **gesamten Zonen-df ab
+  Zonenstart**; unvollendete Randphasen ohne `brk_idx` werden verworfen
+  (`ZENSIERT_UEBERGEHEN`, E2-konsistent). Zonen-Key im Harness: `ZFWD`;
+  der `_WINDOWS`-Eintrag wird nach bestandener R-Prüfung arretiert.
+- **Portfolio & Gate-Mapping (unverändert, §2.16-D/F.1):** TREND →
+  RAW-A@96 (beide Richtungen) + RAW-B@96 (nur Bruchrichtung), 1-Close entfernt
+  (Befund D/W2); SHAKEOUT/UNKLAR → strikt RAW-A@48. Baselines: B48/B96 = RAW-A
+  (ungefiltert). Gated = regime-selektive Zusammenstellung.
+
+#### C. Kausalitäts- & Integritäts-Doktrin
+
+1. **Kausalitäts-Audit (bestanden, 05.09.2026):** Alle Regime-Metriken sind
+   lookahead-frei bis exakt `brk_idx` — Indikator-Abgriff ausschließlich an
+   `.iloc[b]` (ATR/EMA/EMA-Slope/ADX, rekursiv/rolling, kein `shift(-n)`),
+   Kanten ausschließlich über die D4-Stufenfunktion aus `U_hist`/`L_hist`
+   (`_kanten_werte`, ns/us-normalisiert, Mechanik identisch zu
+   `_kanten_reihe`); kein Zugriff auf `U_final`/`L_final` (Regel-7-Finalize =
+   Lookahead ersten Grades), kein Kreuz-Fallback. `tol_band_quote` prüft
+   Folge-Closes strikt bis `close[brk_idx]` (`k+1 ≤ brk_idx`).
+2. **Latch-Doktrin (arretiert):** `klassifiziere_regime` startet je Zone mit
+   `letztes="UNKLAR"` — kein Transfer eines In-Sample- oder Vorzonen-Regimes
+   in die Forward-Zone (identisch zu Z2024/ZSTRESS, §2.16-F). Kein Latch über
+   die Zonengrenze.
+3. **Anlauf-Effekt (begrenzt, dokumentiert):** Indikatoren laufen ab `df[0]`
+   der Zone an (Wilder-Konvergenz ~50 Bars). Die erste Bruch-Phase endet
+   frühestens bei `brk_idx ≥ 48` (Segmentierer: `min_phase_candles = 46` +
+   Kaltstart-Garantie `kaltstart_min_bars = 46`) — der ADX-Warmup ist damit
+   vor dem ersten `RegimeState` abgeschlossen, der Konvergenz-Resteffekt auf
+   die ersten ~1–2 Phasen begrenzt. Bei erfülltem R2 bleibt der
+   Anlauf-Anteil < 2 % der Zone (Mentor-Vorgabe erfüllt).
+4. **Freeze-Integrität:** Der Lauf bricht bei Hash-Abweichung der versiegelten
+   Schwellen hart ab (sha256 S1 `e55b72e6…`, S2 `948a9c21…`,
+   `test/regime_schwellen_freezed.json` unverändert, §2.16-C/F.1).
+
+#### D. Bewertung (Kriterien Fassung 2 — bindend, §2.16-F.4)
+
+Der Formalbefund erfolgt **ausschließlich** nach Fassung 2 (für ZSTRESS und
+alle künftigen Forward-OOS-Läufe arretiert; die Fassung-1-Block-Marker laufen
+im Harness als Audit-Spalte weiter, sind aber **nicht** maßgeblich):
+
+- **(a) SHAKEOUT/UNKLAR-Schutz:** je Einzelabschnitt Δ ≥ −0,5R. Präzisierung:
+  (a) ist eine **No-Harm-Identität** — das Gate wählt in SHAKEOUT/UNKLAR exakt
+  die B48-Baseline, Δ ≡ 0,00R konstruktionsbedingt (§2.16-F.2).
+- **(b')** `ΣΔ_TREND ≥ 0,0R` zonen-kumulativ (Summe über alle
+  TREND-klassifizierten Phasen von `gated − B48`). Wegen der No-Harm-Identität
+  ist `ΣΔ_TREND` deckungsgleich mit dem Primär-Delta (`gated − B48`) der Zone;
+  die gesamte Filter-Information liegt in den TREND-Phasen.
+  **Vakuum-Regel:** Liegen keine TREND-Phasen vor, ist die leere Summe
+  `0,0R ≥ 0,0R` → (b') erfüllt; der Stress-Test prüft dann das rechtzeitige
+  Umschalten, nicht das Gesetz der großen Zahlen (§2.16-F.4).
+- **(c) Tail-Deckel:** kumuliertes Netto-Delta **je Einzelabschnitt** ≥ −5,0R.
+- **Gesamturteil:** `a ∧ b' ∧ c` → **BESTANDEN**; sonst **NICHT BESTANDEN**.
+- **One-Shot:** exakt ein Lauf auf der Zone; kein zweiter Versuch, keine
+  Nachkalibrierung, keine Nachbesserung am Filter (§2.16-A.2). Nach dem Lauf
+  wird der Zonen-Key `ZFWD` im Harness hart gesperrt (ValueError vor jedem
+  Dateizugriff, Muster Z2024, §2.16-F.5) — die Zone ist als OOS verbraucht.
+
+#### E. Protokoll-, Dokumentations- & Reporting-Pflichten
+
+Der Lauf (`python test/tmp_regime_validation.py --stufe=oos --zone=fwd`)
+schreibt das Protokoll nach dem ZSTRESS-Muster (§2.16-F.6,
+`test/tmp_regime_oos_stress.txt`) als `test/tmp_regime_oos_fwd.txt` mit
+folgenden Pflicht-Inhalten:
+
+1. **R-Prüfprotokoll** (R1–R7, read-only; harte Verletzung → Abbruch vor
+   Klassifikation).
+2. **Siegel-Hashes** unverändert + **Zonen-Hash** (sha256 der Roh-Zustände der
+   Zone, erster 16-Zeichen-Fingerabdruck + voller Hash, deterministisch
+   reproduzierbar — forensischer Fixpunkt der exakten Datenfolge).
+3. **Kennzahlen-Tabelle:** Phasen (TREND/SHAKEOUT/UNKLAR), Gated `Σr_f4`
+   (n, zensiert, init/zeit, hd; `Σr_ref`), B48, B96, **Primär-Delta
+   (`gated − B48`)**.
+4. **Fassung-2-Auswertung:** `ΣΔ_TREND` als Roh-Float-Summe über die
+   TREND-Blöcke, Identitäts-Check `|ΣΔ_TREND − Primär-Delta| < 1e-6`
+   (No-Harm-Leck-Prüfung), tiefster Einzelblock (Tail-Deckel (c)),
+   Urteilszeile `FASSUNG 2 (BINDEND): a=… b'=… c=… -> BESTANDEN /
+   NICHT BESTANDEN`; Fassung-1-Audit-Spalte läuft dokumentarisch mit.
+5. **Forensik:** SHA-256 der Protokoll-Datei selbst (Muster §2.16-F.5).
+
+Nach Ausführung wird der Befund als **§2.17-G** in dieses Dokument
+eingetragen; die §2.16-B-Zeile (Forward-OOS) und §4 (Tracking-Log) erhalten
+Status und Ergebnis. Die Protokoll-Datei bleibt unversioniert
+(`test/`, gitignored; reproduzierbar). Die Produktions-Baseline
+`scripts/phasen_volumen_profil.py` (+297,14R, v0.4.0-frozen) und der
+Phase-1-Kern `scripts/setup_c_profil.py` (Commit `29e7d03`) bleiben in
+jedem Fall unberührt.
+
+#### F. Eskalationspfad & Folgeschritte
+
+**Bei NICHT BESTANDEN:**
+1. Die Zone ist als OOS **verbraucht** (One-Shot, unwiderruflich) — keine
+   erneute Auswertung derselben Daten, keine Nachkalibrierung der versiegelten
+   Schwellen (Curve-Fitting-Verbot, §2.16-A.1/A.2).
+2. Der Regime-Filter wird **nicht** in die Produktions-Pipeline integriert;
+   das System bleibt auf Phase-1-Stand (ungefilterte B48/B96-Referenz).
+3. **Entscheidungsvorlage an den Anwender** (kein autonomes Re-Tuning), mit
+   den strukturell zulässigen Optionen: (i) weiterer Forward-Zyklus mit einer
+   **neuen**, nach weiterem Refresh unberührten Zone; (ii) Verwerfen des
+   Regime-Ansatzes als Produktions-Kandidat; (iii) Belassen auf Phase-1-Stand.
+
+**Bei BESTANDEN:**
+1. **Abnahme** des Forward-OOS analog §2.16-F.6; Stufe 5 inkl. Forward-Meilenstein
+   gilt als vollständig validiert.
+2. Die optionale Integration des Regime-Gates in `scripts/setup_c_profil.py`
+   wird als **eigenständiger, entkoppelter Folgeschritt** behandelt (§2.16-A.4:
+   Default `None` = identischer Phase-1-Pfad; Integration erst nach bestandenem
+   Gate-Test). **Kein automatisches Scharfschalten** — die Entscheidung über
+   einen Produktions-Einsatz trifft der Anwender auf Basis der
+   Entscheidungsvorlage.
+
 ---
 
 ## 3. Explorations- und Prüfplan

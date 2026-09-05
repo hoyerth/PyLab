@@ -12,13 +12,18 @@ Produktions-Baseline-Veränderung):
 
 0,45 %-SL bleibt ausschliesslich r_ref-Messung, nie Produktions-Stop.
 
-Verifikation (§2.14, zweistufiges Gate)
+Verifikation (§2.14/§2.15, zweistufiges Gate; re-arretiert nach
+Einheiten-Bereinigung D4-Ratchet, 05.09.2026)
 ---------------------------------------
 L1  Pipeline-Anker (Populationen): CONFIRMED / RAW gesamt (A/B) / RETEST je
-    Fenster AUG/S1/S2 - bitgenau gegen ``tmp_setup_c_zeitexit_*.txt``.
+    Fenster AUG/S1/S2. F3/CONFIRMED/RETEST sind bitgenau invariant; der
+    RAW-Split folgt der Ratchet-Korrektur (AUG 10 (2/8), S1 105 (38/67),
+    S2 76 (3/73)).
 L2  RAW-Cluster A unter Zeit-Exit N=48/N=96: Summen r_f4/r_ref, Exit-
-    Verteilung, Haltedauer, Rechts-Zensierung (E2) - bitgenau gegen die
-    arretierten Soll-Werte (§2.14-A; Referenz = Report ``KEIN_TRAILING``).
+    Verteilung, Haltedauer, Rechts-Zensierung (E2) - bitgenau gegen die am
+    05.09.2026 neu arretierten Soll-Werte (§2.14-A; Referenz = Report
+    ``KEIN_TRAILING``). Anlass: µs/ns-Einheiten-Bug in ``_kanten_reihe``
+    (statische Kante statt D4-Ratchet-Stufenfunktion), Fix dort dokumentiert.
 
 Der L2-Referenzlauf der Explorationsphase war suppression-frei (Reports
 ``tmp_setup_c_zeitexit_*.txt``, Schritt 4a). Die Produktion schaltet die
@@ -281,7 +286,8 @@ def _kanten_reihe(
     """Zeitlich gueltige Kante je Zeitstempel (D1/D4, Stufenfunktion).
 
     Args:
-        ts_arr: datetime64[ns]-Array der Ziel-Zeitstempel.
+        ts_arr: datetime64-Array der Ziel-Zeitstempel (us ODER ns; wird fuer
+            den searchsorted-Vergleich einheiten-bereinigt auf ns normiert).
         hist: U_hist/L_hist der Phase [(ts, value), ...] - aufsteigend.
         fallback: Kante, falls hist vor dem Zielzeitpunkt noch leer ist.
             D4: strikt der erste hist-Wert der EIGENEN Scan-Richtung
@@ -294,7 +300,13 @@ def _kanten_reihe(
         return np.full(len(ts_arr), fallback, dtype=float)
     hist_ts = np.array([t.value for t, _ in hist], dtype="int64")
     hist_val = np.array([v for _, v in hist], dtype=float)
-    pos = np.searchsorted(hist_ts, ts_arr.astype("int64"), side="right") - 1
+    # Einheiten-Bereinigung D4-Ratchet: hist_ts liegt in ns
+    # (pd.Timestamp.value), ts_arr aus df["ts"].values kann datetime64[us]
+    # sein (DuckDB/pandas >= 2.x) -> ohne Normalisierung auf ns wuerde
+    # searchsorted alle Positionen auf -1 stellen (statische Kante = erster
+    # hist-Wert statt zeitlich gueltiger Ratchet-Stufenfunktion).
+    ts_ns = ts_arr.astype("datetime64[ns]").astype("int64")
+    pos = np.searchsorted(hist_ts, ts_ns, side="right") - 1
     out = np.where(pos >= 0, hist_val[np.clip(pos, 0, len(hist_val) - 1)], fallback)
     return out.astype(float)
 
@@ -985,10 +997,10 @@ def bericht_fenster(fenster: str, cfg: TrendConfig) -> str:
         txt.append("")
 
     txt.append(linie)
-    txt.append("VERIFIKATIONSANKER (erwartet, §2.14):")
+    txt.append("VERIFIKATIONSANKER (erwartet, §2.14 nach Einheiten-Bereinigung D4-Ratchet):")
     txt.append(
-        f"  L1: AUG 11/11/10(0/10)/3 | S1 138/138/110(35/75)/59 | "
-        f"S2 61/61/78(5/73)/18  ->  aktuelles Fenster {fenster}: "
+        f"  L1: AUG 11/11/10(2/8)/3 | S1 138/138/105(38/67)/59 | "
+        f"S2 61/61/76(3/73)/18  ->  aktuelles Fenster {fenster}: "
         f"{n_f3}/{pop_conf}/{len(pop_raw)}({pop_a}/{pop_b})/{pop_retest}"
     )
     txt.append(linie)

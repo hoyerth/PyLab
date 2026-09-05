@@ -1,6 +1,6 @@
 # Setup C: Trendfolge, Sägezahn-Expansion & Ausbruchs-Engine
 
-> **Status:** Schritte 1–4b + Schritt 4 abgeschlossen (B1–B4 §2.5, C1–C5 §2.7, D1–D5 §2.9, H1–H4 §2.11, W1–W4 §2.12, Produktions-Blueprint §2.13, 05.09.2026); 274R-Artefakt eliminiert; F4+Zeit-Exit schlägt Stufen-Trailing in 16/18 Zellen; 1-Close-Vorteil Whipsaw-korrigiert (S1 N48 +18,2R → Netto +1,8R); **Schritt 4 abgeschlossen — Entscheidungsvorlage arretiert (Phase-1-Kern RAW-A + F4 + Zeit-Exit 48/96 + Suppression; Regime-Schalter = Stufe-5-Validierungs-Rückstellung) — Übergabe an Entwicklungsphase (`scripts/setup_c_profil.py`)** — **Entwicklungs-Schritt 1 verankert (§2.14: Acceptance-Gates L1/L2 + Architektur-Beschlüsse)** — **Phase 1 abgeschlossen & produktionsreif (§2.15: L1/L2-Gate bitgenau bestanden über AUG/S1/S2, Abnahmeprotokoll; `scripts/market_segmentation.py` + `scripts/setup_c_profil.py` committet)** — Baseline unverändert.
+> **Status:** Schritte 1–4b + Schritt 4 abgeschlossen (B1–B4 §2.5, C1–C5 §2.7, D1–D5 §2.9, H1–H4 §2.11, W1–W4 §2.12, Produktions-Blueprint §2.13, 05.09.2026); 274R-Artefakt eliminiert; F4+Zeit-Exit schlägt Stufen-Trailing in 16/18 Zellen; 1-Close-Vorteil Whipsaw-korrigiert (S1 N48 +18,2R → Netto +1,8R); **Schritt 4 abgeschlossen — Entscheidungsvorlage arretiert (Phase-1-Kern RAW-A + F4 + Zeit-Exit 48/96 + Suppression; Regime-Schalter = Stufe-5-Validierungs-Rückstellung) — Übergabe an Entwicklungsphase (`scripts/setup_c_profil.py`)** — **Entwicklungs-Schritt 1 verankert (§2.14: Acceptance-Gates L1/L2 + Architektur-Beschlüsse)** — **Phase 1 abgeschlossen & produktionsreif (§2.15: L1/L2-Gate bitgenau bestanden über AUG/S1/S2, Abnahmeprotokoll; `scripts/market_segmentation.py` + `scripts/setup_c_profil.py` committet)** — **Einheiten-Bereinigung D4-Ratchet (05.09.2026): µs/ns-Bug in `_kanten_reihe` beseitigt (statische Kante → zeitlich gültige Ratchet-Stufenfunktion); §2.13-D/§2.14/§2.15 re-arretiert — L1-F3/CONFIRMED/RETEST bitgenau unverändert, RAW-Split & L2 korrigiert (S1 N48 +22,81R / N96 +27,87R, n=38; S2 N48 +0,31R / N96 +0,98R, n=3; AUG erstmals n=2: +3,64R / −0,87R statt Vakuum)** — Baseline unverändert.
 > **Bezug:** `scripts/setup_c_profil.py` (neu anzulegen) auf Infrastruktur-Basis von `scripts/phasen_volumen_profil.py` (v0.4.0-baseline-frozen, unverändert).
 
 ---
@@ -293,7 +293,7 @@ Ausführung: `test/tmp_setup_c_whipsaw.py` (F1-Negativ-Spiegel `close[j+1] ≤ k
 
 | Säule | Entscheidung | Evidenz | Status |
 |---|---|---|---|
-| **1. Einstiegs-Matrix** | Primär **RAW-Cluster A** (Vorlauf ≤ 1, kausale Kante aus `U_hist`/`L_hist`, Volumen `shift(1)`); **RAW-Cluster B** zurückgestellt; **RETEST** optional; **1-Close** und **2-Close-CONFIRMED** nicht in Phase 1 | D3: RAW-A S1 **+20,85R @48** (35 T, mean 0,60R, WR 51 %, PF 2,42, r_ref +72,88), S2 +0,39/+1,92 (n=5, nie stark negativ); D4/C4: 2-Close S1 strukturell negativ; W2: 1-Close-Netto nur mit Suppression | arretiert (Phase 1) |
+| **1. Einstiegs-Matrix** | Primär **RAW-Cluster A** (Vorlauf ≤ 1, kausale Kante aus `U_hist`/`L_hist`, Volumen `shift(1)`); **RAW-Cluster B** zurückgestellt; **RETEST** optional; **1-Close** und **2-Close-CONFIRMED** nicht in Phase 1 | D3 (Ratchet-bereinigt 05.09.2026, §2.13-D): RAW-A S1 **+22,81R @48** (38 T, mean 0,60R, WR 50 %, PF 2,34, r_ref +71,77), N96 +27,87R; S2 +0,31/+0,98 (n=3, nie stark negativ); AUG n=2 (+3,64/−0,87); D4/C4: 2-Close S1 strukturell negativ; W2: 1-Close-Netto nur mit Suppression | arretiert (Phase 1) |
 | **2. Stop-/Exit-Architektur** | **F4-Struktur-Stop intrabar** (`min(Struktur, Kante) − 0.15`) + **terminaler Zeit-Exit** N=48 (S1/AUG) bzw. N=96 (S2); **kein Stufen-Trailing**; `RECHTS_ZENSIERT` strikt isoliert | B1: F4 eliminiert 55 % Früh-Shakeout; D2: F4+Zeit-Exit schlägt Ratsche in **16/18 Zellen** (Trailing kostet bis 38R); D1: 274R-Phantom geplatzt; E2 | arretiert |
 | **3. Risikoschutz** | **Phasenlokale Open-Position-Suppression** (obligatorisch); F4-Stop begrenzt Verlierer auf −1R | W2: ohne Suppression S1 N48 **−20,08R** (Kontenruin durch Adjazenz-Pyramidisierung) | arretiert (Pflicht) |
 | **4. Validierungs-Gates** | Regime-Klassifikation = **Stufe-5-Arbeitspaket**, nicht Phase 1; Schwellenwert nicht vorschnell arretieren | D3/W4: S1-vs-S2-Kontrast extrem (RAW-B S1 +36R vs. S2 −12R; Whipsaws S1 −16R vs. S2 +4R) — aber nur 2 Fenster-Jahre | **Validierungs-Rückstellung** |
@@ -302,7 +302,7 @@ Ausführung: `test/tmp_setup_c_whipsaw.py` (F1-Negativ-Spiegel `close[j+1] ≤ k
 
 | Arm / Variante | Phase 1 | Begründung (Evidenz) |
 |---|---|---|
-| **RAW Cluster A** (Vorlauf ≤ 1) | **PRODUKTION** | Der „Fels": D3 S1 +20,85R @48 / +18,11R @96, mean 0,46–0,60R, WR 40–54 % über alle Horizonte; S2/AUG nie stark negativ. Frische Ausbrüche ≤ 1 Bar vor dem 2-Close-Bruch = dichtester legitimer Einstieg (B4). |
+| **RAW Cluster A** (Vorlauf ≤ 1) | **PRODUKTION** | Der „Fels": D3 (Ratchet-bereinigt 05.09.2026, §2.13-D) S1 +22,81R @48 / +27,87R @96 (n=38), mean 0,60–0,73R, WR 40–50 % über die Horizonte; S2 +0,31/+0,98 (n=3), AUG +3,64/−0,87 (n=2) — Niedrigfrequenz, nie stark negativ. Frische Ausbrüche ≤ 1 Bar vor dem 2-Close-Bruch = dichtester legitimer Einstieg (B4). |
 | RAW Cluster B (Vorlauf > 1) | **zurückgestellt** | Regime-toxisch S2 (−12,10/−12,49R @48/96 = der eigentliche S2-Verlierer), aber S1-Größtgewinner (+36R @96). Nur mit Regime-Filter (Stufe 5) bespielbar. |
 | 1-Close-CONFIRMED | **zurückgestellt** | W2: S1-Netto N48 +1,83R (90 % Erosion), N96 r_ref −10,75; nur mit Pflicht-Suppression. Im Trend-Regime stark (S2 Netto +14,0/+20,7R) → **Stufe-5-Kandidat für den Trend-Zweig**. |
 | 2-Close-CONFIRMED | **verworfen** | C4/D4: S1 unter jeder Exit-Architektur negativ (−7,3 bis −9,3R KT); kauft an b+2 die Erschöpfung. Als Negativ-Kontrolle dokumentiert. |
@@ -331,13 +331,13 @@ Ausführung: `test/tmp_setup_c_whipsaw.py` (F1-Negativ-Spiegel `close[j+1] ≤ k
 2. **Parameter-Robustheit:** Zeit-Exit-Übergang 48↔96, TOL=0,34, Puffer=0,15 — Sensitivitätsgitter auf frischen Daten.
 3. **Out-of-Sample-Validierung:** neues Datenfenster nach 2026-08-28 (Papier-/Forward-Test) vor Live-Schaltung.
 
-**D. Konsolidierte Referenzzahlen der Phase-1-Basislinie** (RAW-Cluster A, KT + Zeit-Exit, F4-R-Basis)
+**D. Konsolidierte Referenzzahlen der Phase-1-Basislinie** (RAW-Cluster A, KT + Zeit-Exit, F4-R-Basis; **nach Einheiten-Bereinigung D4-Ratchet µs/ns, 05.09.2026** — zuvor lief der searchsorted-Vergleich in `_kanten_reihe` durch den `datetime64[us]`-vs-`ns`-Mismatch auf −1 = statische Kante statt zeitlich gültiger Ratchet)
 
 | Fenster | N=48 sum r_f4 (r_ref) | N=96 sum r_f4 (r_ref) | n | mean/WR/PF @48 |
 |---|---|---|---|---|
-| S1 | **+20,85** (+72,88) | +18,11 | 35 | 0,60R / 51 % / 2,42 |
-| S2 | +0,39 | +1,92 | 5 | klein, nie stark negativ |
-| AUG | — (kein Cluster A im Fenster) | — | 0 | nur Cluster B (n=10) |
+| S1 | **+22,81** (+71,77) | **+27,87** | 38 | 0,60R / 50 % / 2,34 |
+| S2 | +0,31 (+1,50) | +0,98 (+3,56) | 3 (1 zens.) | Niedrigfrequenz, nie stark negativ |
+| AUG | +3,64 (+8,59) | −0,87 (−1,86) | 2 | Niedrigfrequenz (N96: Shakeout-/Whipsaw-Risiko langer Haltezeiten im Sommer-Rauschen) |
 
 **Zum Vergleich (GESAMT aller Arme, KT):** AUG N48 +14,57R, S1 N48 +49,25R, S2 N48 +2,02R / N96 +8,67R (D1-Tabelle) — die Gesamt-Summe ist durch RAW-B (S1) bzw. die Arm-Mischung getragen; Phase-1-Kern bleibt konservativ RAW-A.
 
@@ -351,13 +351,15 @@ Ausführung: `test/tmp_setup_c_whipsaw.py` (F1-Negativ-Spiegel `close[j+1] ≤ k
 
 Die Verifikation des Shared-Utility `scripts/market_segmentation.py` und des Profil-Skripts `scripts/setup_c_profil.py` erfolgt ausschließlich gegen die nachfolgend arretierten Soll-Werte. Quelle: Reports `test/tmp_setup_c_zeitexit_{AUG,S1,S2}.txt` (Schritt 4a; Produktions-Exit-Konfiguration `KEIN_TRAILING` = F4 intrabar + terminaler Zeit-Exit, vgl. §2.13-C). Alle Verifikationsanker der Schritte 2–4a wurden bitgenau bestanden.
 
+**Einheiten-Bereinigung D4-Ratchet (µs/ns, 05.09.2026):** Die Soll-Werte wurden nach dem Fix des Einheiten-Vergleichs in `_kanten_reihe` (`scripts/setup_c_profil.py`) **neu arretiert** — zuvor lief `searchsorted` durch den Mismatch `datetime64[us]` (Ziel-Array aus DuckDB) vs. `ns` (`pd.Timestamp.value` der Historie) auf Position −1 (statische Kante = erster hist-Wert statt zeitlich gültiger Ratchet-Stufenfunktion). Neue Quelle: Reports `reports/setup_c/setup_c_{AUG,S1,S2}.txt` (Wiederholungslauf `python -m scripts.setup_c_profil --fenster=ALLE`, 05.09.2026). **L1-Anker F3/CONFIRMED/RETEST sind bitgenau unverändert**; geändert haben sich der RAW-Gesamt-Split (A/B) und sämtliche L2-Kennzahlen (AUG weist erstmals n=2 Cluster-A-Trades statt Vakuum auf).
+
 **L1 – Pipeline-Anker (Struktur/Selektion, zählende Verifikation):** Die Signal-Population des Replays muss die arretierten Zahlen reproduzieren, bevor irgendeine R-Performance gemessen wird.
 
 | Fenster | F3-Brüche | CONFIRMED | RAW gesamt (A / B) | RETEST |
 |---|---|---|---|---|
-| AUG | 11 | 11 | 10 (0 / 10) | 3 |
-| S1 | 138 | 138 | 110 (35 / 75) | 59 |
-| S2 | 61 | 61 | 78 (5 / 73) | 18 |
+| AUG | 11 | 11 | 10 (2 / 8) | 3 |
+| S1 | 138 | 138 | 105 (38 / 67) | 59 |
+| S2 | 61 | 61 | 76 (3 / 73) | 18 |
 
 **L2 – RAW-Cluster A (Σr_f4, Σr_ref, Exit-Verteilung, Haltedauer):** Der Produktions-Kern (§2.13: RAW-A Vorlauf ≤ 1, F4 intrabar, Zeit-Exit, ohne Trailing) muss je Horizont die folgenden Kennzahlen reproduzieren.
 
@@ -365,16 +367,17 @@ Horizont N=48 (S1/AUG-Betrieb):
 
 | Fenster | n (zensiert) | Σr_f4 | Σr_ref | Exit F4 / ZEIT | Haltedauer Ø |
 |---|---|---|---|---|---|
-| S1 | 35 (0) | **+20,85** | **+72,88** | 13 / 22 | 37 |
-| AUG | 0 (0) | – | – | – | – |
-| S2 | 5 (1) | +0,39 | +3,24 | 2 / 2 | 30 |
+| S1 | 38 (0) | **+22,81** | **+71,77** | 15 / 23 | 35 |
+| AUG | 2 (0) | +3,64 | +8,59 | 0 / 2 | 48 |
+| S2 | 3 (1) | +0,31 | +1,50 | 1 / 1 | 32 |
 
 Horizont N=96 (Trend-Betrieb):
 
 | Fenster | n (zensiert) | Σr_f4 | Σr_ref | Exit F4 / ZEIT | Haltedauer Ø |
 |---|---|---|---|---|---|
-| S1 | 35 (0) | **+18,11** | **+40,99** | 17 / 18 | 64 |
-| S2 | 5 (1) | +1,92 | +8,16 | 2 / 2 | 54 |
+| S1 | 38 (0) | **+27,87** | **+55,17** | 20 / 18 | 60 |
+| AUG | 2 (0) | −0,87 | −1,86 | 1 / 1 | 89 |
+| S2 | 3 (1) | +0,98 | +3,56 | 1 / 1 | 56 |
 
 **Toleranz:** Ziel **bitgenau**; harte Fail-Obergrenze **±0,05R** je Σr-Spalte (Σr_f4 und Σr_ref). Zensierte Positionen (`RECHTS_ZENSIERT`, §2.8/E2) bleiben strikt isoliert (r=NaN) und zählen weder in n noch in Σr – identisch zur Schritt-4a-Referenz.
 
@@ -384,7 +387,7 @@ Horizont N=96 (Trend-Betrieb):
 2. **Profil-Skript `scripts/setup_c_profil.py`:** Implementiert den arretierten Phase-1-Kern (§2.13-C): RAW-Cluster A (Vorlauf ≤ 1) + F4-Stop intrabar (Puffer 0,15 USD) + terminaler Zeit-Exit 48/96 + phasenlokale Open-Position-Suppression; 0,45 %-SL ausschließlich als r_ref-Messung (nie Produktions-Stop).
 3. **Ausgabeordner `reports/setup_c/`:** Konfigurierbarer Default in der jeweiligen Config. Phase 1 = **Text-Export only** (Console + `.txt` + maschinenlesbarer Trade-Block); Charts nachgelagert.
 
-### 2.15 Entwicklungs-Schritt 4: Phase-1-Abnahmeprotokoll L1/L2 (Gate bitgenau bestanden, 05.09.2026)
+### 2.15 Entwicklungs-Schritt 4: Phase-1-Abnahmeprotokoll L1/L2 (Gate bitgenau bestanden; Re-Arretierung nach Einheiten-Bereinigung D4-Ratchet, 05.09.2026)
 
 **A. Ausführung**
 
@@ -396,13 +399,21 @@ python -m scripts.setup_c_profil --fenster=ALLE
 
 Pipeline: `load_data` (DuckDB `read_only`) → `segmentiere_markt` (`scripts/market_segmentation.py`, Shared-Utility) → Signal-Erfassung RAW-A (`_erfasse_raw`, D4-kausal: nur `U_hist`/`L_hist`, Scan ab erstem hist-Eintrag, kein Kreuz-Fallback) → Simulationskern F4 intrabar + terminaler Zeit-Exit 48/96 (`_simuliere_kern`, E1/E2, Stop-Vorrang) → phasenlokale F3-Suppression Key `(phase, dir)` → Aggregation (`_agg_block`, E2: Zensierte strikt isoliert) → Text-/TSV-Export `reports/setup_c/`.
 
+**Anlass der Re-Arretierung (Einheiten-Bereinigung D4-Ratchet, µs/ns):** Diagnose `test/tmp_diag_kanten_delta.txt` wies nach, dass `_kanten_reihe` Ziel-Zeitstempel aus `df["ts"].values` (`datetime64[us]`) unnormalisiert gegen die ns-basierte `pd.Timestamp.value`-Historie verglich → `searchsorted` lieferte durchgehend −1 → die Kante fror auf dem ersten hist-Wert ein (statische Kante) statt als zeitlich gültige Ratchet-Stufenfunktion zu laufen. Nach dem Fix (beidseitige ns-Normalisierung in `_kanten_reihe`) wurde der formale Wiederholungslauf ausgeführt:
+
+```
+python -m scripts.setup_c_profil --fenster=ALLE
+```
+
+Ergebnis: L1-F3/CONFIRMED/RETEST **bitgenau invariant**; RAW-Gesamt/A-B-Split und L2-Kennzahlen re-arretiert (AUG weist mit n=2 erstmals Cluster-A-Trades statt des bisher dokumentierten Vakuums auf — Niedrigfrequenz analog S2 n=3, keine Gate-Mapping-Verbiegung).
+
 **B. L1-Pipeline-Anker — Soll vs. Ist (bitgenau)**
 
 | Fenster | F3-Brüche Soll / Ist | CONFIRMED Soll / Ist | RAW gesamt (A/B) Soll / Ist | RETEST Soll / Ist | Ergebnis |
 |---|---|---|---|---|---|
-| AUG | 11 / 11 | 11 / 11 | 10 (0/10) / 10 (0/10) | 3 / 3 | ✅ bitgenau |
-| S1 | 138 / 138 | 138 / 138 | 110 (35/75) / 110 (35/75) | 59 / 59 | ✅ bitgenau |
-| S2 | 61 / 61 | 61 / 61 | 78 (5/73) / 78 (5/73) | 18 / 18 | ✅ bitgenau |
+| AUG | 11 / 11 | 11 / 11 | 10 (2/8) / 10 (2/8) | 3 / 3 | ✅ bitgenau |
+| S1 | 138 / 138 | 138 / 138 | 105 (38/67) / 105 (38/67) | 59 / 59 | ✅ bitgenau |
+| S2 | 61 / 61 | 61 / 61 | 76 (3/73) / 76 (3/73) | 18 / 18 | ✅ bitgenau |
 
 **C. L2 RAW-Cluster A — Soll vs. Ist (Null-Delta, ±0,05R-Toleranz eingehalten)**
 
@@ -410,18 +421,19 @@ Horizont N=48 (S1/AUG-Betrieb):
 
 | Fenster | n (zensiert) Soll / Ist | Σr_f4 Soll / Ist | Σr_ref Soll / Ist | Exit F4/ZEIT Soll / Ist | HD Ø Soll / Ist | Δ |
 |---|---|---|---|---|---|---|
-| S1 | 35 (0) / 35 (0) | **+20,85** / **+20,85** | **+72,88** / **+72,88** | 13/22 / 13/22 | 37 / 37 | 0,00R |
-| AUG | 0 (0) / 0 (0) | – / – | – / – | – / – | – / – | – (kein Cluster A) |
-| S2 | 5 (1) / 5 (1) | +0,39 / +0,39 | +3,24 / +3,24 | 2/2 / 2/2 | 30 / 30 | 0,00R |
+| S1 | 38 (0) / 38 (0) | **+22,81** / **+22,81** | **+71,77** / **+71,77** | 15/23 / 15/23 | 35 / 35 | 0,00R |
+| AUG | 2 (0) / 2 (0) | +3,64 / +3,64 | +8,59 / +8,59 | 0/2 / 0/2 | 48 / 48 | 0,00R |
+| S2 | 3 (1) / 3 (1) | +0,31 / +0,31 | +1,50 / +1,50 | 1/1 / 1/1 | 32 / 32 | 0,00R |
 
 Horizont N=96 (Trend-Betrieb):
 
 | Fenster | n (zensiert) Soll / Ist | Σr_f4 Soll / Ist | Σr_ref Soll / Ist | Exit F4/ZEIT Soll / Ist | HD Ø Soll / Ist | Δ |
 |---|---|---|---|---|---|---|
-| S1 | 35 (0) / 35 (0) | **+18,11** / **+18,11** | **+40,99** / **+40,99** | 17/18 / 17/18 | 64 / 64 | 0,00R |
-| S2 | 5 (1) / 5 (1) | +1,92 / +1,92 | +8,16 / +8,16 | 2/2 / 2/2 | 54 / 54 | 0,00R |
+| S1 | 38 (0) / 38 (0) | **+27,87** / **+27,87** | **+55,17** / **+55,17** | 20/18 / 20/18 | 60 / 60 | 0,00R |
+| AUG | 2 (0) / 2 (0) | −0,87 / −0,87 | −1,86 / −1,86 | 1/1 / 1/1 | 89 / 89 | 0,00R |
+| S2 | 3 (1) / 3 (1) | +0,98 / +0,98 | +3,56 / +3,56 | 1/1 / 1/1 | 56 / 56 | 0,00R |
 
-Zensierte Positionen (`RECHTS_ZENSIERT`, S2 je Horizont 1) strikt isoliert (r=NaN), zählen weder in n_gewertet noch in Σr — identisch zur Schritt-4a-Referenz (§2.8/E2). Harte Fail-Obergrenze **±0,05R** je Σr-Spalte: **Null-Delta unterschreitet die Toleranz.**
+Zensierte Positionen (`RECHTS_ZENSIERT`, S2 je Horizont 1) strikt isoliert (r=NaN), zählen weder in n_gewertet noch in Σr — identisch zur Schritt-4a-Referenz (§2.8/E2). Harte Fail-Obergrenze **±0,05R** je Σr-Spalte: **Null-Delta unterschreitet die Toleranz.** AUG (n=2, 0 zensiert) ist unter der korrigierten Ratchet kein Vakuum mehr; die Niedrigfrequenz-Lage (analog S2 n=3) wird dokumentiert, das Gate-Mapping bleibt unverbogen.
 
 **D. Suppression-Nachweis (F3, Key `(phase, dir)`)**
 
@@ -431,8 +443,209 @@ Zensierte Positionen (`RECHTS_ZENSIERT`, S2 je Horizont 1) strikt isoliert (r=Na
 
 - Reports (generiert, bewusst **nicht versioniert** — deterministisch reproduzierbar): `reports/setup_c/setup_c_{AUG,S1,S2}.txt` + `setup_c_trades_{AUG,S1,S2}.tsv`
 - Commits (3, atomar, Reihenfolge): ① `feat` `scripts/market_segmentation.py` (Shared-Utility), ② `feat` `scripts/setup_c_profil.py` (Phase-1-Kern), ③ `docs` §2.15/§3/§4 (Gate-Abschluss)
+- **Nachbereinigung 05.09.2026 (Einheiten-Bereinigung D4-Ratchet, µs/ns):** atomarer Fix-Commit `scripts/setup_c_profil.py` (ns-Normalisierung in `_kanten_reihe` + Text-Anker/Docstring) + `docs/setup_c_experiment.md` (§2.13-D/§2.14/§2.15/Header/§3/§4) — Reports `reports/setup_c/setup_c_{AUG,S1,S2}.txt/.tsv` erneut überschrieben (unversioniert, deterministisch).
 - Produktions-Baseline `scripts/phasen_volumen_profil.py` (+297,14R, v0.4.0-frozen): **unverändert**
 - Stufe-5-Roadmap (Regime-Klassifikation, Parameter-Robustheit, OOS-Validierung, §2.13-C): eigenständige Folge-Session
+
+### 2.16 Stufe 5: Regime-Klassifikation & Out-of-Sample-Validierung (Entwurf in Vorbereitung, 05.09.2026)
+
+**Status:** Konzeptions-/Explorationsphase. Noch KEINE Stufe-5-Code-Datei committet. Phase-1-Kern
+`scripts/setup_c_profil.py` wurde am 05.09.2026 nach der Einheiten-Bereinigung D4-Ratchet
+(µs/ns-Fix in `_kanten_reihe`) re-arretiert (§2.14/§2.15, Fix-Commit) und bleibt in dieser
+Fassung eingefroren; `scripts/regime_filter.py` (Stufe-5-Entwurf) ist untracked, kein Commit.
+
+#### A. Architektur-Doktrin & Anti-Kontaminations-Regeln
+
+1. **Plateau-Doktrin (kein Curve-Fitting):** Schwellenwerte werden NICHT als isolierte Punkt-Optima
+   kalibriert. Jede Schwelle wird über eine definierte Sweep-Spanne als Response-Kurve ausgewertet;
+   robust ist ausschließlich ein breites Plateau stabiler Ergebnisse. Kippt die Performance bei einer
+   Parametervariation von ±10–20 % von profitabel auf ruinös (steile Klippe), gilt der Kandidat als
+   verworfen — unabhängig von der Höhe des Punkt-Optimums.
+2. **One-Shot-Holdout-Regel:** Jede OOS-Zone wird exakt EINMAL ausgewertet. Wird eine Zone zur
+   Nachkalibrierung herangezogen, verliert sie ihren OOS-Status unwiderruflich und muss durch eine
+   weitere, unberührte Zone ersetzt werden (sonst verdecktes In-Sample-Tuning).
+3. **Drei-Schichten-Architektur:** (1) **Zustands-Schätzer** mit Struktur-/Volatilitätsmetriken
+   (Option B, primär) + Preis-Momentum-Benchmark (Option A, vergleichend); (2) **Entscheidungs-Gate**
+   (Option C) mit Hysterese/Totzone; (3) **Validierung** gegen die OOS-Zonen. Keine Vermischung der
+   Schichten.
+4. **Modul-Isolation:** Sämtliche Klassifikations- und Gate-Logik wird ausschließlich im separaten
+   Modul `scripts/regime_filter.py` implementiert. `scripts/setup_c_profil.py` bleibt byte-identisch
+   unberührt; Integration erst nach bestandenem Gate-Test als optionaler Parameter (Default `None` =
+   identischer Phase-1-Pfad).
+5. **Kausalität:** Alle Regime-Metriken werden je Phase ausschließlich aus Daten bis zum
+   Phasen-Ende/`brk_idx` berechnet (kein Lookahead über die Phasengrenze hinaus) — analog zur
+   D4-Kantenreferenz der Signal-Erfassung.
+6. **Daten-Grenze:** Daten vor 2017-03 sind wegen unzureichender M15-Liquiditätsdichte
+   (18–25 Bars/Monat, Scan-Beleg 05.09.2026) formal von der Mikrostruktur-/Regime-Analyse
+   ausgeschlossen. Erst ab 2017-03 liegt kontinuierliche M15-Dichte vor (~1.750–2.120 Bars/Monat).
+
+#### B. OOS-Zonen (bereinigt, Ende-exklusiv gemäß `load_data`-Konvention)
+
+| Zone | Zeitraum | Status | Reinheit / Befund |
+|---|---|---|---|
+| In-Sample-Referenz | S1: 2026-02-05 .. 2026-08-28; S2: 2025-01-01 .. 2025-12-01 | arretiert (Phase-1-Gate §2.15) | Kalibrierungs-Basis der Phase-1-Populationen |
+| **Historischer Makro-Holdout** | **2024-01-01 .. 2024-12-31** | **freigegeben** | **Clean-Befund 05.09.2026:** Volle M15-Dichte (1.831–2.119 Bars/Monat); Volltext-Prüfung über `docs/`, `test/`, SESSION-Dateien ergab **keine** Strategie-/Tuning-Berührung 2024-01..11. Einzige Ausnahme: 2024-12-Warmup-Zeile im Monats-Regime-Kontrast (nur Tages-Indikatoren für S2-Start, 0 Trades) — für den Ganzjahres-Holdout irrelevant. SILVER_LONG-Stresstest (QS-8.1) lief 2025-02-05..2026-08-29, nicht über 2024. |
+| Stress-Holdout | 2025-12-01 .. 2026-02-05 | arretiert | Unberührter Stress (Squeeze/Flash-Crash, winterlich dünn): Prüfung auf rechtzeitiges Umschalten auf SHAKEOUT/UNKLAR und Schutzerhalt. Lückenlos an S1-Start anschließend (Ende-exklusiv). |
+| Forward-OOS | nach 2026-08-28 | **Meilenstein nach SILVER-Daten-Update** | Scan-Beleg 05.09.2026: `max(ts)=2026-08-28 22:45`, **0 Bars** im Sept. 2026 für SILVER M15. Keine Auswertung auf leerem Fenster. Erst nach DB-Refresh (SILVER ≥ 04.09.2026) als einmaliger Blind-Test scharf. |
+
+#### C. Typisierte Datenverträge (Entwurf für `scripts/regime_filter.py`)
+
+```python
+from dataclasses import dataclass
+from typing import Literal, Tuple
+
+RegimeName = Literal["TREND", "SHAKEOUT", "UNKLAR"]
+FensterName = Literal["AUG", "S1", "S2"]
+
+
+@dataclass(frozen=True, slots=True)
+class RegimeMetricConfig:
+    """Feste mathematische Lookbacks/Perioden der Regime-Messung (B primaer).
+
+    Traegt ausschliesslich Berechnungs-Parameter. Schwellenwerte leben NICHT
+    hier, sondern in RegimeSweepConfig (nicht-arretierte Sweep-Spannen).
+    """
+
+    # Struktur-/Volatilitaetsmetriken (Option B - Primaer)
+    konsolidierung_min_bars: int = 46  # Untergrenze (deckungsgleich MIN_PHASE_CANDLES)
+    tol_band_messfenster_bars: int = 16  # TOLBAND-Quote-Fenster (F7-Semantik)
+    atr_periode: int = 14  # ATR-Basis fuer Spread-Normalisierung
+    durchstoss_fenster_bars: int = 46  # Dichte-Fenster
+    tol: float = 0.34  # 2-Close-Toleranz (muss == SegmentConfig.tol der Segmentierung)
+
+    # Benchmark-Arm (Option A - vergleichend)
+    ema_periode: int = 20
+    adx_periode: int = 14
+    ema_slope_lookback: int = 5  # Slope-Differenz ueber m Bars (m * ATR_k-Norm)
+
+
+@dataclass(frozen=True, slots=True)
+class RegimeSweepConfig:
+    """Sweep-Spannen (min, max, step) fuer Response-Kurven (Plateau-Doktrin).
+
+    Explizit KEINE arretierten Schwellen: Jede Schwelle wird ueber die volle
+    Spanne gesweept; robust ist nur ein breites Plateau. Die Defaults sind
+    Hypothesen-Startwerte (u.a. §2.13-C: ema_slope_threshold=0.001 als
+    Hypothese, nicht kalibriert).
+    """
+
+    tol_band_quote: Tuple[float, float, float] = (0.30, 0.70, 0.05)
+    atr_expansion_mult: Tuple[float, float, float] = (0.80, 1.60, 0.10)
+    durchstoss_dichte: Tuple[float, float, float] = (0.02, 0.10, 0.01)
+    konsolidierung_bars: Tuple[int, int, int] = (20, 80, 10)
+    ema_slope: Tuple[float, float, float] = (0.0005, 0.0020, 0.0001)
+    adx_schwelle: Tuple[float, float, float] = (15.0, 35.0, 2.5)
+
+
+@dataclass(frozen=True, slots=True)
+class RegimeGateConfig:
+    """Hysterese- und Fallback-Parameter des Entscheidungs-Gates (Option C)."""
+
+    hysterese_puffer: float = 0.05  # relative Hysterese um Regime-Grenze
+    kaltstart_min_bars: int = 46  # unterhalb: immer UNKLAR (Kaltstart)
+    fallback_horizont: int = 48  # UNKLAR/Kaltstart -> strikt N=48
+    fallback_nur_raw_a: bool = True  # UNKLAR/Kaltstart -> nur RAW-Cluster A
+
+
+@dataclass(slots=True)
+class RegimeState:
+    """Vollstaendiger, typisierter Metrik-Vektor einer Phase.
+
+    Kein untypisiertes Auffangbecken (details:str entfaellt ersatzlos). Alle
+    Rohwerte werden typisiert gefuehrt, damit Sweeps deterministisch und ohne
+    String-Parsing auswertbar sind. regime/konfidenz sind abgeleitete Felder
+    mit defensivem Default (UNKLAR = Konto-Verteidigung).
+
+    Kausalitaet: Der Vektor ist zum Zeitpunkt ``brk_idx`` (2-Close-Bruch der
+    Phase) vollstaendig feststehend - kein Lookahead ueber die Phasengrenze.
+    """
+
+    phase_nr: int  # 1-basiert ueber echte Bruch-Phasen (Join zu setup_c_profil)
+    brk_idx: int  # Bar-Index des 2-Close-Bruchs (Zeitanker, kausal)
+    phase_spread_usd: float  # U_brk - L_brk (kausal, USD)
+    phase_spread_atr_ratio: float  # Spread / ATR (regime-normalisiert)
+    durchstoss_dichte: float  # Breakout-Versuche pro Bar im Fenster
+    tol_band_quote: float  # TOLBAND-Anteil an Fehlausbruechen (0..1)
+    konsolidierung_bars: int  # Konsolidierungsdauer (Bars)
+
+    # Benchmark-Arm (Option A - vergleichend)
+    ema_slope: float  # EMA20-Slope (normalisiert)
+    adx_val: float  # ADX(adx_periode)
+
+    # Abgeleitete Klassifikation (Default: defensiv)
+    regime: RegimeName = "UNKLAR"
+    konfidenz: float = 0.0  # 0..1, Abstand zur Regime-Grenze (Hysterese)
+
+
+@dataclass(slots=True)
+class RegimeGate:
+    """Aus RegimeState abgeleitete Freigaben (Laufzeit-Objekt, nicht frozen).
+
+    Mapping (arretierte Logik §2.13-C / Stufe-5-Beschluss):
+      TREND    -> RAW-Cluster B + 1-Close freigegeben, Ziel-Horizont 96
+      SHAKEOUT -> nur RAW-A, Ziel-Horizont 48
+      UNKLAR (inkl. Kaltstart) -> strikt N=48 und nur RAW-A (Konto-Verteidigung)
+    """
+
+    phase_nr: int  # Join-Schluessel zu RegimeState/setup_c_profil
+    regime: RegimeName
+    erlaube_raw_cluster_b: bool
+    erlaube_one_close: bool
+    ziel_horizont: int
+```
+
+#### D. Gate-Mapping (defensiv, arretierte Logik)
+
+| RegimeState.regime | erlaube_raw_cluster_b | erlaube_one_close | ziel_horizont | Begründung |
+| --- | --- | --- | --- | --- |
+| TREND | ✅ | ✅ | 96 | Trend-Regime: offensive Hebel (S2-Evidenz: 1-Close/RAW-B, W4/D3) |
+| SHAKEOUT | ❌ | ❌ | 48 | Stop-Räumung: nur Phase-1-Kern RAW-A (S1-Schutz) |
+| UNKLAR / Kaltstart | ❌ | ❌ | 48 | Defensiver Fallback: Konto-Verteidigung, kein Experiment |
+
+Kaltstart-Definition: `konsolidierung_bars < RegimeGateConfig.kaltstart_min_bars` (46) oder nicht
+ausreichende Historie für ATR/EMA/ADX → `RegimeState` wird mit `regime="UNKLAR"`, `konfidenz=0.0`
+erzeugt. Das Gate erzwingt dann strikt `N=48` + RAW-A — identisch zum verifizierten Phase-1-Kern,
+reduziert auf den konservativen Horizont.
+
+#### E. Formel-Operationalisierung & Offene Punkte (Stand 05.09.2026)
+
+**Status:** Metrik-Definitionen fixiert und in `scripts/regime_filter.py` implementiert
+(Formel-Spezifikation + statische Code-Inspektion 05.09.2026). Die ursprünglichen Offenen
+Punkte 1–2 sind aufgelöst; nur Punkt 4 bleibt als OOS-Arbeitspaket offen.
+
+1. **Metrik-Definitionen (fixiert & verankert):**
+   - `phase_spread_usd = U_brk − L_brk` — **strikt kausal** über die D4-Stufenfunktion
+     `_kanten_werte` (hist-Einträge ≤ `ts_brk`, Mechanik wie `_kanten_reihe`); **nicht**
+     `U_final`/`L_final` (Regel-7-Finalize = Lookahead ersten Grades). Ein-Kanten-Kompression
+     oder Spread ≤ 0 → `NaN` → Kaltstart `UNKLAR`.
+   - `phase_spread_atr_ratio = phase_spread_usd / ATR₁₄[brk_idx]` (`NaN`, wenn ATR nicht endlich).
+   - `durchstoss_dichte` = Kanten-Kontakt-Bars (`high_k ≥ U_k` ∨ `low_k ≤ L_k`, OR je Bar,
+     **ohne** Volumen-Bedingung — F5 lebt im Einstiegs-Arm; hier zählt die Adjazenz-/Antast-
+     Frequenz) im inklusiven Fenster `[brk_idx−45, brk_idx]`, geteilt durch 46.
+   - `tol_band_quote` = Fakeout-Rate im inklusiven Fenster `[brk_idx−15, brk_idx]`; Versuch =
+     Kanten-Durchstich; Fakeout = Zwei-Bar-Verdict (Eigen-Close ≤ Kante+TOL oder Eigen-Close >
+     Kante+TOL und Folge-Close fällt zurück — gemessen an der Kante von Bar k, `k+1 ≤ brk_idx`
+     kausal legal). `brk_idx` zählt als Versuch, nie als Fakeout. Nenner = 0 → Quote = 0.0.
+   - `ema_slope = (EMA_k − EMA_{k−m}) / (m × ATR_k)`, `m = ema_slope_lookback = 5` —
+     ATR-normalisiert (dimensionslos über SILVER-Preisniveaus).
+   - Zusatzfelder `RegimeMetricConfig`: `tol: float = 0.34` (muss == `SegmentConfig.tol`),
+     `ema_slope_lookback: int = 5` (§2.16-C synchron).
+2. **Indikator-Approximationen (freigegeben 05.09.2026):**
+   - ADX-Wilder-Glättung via `ewm(alpha=1/n, adjust=False)` — mathematisch äquivalent zur
+     rekursiven Differenzengleichung `R_t = R_{t−1} + (X_t − R_{t−1})/n`; Initialwert-Differenz
+     (kein SMA-Seed) nach ~50 Bars asymptotisch null → für Sweeps/Plateaus irrelevant.
+   - `konsolidierung_bars = brk_idx − start_idx` (Index-Distanz der Liquiditätsakkumulation;
+     Segmentierer erzwingt `≥ min_phase_candles = 46` → Kaltstart-Schutz konsistent).
+3. **Klassifikationsregel (Status: Arbeitshypothese im Code, NICHT arretiert):**
+   `klassifiziere_regime` implementiert das Margen-Modell `s = m_trend − m_shake`
+   (min-Aggregation relativer Schwellen-Abstände, 0..1 geklemmt) mit Totzone
+   `±hysterese_puffer` und Vorregime-Halten gegen Flattern. Kaltstart/NaN → strikt
+   `UNKLAR`/`konfidenz=0.0`. **Arretiert ist ausschließlich das Gate-Mapping
+   `entscheide_gate` (§2.16-D)**; die Schwellen-Score-Gewichtung wird im OOS-Sweep kalibriert
+   (Plateau-Doktrin §2.16-A.1, One-Shot-Holdout §2.16-A.2).
+4. **Response-Kurven-Auswertung (Status: offen, OOS-Arbeitspaket):** Kennzahl-Definition
+   (Plateau-Breite, Klippen-Detektion) als Bestehenskriterium je Kandidat — Bestandteil des
+   OOS-Sweeps (One-Shot-Holdout §2.16-A.2).
 
 ---
 
@@ -446,10 +659,11 @@ Zensierte Positionen (`RECHTS_ZENSIERT`, S2 je Horizont 1) strikt isoliert (r=Na
 6. **Schritt 4b-Stufe 1 (1-Close-CONFIRMED `test/tmp_setup_c_1close.py`):** Einstiegs-Reparatur für das C4/D4-Defizit — **abgeschlossen** (G1–G5 + Datenvertrag in §2.10; Lauf AUG/S1/S2, Verifikationsanker bestanden, Befunde H1–H4 in §2.11, Reports `test/tmp_setup_c_1close_{AUG,S1,S2}.txt`). **Fazit Stufe 1:** 1-Close schlägt 2-Close in 6/6 Zellen (Δ r_ref bis +52R); S1-CONFIRMED rehabilitiert (−8,6R → +18,2R @48); SL-Delta nur 3–8 % → echter Timing-Vorteil. **G5-Stufe-2-Bedingung eingetreten.**
 7. **Schritt 4b-Stufe 2 (Whipsaw-Scan `test/tmp_setup_c_whipsaw.py`):** Gegenrechnung der 1-Close-Fehlausbrüche (Survivorship-Korrektur) — **abgeschlossen** (F1–F3 + Scope ratifiziert, Datenvertrag `WhipsawConfig`/`WhipsawResult`; Entwurf freigegeben; Lauf AUG/S1/S2, Verifikationsanker bitgenau [OK], Befunde W1–W4 in §2.12, Reports `test/tmp_setup_c_whipsaw_{AUG,S1,S2}.txt`). **Fazit Stufe 2:** 1-Close-Netto überlebt nur mit phasenlokaler Suppression (S1 N48 +18,2R → Netto +1,8R; ohne Suppression −20,1R); r_ref-Netto kippt bei N96 (−10,8); TOL_BAND-Forensik 49/53; S2-Whipsaws positiv → Regime-Klassifikation als Produktions-Schalter.
 8. **Entwicklungs-Schritte 1–4 (Phase-1-Implementierung `scripts/market_segmentation.py` + `scripts/setup_c_profil.py`):** — **abgeschlossen** (§2.14: Gates L1/L2 + Architektur-Beschlüsse; Shared-Utility als mechanische Extraktion der Baseline-Schleife, **kein `exec()` in Produktion**; Phase-1-Kern RAW-A + F4 intrabar + Zeit-Exit 48/96 + F3-Suppression `(phase, dir)`; Design-Review eliminierte D4-Kreuz-Fallback-/Lookahead-Risiko vor der ersten Ausführung; formaler Validierungslauf `python -m scripts.setup_c_profil --fenster=ALLE` — **L1/L2 bitgenau bestanden, Null-Delta**, Abnahmeprotokoll in §2.15). **Fazit:** Phase 1 produktionsreif; Übergabe an Stufe-5-Roadmap.
+9. **Einheiten-Bereinigung D4-Ratchet (Nachbereinigung Phase 1, 05.09.2026):** — **abgeschlossen** (µs/ns-Bug in `_kanten_reihe` von `scripts/setup_c_profil.py` beseitigt — `searchsorted` lief durch `datetime64[us]`-vs-`ns`-Mismatch auf −1 = statische Kante statt zeitlich gültiger Ratchet; Diagnose `test/tmp_diag_kanten_delta.txt` inkl. Trade-Ebenen-Join und Cluster-Migration; Wiederholungslauf `python -m scripts.setup_c_profil --fenster=ALLE`; §2.13-D/§2.14/§2.15 re-arretiert, Header/§4 aktualisiert). **Fazit:** L1-F3/CONFIRMED/RETEST bitgenau invariant; RAW-Split und L2 korrigiert (S1 N48 +22,81R/N96 +27,87R, n=38; S2 +0,31/+0,98, n=3; AUG n=2 statt Vakuum: +3,64/−0,87R); Fix-Commit atomar.
 
 ---
 
-**Abschluss (§3):** Alle Explorationsschritte 1–4b, der finale Prüfbericht (Schritt 4, §2.13) sowie die Entwicklungsphase (Schritte 1–4, §2.14/§2.15) sind **abgeschlossen**. Setup C ist als Phase-1-Kern arretiert, implementiert und **bitgenau gegen das L1/L2-Acceptance-Gate verifiziert** (§2.15). Offene Punkte (Regime-Klassifikation, Parameter-Robustheit, Out-of-Sample-Validierung) sind als **Stufe-5 / Pre-Production-Gate** in §2.13-C deklariert — sie sind nachgelagerte Arbeitspakete in einer eigenständigen Folge-Session, keine Blocker für die Phase-1-Produktion.
+**Abschluss (§3):** Alle Explorationsschritte 1–4b, der finale Prüfbericht (Schritt 4, §2.13) sowie die Entwicklungsphase (Schritte 1–4, §2.14/§2.15) sind **abgeschlossen**. Setup C ist als Phase-1-Kern arretiert, implementiert und **bitgenau gegen das L1/L2-Acceptance-Gate verifiziert** (§2.15) — nach der Einheiten-Bereinigung D4-Ratchet (µs/ns, 05.09.2026) erneut bitgenau bestanden und re-arretiert. Offene Punkte (Regime-Klassifikation, Parameter-Robustheit, Out-of-Sample-Validierung) sind als **Stufe-5 / Pre-Production-Gate** in §2.13-C deklariert — sie sind nachgelagerte Arbeitspakete in einer eigenständigen Folge-Session, keine Blocker für die Phase-1-Produktion.
 
 ---
 
@@ -479,3 +693,4 @@ Zensierte Positionen (`RECHTS_ZENSIERT`, S2 je Horizont 1) strikt isoliert (r=Na
 | 05.09.2026 | Entwicklungs-Schritt 2 (Design-Review `scripts/setup_c_profil.py`): D4-Kausalitätslücke im RAW-Scan entlarvt (Kreuz-Fallback `high >= L_final`, fehlende `scan_lo_dir`-Klemmung) + F3-Suppression auf Key `(phase, dir)` geschärft („derselben Richtung derselben Phase", §2.13-C) + Code-Hygiene (Literal M15, np.floating); finale Freigabe | abgeschlossen |
 | 05.09.2026 | Entwicklungs-Schritt 3 (Validierungslauf): `python -m scripts.setup_c_profil --fenster=ALLE` — **L1/L2-Gate bitgenau bestanden über AUG/S1/S2** (Null-Delta; S1 N48 +20,85R / Σr_ref +72,88 / Exit 13/22 / HD 37; N96 +18,11R / +40,99 / 17/18 / 64; S2 N48 +0,39 / N96 +1,92, je 1 zensiert); `n_supprimiert = 0` (No-op-Beweis), Produktions-Default ≡ L2-Referenz; Reports `reports/setup_c/setup_c_{AUG,S1,S2}.txt/.tsv` | abgeschlossen |
 | 05.09.2026 | Entwicklungs-Schritt 4 (Abschluss & Commit): §2.15-Abnahmeprotokoll L1/L2 verankert; Header/§3/§4 aktualisiert; 3 atomare Commits (`feat` market_segmentation.py, `feat` setup_c_profil.py, `docs` Gate-Abschluss) auf master gepusht; Reports unversioniert (reproduzierbar); Agents.md unangetastet; **Phase 1 produktionsreif** — Stufe-5-Roadmap (Regime-Klassifikation, Parameter-Robustheit, OOS) in eigenständiger Folge-Session | abgeschlossen |
+| 05.09.2026 | **Einheiten-Bereinigung D4-Ratchet (µs/ns):** Bug in `_kanten_reihe` (`scripts/setup_c_profil.py`) beseitigt — `searchsorted` lief durch `datetime64[us]`-vs-`ns`-Mismatch auf −1 (statische Kante = erster hist-Wert statt zeitlich gültiger Ratchet); Diagnose `test/tmp_diag_kanten_delta.txt` (S1/S2, L1/L2 + Trade-Ebene, Cluster-Migration, ENTFALLEN/NEU-Marker); Wiederholungslauf `python -m scripts.setup_c_profil --fenster=ALLE`; §2.13-D/§2.14/§2.15 re-arretiert (S1 N48 +22,81R / r_ref +71,77 / Exit 15/23 / HD 35, N96 +27,87R / +55,17 / 20/18 / 60, n=38; S2 N48 +0,31 / +1,50, N96 +0,98 / +3,56, n=3, 1 zens.; AUG n=2: +3,64 / +8,59 @48, −0,87 / −1,86 @96 — Vakuum-Dokumentation entfällt); L1-F3/CONFIRMED/RETEST bitgenau unverändert; Header/§3/§4 aktualisiert; atomarer Fix-Commit | abgeschlossen |

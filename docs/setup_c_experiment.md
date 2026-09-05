@@ -1,6 +1,6 @@
 # Setup C: Trendfolge, Sägezahn-Expansion & Ausbruchs-Engine
 
-> **Status:** Schritte 1–3 + 4a + 4b (Stufe 1+2) abgeschlossen (B1–B4 §2.5, C1–C5 §2.7, D1–D5 §2.9, H1–H4 §2.11, W1–W4 §2.12, 05.09.2026); 274R-Artefakt eliminiert; F4+Zeit-Exit schlägt Stufen-Trailing in 16/18 Zellen; 1-Close-Vorteil Whipsaw-korrigiert (S1 N48 +18,2R → Netto +1,8R, N96 Netto +19,3R aber r_ref −10,8); Netto überlebt nur mit phasenlokaler Suppression (ohne: −20,1R); **Schritt 4 (Prüfbericht & Entscheidungsvorlage) bereit** — Baseline unverändert.
+> **Status:** Schritte 1–4b + Schritt 4 abgeschlossen (B1–B4 §2.5, C1–C5 §2.7, D1–D5 §2.9, H1–H4 §2.11, W1–W4 §2.12, Produktions-Blueprint §2.13, 05.09.2026); 274R-Artefakt eliminiert; F4+Zeit-Exit schlägt Stufen-Trailing in 16/18 Zellen; 1-Close-Vorteil Whipsaw-korrigiert (S1 N48 +18,2R → Netto +1,8R); **Schritt 4 abgeschlossen — Entscheidungsvorlage arretiert (Phase-1-Kern RAW-A + F4 + Zeit-Exit 48/96 + Suppression; Regime-Schalter = Stufe-5-Validierungs-Rückstellung) — Übergabe an Entwicklungsphase (`scripts/setup_c_profil.py`)** — Baseline unverändert.
 > **Bezug:** `scripts/setup_c_profil.py` (neu anzulegen) auf Infrastruktur-Basis von `scripts/phasen_volumen_profil.py` (v0.4.0-baseline-frozen, unverändert).
 
 ---
@@ -285,6 +285,66 @@ Ausführung: `test/tmp_setup_c_whipsaw.py` (F1-Negativ-Spiegel `close[j+1] ≤ k
 3. **Phasenlokale Open-Position-Suppression ist Pflicht-Bestandteil** jeder 1-Close-Umsetzung (S1 ohne Suppression: −20,1R).
 4. **TOL_BAND-Dominanz als Regime-Indikator:** Ein hoher TOL_BAND-Anteil an Fehlausbrüchen (49/53) misst Stop-Räumung/fehlende Trend-Liquidität an der Kante.
 
+### 2.13 Schritt-4-Prüfbericht & Entscheidungsvorlage (Produktions-Blueprint `setup_c_profil.py`, 05.09.2026)
+
+**Gesamturteil:** Setup C ist als eigenständiges Modul `scripts/setup_c_profil.py` produktionsreif — **in einer abgespeckten Phase-1-Architektur ohne Regime-Schalter**. Die Evidenzkette (B1–B4, C1–C5, D1–D5, H1–H4, W1–W4) erlaubt eine vollständige, arretierbare Blueprint mit vier tragenden Säulen. Der Regime-Schalter wird als **Validierungs-Rückstellung (Stufe 5 / Pre-Production-Gate)** deklariert, nicht als arretierte Komponente.
+
+**A. Die vier tragenden Säulen der Produktions-Blueprint**
+
+| Säule | Entscheidung | Evidenz | Status |
+|---|---|---|---|
+| **1. Einstiegs-Matrix** | Primär **RAW-Cluster A** (Vorlauf ≤ 1, kausale Kante aus `U_hist`/`L_hist`, Volumen `shift(1)`); **RAW-Cluster B** zurückgestellt; **RETEST** optional; **1-Close** und **2-Close-CONFIRMED** nicht in Phase 1 | D3: RAW-A S1 **+20,85R @48** (35 T, mean 0,60R, WR 51 %, PF 2,42, r_ref +72,88), S2 +0,39/+1,92 (n=5, nie stark negativ); D4/C4: 2-Close S1 strukturell negativ; W2: 1-Close-Netto nur mit Suppression | arretiert (Phase 1) |
+| **2. Stop-/Exit-Architektur** | **F4-Struktur-Stop intrabar** (`min(Struktur, Kante) − 0.15`) + **terminaler Zeit-Exit** N=48 (S1/AUG) bzw. N=96 (S2); **kein Stufen-Trailing**; `RECHTS_ZENSIERT` strikt isoliert | B1: F4 eliminiert 55 % Früh-Shakeout; D2: F4+Zeit-Exit schlägt Ratsche in **16/18 Zellen** (Trailing kostet bis 38R); D1: 274R-Phantom geplatzt; E2 | arretiert |
+| **3. Risikoschutz** | **Phasenlokale Open-Position-Suppression** (obligatorisch); F4-Stop begrenzt Verlierer auf −1R | W2: ohne Suppression S1 N48 **−20,08R** (Kontenruin durch Adjazenz-Pyramidisierung) | arretiert (Pflicht) |
+| **4. Validierungs-Gates** | Regime-Klassifikation = **Stufe-5-Arbeitspaket**, nicht Phase 1; Schwellenwert nicht vorschnell arretieren | D3/W4: S1-vs-S2-Kontrast extrem (RAW-B S1 +36R vs. S2 −12R; Whipsaws S1 −16R vs. S2 +4R) — aber nur 2 Fenster-Jahre | **Validierungs-Rückstellung** |
+
+**B. Einstiegs-Matrix im Detail (Phase-1-Entscheidungen)**
+
+| Arm / Variante | Phase 1 | Begründung (Evidenz) |
+|---|---|---|
+| **RAW Cluster A** (Vorlauf ≤ 1) | **PRODUKTION** | Der „Fels": D3 S1 +20,85R @48 / +18,11R @96, mean 0,46–0,60R, WR 40–54 % über alle Horizonte; S2/AUG nie stark negativ. Frische Ausbrüche ≤ 1 Bar vor dem 2-Close-Bruch = dichtester legitimer Einstieg (B4). |
+| RAW Cluster B (Vorlauf > 1) | **zurückgestellt** | Regime-toxisch S2 (−12,10/−12,49R @48/96 = der eigentliche S2-Verlierer), aber S1-Größtgewinner (+36R @96). Nur mit Regime-Filter (Stufe 5) bespielbar. |
+| 1-Close-CONFIRMED | **zurückgestellt** | W2: S1-Netto N48 +1,83R (90 % Erosion), N96 r_ref −10,75; nur mit Pflicht-Suppression. Im Trend-Regime stark (S2 Netto +14,0/+20,7R) → **Stufe-5-Kandidat für den Trend-Zweig**. |
+| 2-Close-CONFIRMED | **verworfen** | C4/D4: S1 unter jeder Exit-Architektur negativ (−7,3 bis −9,3R KT); kauft an b+2 die Erschöpfung. Als Negativ-Kontrolle dokumentiert. |
+| RETEST_OUTSIDE | **optional** | D5: S1 +5,18R (nur N48), S2 +6,79/+6,09, AUG +5,78/+5,07 — positiv aber selektiv (n klein: AUG 3/S1 59/S2 18); Zeit-Exit als Cap schadet nicht. Qualitäts-Arm für zweite Ausbaustufe. |
+
+**C. Was geht in Produktion, was wird verworfen, was muss validiert werden**
+
+**→ In Produktion (Phase 1, ohne Regime-Schalter):**
+1. **RAW-Cluster-A-Einstieg** (Vorlauf ≤ 1, kausale Kantenreferenz D4, F5-Volumen `shift(1)`).
+2. **F4-Struktur-Stop intrabar** (Puffer 0,15 USD) — verlustbegrenzend auf −1R.
+3. **Terminaler Zeit-Exit** N=48 (S1/AUG-Betrieb) / N=96 (Trend-Betrieb) mit **Rechts-Zensierung E2** (strikt isoliert, r=NaN).
+4. **Phasenlokale Open-Position-Suppression** als Pflicht-Schutzschicht.
+5. **0,45 %-SL nur als Mess-Referenz** (r_ref-Spalte), nie als Produktions-Stop.
+
+**→ Verworfen (mit Evidenz begründet):**
+- **Stufen-Trailing-Ratsche (F9–F11/VAR_A/VAR_B):** D2 — Performanz-Bremse in 16/18 Zellen; kostet in S1 bis 38R.
+- **2-Close-CONFIRMED:** C4/D4 — S1 strukturell defizitär (Einstiegs-Timing).
+- **1-Close ohne Suppression:** W2 — S1 N48 −20,08R.
+- **Offener `DATEN_ENDE`-Exit:** C1/D1 — 274R-Phantom (verstecktes Buy-and-Hold).
+- **Trailing-Exit intrabar:** C5 — S1-Gift (−12,77R).
+- **Zeit-Exit N=24:** D-Befund — überall Mittelmaß, kappt nachlaufende Energie.
+- **Pauschaler −1R-Whipsaw-Abzug:** W4 — verstümmelt S2 (−42/−36R), ignoriert echte Überlebens-/Partizipationsfälle.
+
+**→ Zu validieren (Stufe 5 / Pre-Production-Gate, eigenständiges Arbeitspaket):**
+1. **Regime-Klassifikation als Produktions-Schalter:** Notwendigkeit durch D3/W4 belegt (S1-Shakeout vs. S2-Trend). Konkrete Implementierung (**EMA20-Slope vs. ADX vs. Phasen-Volatilität**) und Schwellenwert-Kalibrierung **out-of-sample** — `ema_slope_threshold = 0.001` aus §2.1 ist eine Hypothese, kein kalibrierter Filter (Overfitting-Risiko auf 2 Fenster-Jahre). Ziel: Trend-Regime → 1-Close/RAW-B-Zweig; Shakeout-Regime → RAW-A/2-Close-Schutz.
+2. **Parameter-Robustheit:** Zeit-Exit-Übergang 48↔96, TOL=0,34, Puffer=0,15 — Sensitivitätsgitter auf frischen Daten.
+3. **Out-of-Sample-Validierung:** neues Datenfenster nach 2026-08-28 (Papier-/Forward-Test) vor Live-Schaltung.
+
+**D. Konsolidierte Referenzzahlen der Phase-1-Basislinie** (RAW-Cluster A, KT + Zeit-Exit, F4-R-Basis)
+
+| Fenster | N=48 sum r_f4 (r_ref) | N=96 sum r_f4 (r_ref) | n | mean/WR/PF @48 |
+|---|---|---|---|---|
+| S1 | **+20,85** (+72,88) | +18,11 | 35 | 0,60R / 51 % / 2,42 |
+| S2 | +0,39 | +1,92 | 5 | klein, nie stark negativ |
+| AUG | — (kein Cluster A im Fenster) | — | 0 | nur Cluster B (n=10) |
+
+**Zum Vergleich (GESAMT aller Arme, KT):** AUG N48 +14,57R, S1 N48 +49,25R, S2 N48 +2,02R / N96 +8,67R (D1-Tabelle) — die Gesamt-Summe ist durch RAW-B (S1) bzw. die Arm-Mischung getragen; Phase-1-Kern bleibt konservativ RAW-A.
+
+**E. Formale Übergabe**
+
+§2.13 schließt die **Explorations- und Prüfphase Setup C** ab. Damit ist die Entscheidungsvorlage für die Entwicklungsphase `scripts/setup_c_profil.py` vollständig: Phase-1-Kern (RAW-A + F4 + Zeit-Exit 48/96 + Suppression) als arretierte Architektur, Regime-Schalter als nachgelagertes Stufe-5-Arbeitspaket. Die Produktions-Baseline `scripts/phasen_volumen_profil.py` bleibt unverändert (+297,14R, v0.4.0-frozen).
+
 ---
 
 ## 3. Explorations- und Prüfplan
@@ -292,11 +352,14 @@ Ausführung: `test/tmp_setup_c_whipsaw.py` (F1-Negativ-Spiegel `close[j+1] ≤ k
 1. **Schritt 1 (Statische Move-Analyse):** Untersuchung aller MoveData-Objekte der Baseline über AUG, S1 und S2 auf Ausbruchs-MFE/MAE. — **abgeschlossen** (Befunde in §2.5-Bezug, Details `test/tmp_setup_c_schritt1_mfe_mae_verteilung.txt`).
 2. **Schritt 2 (Replay-Skript `test/tmp_setup_c_audit.py`):** Rein lesende Erfassung der Signale gegen DuckDB für alle drei Einstiegs-Arme. — **abgeschlossen** (F4–F8 + D4, Befunde B1–B4 in §2.5, Reports `test/tmp_setup_c_audit_{AUG,S1,S2}.txt`).
 3. **Schritt 3 (A/B-Auswertung Trailing):** Vergleich von festem Dollar-Puffer ($0.15\text{ USD}$) gegen dynamische 7er-ATR — **abgeschlossen** (F9–F11, DV1–DV6 in §2.6; Ausführung AUG → S1/S2, Verifikationsanker bestanden, Befunde C1–C5 in §2.7, Reports `test/tmp_setup_c_trailing_{AUG,S1,S2}.txt`). **Fazit:** Stufen-Trailing regime-kontingent — S1 +30,14R (VAR_B) vs. KEIN_TRAILING −43,08R, aber S2 +6,57R (bestes Trailing) vs. KEIN_TRAILING +274,48R.
-4. **Schritt 4 (Prüfbericht & Entscheidungsvorlage):** Vorlage der Ergebnisse vor jeglicher Produktions-Integration — **bereit**; übergibt die konsolidierten §2.7/§2.9/§2.11/§2.12-Implikationen (Exit-Empfehlung F4+Zeit-Exit 48/96, RAW-Cluster-A-Kern, 1-Close regime-kontingent mit Pflicht-Suppression, Regime-Filter EMA-Slope als Produktions-Schalter) als Entscheidungsvorlagen.
+4. **Schritt 4 (Prüfbericht & Entscheidungsvorlage):** Vorlage der Ergebnisse vor jeglicher Produktions-Integration — **abgeschlossen**; §2.13 arretiert die vollständige Produktions-Blueprint (Phase-1-Kern: RAW-Cluster-A + F4-Stop intrabar + Zeit-Exit 48/96 + phasenlokale Suppression; Regime-Klassifikation als Stufe-5-Validierungs-Rückstellung, nicht in Phase 1). **Übergabe an die Entwicklungsphase `scripts/setup_c_profil.py`.**
 5. **Schritt 4a (Zeit-Exit-Matrix `test/tmp_setup_c_zeitexit.py`):** Bereinigung des 274R-Artefakts — **abgeschlossen** (E1–E5 + Datenvertrag in §2.8; Lauf AUG/S1/S2, Verifikationsanker bestanden, Befunde D1–D5 in §2.9, Reports `test/tmp_setup_c_zeitexit_{AUG,S1,S2}.txt`). **Fazit:** 274R-Phantom eliminiert; `F4 + Zeit-Exit (48/96)` schlägt die Stufen-Ratsche in 16/18 Zellen; RAW-Cluster A = stabiler Setup-Kern.
 6. **Schritt 4b-Stufe 1 (1-Close-CONFIRMED `test/tmp_setup_c_1close.py`):** Einstiegs-Reparatur für das C4/D4-Defizit — **abgeschlossen** (G1–G5 + Datenvertrag in §2.10; Lauf AUG/S1/S2, Verifikationsanker bestanden, Befunde H1–H4 in §2.11, Reports `test/tmp_setup_c_1close_{AUG,S1,S2}.txt`). **Fazit Stufe 1:** 1-Close schlägt 2-Close in 6/6 Zellen (Δ r_ref bis +52R); S1-CONFIRMED rehabilitiert (−8,6R → +18,2R @48); SL-Delta nur 3–8 % → echter Timing-Vorteil. **G5-Stufe-2-Bedingung eingetreten.**
 7. **Schritt 4b-Stufe 2 (Whipsaw-Scan `test/tmp_setup_c_whipsaw.py`):** Gegenrechnung der 1-Close-Fehlausbrüche (Survivorship-Korrektur) — **abgeschlossen** (F1–F3 + Scope ratifiziert, Datenvertrag `WhipsawConfig`/`WhipsawResult`; Entwurf freigegeben; Lauf AUG/S1/S2, Verifikationsanker bitgenau [OK], Befunde W1–W4 in §2.12, Reports `test/tmp_setup_c_whipsaw_{AUG,S1,S2}.txt`). **Fazit Stufe 2:** 1-Close-Netto überlebt nur mit phasenlokaler Suppression (S1 N48 +18,2R → Netto +1,8R; ohne Suppression −20,1R); r_ref-Netto kippt bei N96 (−10,8); TOL_BAND-Forensik 49/53; S2-Whipsaws positiv → Regime-Klassifikation als Produktions-Schalter.
-8. **Schritt 4 (Prüfbericht & Entscheidungsvorlage):** finaler Konsolidierungsschritt — **bereit für Erstellung** auf Basis der abgeschlossenen Schritte 1–4b; siehe Prüfplan-Punkt 4.
+
+---
+
+**Abschluss der Explorations- und Prüfphase (§3):** Alle Explorationsschritte 1–4b und der finale Prüfbericht (Schritt 4, §2.13) sind **abgeschlossen**. Setup C ist als Phase-1-Blueprint arretiert und formal an die Entwicklungsphase übergeben. Offene Punkte (Regime-Klassifikation, Parameter-Robustheit, Out-of-Sample-Validierung) sind als **Stufe-5 / Pre-Production-Gate** in §2.13-C deklariert — sie sind nachgelagerte Arbeitspakete, keine Blocker für die Phase-1-Implementierung.
 
 ---
 
@@ -321,4 +384,4 @@ Ausführung: `test/tmp_setup_c_whipsaw.py` (F1-Negativ-Spiegel `close[j+1] ≤ k
 | 05.09.2026 | Schritt 4b Stufe 1: `test/tmp_setup_c_1close.py` erstellt; Lauf AUG/S1/S2 ausgeführt — Verifikationsanker bestanden (Paare 11/138/61, S2 je Zelle 1× RECHTS_ZENSIERT isoliert); Befunde H1–H4 in §2.11 (SL-Delta 3–8 %; 1-Close gewinnt 6/6 Zellen auch r_ref, S1 Δ r_ref +46,44/+52,08; CONFIRMED S1 rehabilitiert −8,6R → +18,2R; G5-Stufe-2-Bedingung eingetreten) | abgeschlossen |
 | 05.09.2026 | Schritt 4b Stufe 2: Design-Fragen F1–F3 ratifiziert (Negativ-Spiegel `close[j+1] ≤ kante(j)+TOL` + Sub-Typen RETRACE/TOL_BAND; volle Simulation statt pauschal −1R; phasenlokale Open-Position-Suppression) + Scope bestätigt (F3-Population, Bruchrichtung); Datenvertrag `WhipsawConfig`/`WhipsawResult`; Entwurf `test/tmp_setup_c_whipsaw.py` zur Durchsicht vorgelegt | arretiert |
 | 05.09.2026 | Schritt 4b Stufe 2: `test/tmp_setup_c_whipsaw.py` freigegeben; Lauf AUG/S1/S2 ausgeführt — Verifikationsanker bitgenau (11/138/61 [OK]); Befunde W1–W4 in §2.12 (Kanten-Erosion S1 N48 +18,2R → Netto +1,8R; Suppression überlebensnotwendig, ohne −20,1R; TOL_BAND 49/53; S2-Whipsaws positiv → 1-Close trend-regime-tauglich) | abgeschlossen |
-| 05.09.2026 | Schritt 4 (Prüfbericht & Entscheidungsvorlage): **bereit** — Schritte 1–4b abgeschlossen; konsolidierte Entscheidungsvorlagen (§2.7/§2.9/§2.11/§2.12) zur Erstellung offen | bereit |
+| 05.09.2026 | Schritt 4 (Prüfbericht & Entscheidungsvorlage): **abgeschlossen** — §2.13-Produktions-Blueprint arretiert (Phase-1-Kern RAW-A + F4 + Zeit-Exit 48/96 + Suppression; verworfen: Stufen-Ratsche, 2-Close-CONFIRMED, 1-Close ohne Suppression, DATEN_ENDE-Exit, N=24; Stufe-5-Rückstellung: Regime-Klassifikation, Parameter-Robustheit, OOS-Validierung); §3 formal abgeschlossen; **Übergabe an Entwicklungsphase `scripts/setup_c_profil.py`** | abgeschlossen |

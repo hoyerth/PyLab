@@ -1,6 +1,6 @@
 # Setup C: Trendfolge, Sägezahn-Expansion & Ausbruchs-Engine
 
-> **Status:** Schritt 1 + 2 abgeschlossen; Schritt-3-Design arretiert (F9–F11 + DV1–DV6, 05.09.2026); A/B-Lauf vorbereitet — Baseline unverändert.
+> **Status:** Schritt 1 + 2 + 3 abgeschlossen (Befunde C1–C5 in §2.7, 05.09.2026); Schritt-3-Fazit: Stufen-Trailing regime-kontingent — kein konsistenter Sieger über KEIN_TRAILING; Übergang Schritt 4 (Prüfbericht) in Vorbereitung — Baseline unverändert.
 > **Bezug:** `scripts/setup_c_profil.py` (neu anzulegen) auf Infrastruktur-Basis von `scripts/phasen_volumen_profil.py` (v0.4.0-baseline-frozen, unverändert).
 
 ---
@@ -123,14 +123,46 @@ Die institutionelle Stop-Räumung unterhalb der Ausbruchsstruktur wird durch die
 | DV5 | Sensitivitäten | F9-Option A (`STUFE_UEBER_INITIAL`), F10 (`atr_mult` 1,0/2,0), F11 (`trailing_exit=INTRABAR`) — je als Vergleichsspalte im Report. |
 | DV6 | Kontroll-Benchmark | Modus `KEIN_TRAILING` (nur F4-Stop intrabar, Exit bei Datenende) als 7. Lauf im Report — belegt die R:R-Wiedergewinnung gegenüber dem Status quo. Auswertungs-Anker: `sum(r_f4)`, `mean`, WR, PF, `n(INITIAL_SL_INTRABAR)` vs. `n(TRAILING_SL_CLOSE)`. |
 
+### 2.7 Schritt-3-Befunde (Trailing A/B-Simulation, 05.09.2026)
+
+Ausführung: `test/tmp_setup_c_trailing.py` (bar-genaue Ratsche auf Schritt-2-Signalen; NaN-Fix `_agg_block` inkludiert). Verifikationsanker **bestanden**: Signalzahlen deckungsgleich (AUG 11/10/3, S1 138/110/59, S2 61/78/18), KEIN_TRAILING-Spalte ausschließlich `INITIAL_SL_INTRABAR` + `DATEN_ENDE`. Reports: `test/tmp_setup_c_trailing_{AUG,S1,S2}.txt`. **Kernfrage:** Gewinnt das Stufen-Trailing das durch B2 komprimierte R:R auf F4-Basis gegenüber KEIN_TRAILING zurück?
+
+**Vergleichstabelle `sum(r_f4)` (F4-R-Basis; AUG/S1/S2 gesamt):**
+
+| Lauf (Modus / Sensitivität) | AUG | S1 | S2 |
+|---|---|---|---|
+| VAR_A_FIXED (Default, close) | +7,17 | +8,96 | +0,63 |
+| VAR_B_ATR mult=1,5 (Default, close) | +6,38 | **+30,14** | −2,42 |
+| SENS: Option-A (Stufe > Initial) | +8,59 | +20,65 | −4,62 |
+| SENS: Trailing intrabar | **+9,27** | −12,77 | +6,57 |
+| SENS: ATR mult=1,0 | +5,61 | +20,63 | +1,10 |
+| SENS: ATR mult=2,0 | +2,18 | +28,52 | −2,76 |
+| **REF: KEIN_TRAILING** | +4,49 | **−43,08** | **+274,48** |
+
+**C1 — KEIN_TRAILING dominiert S2 massiv (Trend 2025):** Status quo erzielt in S2 **+274,48R** (CONFIRMED +159,20R / mean +2,61R / PF 4,18; RAW +82,30R; RETEST +32,97R), getragen von `DATEN_ENDE`-Läufern (CONFIRMED 11/61, RAW 6/78, RETEST 2/18) mit mittlerer Haltedauer 1048/551/361 Bars bei extrem niedriger WR (CONFIRMED 18,0 %). Die R-Verteilung ist Power-Law-artig: wenige Megaläufer tragen alles, der F4-Stop begrenzt die Verlierer auf −1R. **Jede** getrailte Variante kappt diese Verteilung: bestes Trailing in S2 nur +6,57R (VAR_A intrabar) = −97,6 % gegenüber KEIN_TRAILING.
+
+**C2 — Trailing dreht S1 (Stop-Räumungs-Regime 2026):** KEIN_TRAILING in S1 **−43,08R** (CONFIRMED −44,30R, RAW +23,89R, RETEST −22,67R; WR 3,4–8,7 %) — die breiten F4-Stops werden systematisch geräumt, nur 12/138 CONFIRMED erreichen Datenende. Beste Trailing-Varianten drehen das Vorzeichen: VAR_B mult=1,5 **+30,14R**, mult=2,0 +28,52R, Option-A +20,65R. Die Stufen aktivieren (CONFIRMED 40–46 %) und sichern nach der Erst-Rally, statt den −1R-Kollaps der späteren Stop-Räumung zu erleiden.
+
+**C3 — Kein konsistenter Sieger (Regime-Kontingenz):** Keine der 6 Varianten schlägt KEIN_TRAILING in beiden Regimen. VAR_A-FIXED (close) ist die regime-stabilste Trailing-Wahl (AUG +7,17 / S1 +8,96 / S2 +0,63 — nie stark negativ, aber nie groß positiv). VAR_B_ATR ist nur in S1 überlegen (größerer Puffer = mehr Atem = fängt den Nachlauf), dreht aber in S2 ins Negative (−2,42 / −2,76). Die R:R-Frage aus B2 ist **durch Exit-Architektur allein nicht lösbar** — sie ist regime-kontingent.
+
+**C4 — CONFIRMED in S1 strukturell defizitär (Einstiegs-Problem):** Unter **jeder** Trailing-Variante bleibt CONFIRMED in S1 negativ (−14,4 bis −22,7R), auch wo RAW (+28,5 bis +55,0R) und RETEST stark positiv sind. Der späte 2-Close-Bestätigungs-Einstieg in ein Regime ohne Nachlauf nach Bestätigung lässt sich durch Exit-Architektur nicht retten — der Hebel liegt beim Einstiegs-Timing, nicht beim Stop.
+
+**C5 — F11-Sensitivität intrabar ist S1-Gift:** TRAILING_SL_INTRABAR ist in S1 der schlechteste Lauf (−12,77R; RETEST −18,65R, CONFIRMED −22,59R), aber in AUG (+9,27R) und S2 (+6,57R) jeweils der beste. Intrabare Auslösung von Trailing-Stufen beendet Positionen bei intrabaren Dips, die die CLOSE-basierte Default-Semantik (DV3) verteidigen würde — im Shakeout-Regime S1 genau die falschen Exits. Die **CLOSE-basierte Ausführung (F11-Default) ist die regime-stabilere Wahl.**
+
+**Implikation für Schritt 4 (Prüfbericht):**
+1. **Mess-Artefakt-Verdacht S2:** KEIN_TRAILING profitiert von `DATEN_ENDE`-Exits (offene Positionen am Fensterende werden zum letzten Close bewertet, Haltedauer bis >1000 Bars). Für einen produktionsnahen Vergleich braucht es einen definierten Zeit-/Ziel-Exit statt des Datenende-Benchmarks (die @48-Messung aus Schritt 2 ist die konservative Referenz: S1 CONFIRMED median 1,13R).
+2. **Regime-Filter vor Exit-Design:** Der S1/S2-Gegensatz (beide SILVER M15, 2025 vs. 2026: −43R vs. +274R beim identischen Status quo) ist so extrem, dass eine Regime-Klassifikation (EMA-Slope-Tightening, §2.1 `ema_slope_threshold`) Voraussetzung für jede Exit-Entscheidung ist — Stufen-Trailing im Stop-Räumungs-Regime, Laufenlassen im Trend-Regime.
+3. **CONFIRMED-Einstieg separat prüfen:** Arm 1 verliert in S1 unabhängig vom Exit — Einstiegs-Varianten (1-Close-Bestätigung, Nähe-Kante-Filter) sind vor Produktions-Integration zu testen.
+4. **Optionale Folgeläufe (Schritt 4a):** VAR_A-FIXED mit definiertem Zeitexit (48/96 Bars) und ohne DATEN_ENDE-Aufblähung als sauberer 1:1-Vergleich gegen die @48-MFE-Referenz aus Schritt 2.
+
 ---
 
 ## 3. Explorations- und Prüfplan
 
 1. **Schritt 1 (Statische Move-Analyse):** Untersuchung aller MoveData-Objekte der Baseline über AUG, S1 und S2 auf Ausbruchs-MFE/MAE. — **abgeschlossen** (Befunde in §2.5-Bezug, Details `test/tmp_setup_c_schritt1_mfe_mae_verteilung.txt`).
 2. **Schritt 2 (Replay-Skript `test/tmp_setup_c_audit.py`):** Rein lesende Erfassung der Signale gegen DuckDB für alle drei Einstiegs-Arme. — **abgeschlossen** (F4–F8 + D4, Befunde B1–B4 in §2.5, Reports `test/tmp_setup_c_audit_{AUG,S1,S2}.txt`).
-3. **Schritt 3 (A/B-Auswertung Trailing):** Vergleich von festem Dollar-Puffer ($0.15\text{ USD}$) gegen dynamische 7er-ATR — Design arretiert (F9–F11, DV1–DV6 in §2.6); Ausführung AUG → S1/S2 nach Freigabe.
-4. **Schritt 4 (Prüfbericht):** Vorlage der Ergebnisse vor jeglicher Produktions-Integration.
+3. **Schritt 3 (A/B-Auswertung Trailing):** Vergleich von festem Dollar-Puffer ($0.15\text{ USD}$) gegen dynamische 7er-ATR — **abgeschlossen** (F9–F11, DV1–DV6 in §2.6; Ausführung AUG → S1/S2, Verifikationsanker bestanden, Befunde C1–C5 in §2.7, Reports `test/tmp_setup_c_trailing_{AUG,S1,S2}.txt`). **Fazit:** Stufen-Trailing regime-kontingent — S1 +30,14R (VAR_B) vs. KEIN_TRAILING −43,08R, aber S2 +6,57R (bestes Trailing) vs. KEIN_TRAILING +274,48R.
+4. **Schritt 4 (Prüfbericht):** Vorlage der Ergebnisse vor jeglicher Produktions-Integration — offen; übergibt §2.7-Implikationen (Mess-Artefakt DATEN_ENDE, Regime-Filter, CONFIRMED-Einstiegsproblem) als Entscheidungsvorlagen.
 
 ---
 
@@ -146,3 +178,5 @@ Die institutionelle Stop-Räumung unterhalb der Ausbruchsstruktur wird durch die
 | 05.09.2026 | Schritt 2: `test/tmp_setup_c_audit.py` erstellt; Review-Korrektur D4 (RAW-Kanten strikt kausal, KEINE_KANTE) + exec-Slice-Modulregistrierung; Audit-Läufe AUG/S1/S2 ausgeführt — Verifikationsanker bitgenau (11/138/61), Befunde B1–B4 in §2.5 | abgeschlossen |
 | 05.09.2026 | Schritt 3 (Trailing A/B): offen — Pivot-Stufen-Trailing vs. ATR-Puffer zur R:R-Wiedergewinnung auf F4-Basis | arretiert |
 | 05.09.2026 | Schritt 3: Beschlüsse F9–F11 (starr bis Stufe>Entry; ATR 1,5×+Floor; Exit differenziert intrabar/close) + Datenvertrag DV1–DV6 in §2.6; `test/tmp_setup_c_trailing.py` als Entwurf freigegeben | arretiert |
+| 05.09.2026 | Schritt 3: NaN-Fix `_agg_block` (Stufen-Nachzüge/mittl. Haltedauer zeigten "-"); AUG-Kontrolllauf verifiziert; Gesamtlauf AUG/S1/S2 ausgeführt — Verifikationsanker bestanden (11/10/3, 138/110/59, 61/78/18); Befunde C1–C5 in §2.7 | abgeschlossen |
+| 05.09.2026 | Schritt 4 (Prüfbericht): offen — §2.7-Implikationen zur Entscheidung (Regime-Filter vor Exit-Design; Mess-Artefakt DATEN_ENDE in S2; CONFIRMED-Einstiegsproblem S1) | offen |

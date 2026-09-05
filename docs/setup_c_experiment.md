@@ -1,6 +1,6 @@
 # Setup C: Trendfolge, Sägezahn-Expansion & Ausbruchs-Engine
 
-> **Status:** Schritt 1 + 2 + 3 abgeschlossen (Befunde C1–C5 in §2.7, 05.09.2026); Schritt-3-Fazit: Stufen-Trailing regime-kontingent — kein konsistenter Sieger über KEIN_TRAILING; Übergang Schritt 4 (Prüfbericht) in Vorbereitung — Baseline unverändert.
+> **Status:** Schritt 1 + 2 + 3 abgeschlossen (Befunde C1–C5 in §2.7, 05.09.2026); Schritt 4a-Design arretiert (E1–E5 in §2.8, 05.09.2026) — Zeit-Exit-Matrix 24/48/96 mit Rechts-Zensierung & RAW-Cluster-Segmentierung zur Artefakt-Bereinigung; Code-Entwurf `test/tmp_setup_c_zeitexit.py` folgt — Baseline unverändert.
 > **Bezug:** `scripts/setup_c_profil.py` (neu anzulegen) auf Infrastruktur-Basis von `scripts/phasen_volumen_profil.py` (v0.4.0-baseline-frozen, unverändert).
 
 ---
@@ -155,6 +155,18 @@ Ausführung: `test/tmp_setup_c_trailing.py` (bar-genaue Ratsche auf Schritt-2-Si
 3. **CONFIRMED-Einstieg separat prüfen:** Arm 1 verliert in S1 unabhängig vom Exit — Einstiegs-Varianten (1-Close-Bestätigung, Nähe-Kante-Filter) sind vor Produktions-Integration zu testen.
 4. **Optionale Folgeläufe (Schritt 4a):** VAR_A-FIXED mit definiertem Zeitexit (48/96 Bars) und ohne DATEN_ENDE-Aufblähung als sauberer 1:1-Vergleich gegen die @48-MFE-Referenz aus Schritt 2.
 
+### 2.8 Schritt-4a-Beschlüsse (Zeit-Exit-Matrix mit Rechts-Zensierung, E1–E5 arretiert)
+
+| ID | Thema | Beschluss |
+|---|---|---|
+| E1 | Zeit-Exit-Horizonte | Feste M15-Horizont-Matrix `N ∈ {24, 48, 96}` Bars als **terminale Exit-Regel** (Close der Exit-Bar). 24 (6h) = fängt schnelle S1-Reversals vor dem Liquiditätsabzug; 48 (12h) = primärer Referenzanker, direkt kompatibel zur MFE@48-Matrix aus Schritt 1/2 (B2/B3-Bezug); 96 (24h) = gibt starken S2-Trendphasen Raum, kappt aber das endlose Mitschleppen. |
+| E2 | Rechts-Zensierung | Signal mit `entry_idx + N > len(df)` erreicht den Zeit-Exit gar nicht → Status `RECHTS_ZENSIERT`, **strikt aus der Performance-Berechnung isoliert** (r_f4/r_ref = NaN) und separat ausgewiesen. Verhindert relatives Rest-Artefakt durch Datenende-Close. |
+| E3 | RAW-Cluster-Segmentierung | RAW-Signale nach Vorlauf `vorlauf = brk_idx − trigger_idx` trennen: **Cluster A** (`vorlauf ≤ 1`, `cluster_a_max_vorlauf=1`) = frische Ausbrüche unmittelbar an der Kante, CONFIRMED-kompatibel; **Cluster B** (`vorlauf > 1`, in S2 median 91 bis 3646 Bars) = separate Population (Range-Akkumulation/Fading, kein Trendfolge-Setup). Getrennte Auswertung, keine Vermischung. |
+| E4 | Arm-Fokus | **Primär RAW** (einziger Arm mit Vor-Bruch-Einstieg, S1 MFE@48 median 2,21R); CONFIRMED (Negativ-Kontrolle für C4-Einstiegs-These) und RETEST (Qualitäts-Arm, Zeit-Exit nur als Cap) als Referenz-Spalten. |
+| E5 | Exit-Matrix & Modus-Architektur | Matrix `{24, 48, 96}` × `{KEIN_TRAILING, VAR_A_FIXED}`; F4-Initial-Stop **intrabar** (F11 unverändert), VAR_A-FIXED-Trailing **close-basiert** (C5: CLOSE ist regime-stabiler), Puffer 0,15 USD. `KEIN_TRAILING + Zeit-Exit` = produktionsnahes Pendant zum 274R-`DATEN_ENDE`-Benchmark aus C1 (buy-and-hold mit hartem Zeithorizont statt offenem Ende). |
+
+**Datenvertrag (freigegeben, wird in `test/tmp_setup_c_zeitexit.py` §1 umgesetzt):** `ZeitexitConfig` (frozen, slots): `fenster`, `symbol`, `timeframe`, `zeit_horizonte: tuple[int, ...] = (24, 48, 96)`, `cluster_a_max_vorlauf: int = 1`, `fixed_buffer: float = 0.15`, `sl_pct_ref: float = 0.45`. `ZeitexitResult` (slots): `arm`, `raw_cluster: RawCluster` (`CLUSTER_A_ENG`/`CLUSTER_B_WEIT`/`NICHT_RAW`), `phase`, `dir`, `horizont_bars`, `modus`, `entry_idx`/`entry_ts`/`entry_preis`, `f4_initial_stop`, `sl_usd`, `exit_idx`/`exit_ts`/`exit_preis`, `exit_grund`, `haltezeit_bars`, `r_f4`/`r_ref` (**NaN bei RECHTS_ZENSIERT**). `ExitGrund`: `INITIAL_SL_INTRABAR`, `TRAILING_SL_CLOSE`, `ZEIT_EXIT_CLOSE`, `RECHTS_ZENSIERT`.
+
 ---
 
 ## 3. Explorations- und Prüfplan
@@ -162,7 +174,8 @@ Ausführung: `test/tmp_setup_c_trailing.py` (bar-genaue Ratsche auf Schritt-2-Si
 1. **Schritt 1 (Statische Move-Analyse):** Untersuchung aller MoveData-Objekte der Baseline über AUG, S1 und S2 auf Ausbruchs-MFE/MAE. — **abgeschlossen** (Befunde in §2.5-Bezug, Details `test/tmp_setup_c_schritt1_mfe_mae_verteilung.txt`).
 2. **Schritt 2 (Replay-Skript `test/tmp_setup_c_audit.py`):** Rein lesende Erfassung der Signale gegen DuckDB für alle drei Einstiegs-Arme. — **abgeschlossen** (F4–F8 + D4, Befunde B1–B4 in §2.5, Reports `test/tmp_setup_c_audit_{AUG,S1,S2}.txt`).
 3. **Schritt 3 (A/B-Auswertung Trailing):** Vergleich von festem Dollar-Puffer ($0.15\text{ USD}$) gegen dynamische 7er-ATR — **abgeschlossen** (F9–F11, DV1–DV6 in §2.6; Ausführung AUG → S1/S2, Verifikationsanker bestanden, Befunde C1–C5 in §2.7, Reports `test/tmp_setup_c_trailing_{AUG,S1,S2}.txt`). **Fazit:** Stufen-Trailing regime-kontingent — S1 +30,14R (VAR_B) vs. KEIN_TRAILING −43,08R, aber S2 +6,57R (bestes Trailing) vs. KEIN_TRAILING +274,48R.
-4. **Schritt 4 (Prüfbericht):** Vorlage der Ergebnisse vor jeglicher Produktions-Integration — offen; übergibt §2.7-Implikationen (Mess-Artefakt DATEN_ENDE, Regime-Filter, CONFIRMED-Einstiegsproblem) als Entscheidungsvorlagen.
+4. **Schritt 4 (Prüfbericht):** Vorlage der Ergebnisse vor jeglicher Produktions-Integration — in Vorbereitung; übergibt §2.7-Implikationen (Mess-Artefakt DATEN_ENDE, Regime-Filter, CONFIRMED-Einstiegsproblem) als Entscheidungsvorlagen.
+5. **Schritt 4a (Zeit-Exit-Matrix `test/tmp_setup_c_zeitexit.py`):** Bereinigung des 274R-Artefakts — **Design arretiert** (E1–E5 + Datenvertrag in §2.8); Code-Entwurf folgt zur Durchsicht (ohne Ausführung), danach Lauf über AUG/S1/S2 als Basis für den Schritt-4-Abschlussbericht.
 
 ---
 
@@ -180,3 +193,4 @@ Ausführung: `test/tmp_setup_c_trailing.py` (bar-genaue Ratsche auf Schritt-2-Si
 | 05.09.2026 | Schritt 3: Beschlüsse F9–F11 (starr bis Stufe>Entry; ATR 1,5×+Floor; Exit differenziert intrabar/close) + Datenvertrag DV1–DV6 in §2.6; `test/tmp_setup_c_trailing.py` als Entwurf freigegeben | arretiert |
 | 05.09.2026 | Schritt 3: NaN-Fix `_agg_block` (Stufen-Nachzüge/mittl. Haltedauer zeigten "-"); AUG-Kontrolllauf verifiziert; Gesamtlauf AUG/S1/S2 ausgeführt — Verifikationsanker bestanden (11/10/3, 138/110/59, 61/78/18); Befunde C1–C5 in §2.7 | abgeschlossen |
 | 05.09.2026 | Schritt 4 (Prüfbericht): offen — §2.7-Implikationen zur Entscheidung (Regime-Filter vor Exit-Design; Mess-Artefakt DATEN_ENDE in S2; CONFIRMED-Einstiegsproblem S1) | offen |
+| 05.09.2026 | Schritt 4a: Beschlüsse E1–E5 arretiert (Zeit-Exit-Matrix 24/48/96 als terminale Exit-Regel; Rechts-Zensierung `RECHTS_ZENSIERT` strikt isoliert; RAW-Cluster A ≤1 Bar / B >1 Bar getrennt; Arm-Fokus RAW mit CONFIRMED/RETEST-Referenz; Exit-Matrix `{24,48,96}` × `{KEIN_TRAILING, VAR_A_FIXED}`) + typisierter Datenvertrag `ZeitexitConfig`/`ZeitexitResult` in §2.8 | arretiert |

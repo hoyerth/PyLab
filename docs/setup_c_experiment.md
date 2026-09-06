@@ -1122,4 +1122,17 @@ jedem Fall unberührt.
 ### 5.4 Backlog & ToDo-Verankerung
 - [ ] **Task (Crash-Sicherung 2026):** Konzeption und Einbau einer extremen Notfall-Zeitschranke (ca. 250–300 M15-Bars) als reiner Schutz vor Endlos-Schleifen und extremen Drawdown-Clustern im Squeeze- und Crash-Regime 2026.
 - [ ] **Task (A/B-Test EMA Trailing):** Implementierung und Vergleich von Variante B (Stop auf Extremum) vs. Variante A (Sofort-Exit) in der Simulationsschleife.
-- [ ] **Task (Pullback-Re-Entries):** Definition von Wiedereinstiegen in bestehende Trends nach Kanten-Retests oder Kerzen-Konsolidierungen.
+- [x] **Task (Pullback-Re-Entries):** Untersucht und als Null-Befund verworfen (?5.5). Kein belastbarer Edge unter bestehender Trailing- und Regime-Architektur.
+### 5.5 Prozyklische Pullback-Re-Entries (PULLBACK_REENTRY Audit)
+* **Hypothese:** Trend-Skalierung nach best?tigten Phasen-Br?chen via Kanten-Retest (Zone 1) und dynamischem EMA-20-Pullback (Zone 2) mit Variante-B-Trailing.
+* **Audit 1 (Ungefiltert, AUG):**
+  - Population: 404 Zonen-Kontakte $\rightarrow$ 87 Rejections $\rightarrow$ 47 durch F3 sequenzierte Trades.
+  - Ergebnis: 47 Trades, $-7{,}36\text{R}$, Winrate $27{,}7\,\%$, PF $0{,}61$.
+  - Befund: Massive Konzentration der Gewinne auf echte Expansionswellen (+9,47R aus 5 Trades); unkonditioniertes Kaufen in Range-Phasen (12.?14.08. und 24.?27.08.) f?hrt zu 42 Verlust-Trades.
+* **Audit 2 (Gated via versiegeltem `regime_filter.py`, TREND-only):**
+  - Ergebnis: 12 Trades, $+0{,}49\text{R}$, Winrate $41{,}7\,\%$, **PF 1,10** (Abort-Schwelle $PF \ge 1{,}50$ verfehlt).
+  - Forensischer Befund (Sollbruchstelle):
+    1. Der versiegelte Klassifikator honoriert prim?r Long-Momentum (`ema_slope > 0`). Die profitable Down-Expansion (Phasen 4/5 mit +4,90R) wird als SHAKEOUT blockiert.
+    2. Der TREND-Latch l?sst ?ber Phase 8 die Whipsaw-Zone vom 24.?25.08. passieren (8 Trades, netto ca. $-4{,}07\text{R}$).
+* **Status:** Als diagnostischer Null-Befund arretiert. Der Pullback-Arm generiert unter der arretierten System-Architektur keinen stabilen statistischen Vorteil und wird endg?ltig verworfen.
+

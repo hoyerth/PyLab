@@ -6,6 +6,8 @@ terminaler Zeit-Exit 48/96, suppression_phasenlokal=True) je Fenster und
 Zeit-Horizont eine PNG-Datei (300 dpi) mit:
 
   - Preis (high/low-Linien) + dezenten Phasen-Hintergruenden
+  - EMA(Close)-Linie (blau, Projektkonvention Periode 20, kausal wie
+    ``regime_filter.berechne_zeitreihen_indikatoren``)
   - Entry-/Exit-Markern je Trade (F4-Stop intrabar / Zeit-Exit /
     rechts-zensiert)
   - CRV (kumulierte r_f4-Kurve) im unteren Panel
@@ -13,7 +15,10 @@ Zeit-Horizont eine PNG-Datei (300 dpi) mit:
     max. Drawdown (R)
 
 sowie je Fenster eine TXT-Datei mit Statistik-Header (beide Horizonte) und
-allen Trades inkl. Zeitstempeln (entry_ts/exit_ts).
+allen Trades inkl. Zeitstempeln (entry_ts/exit_ts). Bei Teil-Laeufen
+(``--n=`` mit nur einem Horizont) wird ein separater TXT
+``setup_c_chart_{FENSTER}_N{N}.txt`` geschrieben; der kombinierte
+``setup_c_chart_{FENSTER}.txt`` bleibt dann unangetastet.
 
 Referenz der simulierten Trades: ``scripts.setup_c_profil`` (KernelTrade,
 unveraendert importiert; kein Eingriff in den Produktionskern). Rendering
@@ -21,11 +26,17 @@ adaptiert aus ``scripts/phasen_volumen_profil.py`` (matplotlib Agg,
 monospace Statistik-Textbox, Phasen-Spans).
 
 Aufruf (Projekt-Root, Namespace-Package):
-    python scripts/setup_c_chart.py [--fenster=AUG|S1|S2|ALLE] [--dpi=300]
+    python scripts/setup_c_chart.py [--fenster=AUG|S1|S2|ALLE] [--n=48,96]
+                                    [--ema=20] [--dpi=300]
+
+    --n=      Komma-Liste der Zeit-Horizonte (48|96), Default "48,96".
+              Beispiel "nur AUG N48": --fenster=AUG --n=48
+    --ema=    EMA-Periode fuer die Close-EMA-Overlay-Linie (Default 20).
 
 Ausgabe (unversioniert, deterministisch reproduzierbar):
     reports/setup_c/setup_c_chart_{FENSTER}_N{N}.png
-    reports/setup_c/setup_c_chart_{FENSTER}.txt
+    reports/setup_c/setup_c_chart_{FENSTER}.txt        (Voll-Lauf 48+96)
+    reports/setup_c/setup_c_chart_{FENSTER}_N{N}.txt   (Teil-Lauf, nur N)
 """
 from __future__ import annotations
 
@@ -67,6 +78,11 @@ _COL_PHASEN: Tuple[str, ...] = (
     "#d62728",
     "#9467bd",
 )
+# EMA-Overlay (Projektkonvention Periode 20, kausal ewm(span, adjust=False),
+# identische Semantik wie regime_filter.RegimeMetricConfig.ema_periode).
+_EMA_DEFAULT_PERIODE: int = 20
+_COL_EMA: str = "#1565c0"   # Close-EMA-Linie (blau, satt auf weiss/Phaesen-Spans)
+_EMA_LW: float = 1.0
 _COL_UP: str = "#1a7d1a"     # Entry LONG  (^)
 _COL_DOWN: str = "#c00000"   # Entry SHORT (v)
 _COL_SL: str = "#c00000"     # Exit F4-Stop intrabar      (x rot)
@@ -240,11 +256,19 @@ def _zeichne_fenster_horizont(
     trades: Sequence[KernelTrade],
     out_png: Path,
     dpi: int,
+    ema_periode: int = _EMA_DEFAULT_PERIODE,
 ) -> None:
-    """Zeichnet Preis + Entry/Exit-Marker + CRV + Statistik-Box (PNG)."""
+    """Zeichnet Preis + EMA(Close) + Entry/Exit-Marker + CRV + Statistik-Box.
+
+    Die EMA-Linie ist ein reines Chart-Overlay (visuelle Regime-Referenz,
+    kausal ``ewm(span=ema_periode, adjust=False, min_periods=ema_periode)``,
+    identisch zur Semantik in ``regime_filter``). Sie geht NICHT in die
+    simulierten Trades ein (diese kommen unveraendert aus dem Kernel).
+    """
     idx: np.ndarray = df["idx"].values.astype(int)
     high: np.ndarray = df["high"].values.astype(float)
     low: np.ndarray = df["low"].values.astype(float)
+    close: pd.Series = df["close"]
 
     fig, (ax1, ax2) = plt.subplots(
         2,
@@ -256,6 +280,23 @@ def _zeichne_fenster_horizont(
     # --- Preis (high/low-Linien wie Reclaim-Chart) -------------------------
     ax1.plot(idx, high, color="#bbbbbb", lw=0.5, zorder=1)
     ax1.plot(idx, low, color="#bbbbbb", lw=0.5, zorder=1)
+
+    # --- EMA(Close) als blaue Overlay-Linie (Regime-Referenz) --------------
+    ema: np.ndarray = (
+        close.ewm(
+            span=ema_periode, adjust=False, min_periods=ema_periode
+        )
+        .mean()
+        .to_numpy(dtype=float, copy=True)
+    )
+    ax1.plot(
+        idx,
+        ema,
+        color=_COL_EMA,
+        lw=_EMA_LW,
+        zorder=2,
+        label=f"EMA({ema_periode}) (Close)",
+    )
 
     # --- Phasen-Hintergruende (dezent, Segmentierung) ----------------------
     ts_arr: np.ndarray = df["ts"].values
@@ -429,6 +470,8 @@ def _zeichne_fenster_horizont(
     )
 
     legende = [
+        Line2D([0], [0], color=_COL_EMA, lw=1.6,
+               label=f"EMA({ema_periode}) (Close)"),
         Line2D([0], [0], marker="^", color="w", markerfacecolor=_COL_UP, ms=8,
                label="Entry LONG (RAW-A)"),
         Line2D([0], [0], marker="v", color="w", markerfacecolor=_COL_DOWN, ms=8,
@@ -442,7 +485,7 @@ def _zeichne_fenster_horizont(
         Line2D([0], [0], color="#2ca02c", lw=1.6, label="Trade positiv (R>0)"),
         Line2D([0], [0], color="#d62728", lw=1.6, label="Trade negativ (R<0)"),
     ]
-    ax1.legend(handles=legende, loc="upper right", fontsize=7.5, framealpha=0.9)
+    ax1.legend(handles=legende, loc="upper left", fontsize=7.5, framealpha=0.9)
 
     fig.tight_layout()
     fig.savefig(out_png, dpi=dpi)
@@ -470,13 +513,21 @@ def _schreibe_txt(
     fenster: str,
     start: str,
     ende: str,
-    trades_48: Sequence[KernelTrade],
-    trades_96: Sequence[KernelTrade],
+    laeufe: Dict[int, Sequence[KernelTrade]],
     out_txt: Path,
 ) -> None:
-    """Schreibt Statistik-Header (N48/N96) + alle Trades inkl. Timestamps."""
+    """Schreibt Statistik-Header (je Horizont aus ``laeufe``) + alle Trades.
+
+    Args:
+        fenster: Fenster-Kennung (AUG|S1|S2) fuer den Header.
+        start: Fenster-Start (ISO-String).
+        ende: Fenster-Ende exklusiv (ISO-String).
+        laeufe: Mapping Horizont -> Trades (z. B. {48: ..., 96: ...} fuer
+            den Voll-Lauf oder {48: ...} fuer einen Teil-Lauf).
+        out_txt: Zielpfad der TXT-Datei.
+    """
     zeilen: List[str] = []
-    for horizont, trades in ((48, trades_48), (96, trades_96)):
+    for horizont, trades in laeufe.items():
         zeilen.append("=" * 108)
         zeilen.extend(_stat_zeilen(fenster, start, ende, horizont, trades))
         zeilen.append("=" * 108)
@@ -487,10 +538,10 @@ def _schreibe_txt(
         "Exit-TS           |    Exit | Exit-Grund        |   HD |   r_f4 |  r_ref"
     )
     zeilen.append("-" * 108)
-    for horizont in (48, 96):
-        trades = list(trades_48 if horizont == 48 else trades_96)
+    for horizont, trades in laeufe.items():
         trades_sorted = sorted(
-            trades, key=lambda x: (int(x.entry_idx), int(x.phase), str(x.dir))
+            list(trades),
+            key=lambda x: (int(x.entry_idx), int(x.phase), str(x.dir)),
         )
         for t in trades_sorted:
             zeilen.append(_trade_zeile(t))
@@ -504,8 +555,22 @@ def _schreibe_txt(
 # ---------------------------------------------------------------------------
 
 
-def _lauf_fenster(fenster: str, dpi: int) -> None:
-    """Kompletter Chart-/TXT-Lauf fuer ein Fenster (AUG|S1|S2)."""
+def _lauf_fenster(
+    fenster: str,
+    dpi: int,
+    horizonte: Sequence[int] = (48, 96),
+    ema_periode: int = _EMA_DEFAULT_PERIODE,
+) -> None:
+    """Chart-/TXT-Lauf fuer ein Fenster (AUG|S1|S2) und Horizont-Selektion.
+
+    Args:
+        fenster: Fenster-Kennung (AUG|S1|S2).
+        dpi: Aufloesung der PNG-Ausgabe.
+        horizonte: Zu simulierende Zeit-Horizonte (48/96). Teil-Laeufe
+            schreiben einen separaten TXT ``..._N{H}.txt``; nur der
+            Voll-Lauf (48+96) aktualisiert den kombinierten TXT.
+        ema_periode: Periode der Close-EMA-Overlay-Linie im Chart.
+    """
     start, ende = FENSTER_DEFS[fenster]
     cfg: TrendConfig = TrendConfig()
     seg_cfg = replace(cfg.segment, db_path=cfg.db_path, start=start, ende=ende)
@@ -515,7 +580,7 @@ def _lauf_fenster(fenster: str, dpi: int) -> None:
 
     _REPORT_DIR.mkdir(parents=True, exist_ok=True)
     laeufe: Dict[int, List[KernelTrade]] = {}
-    for horizont in (48, 96):
+    for horizont in horizonte:
         trades, n_supp = _kern_lauefe(df, signale, cfg, horizont)
         if n_supp != 0:
             raise RuntimeError(
@@ -524,24 +589,46 @@ def _lauf_fenster(fenster: str, dpi: int) -> None:
         laeufe[horizont] = trades
         out_png: Path = _REPORT_DIR / f"setup_c_chart_{fenster}_N{horizont}.png"
         _zeichne_fenster_horizont(
-            fenster, start, ende, horizont, df, sr, trades, out_png, dpi
+            fenster, start, ende, horizont, df, sr, trades, out_png, dpi,
+            ema_periode,
         )
         print(f"PNG  {out_png.name}  (n={len(trades)})")
-    out_txt: Path = _REPORT_DIR / f"setup_c_chart_{fenster}.txt"
-    _schreibe_txt(fenster, start, ende, laeufe[48], laeufe[96], out_txt)
+    if set(horizonte) == {48, 96}:
+        # Voll-Lauf: kombinierter TXT (beide Horizonte, wie bisher).
+        out_txt: Path = _REPORT_DIR / f"setup_c_chart_{fenster}.txt"
+    else:
+        # Teil-Lauf: separater TXT, der kombinierte bleibt unangetastet.
+        h_kenn: str = "_".join(str(h) for h in horizonte)
+        out_txt = _REPORT_DIR / f"setup_c_chart_{fenster}_N{h_kenn}.txt"
+    _schreibe_txt(fenster, start, ende, laeufe, out_txt)
     print(f"TXT  {out_txt.name}")
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
-    """CLI: erzeugt Charts + TXT fuer AUG/S1/S2 (Baseline RAW-A, 48/96)."""
+    """CLI: erzeugt Charts + TXT fuer AUG/S1/S2 (Baseline RAW-A, 48/96).
+
+    Optionen (siehe Modul-Docstring):
+        --fenster=AUG|S1|S2|ALLE   (Default ALLE)
+        --n=48|96|48,96            Horizont-Selektion (Default 48,96)
+        --ema=20                   Periode der Close-EMA-Overlay-Linie
+        --dpi=300                  PNG-Aufloesung
+    """
     args: List[str] = list(sys.argv[1:] if argv is None else argv)
     fenster_arg: str = "ALLE"
     dpi: int = 300
+    horizont_arg: str = "48,96"
+    ema_periode: int = _EMA_DEFAULT_PERIODE
     for a in args:
         if a.startswith("--fenster="):
             fenster_arg = a.split("=", 1)[1].upper()
         elif a.startswith("--dpi="):
             dpi = int(a.split("=", 1)[1])
+        elif a.startswith("--n="):
+            horizont_arg = a.split("=", 1)[1]
+        elif a.startswith("--ema="):
+            ema_periode = int(a.split("=", 1)[1])
+    if ema_periode <= 0:
+        raise SystemExit(f"Ungueltige EMA-Periode: {ema_periode} (> 0 noetig)")
     if fenster_arg == "ALLE":
         fenster_list: List[str] = ["AUG", "S1", "S2"]
     elif fenster_arg in ("AUG", "S1", "S2"):
@@ -550,9 +637,26 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         raise SystemExit(
             f"Unbekanntes Fenster: {fenster_arg} (AUG|S1|S2|ALLE)"
         )
+
+    # Horizont-Selektion (Reihenfolge der Angabe bleibt erhalten, dedupliziert).
+    horizonte: List[int] = []
+    for teil in horizont_arg.split(","):
+        teil = teil.strip()
+        if not teil:
+            continue
+        h: int = int(teil)
+        if h not in (48, 96):
+            raise SystemExit(
+                f"Unbekannter Horizont: {h} (erlaubt: 48|96, Komma-Liste)"
+            )
+        if h not in horizonte:
+            horizonte.append(h)
+    if not horizonte:
+        horizonte = [48, 96]
+
     for f in fenster_list:
-        print(f"=== Fenster {f} ===")
-        _lauf_fenster(f, dpi)
+        print(f"=== Fenster {f} | Horizonte {horizonte} | EMA({ema_periode}) ===")
+        _lauf_fenster(f, dpi, horizonte, ema_periode)
     print(f"\nFertig. Ausgabeordner: {_REPORT_DIR}")
     return 0
 

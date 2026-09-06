@@ -6,9 +6,9 @@
 > (ATR-Skalierung + VA_PCT-Resonanz) und die Referenzfenster AUG / S1 / S2
 > gelaufen (Equity-Statistik, txt + png Artefakte).
 > **Produktions-Baseline bleibt exklusiv SILVER M15** (VA_PCT 0.93).
-> **Stand:** 05.09.2026 — BRENT M15 (QS-4), COCOA M15 (QS-5), NGas M15
-> (QS-6), EURUSD M15 (QS-7) und Ger40 M15 (QS-8, grobe Orientierung)
-> abgeschlossen.
+> **Stand:** 06.09.2026 — BRENT M15 (QS-4), COCOA M15 (QS-5), NGas M15
+> (QS-6), EURUSD M15 (QS-7), Ger40 M15 (QS-8, grobe Orientierung) und
+> COFFEE M15 (QS-9) abgeschlossen.
 
 ---
 
@@ -146,6 +146,31 @@ S2 +153.16R / PF 1.83 → kombiniert +271.07R). Ger40-Resonanz liegt damit
 knapp **unter** der SILVER-Kante (0.89 vs. 0.93) — Index bevorzugt etwas
 engere Zonen als SILVER/GOLD/BRENT/NGas.
 
+### 2.8 COFFEE (QS-9, dieser Testlauf — ATR-Ratio COFFEE/SILVER je Fenster)
+Mittlere M15-Bar-Spanne (USD): COFFEE AUG 1.9886 / S1 1.5023 / S2 1.8788
+— SILVER AUG 0.2336 / S1 0.3775 / S2 0.0970 → Ratio 8.51 / 3.98 / 19.37.
+Coffee-Preisniveau AUG ~305–342 / S1 ~240–353 / S2 ~281–432 (Range je
+Fenster); Sessions (~8–12 h/Tag, ICE Soft) → Barzahl identisch zu COCOA
+(AUG 490, S1 4.852, S2 7.893), Range-Pct 0.52–0.62 % vom Preis (wie Cocoa
+0.3–0.8 %). Der 0.87-ATR-SL-Anker liegt mit ~0.45–0.54 % nahe am
+SILVER-Default (0.45 %) — keine Anpassung nötig.
+
+| Fenster | Bars | TOL | TOL_TOUCH / DENSITY_BAND | SHIFT_TOL | SL_PCT (≈0.87 ATR) | VA_PCT (Sweet Spot) |
+|---|---|---|---|---|---|---|
+| AUG | 490 | 2.8946 | 1.2770 | 0.4257 | 0.5363 % | **0.93** |
+| S1  | 4.852 | 1.3531 | 0.5970 | 0.1990 | 0.4481 % | **0.93** |
+| S2  | 7.893 | 6.5852 | 2.9052 | 0.9684 | 0.4502 % | **0.93** |
+
+**Sweet-Spot-Bestimmung (Reihenuntersuchung):** VA_PCT-Sweep S1+S2
+(0.85–0.99, verfeinert um 0.90/0.92/0.94) → Optimum **0.93** (S1 +57.40R /
+PF 2.63, S2 +133.52R / PF 2.54 → kombiniert +190.92R, PF 2.57). S1 (2026,
+Abverkauf ~323→240 mit Erholungsrally bis ~353) zeigt ein breites Plateau
+0.87–0.93 (Kuppe 0.92–0.93, +59.91R bei 0.92); S2 (2025, Rally-Jahr mit
+432er-Hoch und volatiler Range 281–432) hat eine klare Kuppe bei **0.93**.
+Damit sind **beide Regime stimmig bei 0.93** — die COFFEE-Resonanz liegt
+**exakt auf der SILVER-Kante**, keine Verschiebung und keine Regime-Divergenz
+(wie bei COCOA §2.4, dokumentiert in §26).
+
 ---
 
 ## 3. Ergebnisübersicht (kombinierter Benchmark)
@@ -178,16 +203,22 @@ engere Zonen als SILVER/GOLD/BRENT/NGas.
 | Ger40 | S1 | 11.445 | 102 (10) | 162 | 42.0 | +117.91 | 2.38 | +2.99 | −0.91 | +0.104 |
 | Ger40 | S2 | 18.812 | 41 (15) | 262 | 26.3 | +153.16 | 1.83 | +4.89 | −0.96 | +0.074 |
 | **Ger40** | **S1+S2** | **30.257** | 143 (25) | **424** | **32.3** | **+271.07** | **2.00** | **+3.95** | **−0.94** | **+0.087** |
+| COFFEE | AUG | 0.490 | 6 (2) | 14 | 28.6 | −1.86 | 0.78 | +1.62 | −0.83 | −0.071 |
+| COFFEE | S1 | 4.852 | 54 (17) | 82 | 48.8 | +57.40 | 2.63 | +2.31 | −0.84 | +0.314 |
+| COFFEE | S2 | 7.893 | 37 (18) | 149 | 32.9 | +133.52 | 2.54 | +4.49 | −0.87 | +0.403 |
+| **COFFEE** | **S1+S2** | **12.745** | 91 (35) | **231** | **38.5** | **+190.92** | **2.57** | **+3.51** | **−0.86** | **+0.372** |
 
 > Kurs%/Tr = SumR × SL_PCT / Trades (SL-basierte Kursrendite je Trade).
 > SILVER/GOLD-Werte dokumentarisch aus §8.27 bzw. Baseline-Referenz.
 > COCOA-Endwerte mit Sweet-Spot VA_PCT 0.91 + ATR-SL je Fenster (§2.4);
 > NGas-Endwerte mit Sweet-Spot VA_PCT 0.97 + ATR-SL je Fenster (§2.5);
 > EURUSD-Endwerte mit fensterindividueller Kalibrierung (§2.6);
-> Ger40-Endwerte mit VA_PCT 0.89 + ATR-SL je Fenster (§2.7).
+> Ger40-Endwerte mit VA_PCT 0.89 + ATR-SL je Fenster (§2.7);
+> COFFEE-Endwerte mit Sweet-Spot VA_PCT 0.93 + ATR-SL je Fenster (§2.8).
 > AUG + S1 + S2 NGas kombiniert: 547 Trades / +302.84R;
 > AUG + S1 + S2 EURUSD kombiniert: 444 Trades / +106.44R;
-> AUG + S1 + S2 Ger40 kombiniert: 447 Trades / +275.47R.
+> AUG + S1 + S2 Ger40 kombiniert: 447 Trades / +275.47R;
+> AUG + S1 + S2 COFFEE kombiniert: 245 Trades / +189.06R.
 
 ---
 
@@ -713,14 +744,148 @@ Helper: `tmp_symbol_params.py` (Preisstruktur/ATR-Ratio), `tmp_symbol_sweep.py`,
 
 ---
 
-## 25. Gesamtauswertung & Rangliste (alle Symbole, S1+S2)
+## 25. COFFEE M15 — Equity-Statistik (USD, 1R = 100 USD)
+
+Konvention: Risiko 100 USD/Trade, Positionsgröße = 100/(Entry × SL_PCT),
+keine Kosten, kein Zinseszinseffekt (Belege: `test/stats_trades_Coffee_*_equity.txt`).
+Finale Läufe mit VA_PCT 0.93 + ATR-SL je Fenster (§2.8).
+
+| Fenster | Trades | WR % | SumR (Log) | End-Equity | Max DD (USD) | PF (USD) | Kurs%/Tr |
+|---|---|---|---|---|---|---|---|
+| AUG | 14 | 28.6 | −1.86R | **−186 $** | −409 $ | 0.78 | −0.071 |
+| S1 | 82 | 48.8 | +57.40R | **+5.740 $** | −948 $ | 2.63 | +0.314 |
+| S2 | 149 | 32.9 | +133.50R | **+13.350 $** | −984 $ | 2.54 | +0.403 |
+| S1+S2 | 231 | 38.5 | +190.90R | **+19.090 $** | — | 2.57 | +0.372 |
+
+> Hinweis: SumR/Equity summieren die im Trade-Log gerundeten R-Werte (2 Dez.);
+> Engine-STATS-EXPORT lautet S1 +57.40R / S2 +133.52R. Equity startet bei 0
+> (reiner P/L-Verlauf) → DD-Prozente vom laufenden Peak nicht aussagekräftig,
+> daher absoluter Max DD in USD (S1 −29.3 % vom Peak, Tief T28; S2 −10.2 % vom
+> Peak, Tief T105). S2-Bester T73 SHORT +20.36R; längste DD-Serie S1 22 Trades.
+
+---
+
+## 26. COFFEE M15 — VA_PCT-Topologie (S1+S2, ATR-SL je Fenster)
+
+| VA_PCT | S1 SumR | S1 PF | S2 SumR | S2 PF | S1+S2 SumR | Status |
+|---|---|---|---|---|---|---|
+| 0.85 | +38.89R | 2.22 | +94.49R | 1.89 | +133.38R | solide |
+| 0.87 | +52.70R | 2.50 | +104.71R | 2.04 | +157.41R | Aufbau |
+| 0.89 | +53.66R | 2.46 | +66.89R | 1.68 | +120.55R | S2-Tal |
+| 0.90 | +53.06R | 2.45 | +97.93R | 2.07 | +150.99R | Zwischenwert |
+| 0.91 | +51.32R | 2.51 | +111.45R | 2.25 | +162.77R | steigend |
+| 0.92 | +59.91R | 2.78 | +127.25R | 2.45 | +187.16R | nahe Optimum |
+| **0.93** | **+57.40R** | 2.63 | **+133.52R** | 2.54 | **+190.92R** | **Globales Optimum (SILVER-Kante)** |
+| 0.94 | +44.03R | 2.12 | +119.89R | 2.39 | +163.92R | S1-Abfall |
+| 0.95 | +28.21R | 1.65 | +130.26R | 2.63 | +158.47R | S1 bricht ein |
+| 0.96 | +22.85R | 1.50 | +111.95R | 2.44 | +134.80R | S1-Tal |
+| 0.97 | +37.47R | 1.81 | +97.07R | 2.26 | +134.54R | S2 fällt |
+| 0.98 | +42.76R | 1.91 | +89.41R | 2.24 | +132.17R | Plateau |
+| 0.99 | +52.01R | 2.33 | +89.61R | 2.36 | +141.62R | S1-Anstieg, S2 schwach |
+
+**Lesart:** S1 (2026, Abverkauf ~323→240 mit Erholungsrally bis ~353) zeigt
+ein breites Plateau 0.87–0.93 (Kuppe 0.92–0.93, +59.91R / PF 2.78), ein Tal
+bei 0.95–0.96 und einen erneuten Anstieg zu 0.99; S2 (2025, Rally-Jahr mit
+432er-Hoch, volatile Range 281–432) hat eine klare Kuppe bei **0.93**
+(+133.52R / PF 2.54) und fällt danach monoton. Kombiniert dominiert **0.93**
+(+190.92R / PF 2.57). Im Gegensatz zu COCOA (§9) ist die COFFEE-Resonanz
+**regime-unabhängig** — beide Fenster stimmig, die Kante liegt **exakt auf
+SILVER 0.93** (erste Bestätigung ohne Resonanzverschiebung).
+
+---
+
+## 27. COFFEE M15 — SL_PCT-Reihenuntersuchung (bei VA_PCT 0.93)
+
+Gleiche absolute SL_PCT-Werte auf beiden Fenstern (Preis-/ATR-Relation ist
+über die Fenster ähnlich: Bar-Range ~0.5–0.62 % vom Preis). Der 0.87-ATR-
+Anker liegt bei S1 ≈ 0.448 % und S2 ≈ 0.450 %.
+
+| SL_PCT | S1 SumR | S1 Kurs%/Tr | S2 SumR | S2 Kurs%/Tr | S1+S2 SumR |
+|---|---|---|---|---|---|
+| 0.30 % | +76.41R | +0.249 | +180.55R | +0.332 | +256.96R |
+| 0.35 % | +73.83R | +0.301 | +181.79R | +0.398 | +255.62R |
+| 0.40 % | +58.40R | +0.281 | +164.84R | +0.417 | +223.24R |
+| **0.45 % (≈Anker S1/S2)** | +55.79R | +0.310 | +133.62R | +0.404 | +189.41R |
+| 0.50 % | +53.59R | +0.353 | +109.26R | +0.372 | +162.85R |
+| 0.60 % | +32.04R | +0.310 | +92.19R | +0.401 | +124.23R |
+| 0.70 % | +23.02R | +0.304 | +94.01R | +0.488 | +117.03R |
+
+**Lesart:** Engere Stops (0.30–0.35 %) maximieren die SumR (R-Skalierungs-
+effekt: S1 +76.41R / S2 +181.79R), weite Stops senken die SumR; die
+Kursrendite je Trade bleibt über 0.30–0.60 % bemerkenswert stabil (S2-Max
+~0.49 % erst bei 0.70 %). Der 0.87-ATR-Anker (0.448/0.450 %) ist ein robuster
+Mittelweg — für die finalen Läufe beibehalten (Preisstruktur-Skalierung,
+GOLD-Protokoll-konform).
+
+---
+
+## 28. COFFEE M15 — MIN_SPREAD_PCT-Reihe (bei VA_PCT 0.93, S1)
+
+| MIN_SPREAD_PCT | Trades | SumR | PF |
+|---|---|---|---|
+| 1.0 / 1.5 / 2.0 / 2.5 / 3.0 | 82 (identisch) | +57.40R (identisch) | 2.63 |
+
+**Lesart:** Das 1.5 %-Spread-Gate ist auf Coffee **nicht bindend** — alle
+handelbaren Phasen überschreiten 3 % Phasen-Breite (hohe prozentuale
+Volatilität wie bei Cocoa §11). Default 1.5 % bleibt unverändert.
+
+---
+
+## 29. COFFEE M15 — Artefakte (test/, gitignored)
+
+| Fenster | txt (Engine) | png (Phasen-Chart) | txt (Equity) | png (Equity) | Engine-Log |
+|---|---|---|---|---|---|
+| AUG | `stats_trades_Coffee_AUG.txt` | `phasen_volumen_profil_Coffee_AUG.png` | `stats_trades_Coffee_AUG_equity.txt` | `stats_trades_Coffee_AUG.png` | `tmp_coffee_AUG_engine.log` |
+| S1 | `stats_trades_Coffee_S1.txt` | `phasen_volumen_profil_Coffee_S1.png` | `stats_trades_Coffee_S1_equity.txt` | `stats_trades_Coffee_S1.png` | `tmp_coffee_S1_engine.log` |
+| S2 | `stats_trades_Coffee_S2.txt` | `phasen_volumen_profil_Coffee_S2.png` | `stats_trades_Coffee_S2_equity.txt` | `stats_trades_Coffee_S2.png` | `tmp_coffee_S2_engine.log` |
+
+Reihenuntersuchung (Protokolle): `tmp_Coffee_va_pct_sweep_S1.txt`,
+`tmp_Coffee_va_pct_sweep_S2.txt`, `tmp_Coffee_sl_pct_sweep_S1_va-pct0.93.txt`,
+`tmp_Coffee_sl_pct_sweep_S2_va-pct0.93.txt`,
+`tmp_Coffee_min_spread_pct_sweep_S1_va-pct0.93.txt`.
+Helper: `tmp_symbol_params.py` (Preisstruktur/ATR), `tmp_symbol_sweep.py`
+(Sweep-Treiber), `tmp_symbol_equity.py`, `tmp_symbol_summary.py`,
+`tmp_phasen_volumen_profil_symbol.py` (Engine-Arbeitskopie, unverändert zur
+Baseline + `--symbol=`/CLI-Overrides).
+
+---
+
+## 30. COFFEE M15 — Befunde & Einordnung
+
+1. **Fünfter Cross-Asset-Beleg, resonanzstabil:** COFFEE trägt den
+   Reclaim-Edge über S1+S2 mit +190.92R / 231 Trades (PF 2.57). Im Gegensatz
+   zu COCOA (Regime-Divergenz S1 0.95 / S2 0.91) liegen beide Fenster-Kuppen
+   bei **0.93** — die VA-Resonanz fällt exakt mit der SILVER-Baseline
+   zusammen. Coffee ist damit das erste Asset außer SILVER ohne
+   Resonanzverschiebung (weder + wie GOLD/BRENT/NGas noch − wie COCOA/Ger40).
+2. **Höchster PF über S1+S2 aller Assets (2.57)** und S1 (2026) mit
+   PF 2.63 / WR 48.8 % das stärkste S1 aller Symbole (bisher Ger40 2.38) —
+   ausgeglichenes Gewinnprofil (AvgW +2.31R / AvgL −0.84R) statt
+   Runner-Abhängigkeit.
+3. **Effizienz:** Kursrendite je Trade S1+S2 **+0.372 %** — über SILVER
+   (+0.325 %), nur von COCOA (+0.486 %) übertroffen. S2 (2025) liefert mit
+   +133.52R / PF 2.54 den Hauptbeitrag (Runner-Profil: AvgW +4.49R bei
+   WR 32.9 %, Bester T73 +20.36R).
+4. **Kurze Sessions beachten:** Coffee handelt (ICE) nur ~8–12 h/Tag → AUG
+   nur 490 Bars (14 Tr, −1.86R / PF 0.78). Wie bei Cocoa bleibt AUG eine
+   kleine, nicht aussagekräftige Stichprobe; die Engine skaliert
+   (MIN_CANDLES unverändert 46).
+5. **SL-Sensitivität:** 0.30–0.35 % maximieren SumR (eng), der 0.87-ATR-Anker
+   (≈0.45 %) bleibt robuster Mittelweg. MIN_SPREAD_PCT-Gate nicht bindend
+   (Default 1.5 % bestätigt).
+6. **Produktion bleibt exklusiv SILVER.** COFFEE als eigenständiges
+   Handelssymbol dokumentiert (QS-9).
+
+---
+
+## 31. Gesamtauswertung & Rangliste (alle Symbole, S1+S2)
 
 Vergleichs-Basis: Referenzfenster S1+S2 (2025 + 2026 bis 28.08.), final
-kalibrierte Parameter je Symbol (§2.2–2.7). SILVER/GOLD ohne Equity-Report
+kalibrierte Parameter je Symbol (§2.2–2.8). SILVER/GOLD ohne Equity-Report
 in diesem Archiv (dokumentarisch aus §8.27); Equity-Konvention 1R = 100 USD,
 keine Kosten.
 
-### 25.1 Haupttabelle (sortiert nach SumR S1+S2)
+### 31.1 Haupttabelle (sortiert nach SumR S1+S2)
 
 | Rang | Symbol | Klasse | VA_PCT | Trades | WR % | SumR | PF | AvgW | Kurs%/Tr | End-Equity S1+S2 |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -729,71 +894,81 @@ keine Kosten.
 | 3 | **NGas** | Gas-Future | 0.97 | 522 | 28.2 | **+285.59R** | 1.84 | +4.26 | +0.215 | +28.563 $ |
 | 4 | **Ger40** | Index (DAX) | 0.89 | 424 | 32.3 | **+271.07R** | 2.00 | +3.95 | +0.087 | +27.106 $ |
 | 5 | **GOLD** | Metall | 0.95 | 420 | 36.5 | **+196.06R** | ~1.80 | +2.78 | +0.113 | ~19.6k $ (n. ber.) |
-| 6 | **COCOA** | Soft-Commodity | 0.91 | 230 | 29.1 | **+176.01R** | 2.22 | +4.78 | +0.486 | +17.600 $ |
-| 7 | **EURUSD** | FX | 0.99/0.91* | 437 | 31.4 | **+102.74R** | 1.40 | +2.62 | +0.017 | +10.272 $ |
+| 6 | **COFFEE** | Soft-Commodity | 0.93 | 231 | 38.5 | **+190.92R** | 2.57 | +3.51 | +0.372 | +19.090 $ |
+| 7 | **COCOA** | Soft-Commodity | 0.91 | 230 | 29.1 | **+176.01R** | 2.22 | +4.78 | +0.486 | +17.600 $ |
+| 8 | **EURUSD** | FX | 0.99/0.91* | 437 | 31.4 | **+102.74R** | 1.40 | +2.62 | +0.017 | +10.272 $ |
 
 \* EURUSD fensterindividuell (AUG/S1 0.99, S2 0.91).
 
-### 25.2 Rangliste Profit-Faktor (PF, S1+S2)
+### 31.2 Rangliste Profit-Faktor (PF, S1+S2)
 
 | Rang | Symbol | PF | Rang | Symbol | PF |
 |---|---|---|---|---|---|
-| 1 | SILVER | **2.33** | 5 | NGas | 1.84 |
-| 2 | BRENT | **2.23** | 6 | GOLD | ~1.80 |
-| 3 | COCOA | **2.22** | 7 | EURUSD | 1.40 |
-| 4 | Ger40 | **2.00** | | | |
+| 1 | COFFEE | **2.57** | 5 | Ger40 | **2.00** |
+| 2 | SILVER | **2.33** | 6 | NGas | 1.84 |
+| 3 | BRENT | **2.23** | 7 | GOLD | ~1.80 |
+| 4 | COCOA | **2.22** | 8 | EURUSD | 1.40 |
 
-### 25.3 Rangliste Kursrendite je Trade (S1+S2)
+### 31.3 Rangliste Kursrendite je Trade (S1+S2)
 
 | Rang | Symbol | Kurs%/Tr | Rang | Symbol | Kurs%/Tr |
 |---|---|---|---|---|---|
-| 1 | COCOA | **+0.486** | 5 | GOLD | +0.113 |
-| 2 | SILVER | **+0.325** | 6 | Ger40 | +0.087 |
-| 3 | BRENT | **+0.233** | 7 | EURUSD | +0.017 |
-| 4 | NGas | **+0.215** | | | |
+| 1 | COCOA | **+0.486** | 5 | NGas | +0.215 |
+| 2 | COFFEE | **+0.372** | 6 | GOLD | +0.113 |
+| 3 | SILVER | **+0.325** | 7 | Ger40 | +0.087 |
+| 4 | BRENT | **+0.233** | 8 | EURUSD | +0.017 |
 
-### 25.4 Rangliste End-Equity S1+S2 (1R = 100 USD, ohne SILVER/GOLD-Report)
+### 31.4 Rangliste End-Equity S1+S2 (1R = 100 USD, ohne SILVER/GOLD-Report)
 
 | Rang | Symbol | End-Equity | Rang | Symbol | End-Equity |
 |---|---|---|---|---|---|
-| 1 | BRENT | **+34.765 $** | 4 | COCOA | +17.600 $ |
-| 2 | NGas | **+28.563 $** | 5 | EURUSD | +10.272 $ |
-| 3 | Ger40 | **+27.106 $** | | | |
+| 1 | BRENT | **+34.765 $** | 4 | COFFEE | **+19.090 $** |
+| 2 | NGas | **+28.563 $** | 5 | COCOA | +17.600 $ |
+| 3 | Ger40 | **+27.106 $** | 6 | EURUSD | +10.272 $ |
 
-### 25.5 VA_PCT-Resonanzübersicht (Sweet Spot je Symbol)
+### 31.5 VA_PCT-Resonanzübersicht (Sweet Spot je Symbol)
 
 | Symbol | VA_PCT | Abstand zu SILVER (0.93) | Tendenz |
 |---|---|---|---|
 | Ger40 | **0.89** | −0.04 | engere Zonen |
 | COCOA | **0.91** | −0.02 | engere Zonen |
 | SILVER | **0.93** | 0 | Baseline |
+| COFFEE | **0.93** | 0 | Baseline-identisch (beide Regime) |
 | GOLD / BRENT | **0.95** | +0.02 | weitere Zonen |
 | NGas | **0.97** | +0.04 | weitere Zonen |
 | EURUSD | 0.99/0.91 | +0.06/−0.02 | regime-abhängig extrem |
 
-### 25.6 Gesamt-Fazit (Rangfolge qualitativ)
+### 31.6 Gesamt-Fazit (Rangfolge qualitativ)
 
 1. **BRENT** — bester R-Beitrag (PF 2.23, +347.68R), beide Fenster stimmig bei
-   VA 0.95; Runner-Profil in S2. Robustester Cross-Asset-Beleg.
-2. **SILVER (Baseline)** — Benchmark: höchster PF (2.33), WR 39.7 %, Kurs%/
-   Tr +0.325. Produktion bleibt exklusiv SILVER.
-3. **NGas** — zweitstärkster R-Beitrag, aber fragil: S2 kollabiert ohne weite
+   VA 0.95; Runner-Profil in S2. Robustester Cross-Asset-Beleg (R-Beitrag).
+2. **COFFEE** — höchster PF über S1+S2 aller Assets (2.57), beide Fenster
+   stimmig **exakt auf der SILVER-Kante (VA 0.93)** — erste Bestätigung ohne
+   Resonanzverschiebung; S1 (2026) mit PF 2.63/WR 48.8 % das beste S1 aller
+   Assets; Kursrendite +0.372 %.
+3. **SILVER (Baseline)** — Benchmark: PF 2.33, WR 39.7 %, Kurs%/Tr +0.325;
+   über den 18-Monats-Stresstest (§32) bestätigt. Produktion bleibt exklusiv
+   SILVER.
+4. **NGas** — zweitstärkster R-Beitrag, aber fragil: S2 kollabiert ohne weite
    Zonen (VA 0.97 zwingend); PF 1.84, längste DD-Serien.
-4. **Ger40 (DAX)** — erster Index-Beleg, solide: PF 2.00, S1 (2026) mit
-   PF 2.38/WR 42 % das beste S1 aller Assets; VA 0.89 (engste Zonen).
-5. **GOLD** — dokumentarisch: PF ~1.80, moderater Beleg bei VA 0.95.
-6. **COCOA** — regime-abhängig (S1 0.95 / S2 0.91), aber höchste
+5. **Ger40 (DAX)** — erster Index-Beleg, solide: PF 2.00, S1 (2026) mit
+   PF 2.38/WR 42 %; VA 0.89 (engste Zonen).
+6. **GOLD** — dokumentarisch: PF ~1.80, moderater Beleg bei VA 0.95.
+7. **COCOA** — regime-abhängig (S1 0.95 / S2 0.91), aber höchste
    Kursrendite je Trade (+0.486 %), PF 2.22; wenige Bars (kurze Sessions).
-7. **EURUSD** — schwächster und fragilster Beleg (PF 1.40): nur S2/2025-Trend
+8. **EURUSD** — schwächster und fragilster Beleg (PF 1.40): nur S2/2025-Trend
    trägt; S1/2026 erst nach SL-Anhebung auf ~2,2× ATR positiv; geringste
    Kursrendite/Trade (+0.017 %).
 
 **Asset-Klassen-Fazit:** Der Reclaim-Edge ist auf Commodities und Indizes
-(je PF ≥ 1.8) robust, auf FX (EURUSD) deutlich schwächer/fragiler.
+(je PF ≥ 1.8) robust, auf FX (EURUSD) deutlich schwächer/fragiler. Softs
+(COCOA/COFFEE) liefern die höchste Kursrendite je Trade (+0.486 %/+0.372 %)
+bei kurzen Sessions; COFFEE bestätigt die SILVER-Resonanz (VA 0.93) als
+erste Asset ohne Verschiebung.
 
 ---
 
-## 26. SILVER M15 — Langzeit-Stresstest (QS-8.1, 05.02.2025 – 29.08.2026)
+## 32. SILVER M15 — Langzeit-Stresstest (QS-8.1, 05.02.2025 – 29.08.2026)
 
 **Fragestellung:** Hält die SILVER-Baseline (unveränderte Produktions-Defaults)
 den vollen DB-Zeitraum von 05.02.2025 bis 29.08.2026 (37.015 M15-Bars,
@@ -802,7 +977,7 @@ den vollen DB-Zeitraum von 05.02.2025 bis 29.08.2026 (37.015 M15-Bars,
 --start=2025-02-05 --ende=2026-08-30` und unveränderten Defaults
 (VA_PCT 0.93, TOL 0.34/0.15/0.15/0.05, SL_PCT 0.45 %).
 
-### 26.1 Gesamtergebnis (18 Monate)
+### 32.1 Gesamtergebnis (18 Monate)
 
 | Kennzahl | Wert |
 |---|---|
@@ -818,7 +993,7 @@ den vollen DB-Zeitraum von 05.02.2025 bis 29.08.2026 (37.015 M15-Bars,
 | Bester Trade | T207 SHORT +19.58R |
 | Kursrendite/Trade | +0.313 % |
 
-### 26.2 Monatsübersicht (Trades aus Engine-Log aggregiert)
+### 32.2 Monatsübersicht (Trades aus Engine-Log aggregiert)
 
 | Monat | n | SumR | WR % | PF | Bemerkung |
 |---|---|---|---|---|---|
@@ -842,7 +1017,7 @@ den vollen DB-Zeitraum von 05.02.2025 bis 29.08.2026 (37.015 M15-Bars,
 | 2026-07 | 29 | +24.50R | 48.3 | 3.00 | |
 | 2026-08 | 28 | +35.96R | 50.0 | 3.69 | |
 
-### 26.3 Befunde Stresstest
+### 32.3 Befunde Stresstest
 
 1. **Engine hält den vollen Zeitraum fehlerfrei durch** — keine Exceptions/
    Warnungen, 255 sauber segmentierte Phasen über den kompletten

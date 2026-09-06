@@ -97,9 +97,11 @@ if TYPE_CHECKING:  # Nur fuer Typ-Checker; Laufzeit-Import bleibt im Gate-Pfad
 
 __all__ = [
     "TrendConfig",
+    "EMASlopeTrailingConfig",
     "SetupCSignal",
     "KernelTrade",
     "AggBlock",
+    "berechne_ema_slope_vektoren",
     "bericht_fenster",
     "main",
 ]
@@ -165,9 +167,11 @@ ArmName = Literal["RAW", "CONFIRMED", "RETEST"]
 DirName = Literal["up", "down"]
 RawCluster = Literal["CLUSTER_A_ENG", "CLUSTER_B_WEIT", "NICHT_RAW"]
 ExitGrund = Literal[
-    "INITIAL_SL_INTRABAR",  # F4-Stop intrabar (Vorrang vor Zeit-Exit)
-    "ZEIT_EXIT_CLOSE",      # Horizont N erreicht, Close der Exit-Bar e+N
-    "RECHTS_ZENSIERT",      # E2: bis Datenende ueberlebt, Horizont nicht abgelaufen
+    "INITIAL_SL_INTRABAR",    # F4-Stop intrabar (Vorrang vor Zeit-Exit)
+    "ZEIT_EXIT_CLOSE",        # Horizont N erreicht, Close der Exit-Bar e+N
+    "RECHTS_ZENSIERT",        # E2: bis Datenende ueberlebt, Horizont nicht abgelaufen
+    "TRAILING_SL_INTRABAR",   # EMA-Slope-Trailing: nachgezogener Stop intrabar
+    "CRASH_HORIZONT_CLOSE",   # Notfall-Zeitschranke (Crash-Sicherung), Close
 ]
 SignalStatus = Literal[
     "SIGNAL",
@@ -179,6 +183,33 @@ SignalStatus = Literal[
     "KEINE_KANTE",
     "DATEN_ENDE",
 ]
+
+
+@dataclass(frozen=True, slots=True)
+class EMASlopeTrailingConfig:
+    """Konfiguration fuer dynamisches Trailing via EMA-Steigung (§5.2/§5.4).
+
+    NUR Variante B (STOP_AUF_EXTREMUM) implementiert; Variante A
+    (SOFORT_EXIT) ist Backlog-Task und wird bei Aktivierung mit
+    ``NotImplementedError`` abgelehnt. Defaults = deaktiviert -> der Kern
+    bleibt bitgenau der Phase-1-Pfad (No-Harm-Invarianz, L2 §2.15).
+
+    Attributes:
+        aktiviert: True = Trailing-Modus aktiv (A/B-Test).
+        ema_periode: EMA-Periode des Steigungs-Triggers (Standard 20).
+        modus: Ausfuehrungs-Modus (Primaer: STOP_AUF_EXTREMUM = Stop-
+            Nachzug auf das Extremum der Abflachungs-Kerze statt Sofort-Exit).
+        mindest_gewinn_r: Gewinnschwelle in R, ab der der Nachzug greift
+            (0.0 = sofort ab der ersten Kerze aktiv).
+        notfall_horizont_bars: Crash-Sicherung (Notbremse) gegen Endlos-
+            Laeufe; ersetzt im Trailing-Modus den terminalen Zeit-Exit.
+    """
+
+    aktiviert: bool = False
+    ema_periode: int = 20
+    modus: Literal["STOP_AUF_EXTREMUM", "SOFORT_EXIT"] = "STOP_AUF_EXTREMUM"
+    mindest_gewinn_r: float = 0.0
+    notfall_horizont_bars: int = 300
 
 
 @dataclass(frozen=True, slots=True)
@@ -209,6 +240,8 @@ class TrendConfig:
         sl_pct_ref: 0,45 %-Referenz-SL (ausschliesslich r_ref-Messung).
         segment: Segmentierungs-Konfiguration (Defaults = Baseline exakt);
             start/ende/db_path werden je Fenster ueberschrieben.
+        ema_trailing: EMA-Slope-Trailing (optionaler A/B-Modus, §5.2/§5.4);
+            Default deaktiviert = bitgenau Phase-1-Pfad.
         report_dir: Ausgabeordner (Phase 1 = Text-Export only).
     """
 
@@ -247,6 +280,13 @@ class TrendConfig:
 
     # Segmentierungs-Konfiguration (Baseline-Konstanten, unveraendert)
     segment: SegmentConfig = field(default_factory=SegmentConfig)
+
+    # EMA-Slope-Trailing (optionaler A/B-Modus, §5.2/§5.4): Default
+    # deaktiviert -> _simuliere_kern/_kern_lauefe bleiben bitgenau Phase-1
+    # (No-Harm-Invarianz). Aktivierung nur ueber --ema-trailing (main).
+    ema_trailing: EMASlopeTrailingConfig = field(
+        default_factory=EMASlopeTrailingConfig
+    )
 
     # Phase 1 = Text-Export only (§2.14-B3)
     report_dir: Path = (
@@ -325,6 +365,8 @@ class AggBlock:
     pf: float = float("inf")
     n_init: int = 0
     n_zeit: int = 0
+    n_trailing: int = 0
+    n_crash: int = 0
     mean_offset: float = float("nan")
 
 
@@ -718,8 +760,36 @@ def _population(
 
 
 # =============================================================================
-# 4) SIMULATIONSKERN (Phase 1: F4 intrabar + terminaler Zeit-Exit, KEIN_TRAILING)
+# 4) SIMULATIONSKERN (Phase 1: F4 intrabar + terminaler Zeit-Exit, KEIN_TRAILING;
+#    optional EMA-Slope-Trailing Variante B, §5.2/§5.4)
 # =============================================================================
+
+
+def berechne_ema_slope_vektoren(
+    df: pd.DataFrame, periode: int = 20
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Berechnet kausal den Close-EMA und dessen 1-Bar-Slope (Vektoren).
+
+    Rein vektorisiert (ewm/diff, keinerlei Schleifen). Der Wert an Bar ``k``
+    nutzt ausschliesslich Closes ``<= k`` (kein Lookahead): EMA ueber
+    ``ewm(span=periode, adjust=False)``, Slope = EMA_t - EMA_{t-1}
+    (§5.2: erste Ableitung). Der NaN an Position 0 wird mit 0.0 gefuellt
+    (kausal neutral, identische Semantik wie der Referenz-Entwurf).
+
+    Args:
+        df: OHLCV-DataFrame (close-Spalte vorhanden).
+        periode: EMA-Periode (Standard 20, Projektkonvention §2.1/§2.16).
+
+    Returns:
+        (ema_werte, slope_werte) als float64-Arrays ueber ganz df.
+    """
+    close_s: pd.Series = df["close"].astype(float)
+    ema_s: pd.Series = close_s.ewm(span=periode, adjust=False).mean()
+    slope_s: pd.Series = ema_s.diff().fillna(0.0)
+    return (
+        ema_s.to_numpy(dtype=float, copy=True),
+        slope_s.to_numpy(dtype=float, copy=True),
+    )
 
 
 def _simuliere_kern(
@@ -800,6 +870,121 @@ def _simuliere_kern(
     )
 
 
+def _simuliere_kern_ema_trailing(
+    df: pd.DataFrame,
+    sig: SetupCSignal,
+    cfg: TrendConfig,
+    ema_arr: np.ndarray,
+    slope_arr: np.ndarray,
+    trailing_cfg: EMASlopeTrailingConfig,
+) -> KernelTrade:
+    """Simuliert RAW-A-Signal mit EMA-Slope-Trailing (Variante B, §5.2).
+
+    Abweichend vom Baseline-Kern (``_simuliere_kern``) ist der terminale
+    Zeit-Exit N=48/96 ENTKOPPELT (§5.1-Architektur-Entscheidung). Statt
+    dessen gilt je Bar (strikt kausal, Reihenfolge wie Baseline):
+      1) Stop intrabar mit dem AKTUELLEN Stop-Niveau (initial F4 oder
+         nachgezogen) - VORRANG.
+      2) Crash-Sicherung (Notbremse): k == entry_idx + notfall_horizont_bars
+         -> Exit am Close (CRASH_HORIZONT_CLOSE).
+      3) EMA-Slope-Ratchet (Variante B): Slope_t <= 0 (Long) bzw. >= 0
+         (Short) -> Stop auf das Extremum der Abflachungs-Kerze nachziehen
+         (Low bei Long, High bei Short). Monotonie-Pflicht: Der Stop darf
+         NIE zurueckweichen (nur erhoehen bei Long / nur senken bei Short).
+         Optional greift die Gewinnschwelle ``mindest_gewinn_r`` (0.0 =
+         sofort ab der ersten Kerze aktiv).
+    Ueberlebt der Trade das Datenende ohne Stop und ohne erreichte
+    Crash-Schranke, gilt er als RECHTS_ZENSIERT (E2, r = NaN).
+
+    Args:
+        df: OHLCV-DataFrame.
+        sig: SetupCSignal (SIGNAL, sl_usd > 0).
+        cfg: TrendConfig (fuer sl_pct_ref/r_ref).
+        ema_arr: Kausaler Close-EMA-Vektor ueber df (len(df)).
+        slope_arr: Kausaler 1-Bar-Slope-Vektor ueber df (len(df)).
+        trailing_cfg: EMASlopeTrailingConfig (aktiviert, STOP_AUF_EXTREMUM).
+
+    Returns:
+        KernelTrade (horizont_bars = notfall_horizont_bars).
+    """
+    n: int = len(df)
+    e: int = int(sig.entry_idx)
+    up: bool = sig.dir == "up"
+    entry: float = float(df["open"].values[e])
+    f4_stop: float = float(sig.stop_level)
+    sl_usd: float = float(sig.sl_usd)
+    high: np.ndarray = df["high"].values.astype(float)
+    low: np.ndarray = df["low"].values.astype(float)
+    close: np.ndarray = df["close"].values.astype(float)
+
+    notfall: int = trailing_cfg.notfall_horizont_bars
+    ziel_bar: int = e + notfall
+    letzte_bar: int = n - 1
+    loop_ende: int = min(ziel_bar, letzte_bar)
+
+    exit_grund: ExitGrund = "RECHTS_ZENSIERT"  # Default, falls Loop ohne Break
+    exit_idx: int = letzte_bar
+    exit_preis: float = float(close[letzte_bar])
+    akt_sl: float = f4_stop  # laufender Stop (initial = F4, dann Ratchet)
+
+    for k in range(e, loop_ende + 1):
+        # 1) Stop intrabar mit aktuellem Niveau (Vorrang vor Crash-Schranke)
+        if (up and low[k] <= akt_sl) or ((not up) and high[k] >= akt_sl):
+            exit_preis = akt_sl
+            exit_idx = k
+            exit_grund = (
+                "INITIAL_SL_INTRABAR"
+                if akt_sl == f4_stop
+                else "TRAILING_SL_INTRABAR"
+            )
+            break
+        # 2) Crash-Sicherung am Close der Notfall-Bar (terminal)
+        if k == ziel_bar:
+            exit_preis, exit_idx, exit_grund = (
+                float(close[k]), k, "CRASH_HORIZONT_CLOSE"
+            )
+            break
+        # 3) EMA-Slope-Ratchet (Variante B): Extremum der Abflachungs-Kerze
+        slope_k: float = float(slope_arr[k])
+        ratchet_ok: bool = trailing_cfg.mindest_gewinn_r <= 0.0
+        if not ratchet_ok:
+            fl_r: float = (
+                (close[k] - entry) / sl_usd if up else (entry - close[k]) / sl_usd
+            )
+            ratchet_ok = fl_r >= trailing_cfg.mindest_gewinn_r
+        if ratchet_ok and ((up and slope_k <= 0.0) or ((not up) and slope_k >= 0.0)):
+            neuer_sl: float = float(low[k] if up else high[k])
+            # Monotonie: Stop darf nie zurueckweichen (nie Risiko vergroessern)
+            if (up and neuer_sl > akt_sl) or ((not up) and neuer_sl < akt_sl):
+                akt_sl = neuer_sl
+
+    haltezeit: int = exit_idx - e
+    zensiert: bool = exit_grund == "RECHTS_ZENSIERT"
+    if zensiert:
+        r_f4: float = float("nan")
+        r_ref: float = float("nan")
+    else:
+        if up:
+            r_f4 = (exit_preis - entry) / sl_usd
+        else:
+            r_f4 = (entry - exit_preis) / sl_usd
+        r_ref_base: float = entry * cfg.sl_pct_ref / 100.0
+        r_ref = (
+            (exit_preis - entry) / r_ref_base
+            if up
+            else (entry - exit_preis) / r_ref_base
+        )
+
+    return KernelTrade(
+        phase=sig.phase, dir=sig.dir, horizont_bars=notfall,
+        entry_idx=e, entry_ts=df["ts"].iloc[e], entry_preis=entry,
+        f4_initial_stop=f4_stop, sl_usd=sl_usd,
+        exit_idx=exit_idx, exit_ts=df["ts"].iloc[exit_idx],
+        exit_preis=float(exit_preis), exit_grund=exit_grund,
+        haltezeit_bars=haltezeit, r_f4=float(r_f4), r_ref=float(r_ref),
+    )
+
+
 def _kern_lauefe(
     df: pd.DataFrame,
     signale: Sequence[SetupCSignal],
@@ -818,15 +1003,46 @@ def _kern_lauefe(
     L2-Referenz bitgenau. Kein Cross-Richtungs-Eingriff (up/down derselben
     Phase sind unabhaengige, gleichzeitig handelbare Setups).
 
+    EMA-Slope-Trailing (optional): Ist ``cfg.ema_trailing.aktiviert``, wird
+    jeder Kandidat mit ``_simuliere_kern_ema_trailing`` simuliert (Variante B,
+    §5.2). Die kausalen EMA-/Slope-Vektoren werden genau einmal je Lauf
+    berechnet. Das ``horizont``-Argument ist im Trailing-Modus bedeutungslos:
+    die Laufzeitgrenze bestimmt ausschliesslich
+    ``cfg.ema_trailing.notfall_horizont_bars`` (Crash-Sicherung). Die
+    F3-No-op-Garantie bleibt unveraendert (hoehere Haltedauer aendert nichts
+    an der Ein-Signal-pro-(phase, dir)-Struktur).
+
     Args:
         df: OHLCV-DataFrame.
         signale: Alle erfassten Signale.
         cfg: TrendConfig.
-        horizont: Zeit-Horizont N in Bars.
+        horizont: Zeit-Horizont N in Bars (nur Baseline; im Trailing-Modus
+            ohne Bedeutung).
 
     Returns:
         (aktivierte KernelTrades, n_supprimiert).
     """
+    if cfg.ema_trailing.aktiviert:
+        if cfg.ema_trailing.modus != "STOP_AUF_EXTREMUM":
+            raise NotImplementedError(
+                "EMA-Slope-Trailing: Modus "
+                f"{cfg.ema_trailing.modus} (Variante A/SOFORT_EXIT) ist "
+                "Backlog-Task §5.4 - nur STOP_AUF_EXTREMUM implementiert."
+            )
+        ema_arr, slope_arr = berechne_ema_slope_vektoren(
+            df, cfg.ema_trailing.ema_periode
+        )
+
+        def _sim(sig: SetupCSignal) -> KernelTrade:
+            return _simuliere_kern_ema_trailing(
+                df, sig, cfg, ema_arr, slope_arr, cfg.ema_trailing
+            )
+
+    else:
+
+        def _sim(sig: SetupCSignal) -> KernelTrade:
+            return _simuliere_kern(df, sig, cfg, horizont)
+
     kandidaten: List[SetupCSignal] = [
         s
         for s in signale
@@ -840,7 +1056,7 @@ def _kern_lauefe(
     trades: List[KernelTrade] = []
     if not cfg.suppression_phasenlokal:
         for sig in kandidaten:
-            trades.append(_simuliere_kern(df, sig, cfg, horizont))
+            trades.append(_sim(sig))
         return trades, 0
 
     n_supprimiert: int = 0
@@ -851,7 +1067,7 @@ def _kern_lauefe(
         if sig.entry_idx <= offen_bis.get(key, -1):
             n_supprimiert += 1
             continue
-        trade: KernelTrade = _simuliere_kern(df, sig, cfg, horizont)
+        trade: KernelTrade = _sim(sig)
         trades.append(trade)
         offen_bis[key] = int(trade.exit_idx)
     return trades, n_supprimiert
@@ -1001,6 +1217,10 @@ def _agg_block(trades: Sequence[KernelTrade], n_supprimiert: int = 0) -> AggBloc
             continue
         if r.exit_grund == "INITIAL_SL_INTRABAR":
             agg.n_init += 1
+        elif r.exit_grund == "TRAILING_SL_INTRABAR":
+            agg.n_trailing += 1
+        elif r.exit_grund == "CRASH_HORIZONT_CLOSE":
+            agg.n_crash += 1
         else:
             agg.n_zeit += 1
         rs.append(float(r.r_f4))
@@ -1068,10 +1288,16 @@ def _block_text(titel: str, agg: AggBlock) -> List[str]:
         f"PF={_fmt(agg.pf)}"
     )
     lines.append(f"  sum r_ref (0.45%-Basis) = {agg.sum_r_ref:.2f}")
-    lines.append(
-        f"  Exit: INITIAL_SL_INTRABAR={agg.n_init} | ZEIT_EXIT_CLOSE={agg.n_zeit} "
-        f"| RECHTS_ZENSIERT={agg.n_zensiert}"
-    )
+    exit_teile: List[str] = [
+        f"INITIAL_SL_INTRABAR={agg.n_init}",
+        f"ZEIT_EXIT_CLOSE={agg.n_zeit}",
+    ]
+    if agg.n_trailing:
+        exit_teile.append(f"TRAILING_SL_INTRABAR={agg.n_trailing}")
+    if agg.n_crash:
+        exit_teile.append(f"CRASH_HORIZONT_CLOSE={agg.n_crash}")
+    exit_teile.append(f"RECHTS_ZENSIERT={agg.n_zensiert}")
+    lines.append("  Exit: " + " | ".join(exit_teile))
     lines.append(f"  mittl. Haltedauer (gewertet) = {_fmt(agg.mean_offset, '.0f')} Bars")
     return lines
 
@@ -1089,8 +1315,13 @@ def _trade_block_tsv(
     Returns:
         TSV-Text (Kommentarzeilen + Header + Datenzeilen).
     """
+    mode_kopf: str = (
+        "EMA-Slope-Trailing (Variante B)"
+        if cfg.ema_trailing.aktiviert
+        else "RAW-A + F4 intrabar + Zeit-Exit"
+    )
     kopf: List[str] = [
-        f"# setup_c Phase-1-Kern (RAW-A + F4 intrabar + Zeit-Exit) - Fenster: {fenster}",
+        f"# setup_c Phase-1-Kern ({mode_kopf}) - Fenster: {fenster}",
         f"# suppression_phasenlokal: {cfg.suppression_phasenlokal} | "
         f"cluster_a_max_vorlauf: {cfg.cluster_a_max_vorlauf} | "
         f"stop_puffer: {cfg.stop_puffer} | sl_pct_ref: {cfg.sl_pct_ref}",
@@ -1221,6 +1452,126 @@ def _bericht_gate(
     return "\n".join(txt)
 
 
+def _bericht_ab_trailing(
+    fenster: str,
+    cfg: TrendConfig,
+    df: pd.DataFrame,
+    sr: SegmentResult,
+    signale: Sequence[SetupCSignal],
+) -> str:
+    """A/B-Report: Baseline (N48/N96) vs. EMA-Slope-Trailing (Variante B).
+
+    Eigener Report (``setup_c_ab_trailing_{f}.txt``) - die historischen
+    Baseline-Artefakte ``setup_c_*.txt/.tsv`` bleiben byte-identisch
+    unberuehrt. Struktur: L1-Pipeline-Anker, Baseline-Bloecke N48/N96,
+    Trailing-Block (Crash-Sicherung N=notfall) und A/B-Delta (r_f4).
+
+    Args:
+        fenster: AUG | S1 | S2.
+        cfg: TrendConfig (ema_trailing.aktiviert = True, Modus B).
+        df: OHLCV-DataFrame.
+        sr: SegmentResult.
+        signale: Alle erfassten Signale.
+
+    Returns:
+        Reporttext (wird zusaetzlich nach reports/setup_c/ geschrieben).
+    """
+    cfg_b: TrendConfig = replace(cfg, ema_trailing=EMASlopeTrailingConfig())
+    tc: EMASlopeTrailingConfig = cfg.ema_trailing
+
+    # --- L1: Pipeline-Anker (Populationen) ----------------------------------
+    n_f3: int = sum(
+        1 for p in sr.phases if p.break_dir is not None and p.brk_idx is not None
+    )
+    pop_conf: int = len(_population(signale, "CONFIRMED"))
+    pop_raw: List[SetupCSignal] = _population(signale, "RAW")
+    pop_a: int = sum(
+        1
+        for s in pop_raw
+        if s.vorlauf_bars is not None
+        and s.vorlauf_bars <= cfg_b.cluster_a_max_vorlauf
+    )
+    pop_b: int = len(pop_raw) - pop_a
+    pop_retest: int = len(_population(signale, "RETEST"))
+
+    # --- Baseline (Trailing deaktiviert, bitgenau Phase-1-Semantik) ---------
+    laeufe_b: Dict[int, Tuple[List[KernelTrade], int]] = {}
+    for horizont in cfg_b.zeit_horizonte:
+        laeufe_b[horizont] = _kern_lauefe(df, signale, cfg_b, horizont)
+
+    # --- Trailing (Variante B, Crash-Sicherung als Laufzeitgrenze) ---------
+    trades_t, n_supp_t = _kern_lauefe(
+        df, signale, cfg, tc.notfall_horizont_bars
+    )
+    if n_supp_t != 0:
+        raise RuntimeError(
+            f"{fenster}: Trailing-Suppression nicht No-op ({n_supp_t})."
+        )
+    agg_t: AggBlock = _agg_block(trades_t)
+
+    linie: str = "=" * 120
+    txt: List[str] = [
+        linie,
+        "SETUP C - A/B: BASELINE vs. EMA-SLOPE-TRAILING (Variante B, §5.2)",
+        f"Fenster: {fenster} | Symbol: {cfg.symbol} {cfg.timeframe} | "
+        f"Segmente: {len(sr.phases)} | F3-Brueche: {n_f3}",
+        f"Trailing: EMA({tc.ema_periode})-Slope | Modus {tc.modus} | "
+        f"mindest_gewinn_r={tc.mindest_gewinn_r} | Crash-Sicherung "
+        f"N={tc.notfall_horizont_bars} | Suppression={cfg.suppression_phasenlokal}",
+        linie,
+        "",
+        "L1 PIPELINE-ANKER (Populationen, SIGNAL & sl_usd>0):",
+        f"  F3-Brueche      : {n_f3}",
+        f"  CONFIRMED       : {pop_conf}",
+        f"  RAW gesamt      : {len(pop_raw)}  (CLUSTER_A={pop_a}, CLUSTER_B={pop_b})",
+        f"  RETEST          : {pop_retest}",
+        "",
+    ]
+
+    for horizont in cfg_b.zeit_horizonte:
+        trades, n_supp = laeufe_b[horizont]
+        agg = _agg_block(trades, n_supp)
+        txt.append(linie)
+        txt.append(
+            f"BASELINE RAW-CLUSTER A  |  Horizont N = {horizont}  "
+            f"(Close der Bar entry+{horizont})"
+        )
+        txt.extend(_block_text("    RAW-CLUSTER-A", agg))
+        txt.append("")
+
+    txt.append(linie)
+    txt.append(
+        "EMA-SLOPE-TRAILING (Variante B) | Zeit-Exit entkoppelt (§5.1) | "
+        f"Crash-Sicherung N={tc.notfall_horizont_bars}"
+    )
+    txt.extend(_block_text("    TRAILING", agg_t))
+    txt.append("")
+
+    agg48: AggBlock = _agg_block(laeufe_b[48][0])
+    agg96: AggBlock = _agg_block(laeufe_b[96][0])
+    txt.append(linie)
+    txt.append("A/B-DELTA (r_f4, Trailing minus Baseline):")
+    txt.append(
+        f"  vs N=48: {agg_t.sum_r_f4 - agg48.sum_r_f4:+9.2f}R   "
+        f"(Trailing {agg_t.sum_r_f4:+8.2f}R | Baseline {agg48.sum_r_f4:+8.2f}R)"
+    )
+    txt.append(
+        f"  vs N=96: {agg_t.sum_r_f4 - agg96.sum_r_f4:+9.2f}R   "
+        f"(Trailing {agg_t.sum_r_f4:+8.2f}R | Baseline {agg96.sum_r_f4:+8.2f}R)"
+    )
+    txt.append(linie)
+
+    # --- Export (A/B-Report + Trailing-Trades TSV, Baseline bleibt unberuehrt)
+    cfg.report_dir.mkdir(parents=True, exist_ok=True)
+    out_txt: Path = cfg.report_dir / f"setup_c_ab_trailing_{fenster}.txt"
+    out_txt.write_text("\n".join(txt), encoding="utf-8")
+    out_tsv: Path = cfg.report_dir / f"setup_c_ab_trailing_trades_{fenster}.tsv"
+    out_tsv.write_text(
+        _trade_block_tsv(trades_t, fenster, cfg), encoding="utf-8"
+    )
+    return "\n".join(txt)
+
+
 def bericht_fenster(
     fenster: str,
     cfg: TrendConfig,
@@ -1252,6 +1603,22 @@ def bericht_fenster(
         )
         states: "List[RegimeState]" = provider.klassifiziere(df, sr)
         return _bericht_gate(fenster, cfg, df, sr, signale, states)
+
+    # --- EMA-Slope-Trailing-Modus (A/B, §5.2/§5.4): eigener Report
+    if cfg.ema_trailing.aktiviert:
+        if cfg.ema_trailing.modus != "STOP_AUF_EXTREMUM":
+            raise SystemExit(
+                "EMA-Slope-Trailing: Modus "
+                f"{cfg.ema_trailing.modus} (Variante A/SOFORT_EXIT) ist "
+                "Backlog-Task §5.4 - nur STOP_AUF_EXTREMUM implementiert."
+            )
+        if cfg.ema_trailing.ema_periode <= 0:
+            raise SystemExit("EMA-Slope-Trailing: ema_periode > 0 erforderlich.")
+        if cfg.ema_trailing.notfall_horizont_bars <= 0:
+            raise SystemExit(
+                "EMA-Slope-Trailing: notfall_horizont_bars > 0 erforderlich."
+            )
+        return _bericht_ab_trailing(fenster, cfg, df, sr, signale)
 
     # --- L1: Pipeline-Anker (Populationen) ----------------------------------
     n_f3: int = sum(
@@ -1342,6 +1709,15 @@ def bericht_fenster(
 def main(argv: Optional[Sequence[str]] = None) -> int:
     """CLI-Einstieg: fuehrt den Phase-1-Report fuer Fenster aus.
 
+    Optionen:
+        --fenster=AUG|S1|S2|ALLE   (Default AUG)
+        --ohne-suppression         L2-Referenzmodus (F3-Suppression aus)
+        --mit-regime-gate          Gated-Portfolio (§2.16-F.1)
+        --ema-trailing             A/B: Baseline vs. EMA-Slope-Trailing
+                                   (Variante B, §5.2/§5.4)
+        --ema-trailing-modus=MODUS STOP_AUF_EXTREMUM (Primaer) | SOFORT_EXIT
+                                   (Backlog, wird abgelehnt)
+
     Args:
         argv: Kommandozeilen-Argumente (Default: sys.argv[1:]).
 
@@ -1352,6 +1728,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     fenster: str = "AUG"
     suppression: bool = True
     mit_gate: bool = False
+    ema_trailing: bool = False
+    ema_modus: str = "STOP_AUF_EXTREMUM"
     for a in args:
         if a.startswith("--fenster="):
             fenster = a.split("=", 1)[1].upper()
@@ -1359,6 +1737,24 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             suppression = False
         elif a == "--mit-regime-gate":
             mit_gate = True
+        elif a == "--ema-trailing":
+            ema_trailing = True
+        elif a.startswith("--ema-trailing-modus="):
+            ema_modus = a.split("=", 1)[1].strip().upper()
+    if mit_gate and ema_trailing:
+        raise SystemExit(
+            "--mit-regime-gate und --ema-trailing schliessen sich aus "
+            "(getrennte A/B-Pfade)."
+        )
+    if not ema_trailing and "--ema-trailing-modus=" in " ".join(args):
+        raise SystemExit(
+            "--ema-trailing-modus= ist nur zusammen mit --ema-trailing sinnvoll."
+        )
+    if ema_trailing and ema_modus not in ("STOP_AUF_EXTREMUM", "SOFORT_EXIT"):
+        raise SystemExit(
+            f"Unbekannter Trailing-Modus: {ema_modus} "
+            "(STOP_AUF_EXTREMUM|SOFORT_EXIT)"
+        )
     if fenster == "ALLE":
         fenster_list: List[str] = ["AUG", "S1", "S2"]
     elif fenster in ("AUG", "S1", "S2"):
@@ -1366,14 +1762,21 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     else:
         raise SystemExit(f"Unbekanntes Fenster: {fenster} (AUG|S1|S2|ALLE)")
     cfg = TrendConfig(
-        suppression_phasenlokal=suppression, mit_regime_gate=mit_gate
+        suppression_phasenlokal=suppression,
+        mit_regime_gate=mit_gate,
+        ema_trailing=EMASlopeTrailingConfig(
+            aktiviert=ema_trailing, modus=ema_modus  # type: ignore[arg-type]
+        ),
     )
     for f in fenster_list:
         text = bericht_fenster(f, cfg)
         print(text)
-        name: str = (
-            f"setup_c_gate_{f}.txt" if cfg.mit_regime_gate else f"setup_c_{f}.txt"
-        )
+        if cfg.mit_regime_gate:
+            name: str = f"setup_c_gate_{f}.txt"
+        elif cfg.ema_trailing.aktiviert:
+            name = f"setup_c_ab_trailing_{f}.txt"
+        else:
+            name = f"setup_c_{f}.txt"
         print(f"\nReport geschrieben: {cfg.report_dir / name}")
     return 0
 

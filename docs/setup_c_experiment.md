@@ -1103,9 +1103,21 @@ jedem Fall unberührt.
 
 * **Hinweis (Stichproben-Kleinstzahl):** PF/WR für AUG ($n=2$) und S2 ($n=2$ gewertet) sind bei dieser Trivial-Stichprobe nicht belastbar; sie werden nur der Vollständigkeit halber geführt. Die belastbare Evidenz liegt bei S1 ($n=38$).
 
-### 5.3 Phasenloser Raum & Counter-Trend-Reversals
-* **Beobachtung:** Nach Abschluss einer Strukturphase und vor Ausbildung einer neuen Konsolidierung gerät der Markt häufig in ein "strukturelles Vakuum" (phasenloser Bereich), an dessen Erschöpfungspunkt massive Gegenbewegungen mit asymmetrisch hohem CRV zünden.
-* **Status:** Mathematische Definition (Abstand Kante via ATR, Kerzenkörper-Kollaps, EMA-Steigung) wird als eigenständiger Einstiegs-Zweig vorbereitet.
+### 5.3 Phasenloser Raum & Counter-Trend-Reversals (SWING_REVERSAL Audit)
+* **Beobachtung (Baseline, unver\u00e4ndert):** Nach Abschluss einer Strukturphase und vor Ausbildung einer neuen Konsolidierung gerät der Markt häufig in ein "strukturelles Vakuum" (phasenloser Bereich), an dessen Erschöpfungspunkt massive Gegenbewegungen mit asymmetrisch hohem CRV zünden.
+* **Hypothese:** Antizyklischer Fade nach MoveData-Exhaustion an bestätigten Phasen-Brüchen mit strukturellem Stop und Variante-B-Trailing.
+* **Audit 1 (Strikte Koinzidenz):** 0 Signale bei 210 echten Brüchen über AUG, S1 und S2. Der gleichzeitige Eintritt von Liquiditäts-Sweep (Extremum) und EMA-20-Slope-Kipp an derselben Bar ist wegen des Indikator-Lags (nachlaufender Tiefpass) mathematisch unmöglich.
+* **Audit 2 (Zweistufige Sequenz F-A):**
+  - Setup: Liquiditäts-Sweep mit Docht-Rejection ($k_{\text{exh}}$) + Entwertung bei neuem Kursextremum (strikte Invalidierung).
+  - Trigger: Erste Folge-Bar mit Slope-Kipp ($k_{\text{trig}}$) → Entry `open[k_trig+1]`; Stop-Anker = Extremum von $k_{\text{exh}}$.
+  - Ergebnis (N=48, Variante B, `mindest_gewinn_r = 0.0`, keine Crash-Notbremse):
+- [ ] **Task (SWING_REVERSAL Ratchet-Lockout):** Eigenständige Folge-Iteration zum §5.3-Null-Befund: Verzögerung des Variante-B-Nachzugs beim Reversal-Arm (Lockout bis zur ersten Bestätigungs-Kerze bzw. `mindest_gewinn_r` > 0), damit der strukturelle $k_{\text{exh}}$-Stop nicht sofort auf das Entry-Kerzen-Extremum kollabiert. Kein Vermischen mit dem aktuellen Meilenstein.
+    - AUG: 4 Trades, $-0{,}92\text{R}$ (WR $25{,}0\,\%$)
+    - S1: 19 Trades, $-2{,}80\text{R}$ (WR $15{,}8\,\%$)
+    - S2: 9 Trades, $+0{,}93\text{R}$ (WR $33{,}3\,\%$)
+    - **Gesamt: 32 Trades, $-2{,}79\text{R}$, WR $21{,}9\,\%$ (7 Gewinner)**
+* **Forensischer Befund (strukturelles Defizit):** 30/32 Exits via `TRAILING_SL_INTRABAR` (2x `INITIAL_SL_INTRABAR`, 0x `ZEIT_EXIT_CLOSE`, 0x `RECHTS_ZENSIERT`). Da der Einstieg den Slope-Kipp bereits voraussetzt, greift die Variante-B-Ratchet (`mindest_gewinn_r = 0.0`) sofort an Bar $e$ und ersetzt den strukturellen $k_{\text{exh}}$-Anker durch das Extremum der Entry-Kerze → mediane Haltedauer 3 Bars (12/32 enden nach exakt 1 Bar), typische Verluste ≈ $-0{,}1\ldots-0{,}7\text{R}$. Die 7 Gewinner sind überwiegend echte Snap-backs mit Haltedauer bis 40 Bars (S1 Ph 103: $+3{,}18\text{R}$, S2 Ph 46: $+2{,}46\text{R}$, beide Hold 40).
+* **Status:** Als diagnostischer Null-Befund arretiert (06.09.2026). Kein handelbarer Edge in dieser Konfiguration; keine Parameter-Anpassung (kein In-Sample-Tuning). Übertrag in den Backlog (§5.4): Ratchet-Lockout als eigenständige, spätere Iteration.
 
 ### 5.4 Backlog & ToDo-Verankerung
 - [ ] **Task (Crash-Sicherung 2026):** Konzeption und Einbau einer extremen Notfall-Zeitschranke (ca. 250–300 M15-Bars) als reiner Schutz vor Endlos-Schleifen und extremen Drawdown-Clustern im Squeeze- und Crash-Regime 2026.

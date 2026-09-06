@@ -30,15 +30,22 @@ monospace Statistik-Textbox, Phasen-Spans).
 Aufruf (Projekt-Root, Namespace-Package):
     python scripts/setup_c_chart.py [--fenster=AUG|S1|S2|ALLE] [--n=48,96]
                                     [--ema=20] [--dpi=300]
+    python scripts/setup_c_chart.py --fenster=AUG --ema-trailing
 
     --n=      Komma-Liste der Zeit-Horizonte (48|96), Default "48,96".
               Beispiel "nur AUG N48": --fenster=AUG --n=48
     --ema=    EMA-Periode fuer die Close-EMA-Overlay-Linie (Default 20).
+    --ema-trailing
+              EMA-Slope-Trailing-Chart (Variante B, §5.2): genau EIN Lauf
+              je Fenster mit Crash-Sicherung (N=300); Stop-Pfade (Ratchet)
+              als orange Stufenlinie, Exit-Typen TR/CRASH farblich getrennt.
+              Ausgabe ``setup_c_chart_{FENSTER}_EMATRAIL.png`` (+ TXT).
 
 Ausgabe (unversioniert, deterministisch reproduzierbar):
     reports/setup_c/setup_c_chart_{FENSTER}_N{N}.png
     reports/setup_c/setup_c_chart_{FENSTER}.txt        (Voll-Lauf 48+96)
     reports/setup_c/setup_c_chart_{FENSTER}_N{N}.txt   (Teil-Lauf, nur N)
+    reports/setup_c/setup_c_chart_{FENSTER}_EMATRAIL.png/.txt  (--ema-trailing)
 """
 from __future__ import annotations
 
@@ -58,6 +65,7 @@ from matplotlib.lines import Line2D
 
 from scripts.market_segmentation import SegmentResult, load_data, segmentiere_markt
 from scripts.setup_c_profil import (
+    EMASlopeTrailingConfig,
     FENSTER_DEFS,
     KernelTrade,
     SetupCSignal,
@@ -90,6 +98,8 @@ _COL_DOWN: str = "#c00000"   # Entry SHORT (v)
 _COL_SL: str = "#c00000"     # Exit F4-Stop intrabar      (x rot)
 _COL_ZEIT: str = "#1f77b4"   # Exit Zeit-Exit am Close     (x blau)
 _COL_ZENS: str = "#777777"   # Exit rechts-zensiert        (x grau)
+_COL_TR: str = "#e65100"     # Exit EMA-Trailing-Stop      (x orange)
+_COL_CRASH: str = "#6a1b9a"  # Exit Crash-Sicherung        (x lila)
 
 
 # ---------------------------------------------------------------------------
@@ -144,6 +154,8 @@ def _statistik(trades: Sequence[KernelTrade]) -> Dict[str, object]:
                 "schlechtester": float("nan"),
                 "n_init": 0,
                 "n_zeit": 0,
+                "n_trailing": 0,
+                "n_crash": 0,
                 "hd_mean": float("nan"),
                 "max_gewinn_serie": (0, 0.0),
                 "max_verlust_serie": (0, 0.0),
@@ -184,6 +196,8 @@ def _statistik(trades: Sequence[KernelTrade]) -> Dict[str, object]:
 
     n_init: int = sum(1 for t in gew if t.exit_grund == "INITIAL_SL_INTRABAR")
     n_zeit: int = sum(1 for t in gew if t.exit_grund == "ZEIT_EXIT_CLOSE")
+    n_trailing: int = sum(1 for t in gew if t.exit_grund == "TRAILING_SL_INTRABAR")
+    n_crash: int = sum(1 for t in gew if t.exit_grund == "CRASH_HORIZONT_CLOSE")
     hds: List[int] = [int(t.haltezeit_bars) for t in gew]
     out.update(
         {
@@ -197,6 +211,8 @@ def _statistik(trades: Sequence[KernelTrade]) -> Dict[str, object]:
             "schlechtester": float(rs.min()),
             "n_init": n_init,
             "n_zeit": n_zeit,
+            "n_trailing": n_trailing,
+            "n_crash": n_crash,
             "hd_mean": float(np.mean(hds)) if hds else float("nan"),
             "max_gewinn_serie": (best_w_len, best_w_sum),
             "max_verlust_serie": (best_l_len, best_l_sum),
@@ -207,9 +223,24 @@ def _statistik(trades: Sequence[KernelTrade]) -> Dict[str, object]:
 
 
 def _stat_zeilen(
-    fenster: str, start: str, ende: str, horizont: int, trades: Sequence[KernelTrade]
+    fenster: str,
+    start: str,
+    ende: str,
+    horizont: int,
+    trades: Sequence[KernelTrade],
+    kennung: Optional[str] = None,
 ) -> List[str]:
-    """Formatiert die Statistik-Zeilen (Textbox / TXT-Header, ASCII)."""
+    """Formatiert die Statistik-Zeilen (Textbox / TXT-Header, ASCII).
+
+    Args:
+        fenster: Fenster-Kennung (AUG|S1|S2).
+        start: Fenster-Start (ISO-String).
+        ende: Fenster-Ende exklusiv (ISO-String).
+        horizont: Zeit-Horizont N (Basis: 48/96; Trailing: Crash-N).
+        trades: Aktivierte KernelTrades eines Laufs.
+        kennung: Optionale erste Zeile (z. B. EMA-Slope-Trailing). ``None``
+            = Baseline-Standard (RAW-A).
+    """
     s: Dict[str, object] = _statistik(trades)
     n_gew: int = int(s["n_gewertet"])
     n_win: int = int(round(float(s["wr"]) * n_gew / 100.0))
@@ -222,8 +253,22 @@ def _stat_zeilen(
             return "-"
         return f"{v:{f}}"
 
+    if kennung is None:
+        zeile0: str = f"SETUP C RAW-A BASELINE | Fenster {fenster} | N={horizont}"
+    else:
+        zeile0 = f"{kennung} | Fenster {fenster} | N={horizont}"
+
+    exit_teile: List[str] = [
+        f"INITIAL_SL_INTRABAR={int(s['n_init'])}",
+        f"ZEIT_EXIT_CLOSE={int(s['n_zeit'])}",
+    ]
+    if int(s["n_trailing"]) > 0:
+        exit_teile.append(f"TRAILING_SL_INTRABAR={int(s['n_trailing'])}")
+    if int(s["n_crash"]) > 0:
+        exit_teile.append(f"CRASH_HORIZONT_CLOSE={int(s['n_crash'])}")
+
     return [
-        f"SETUP C RAW-A BASELINE | Fenster {fenster} | N={horizont}",
+        zeile0,
         f"Zeitraum: {start} .. {ende}  (ende-exklusiv)",
         f"Trades: n={int(s['n_kandidaten'])}  gewertet={n_gew}  "
         f"zensiert={int(s['n_zensiert'])}",
@@ -237,8 +282,7 @@ def _stat_zeilen(
         f"Max Gewinnserie: {g_len} (Summe {g_sum:+.2f}R)",
         f"Max Verlustserie: {l_len} (Summe {l_sum:+.2f}R)",
         f"Max Drawdown (R-Kurve): {float(s['max_drawdown_r']):+.2f}R",
-        f"Exit: INITIAL_SL_INTRABAR={int(s['n_init'])} | "
-        f"ZEIT_EXIT_CLOSE={int(s['n_zeit'])}",
+        "Exit: " + " | ".join(exit_teile),
         f"mittl. Haltedauer: {_fmt(s['hd_mean'], '.0f')} Bars",
     ]
 
@@ -259,11 +303,17 @@ def _zeichne_fenster_horizont(
     out_png: Path,
     dpi: int,
     ema_periode: int = _EMA_DEFAULT_PERIODE,
+    trailing_modus: bool = False,
 ) -> None:
     """Zeichnet Preis + EMA(Close) + Entry/Exit-Marker + Statistik-Box.
 
     Single-Panel (kein CRV-Unterpanel): Der Preis-Chart mit allen Overlays
     fuellt das gesamte Bild.
+
+    Im Trailing-Modus (``trailing_modus=True``, EMA-Slope-Trailing Variante B)
+    werden zusaetzlich die nachgezogenen Stop-Pfade (``KernelTrade.trailing_pfad``)
+    als orange Stufenlinie gezeichnet und die Exit-Typen TRAILING_SL_INTRABAR /
+    CRASH_HORIZONT_CLOSE farblich getrennt dargestellt.
 
     Die EMA-Linie ist ein reines Chart-Overlay (visuelle Regime-Referenz,
     kausal ``ewm(span=ema_periode, adjust=False, min_periods=ema_periode)``,
@@ -310,22 +360,45 @@ def _zeichne_fenster_horizont(
 
     # --- Trades: Entry/Exit-Marker + Verbindungslinie ----------------------
     legende: List[Line2D] = []
+    exit_grunde_vorhanden: set = set()
     for t in sorted(trades, key=lambda x: (int(x.entry_idx), int(x.phase), str(x.dir))):
         e: int = int(t.entry_idx)
         x_ex: int = int(t.exit_idx)
         up: bool = t.dir == "up"
-        if t.exit_grund == "RECHTS_ZENSIERT":
+        grund: str = str(t.exit_grund)
+        exit_grunde_vorhanden.add(grund)
+        if grund == "RECHTS_ZENSIERT":
             col_res: str = "#999999"
             col_ex: str = _COL_ZENS
             grund_kurz: str = "ZENS"
-        elif float(t.r_f4) >= 0.0:
-            col_res = "#2ca02c"
-            col_ex = _COL_ZEIT if t.exit_grund == "ZEIT_EXIT_CLOSE" else _COL_SL
-            grund_kurz = "ZEIT" if t.exit_grund == "ZEIT_EXIT_CLOSE" else "SL"
         else:
-            col_res = "#d62728"
-            col_ex = _COL_ZEIT if t.exit_grund == "ZEIT_EXIT_CLOSE" else _COL_SL
-            grund_kurz = "ZEIT" if t.exit_grund == "ZEIT_EXIT_CLOSE" else "SL"
+            col_res = "#2ca02c" if float(t.r_f4) >= 0.0 else "#d62728"
+            if grund == "INITIAL_SL_INTRABAR":
+                col_ex, grund_kurz = _COL_SL, "SL"
+            elif grund == "ZEIT_EXIT_CLOSE":
+                col_ex, grund_kurz = _COL_ZEIT, "ZEIT"
+            elif grund == "TRAILING_SL_INTRABAR":
+                col_ex, grund_kurz = _COL_TR, "TR"
+            elif grund == "CRASH_HORIZONT_CLOSE":
+                col_ex, grund_kurz = _COL_CRASH, "CRASH"
+            else:  # Fallback (sollte nicht auftreten)
+                col_ex, grund_kurz = _COL_SL, "SL"
+
+        # EMA-Trailing-Stop-Pfad (Variante B): Stufenlinie ab Initial-Stop
+        if trailing_modus and t.trailing_pfad:
+            p_x: List[int] = [e] + [int(k) for k, _ in t.trailing_pfad]
+            p_y: List[float] = [float(t.f4_initial_stop)] + [
+                float(sl) for _, sl in t.trailing_pfad
+            ]
+            ax1.plot(
+                p_x,
+                p_y,
+                drawstyle="steps-post",
+                color=_COL_TR,
+                lw=1.1,
+                alpha=0.85,
+                zorder=2,
+            )
 
         # Verbindungslinie Entry -> Exit (Ergebnis-Farbe, dezent)
         ax1.plot(
@@ -409,13 +482,22 @@ def _zeichne_fenster_horizont(
     ax1.set_xlim(-1, int(len(df)))
     ax1.set_ylabel("USD")
     ax1.grid(alpha=0.3)
-    ax1.set_title(
-        f"SETUP C | {fenster} | RAW-Cluster A Baseline | Horizont N={horizont} "
-        f"| {start} .. {ende} (ende-exkl.) | F4 intrabar + Zeit-Exit"
-    )
+    if trailing_modus:
+        ax1.set_title(
+            f"SETUP C | {fenster} | EMA-Slope-Trailing (Variante B) | "
+            f"Crash-Sicherung N={horizont} | {start} .. {ende} (ende-exkl.) | "
+            f"F4 intrabar + EMA{ema_periode}-Ratchet"
+        )
+        stat_kennung: Optional[str] = "SETUP C EMA-SLOPE-TRAILING (Variante B)"
+    else:
+        ax1.set_title(
+            f"SETUP C | {fenster} | RAW-Cluster A Baseline | Horizont N={horizont} "
+            f"| {start} .. {ende} (ende-exkl.) | F4 intrabar + Zeit-Exit"
+        )
+        stat_kennung = None
 
     stat_text: str = "\n".join(
-        _stat_zeilen(fenster, start, ende, horizont, trades)
+        _stat_zeilen(fenster, start, ende, horizont, trades, stat_kennung)
     )
     ax1.text(
         0.5,
@@ -451,6 +533,21 @@ def _zeichne_fenster_horizont(
         Line2D([0], [0], color="#2ca02c", lw=1.6, label="Trade positiv (R>0)"),
         Line2D([0], [0], color="#d62728", lw=1.6, label="Trade negativ (R<0)"),
     ]
+    if "TRAILING_SL_INTRABAR" in exit_grunde_vorhanden:
+        legende.append(
+            Line2D([0], [0], marker="x", color=_COL_TR, ms=7, ls="",
+                   label="Exit EMA-Trailing-Stop (TR)")
+        )
+    if "CRASH_HORIZONT_CLOSE" in exit_grunde_vorhanden:
+        legende.append(
+            Line2D([0], [0], marker="x", color=_COL_CRASH, ms=7, ls="",
+                   label="Exit Crash-Sicherung (CRASH)")
+        )
+    if trailing_modus and any(t.trailing_pfad for t in trades):
+        legende.append(
+            Line2D([0], [0], color=_COL_TR, lw=1.6, ls="-",
+                   label="EMA-Trailing-Stop-Pfad (Ratchet)")
+        )
     ax1.legend(handles=legende, loc="upper left", fontsize=7.5, framealpha=0.9)
 
     fig.tight_layout()
@@ -471,7 +568,7 @@ def _trade_zeile(t: KernelTrade) -> str:
         f"{t.horizont_bars:3d} | P{t.phase:<3d} | {str(t.dir):4s} | "
         f"{t.entry_ts.strftime('%Y-%m-%d %H:%M')} | {float(t.entry_preis):8.3f} | "
         f"{t.exit_ts.strftime('%Y-%m-%d %H:%M')} | {float(t.exit_preis):8.3f} | "
-        f"{t.exit_grund:18s} | {int(t.haltezeit_bars):4d} | {r_f4:>7s} | {r_ref:>7s}"
+        f"{t.exit_grund:22s} | {int(t.haltezeit_bars):4d} | {r_f4:>7s} | {r_ref:>7s}"
     )
 
 
@@ -481,6 +578,7 @@ def _schreibe_txt(
     ende: str,
     laeufe: Dict[int, Sequence[KernelTrade]],
     out_txt: Path,
+    kennung: Optional[str] = None,
 ) -> None:
     """Schreibt Statistik-Header (je Horizont aus ``laeufe``) + alle Trades.
 
@@ -491,11 +589,15 @@ def _schreibe_txt(
         laeufe: Mapping Horizont -> Trades (z. B. {48: ..., 96: ...} fuer
             den Voll-Lauf oder {48: ...} fuer einen Teil-Lauf).
         out_txt: Zielpfad der TXT-Datei.
+        kennung: Optionale Statistik-Kennung (z. B. EMA-Slope-Trailing);
+            ``None`` = Baseline-Standard.
     """
     zeilen: List[str] = []
     for horizont, trades in laeufe.items():
         zeilen.append("=" * 108)
-        zeilen.extend(_stat_zeilen(fenster, start, ende, horizont, trades))
+        zeilen.extend(
+            _stat_zeilen(fenster, start, ende, horizont, trades, kennung)
+        )
         zeilen.append("=" * 108)
         zeilen.append("")
     zeilen.append("ALLE TRADES (chronologisch je Horizont, inkl. Zeitstempel):")
@@ -526,6 +628,7 @@ def _lauf_fenster(
     dpi: int,
     horizonte: Sequence[int] = (48, 96),
     ema_periode: int = _EMA_DEFAULT_PERIODE,
+    ema_trailing: bool = False,
 ) -> None:
     """Chart-/TXT-Lauf fuer ein Fenster (AUG|S1|S2) und Horizont-Selektion.
 
@@ -536,6 +639,10 @@ def _lauf_fenster(
             schreiben einen separaten TXT ``..._N{H}.txt``; nur der
             Voll-Lauf (48+96) aktualisiert den kombinierten TXT.
         ema_periode: Periode der Close-EMA-Overlay-Linie im Chart.
+        ema_trailing: True = EMA-Slope-Trailing-Chart (Variante B, §5.2):
+            genau EIN Lauf mit Crash-Sicherung (N=notfall), Dateinamen
+            ``setup_c_chart_{fenster}_EMATRAIL.png`` (+ TXT). Der
+            Baseline-Pfad bleibt unveraendert.
     """
     start, ende = FENSTER_DEFS[fenster]
     cfg: TrendConfig = TrendConfig()
@@ -545,6 +652,33 @@ def _lauf_fenster(
     signale: List[SetupCSignal] = _erfasse_signale(sr, cfg)
 
     _REPORT_DIR.mkdir(parents=True, exist_ok=True)
+
+    # --- EMA-Slope-Trailing (A/B, §5.2): genau EIN Lauf (Crash-N) ----------
+    if ema_trailing:
+        cfg_t: TrendConfig = TrendConfig(
+            ema_trailing=EMASlopeTrailingConfig(aktiviert=True)
+        )
+        tc: EMASlopeTrailingConfig = cfg_t.ema_trailing
+        notfall: int = tc.notfall_horizont_bars
+        trades, n_supp = _kern_lauefe(df, signale, cfg_t, notfall)
+        if n_supp != 0:
+            raise RuntimeError(
+                f"{fenster}: Trailing-Suppression nicht No-op ({n_supp})."
+            )
+        out_png: Path = _REPORT_DIR / f"setup_c_chart_{fenster}_EMATRAIL.png"
+        _zeichne_fenster_horizont(
+            fenster, start, ende, notfall, df, sr, trades, out_png, dpi,
+            tc.ema_periode, trailing_modus=True,
+        )
+        print(f"PNG  {out_png.name}  (n={len(trades)})")
+        out_txt: Path = _REPORT_DIR / f"setup_c_chart_{fenster}_EMATRAIL.txt"
+        _schreibe_txt(
+            fenster, start, ende, {notfall: trades}, out_txt,
+            kennung="SETUP C EMA-SLOPE-TRAILING (Variante B)",
+        )
+        print(f"TXT  {out_txt.name}")
+        return
+
     laeufe: Dict[int, List[KernelTrade]] = {}
     for horizont in horizonte:
         trades, n_supp = _kern_lauefe(df, signale, cfg, horizont)
@@ -578,12 +712,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         --n=48|96|48,96            Horizont-Selektion (Default 48,96)
         --ema=20                   Periode der Close-EMA-Overlay-Linie
         --dpi=300                  PNG-Aufloesung
+        --ema-trailing             EMA-Slope-Trailing-Chart (Variante B)
     """
     args: List[str] = list(sys.argv[1:] if argv is None else argv)
     fenster_arg: str = "ALLE"
     dpi: int = 300
     horizont_arg: str = "48,96"
     ema_periode: int = _EMA_DEFAULT_PERIODE
+    ema_trailing: bool = False
     for a in args:
         if a.startswith("--fenster="):
             fenster_arg = a.split("=", 1)[1].upper()
@@ -593,6 +729,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             horizont_arg = a.split("=", 1)[1]
         elif a.startswith("--ema="):
             ema_periode = int(a.split("=", 1)[1])
+        elif a == "--ema-trailing":
+            ema_trailing = True
     if ema_periode <= 0:
         raise SystemExit(f"Ungueltige EMA-Periode: {ema_periode} (> 0 noetig)")
     if fenster_arg == "ALLE":
@@ -603,6 +741,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         raise SystemExit(
             f"Unbekanntes Fenster: {fenster_arg} (AUG|S1|S2|ALLE)"
         )
+
+    if ema_trailing:
+        # Trailing-Chart: genau ein Lauf je Fenster (--n wird ignoriert).
+        for f in fenster_list:
+            print(f"=== Fenster {f} | EMA-Slope-Trailing (Variante B) ===")
+            _lauf_fenster(f, dpi, ema_trailing=True, ema_periode=ema_periode)
+        print(f"\nFertig. Ausgabeordner: {_REPORT_DIR}")
+        return 0
 
     # Horizont-Selektion (Reihenfolge der Angabe bleibt erhalten, dedupliziert).
     horizonte: List[int] = []

@@ -347,6 +347,12 @@ class KernelTrade:
     regime: Optional[str] = None  # "TREND" | "SHAKEOUT" | "UNKLAR"
     arm: Optional[str] = None     # "RAW-A" | "RAW-B" (nur Bruchrichtungs-Fallback)
 
+    # Optionaler Stop-Pfad des EMA-Slope-Trailing (Variante B, §5.2) fuer das
+    # Chart-Rendering. Jedes Element = (Bar-Index, Stop-Niveau) NACH einem
+    # Ratchet-Nachzug; Start ist implizit (entry_idx, f4_initial_stop).
+    # NUR im Trailing-Modus gefuellt; Baseline: None -> No-Harm.
+    trailing_pfad: Optional[Tuple[Tuple[int, float], ...]] = None
+
 
 @dataclass(slots=True)
 class AggBlock:
@@ -926,6 +932,7 @@ def _simuliere_kern_ema_trailing(
     exit_idx: int = letzte_bar
     exit_preis: float = float(close[letzte_bar])
     akt_sl: float = f4_stop  # laufender Stop (initial = F4, dann Ratchet)
+    pfad: List[Tuple[int, float]] = []  # Ratchet-Punkte fuer Chart-Rendering
 
     for k in range(e, loop_ende + 1):
         # 1) Stop intrabar mit aktuellem Niveau (Vorrang vor Crash-Schranke)
@@ -957,6 +964,7 @@ def _simuliere_kern_ema_trailing(
             # Monotonie: Stop darf nie zurueckweichen (nie Risiko vergroessern)
             if (up and neuer_sl > akt_sl) or ((not up) and neuer_sl < akt_sl):
                 akt_sl = neuer_sl
+                pfad.append((k, akt_sl))
 
     haltezeit: int = exit_idx - e
     zensiert: bool = exit_grund == "RECHTS_ZENSIERT"
@@ -982,6 +990,7 @@ def _simuliere_kern_ema_trailing(
         exit_idx=exit_idx, exit_ts=df["ts"].iloc[exit_idx],
         exit_preis=float(exit_preis), exit_grund=exit_grund,
         haltezeit_bars=haltezeit, r_f4=float(r_f4), r_ref=float(r_ref),
+        trailing_pfad=tuple(pfad) if pfad else None,
     )
 
 

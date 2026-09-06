@@ -2,6 +2,8 @@
 
 ## 1. Kern-Prinzipien
 
+- PRÄMISSE!!!!    keine Entscheidungen als Auswahl Menü ==> Pflicht ist die Ausgabe inkl. Entscheidungsfragen als Textblock!
+- 
 - **Vektorisierung pur:** Keine Loops (`for`/`while`) in Strategie-Logiken. Jede Berechnung muss über NumPy/Pandas/vectorbt-Methoden erfolgen.
 - **Kapselung:** Jede Strategie ist ein eigenständiges Modul.
 - **Parametrisierung:** Alle Hyperparameter sind extern konfigurierbar (kein Hardcoding).

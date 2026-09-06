@@ -10,9 +10,11 @@ Zeit-Horizont eine PNG-Datei (300 dpi) mit:
     ``regime_filter.berechne_zeitreihen_indikatoren``)
   - Entry-/Exit-Markern je Trade (F4-Stop intrabar / Zeit-Exit /
     rechts-zensiert)
-  - CRV (kumulierte r_f4-Kurve) im unteren Panel
   - Statistik-Box (oben mittig) inkl. Winrate, PF, max. Gewinn-/Verlustserie,
     max. Drawdown (R)
+
+Ohne separates CRV-Panel: Der Preis-Chart (inkl. EMA-Overlay, Phasen,
+Trade-Marker) fuellt das gesamte Bild (Single-Panel).
 
 sowie je Fenster eine TXT-Datei mit Statistik-Header (beide Horizonte) und
 allen Trades inkl. Zeitstempeln (entry_ts/exit_ts). Bei Teil-Laeufen
@@ -105,7 +107,7 @@ def _gewertet(trades: Sequence[KernelTrade]) -> List[KernelTrade]:
 
 
 def _chronologisch(trades: Sequence[KernelTrade]) -> List[KernelTrade]:
-    """Gewertete Trades in Exit-Reihenfolge (Basis fuer Serien/CRV)."""
+    """Gewertete Trades in Exit-Reihenfolge (Basis fuer Serien/Drawdown)."""
     return sorted(
         _gewertet(trades), key=lambda t: (int(t.exit_idx), int(t.phase), str(t.dir))
     )
@@ -258,7 +260,10 @@ def _zeichne_fenster_horizont(
     dpi: int,
     ema_periode: int = _EMA_DEFAULT_PERIODE,
 ) -> None:
-    """Zeichnet Preis + EMA(Close) + Entry/Exit-Marker + CRV + Statistik-Box.
+    """Zeichnet Preis + EMA(Close) + Entry/Exit-Marker + Statistik-Box.
+
+    Single-Panel (kein CRV-Unterpanel): Der Preis-Chart mit allen Overlays
+    fuellt das gesamte Bild.
 
     Die EMA-Linie ist ein reines Chart-Overlay (visuelle Regime-Referenz,
     kausal ``ewm(span=ema_periode, adjust=False, min_periods=ema_periode)``,
@@ -270,13 +275,7 @@ def _zeichne_fenster_horizont(
     low: np.ndarray = df["low"].values.astype(float)
     close: pd.Series = df["close"]
 
-    fig, (ax1, ax2) = plt.subplots(
-        2,
-        1,
-        figsize=(17, 11),
-        sharex=True,
-        gridspec_kw={"height_ratios": (2.6, 1.0)},
-    )
+    fig, ax1 = plt.subplots(figsize=(17, 11))
     # --- Preis (high/low-Linien wie Reclaim-Chart) -------------------------
     ax1.plot(idx, high, color="#bbbbbb", lw=0.5, zorder=1)
     ax1.plot(idx, low, color="#bbbbbb", lw=0.5, zorder=1)
@@ -397,44 +396,11 @@ def _zeichne_fenster_horizont(
             va="bottom" if up else "top",
         )
 
-    # --- CRV (kumulierte r_f4, Exit-Reihenfolge) ----------------------------
-    chron: List[KernelTrade] = _chronologisch(trades)
-    if chron:
-        xs: List[int] = [int(t.exit_idx) for t in chron]
-        cum: np.ndarray = np.cumsum(np.array([float(t.r_f4) for t in chron]))
-        ax2.plot(
-            xs,
-            cum,
-            color="#1f77b4",
-            lw=1.1,
-            marker="o",
-            ms=3,
-            drawstyle="steps-post",
-            zorder=4,
-        )
-        ax2.fill_between(
-            xs, cum, 0.0, step="post", color="#1f77b4", alpha=0.12, zorder=2
-        )
-    else:
-        ax2.text(
-            0.5,
-            0.5,
-            "(keine gewerteten Trades)",
-            transform=ax2.transAxes,
-            ha="center",
-            va="center",
-            fontsize=9,
-            color="gray",
-        )
-    ax2.axhline(0.0, color="gray", lw=0.8, zorder=3)
-    ax2.set_ylabel("kum. R (CRV)")
-    ax2.grid(alpha=0.3)
-
     # --- Achsen / Titel / Statistik-Box (oben mittig) ----------------------
     step: int = max(16, int(len(df)) // 14)
     ticks: np.ndarray = np.arange(0, int(len(df)), step)
-    ax2.set_xticks(ticks)
-    ax2.set_xticklabels(
+    ax1.set_xticks(ticks)
+    ax1.set_xticklabels(
         [df["ts"].iloc[t].strftime("%a %d.%m %H:%M") for t in ticks],
         rotation=45,
         ha="right",

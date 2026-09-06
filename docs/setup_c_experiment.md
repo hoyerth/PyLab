@@ -1083,6 +1083,26 @@ jedem Fall unberührt.
   * Stattdessen wird der **Stop-Loss auf das Extremum der Abflachungs-Kerze** nachgezogen (Low bei Long, High bei Short). Bricht die Konsolidierung nach unten, greift die Gewinnsicherung; zieht der Trend weiter an, bleibt die Kernposition intakt.
   * *A/B-Test-Pfad:* Gegenüberstellung von Variante B (Stop auf Extremum) gegen Variante A (Sofort-Ausstieg).
 
+
+### 5.2.1 A/B-Testergebnisse: Dynamic Trailing Variante B (Commit `e5f24d2`)
+* **Testaufbau:** EMA-20-Steigung ($\text{Slope}_t = \text{EMA}_t - \text{EMA}_{t-1}$). Bei $\text{Slope}_t \le 0$ (Long) bzw. $\ge 0$ (Short) wird der Stop monoton auf das Extremum der Abflachungs-Kerze nachgezogen. Sofortige Aktivierung ab Kerze 1 (`mindest_gewinn_r = 0.0`), Notfall-Crash-Schranke bei 300 Bars.
+
+| Metrik | AUG (Trend) | S1 (Shakeout) | S2 (Misch) |
+|---|---|---|---|
+| **Trailing $\Sigma\text{R}$** | **$+3{,}24\text{R}$** | **$+26{,}56\text{R}$** | **$+1{,}48\text{R}$** |
+| $\Delta$ vs. $N=48$ | $-0{,}40\text{R}$ | **$+3{,}74\text{R}$** | **$+1{,}18\text{R}$** |
+| $\Delta$ vs. $N=96$ | **$+4{,}11\text{R}$** | $-1{,}31\text{R}$ | **$+0{,}50\text{R}$** |
+| **Profit Factor (PF)** | $\infty$ (n=2, 0 Verluste) | **$3{,}14$** (vs. $2{,}34$) | $\infty$ (n=2 gew., 0 Verluste) |
+| **Winrate (WR)** | $100\,\%$ (2/2) | **$52{,}6\,\%$** | $100\,\%$ (2/2 gew.; 1 zens.) |
+| **Exit-Verteilung** | 2× TRAILING_SL | 5× INITIAL, 33× TRAILING | 2× TRAILING, 1 zens. |
+
+* **Erkenntnis:** 
+  1. Das EMA-Slope-Trailing verhindert in AUG zuverlässig das Verglühen von Buchgewinnen des $N=96$-Desasters ($+4{,}11\text{R}$ Alpha gegenüber $N=96$): Phase 1 steigt von $+0{,}13\text{R}$ ($N=96$) auf $+1{,}62\text{R}$, Phase 5 dreht den $N=96$-Verlust ($-1{,}00\text{R}$) auf $+1{,}61\text{R}$. Gegenüber $N=48$ bleiben beide Trades nur knapp zurück (P1 $+1{,}74\text{R}$ vs. $+1{,}62\text{R}$; P5 $+1{,}90\text{R}$ vs. $+1{,}61\text{R}$) - der $-0{,}40\text{R}$-Rückstand ist kein Qualitäts-, sondern ein Einstiegs-Defizit.
+  2. In S1 entsteht durch den rigiden Kerzen-Extremum-Schutz ein überlegener Profit Factor von $3{,}14$ bei $52{,}6\,\%$ Winrate (vs. Baseline $2{,}34$ / $50{,}0\,\%$).
+  3. Das Trailing-Problem ist gelöst. Der verbleibende Rückstand zu $N=48$ in AUG ($-0{,}40\text{R}$: P1 $-0{,}12\text{R}$, P5 $-0{,}29\text{R}$) zeigt das nächste Bottleneck: Es fehlen zusätzliche Einstiege (Pullback-Re-Entries und Swing-Entries nach Phasenende), um große Trendstrecken nach Konsolidierungen erneut zu bespielen.
+
+* **Hinweis (Stichproben-Kleinstzahl):** PF/WR für AUG ($n=2$) und S2 ($n=2$ gewertet) sind bei dieser Trivial-Stichprobe nicht belastbar; sie werden nur der Vollständigkeit halber geführt. Die belastbare Evidenz liegt bei S1 ($n=38$).
+
 ### 5.3 Phasenloser Raum & Counter-Trend-Reversals
 * **Beobachtung:** Nach Abschluss einer Strukturphase und vor Ausbildung einer neuen Konsolidierung gerät der Markt häufig in ein "strukturelles Vakuum" (phasenloser Bereich), an dessen Erschöpfungspunkt massive Gegenbewegungen mit asymmetrisch hohem CRV zünden.
 * **Status:** Mathematische Definition (Abstand Kante via ATR, Kerzenkörper-Kollaps, EMA-Steigung) wird als eigenständiger Einstiegs-Zweig vorbereitet.

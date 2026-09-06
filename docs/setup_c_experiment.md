@@ -1123,6 +1123,7 @@ jedem Fall unberührt.
 - [ ] **Task (Crash-Sicherung 2026):** Konzeption und Einbau einer extremen Notfall-Zeitschranke (ca. 250–300 M15-Bars) als reiner Schutz vor Endlos-Schleifen und extremen Drawdown-Clustern im Squeeze- und Crash-Regime 2026.
 - [ ] **Task (A/B-Test EMA Trailing):** Implementierung und Vergleich von Variante B (Stop auf Extremum) vs. Variante A (Sofort-Exit) in der Simulationsschleife.
 - [x] **Task (Pullback-Re-Entries):** Untersucht und als Null-Befund verworfen (?5.5). Kein belastbarer Edge unter bestehender Trailing- und Regime-Architektur.
+- [ ] **Task (AVWAP Pfad B U-Sweep-Expansion):** Eigenständige Folge-Iteration zum §5.6-Null-Befund: Einstieg über Liquidity-Sweep-Expansion (U-Sweep) statt AVWAP-Pullback-Kontakt; `scripts/anchored_vwap.py` steht als utilitaristisches Hilfsmodul bereit. Kein Vermischen mit dem aktuellen Meilenstein.
 ### 5.5 Prozyklische Pullback-Re-Entries (PULLBACK_REENTRY Audit)
 * **Hypothese:** Trend-Skalierung nach best?tigten Phasen-Br?chen via Kanten-Retest (Zone 1) und dynamischem EMA-20-Pullback (Zone 2) mit Variante-B-Trailing.
 * **Audit 1 (Ungefiltert, AUG):**
@@ -1135,4 +1136,12 @@ jedem Fall unberührt.
     1. Der versiegelte Klassifikator honoriert prim?r Long-Momentum (`ema_slope > 0`). Die profitable Down-Expansion (Phasen 4/5 mit +4,90R) wird als SHAKEOUT blockiert.
     2. Der TREND-Latch l?sst ?ber Phase 8 die Whipsaw-Zone vom 24.?25.08. passieren (8 Trades, netto ca. $-4{,}07\text{R}$).
 * **Status:** Als diagnostischer Null-Befund arretiert. Der Pullback-Arm generiert unter der arretierten System-Architektur keinen stabilen statistischen Vorteil und wird endg?ltig verworfen.
+
+### 5.6 Trendbegleitende AVWAP-Re-Entries (AVWAP_PULLBACK Audit, Pfad A)
+* **Hypothese:** Schließung des Einstiegs-Bottlenecks (§5.2.1: −0,40R-Rückstand vs. N=48) durch trendbegleitende Wiedereinstiege an der volumengewichteten AVWAP-Linie nach echtem 2-Close-Bruch – im Gegensatz zu §5.5 (Kanten-/EMA-Zonen) mit kausalem Volumen-Anker ab der Ausbruchs-Bar.
+* **Implementierung (Freigabe 06.09.2026):** Neues zustandsloses Hilfsmodul `scripts/anchored_vwap.py` (`berechne_avwap_vektor`, Anker inklusiv, Preis-Modi typisch/close/open, wasserdichter Null-Volumen-Schutz). L1-Verifikation bitgenau gegen unabhängige Schleifen-Referenz bestanden (106 Vergleiche/Asserts, `test/tmp_anchored_vwap_l1.py`). Produktionsmodule byte-identisch unangetastet (nur lesende Importe aus `setup_c_profil`/`regime_filter`; Regime mit versiegelten Freeze-Defaults 05.09.2026).
+* **Testaufbau (AUG, TREND-only-Gate):** AVWAP-Kontakt an k (`low ≤ avwap ≤ high`), Rejection-Close + Slope20 an k+1, Ausführung `open[k+2]`, Struktur-Stop über [k,k+1] ± 0,15 (kein Cap), F3-Key (Phase, Richtung), Exit 1:1 Variante B (`STOP_AUF_EXTREMUM`, `mindest_gewinn_r = 0.0`, Notfall 300). TREND-Phasen 6/7/8 (versiegelt).
+* **Ergebnis (AUG):** 272 AVWAP-Kontakte → 50 Rejection+Slope-Bestätigungen → 15 SIGNAL im TREND-Gate → 6 F3-supprimiert → **9 Trades, +0,78R, Winrate 44,4 %, PF 1,19** (Abort-Schwelle PF ≥ 1,50 verfehlt).
+* **Forensischer Befund (Sollbruchstelle):** Die Trend-Erfassung trägt (Phasen 6/7: +2,75R aus 5 Trades, inkl. der beiden Ph-6-Expansionsgewinner +1,15R/+1,85R); die Whipsaw-Zone der Phase 8 (24.–25.08.) kostet netto ca. −2,0R (4 Verlust-Trades inkl. eines Sofort-Stops −1,00R). Damit identische Sollbruchstelle wie §5.5: Der versiegelte TREND-Latch lässt Chop-Phasen passieren, blockiert aber die profitable Down-Expansion (Phasen 4/5) als SHAKEOUT. Die Signaldichte im Gate ist mit n=9 zu klein für belastbare Evidenz.
+* **Status:** Als diagnostischer Null-Befund arretiert (06.09.2026). Kein In-Sample-Tuning, kein Umbau des versiegelten Regime-Gates. `scripts/anchored_vwap.py` verbleibt als utilitaristisches Hilfsmodul; Pfad B (U-Sweep-Expansion) als eigenständige Folge-Iteration in §5.4 vorgemerkt. Harness `test/tmp_setup_c_avwap_test.py` + Reports `reports/setup_c/setup_c_avwap_AUG.{txt,tsv,png}` liegen unversioniert vor.
 

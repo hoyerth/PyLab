@@ -343,6 +343,159 @@ Admission noch Cooldown.
    (close[k+1]) — beide in §6 spezifiziert; im Replay als Split berichten.
 4. **Cooldown-Reset:** je Kante (wie Baseline je Phase) vs. global je Richtung.
 
+### 7.1 Statisch-Kausale Reclaim-Engine V3 (Konzept-Entwurf, Audit 2026-09-06)
+
+> **Status:** Konzept-Entwurf — Niederschrift durch User-Freigabe erteilt.
+> Das **formale Freigabe-Gate** (Review dieses Abschnitts) steht aus; erst danach
+> wird der Replay-Harness angefasst (§9). Kein Modul-Code vor Freigabe.
+
+**Arretierungs-Befunde (Pflichtlektüre, Basis für V3):**
+
+1. **Ebene 1 — Geometrie (Kanten können nicht verharren):** `basis_preis` war im
+   Harness ein **schreib-only-Feld** (nur Z. 202/533/892 gesetzt, nie gelesen).
+   Die Trigger-/Admissions-/Bruch-Referenz war immer eine **mutierende** Größe:
+   - Modus A: `_update_balance` (Z. 442/444/523) → VWAP-Drift nach innen.
+   - Modus B: `anker_extremum`-Ratchet (Z. 954/956) + `_b_ratchet_erlaubt`
+     (Z. 935) → Verschiebung nach außen **und** Verwerfen legitimer innerer
+     Re-Tests.
+   - 2-Body-Bruch (Z. 564–569) lief gegen die wandernde `_ref_preis`-Referenz
+     statt gegen ein fixes Niveau.
+   Konsequenz: Eine Kante konnte nie auf einem festen Preis verharren; die
+   menschlich sichtbaren Soll-Kanten (66.46/63.67/64.20) sind strukturell
+   nicht abbildbar.
+2. **Ebene 2 — Trigger/Ausführung (`_pruefe_und_erzeuge`, Z. 683–800):** Das
+   Gate-Design erzwang ein Korridor-VWAP-Modell, das zwei **unabhängige**
+   Marktvariablen verknüpfte:
+   - 96/97 bestätigte Reclaims im AUG scheiterten an `spread_zu_eng`
+     (Gegenkanten-Balance < 1,5 %) — der Trade hing an zwei gleichzeitig
+     aktiven, dynamischen Balances.
+   - 12-Bar-Cooldown (Z. 774) sperrte legitime Mehrfach-Reclaims an derselben
+     Wand (Bars 237 vs. 249 am 12.08.).
+   - Gegenkante musste **handelbare** Typ-B sein (Z. 734) → kein Trade, wenn die
+     Gegenseite schläft.
+   - TP1 = POC/Balance der Einstiegsseite (Z. 750/1133) ist bei statischer Box
+     dysfunktional (Ziel läge unter dem Entry → sofortiger TP1-Volltreffer).
+   - Reaktivierungs-Lücke (Z. 516–524): SCHLAFENDE Kanten wurden nur durch Pivot
+     im Band der **gedrifteten** Balance reaktiviert, nie durch Kontakt am
+     **festen** Level → dauerhafte Isolation.
+
+**V3-Architektur — Entkopplung Geometrie (Einstiegskante) von Ausführung
+(Kursziel):**
+
+**A. Statische Kante (Geometrie):**
+- `basis_preis` ist der **einzige, unverrückbare Anker** (fester institutioneller
+  Preis; z. B. 66.46 / 63.67 / 64.20). **Keine** VWAP-Drift, **kein** Ratchet,
+  **kein** POC. `balance_preis`/`anker_extremum` entfallen als Referenzen.
+- Status nur **AKTIV/SCHLAFEND** (kein `VERFALLEN`, kein Zeitverfall): Statische
+  Linien erlöschen nicht durch Zeit, sondern persistieren als Marktgedächtnis
+  und werden per Docht-Touch am fixen `basis_preis` reaktiviert.
+- SCHLAFEND ausschließlich durch **2 konsekutive Kerzenkörper vollständig
+  jenseits** des fixen `basis_preis` (2-Body-Semantik bleibt, aber gegen
+  `basis_preis` statt `_ref_preis`).
+- Reaktivierung: **jeder Pivot-Kontakt im ±0,15-Band um `basis_preis`** schaltet
+  sofort AKTIV und zählt als Touch (Heilung der Reaktivierungs-Lücke Z. 516–524).
+- Touch-Mindestabstand `min_bar_abstand = 3` (verhindert Doppelzählung derselben
+  Bewegung; keine 12-Bar-Signal-Sperre mehr, siehe E).
+
+**B. Einstieg (starke Kante, Typ B):**
+- Einstiegskante: **AKTIV** und **≥ 3 bestätigte Touches** (`ist_handelbar_typ_b`).
+- Trigger **in_bar primär**: Sweep = Docht durchbricht `basis_preis`; Reclaim =
+  Close schließt in **derselben** Bar zurück. Entry = `open[k+1]`.
+- **next_bar sekundär** (Fallback für verspätete Rückeroberung, bleibt im Harness
+  als Split berichtet).
+- **Stop-Loss strukturell:** jenseits des **Sweep-Extremums + 0,05 USD Puffer**
+  (institutioneller Invalidierungspunkt: erneuter Schlusskurs-Bruch des
+  Docht-Extremums = Trendexpansion, kein Reclaim). Fixer 0,45 % nur noch als
+  historischer Modus-A/B-Vergleichspunkt.
+
+**C. Kursziel (passive Gegenkante, Typ A):**
+- Gegenkante = reiner **passiver Liquiditätsmagnet**; weder Handelbarkeit noch
+  Status AKTIV erforderlich (Decke 66.46 und Boden 63.67 sind unabhängige
+  Marktvariablen — die Verknüpfung über gleichzeitige Aktivität war der
+  Konstruktionsfehler von Ebene 2).
+- Qualifikation: **≥ 2 bestätigte Touches** (`ist_kursziel_typ_a`), korrekte
+  Seite (SHORT: Ziel-Basis < Einstiegs-Basis), **Distanz Basis-zu-Basis
+  ≥ 1,5 %** (Mindest-Raum bleibt Pflicht).
+- **SCHLAFEND vollwertig zulässig** (institutionelles Gedächtnis: Breakout-Stops
+  und unbediente Limit-Orders liegen dort). Tie-Break bei identischer Distanz:
+  AKTIV vor SCHLAFEND.
+- A/B-Punkt: Gegenkante mit ≥ 2 vs. ≥ 3 Touches.
+
+**D. Zwei-Stufen-Projektion (TP, arretiert):**
+- **TP1** = nächstgelegene qualifizierte Gegenkante (Beispiel Short 66.46 →
+  Minor 64.20, Distanz ≈ 3,4 %).
+- **TP2** = dahinterliegende (Beispiel → Makro 63.67, Distanz ≈ 4,2 %).
+- Positionsaufteilung **50/50 arretiert** (50 % De-Risking an TP1, 50 % laufen
+  auf die Makro-Wand); **25/75** als A/B-Sensitivitäts-Variante.
+- Fallback: existiert nur **eine** qualifizierte Kante → 100 % auf diese
+  (TP1 = TP2); existiert **keine** Kante mit ≥ 1,5 % → kein Trade (mangels Raum).
+
+**E. Entfallene Gates (Arretierung):**
+- `spread_zu_eng` gegen dynamische Gegenkanten-Balance **entfällt** (ersetzt durch
+  statische Distanz-Prüfung Basis-zu-Basis ≥ 1,5 % in D/C).
+- Gegenkanten-Handelbarkeits-/Typ-B-Pflicht **entfällt** (C).
+- 12-Bar-Cooldown **entfällt**; einzige Bremse = Touch-Mindestabstand 3 (A).
+- `poc_seite`/`crv`-Gate **entfällt** (kein POC in V3).
+
+**V3-Datenverträge (Basis, arretiert):**
+
+```python
+from dataclasses import dataclass
+from typing import List, Literal, Optional
+import pandas as pd
+
+KantenSeite = Literal["OBEN", "UNTEN"]
+KantenStatus = Literal["AKTIV", "SCHLAFEND"]
+
+
+@dataclass(frozen=True, slots=True)
+class StatischeKanteV3:
+    kanten_id: int
+    seite: KantenSeite
+    basis_preis: float
+    geburts_bar: int
+    letzter_touch_bar: int
+    touch_bars: List[int]
+    status: KantenStatus = "AKTIV"
+
+    @property
+    def ist_handelbar_typ_b(self) -> bool:
+        """Mindestens 3 Touches und aktiv für Reclaim-Einstieg."""
+        return len(self.touch_bars) >= 3 and self.status == "AKTIV"
+
+    @property
+    def ist_kursziel_typ_a(self) -> bool:
+        """Mindestens 2 Touches für passives Kursziel (auch schlafend)."""
+        return len(self.touch_bars) >= 2
+
+
+@dataclass(frozen=True, slots=True)
+class ZweiStufenTradePlan:
+    bar_index: int
+    zeitstempel: pd.Timestamp
+    richtung: Literal["SHORT", "LONG"]
+    einstiegs_kante_id: int
+    basis_preis: float
+    sweep_hoch_tief: float
+    entry_preis: float          # Open[k+1]
+    stop_loss: float            # Jenseits des Sweep-Dochts (+ 0,05 USD)
+    tp1_preis: float            # Nächstgelegene Kante >= 1,5 %
+    tp1_kanten_id: int
+    tp1_anteil_pct: float       # 50.0 (Standard) / 25.0 (A/B-Variante)
+    tp2_preis: Optional[float]  # Übergeordnete Kante dahinter
+    tp2_kanten_id: Optional[int]
+```
+
+**Offene Restpunkte (explizit, blockieren die Freigabe nicht):**
+1. **Zeitverfall:** Entfall des `max_tage`-Verfalls ersetzt den H3-Zeitscan
+   (1/5/20/60) — Konsequenz für die Gate-Läufe ist zu klären (Kante lebt
+   unbegrenzt bis 2-Body-Bruch?).
+2. **Re-Trigger-Semantik:** Darf nach einem Trade eine erneute
+   Sweep-Reclaim-Sequenz ohne neuen bestätigten Touch (Abstand < 3) sofort
+   feuern?
+3. **A/B-Katalog V3:** Gegenkante ≥ 2/≥ 3 Touches, Split 50/50 vs. 25/75,
+   SL-Puffer 0,05 USD fest vs. konfigurierbar.
+
 ---
 
 ## 8. Gate & Schritt-0-Replay (verbindlich)

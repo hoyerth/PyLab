@@ -1015,9 +1015,103 @@ def ist_sweep_einer_bestehenden_referenz(
     return False
 ```
 
-**Freigabe-Reihenfolge (aktualisiert):** Schritt A = dieser Docs-Only-Commit.
-Schritt B (Umbau `_replay_c` mit Sweep-Sperre + Histogramm-POC) erst nach
-formaler Abnahme dieses Nachtrags; Schritt C = AUG-Lauf `--modus C` + PNG.
+**Freigabe-Reihenfolge (aktualisiert, Stand nach Schritt C + Sichtpruefung):**
+Schritt A = Docs-Only-Commit (Sweep-Immunitaet, arretiert). Schritt B/C wurden
+ausgefuehrt (SE-Harness `--modus C`, `test/tmp_kanten_engine_replay.py`); die
+Sichtpruefung des AUG-PNG fuehrte zu diesem Nachtrag (dreistufige
+Reclaim-Hierarchie). Verbindlich ab hier ist der folgende Abschnitt.
+
+---
+
+### Nachtrag 2026-09-08 (Dreistufige Reclaim-Hierarchie & Sweep-Immunitaet,
+arretiert nach Sichtpruefung des AUG-Harness-Laufs)
+
+> **DOKUMENTATION: DREISTUFIGE RECLAIM-HIERARCHIE & SWEEP-IMMUNITÄT (MODUS C / V3)**
+
+**1. Primär-Anker & Unverrückbare Grundlinie:**
+
+- Die Oberkante bei **66,459 USD** wird kausal am **11.08. um 03:45 Uhr
+  (Bar 107)** als höchster Peak eroeffnet. Sie steht ab diesem Zeitpunkt als
+  feste geometrische Grundlinie im Speicher.
+- Nachfolgende Spitzen (wie Bar 229 bei 66,776 USD oder Bar 242 bei
+  66,663 USD) verschieben oder mitteln diese Grundlinie **nicht**. Sie sind
+  temporäre Liquiditäts-Sweeps (False Breakouts).
+
+**2. Dreistufige Reclaim-Hierarchie (Timing & Execution):**
+
+- **Stufe 1 — In-Bar (`STUFE_1_IN_BAR`):**
+  - *Bedingung:* Bar *k* sticht über/unter die Basis und schliesst in
+    derselben Kerze zurück (`Close <= Basis` bei OBEN bzw.
+    `Close >= Basis` bei UNTEN).
+  - *Execution:* Entry am Open von Bar *k+1*.
+- **Stufe 2 — Kerze 2 (`STUFE_2_KERZE_2`):**
+  - *Bedingung:* Bar *k* sticht durch und schliesst ausserhalb; Bar *k+1*
+    expandiert nicht weiter und schliesst zurück jenseits der Basis
+    (`Close <= Basis` bei OBEN).
+  - *Execution:* Entry am Open von Bar *k+2* (z. B. Sweep Bar 229 → Reclaim
+    Bar 230 → Entry Open Bar 231).
+- **Stufe 3 — Kerze 3 (`STUFE_3_KERZE_3` / Linienläufer & Doppeltops):**
+  - *Bedingung:* Bar *k+1* verharrt knapp jenseits der Linie, aber Bar *k+2*
+    vollendet den Reclaim-Schluss (`Close <= Basis` bei OBEN), ohne dass das
+    Sweep-Extremum von Bar *k* überboten wurde.
+  - *Execution:* Entry am Open von Bar *k+3* (z. B. Sweep Bar 242 →
+    Zwischenbar 243 → Reclaim Bar 244 → Entry Open Bar 245).
+- *Audit-Status:* Stufe 3 ist als temporäre Option aktiv und wird in
+  späteren Out-of-Sample-Läufen (S1/S2) isoliert auf Entbehrlichkeit geprüft.
+
+**3. Automatische Sweep-Immunität (Anti-Spike-Garantie):**
+
+- Jeder Docht, der über Stufe 1, Stufe 2 oder Stufe 3 zu einem Reclaim
+  führt, wird als Sweep der bestehenden Basis markiert.
+- Seine Dochtspitze ist für Kanten-Neugeburten **kategorisch gesperrt**.
+  K33 und K36 entfallen ersatzlos.
+
+**4. Stop-Loss & Kursziele:**
+
+- **Stop-Loss:** strukturell am Extremum des Sweep-Docht-Clusters
+  ± 0,05 USD. (Auch bei weiterem Sweep wie Bar 242 voll zulässig, da das
+  Chance-Risiko-Verhältnis > 2:1 bleibt.)
+- **TP1:** kausaler Binned-Histogramm-POC (60 Bins, `t <= SignalBar`)
+  zwischen Einstiegskante und Gegenkante (50 % Split).
+- **TP2:** äussere Gegenkante (50 % Split; Status AKTIV oder SCHLAFEND
+  zulässig, sofern >= 2 Touches und >= 1,5 % Distanz).
+
+**Datenvertrag Reclaim-Trigger (arretiert, Ausweisung im Trade-Report):**
+
+```python
+KantenSeite = Literal["OBEN", "UNTEN"]
+KantenRolle = Literal["RANGE_AUSSENGRENZE", "ZWISCHEN_LEVEL"]
+ReclaimStufe = Literal["STUFE_1_IN_BAR", "STUFE_2_KERZE_2",
+                      "STUFE_3_KERZE_3"]
+
+@dataclass(frozen=True, slots=True)
+class ReclaimTriggerKonfiguration:
+    basis_preis: float              # Unverrückbare Grundlinie (66.459 ab Bar 107)
+    seite: KantenSeite
+    sl_buffer_usd: float = 0.05
+    max_ueberdehnung_pct: float = 0.60   # Sweep-Schranke jenseits der Basis
+    touch_band_pct: float = 0.12         # In-Band-Vorrang
+
+@dataclass(frozen=True, slots=True)
+class ReclaimSignalEvent:
+    signal_bar: int                 # Bar des Reclaim-Schlusses
+    sweep_bar: int                  # Ursprünglicher Durchstich-Bar k
+    entry_bar: int                  # Ausführungs-Bar (signal_bar + 1)
+    entry_preis: float              # Open des Folge-Bars
+    stop_loss: float                # Sweep-Extremum +/- sl_buffer_usd
+    tp1_poc: float                  # Kausales Binned-Histogramm (60 Bins)
+    tp2_kante: float                # Äussere Gegenkante
+    stufe: ReclaimStufe             # STUFE_1 / STUFE_2 / STUFE_3
+    is_sweep_gesperrt: bool = True  # Sweep-Immunität für diesen Docht
+```
+
+**Ausweisung (Frage 1):** Jeder Trade im Report und Datenvertrag führt die
+Reclaim-Stufe transparent (`STUFE_1_IN_BAR` an Open *k+1*,
+`STUFE_2_KERZE_2` an Open *k+2*, `STUFE_3_KERZE_3` an Open *k+3*).
+
+**Sweep-Immunität über alle Stufen (Frage 2):** Jeder Docht, der über eine
+der drei Stufen einen Reclaim vollendet, aktiviert die Sweep-Sperre; seine
+Dochtspitze ist für die Neugeburt von Kanten gesperrt (Anti-Spike-Garantie).
 
 ---
 

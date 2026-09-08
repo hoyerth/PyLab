@@ -881,6 +881,144 @@ class HistogrammPocPlan:
     gesamt_volumen: float
 ```
 
+**Nachtrag (Sweep-Immunität / Anti-Spike-Filter, arretiert 2026-09-08):**
+
+> **Kernregel (bindend):** **Dochtspitzen von Reclaims bilden NIEMALS eine neue
+> Linie.** Ein Reclaim-Docht jenseits einer aktiven Range-Grenze ist ein
+> Überdehnungs-Phänomen (Failed Breakout / Liquidity-Sweep) der **existierenden**
+> Kante und darf nicht als Basis für ein neues Preislevel missbraucht werden.
+> Smart Money lässt den Preis gezielt 20–30 Cents über die verteidigte Decke
+> schießen (Stop-Run), um Buy-Stops abzufischen; fällt der Kurs zurück, ist die
+> Decke **bestätigt** — keine Range-Verlagerung, keine Phantom-Linie.
+
+**Falsifikations-Befund (Datenverifikation M15, Wanduhr):**
+
+Am 12.08. stach der Markt zweimal über die 66,46-Decke (Bar 107 H 66.459,
+Close 66.311 — level-definierender Test, **kein** Reclaim):
+
+- **Bar 229** (11:15) H **66.776**, C 66.471 (noch über der Decke) → Reclaim
+  erst in **Bar 230** (C 66.419). Überdehnung +0,478 % über Seed 107.
+- **Bar 242** (14:30) H **66.663**, L 65.598 (F1-Doppel-Pivot), C 66.480;
+  **Bar 243** bildet das zweite Top (H 66.523), **Bar 244** bricht mit
+  C 66.090 zurück = **M15-Doppeltop-Fakeout über 3 Kerzen** (Distribution über
+  30–45 min).
+
+Der Algorithmus hatte diese Dochtspitzen als eigenständige Linien gespeichert
+(**K33** Seed 229 / basis 66.776, später via 777/781 am 20.08 gekeimt; **K36**
+Seed 242 / basis 66.663). **K33 und K36 entfallen ersatzlos** — die
+Soll-Zonen-Abdeckung (UPPER 5/5, MAIN 7/7, MIN-D 4/4 bei Band 0.12) hängt
+nicht an ihnen.
+
+**Drei IDE-Lücken-Korrekturen (arretiert):**
+
+1. **Lücke A — Reclaim-Grace-Fenster:** `reclaim_grace_bars = 2`. Ein starrer
+   In-Bar-Schluss (`close[k] ≤ grenze`) versagt: Bar 229/242 schlossen beide
+   noch oberhalb (66.471/66.480). Der Reclaim zählt, wenn **k, k+1 ODER k+2**
+   zurück jenseits der Referenz schließt (Verteilungsprozess dauert 2–3 Kerzen).
+2. **Lücke B — Referenz-Universum inkl. Singleton-Seeds:**
+   `referenz_modus = "inkl_seeds"`. Bei Bar 229/242 existiert die 66,46-Decke
+   erst als **Singleton-Seed** (Bar 107, Keimung erst mit Bar 529). Ein Filter
+   nur auf gekeimte Kanten wäre blind (äußerste OBEN-Referenz wäre 66.046 →
+   Bar 229 läge +1,10 % → kein Sweep → K33 entstünde trotzdem). Referenz ist
+   die **äußerste gespeicherte Linie der Seite inkl. Seeds** (Orderbuch-Anker
+   ab Bar 107).
+3. **Lücke C — In-Band-Vorrang:** Ein Docht im regulären
+   `touch_band_pct`-Band (0,12 %) ist **primär regulärer Touch/Reclaim-
+   Kandidat**, nie Sweep-Sperre (sonst bräche man Soll-Touches und Trigger,
+   z. B. Bar 565 H 66.536 vs. K23-Basis 66.499 = +0,056 %).
+
+**Arretierter Gültigkeitskorridor der Überdehnung:** `max_sweep_ueberdehnung_pct
+= 0,60 %` — gültig für den Korridor **[0,478; 0,625] %** (Bar 229 +0,478 % muss
+als Sweep erkannt werden; Bar 107 +0,356 % über Seed 101/66.223 bleibt
+No-Reclaim = regulärer Decken-Test). Werte unter 0,478 % ließen K33 entstehen,
+Werte über 0,625 % könnten echte Trendausbrüche verschlucken.
+
+**Weitere Arretierungen (Schritt-A-Übergabe):**
+
+- **`touch_band_pct = 0.12`** (arretierter Default; einzige Band-Stufe des
+  Schritt-B-Audits mit UPPER 5/5, MAIN 7/7, MIN-D 4/4). Als Parameter für
+  spätere Sweet-Spot-Sweeps vorbereitet.
+- **Reife-Schwelle strikt V-S (`min_touches_handelbar = 3`).** Keine Aufweichung
+  auf V-2 als Default (V-2 bleibt nur Sensitivitäts-Diagnose: im Audit 7
+  Box-Setups vs. 3–4 bei V-S — die Frühtrades 22/60/223 wären Phantom-Früh-
+  Struktur an unreifen Außenlinien).
+- **Minor-Linie:** Freie Keimung akzeptiert — dominant ~64.21
+  ({126,316,361,406}), Junior ~64.33 ({130,162,172,320,346,368,372}). Junior
+  bleibt gemäß Regel 2 `ZWISCHEN_LEVEL` und für Reclaim-Einstiege
+  **vollständig stumm** (Kursziel ja, Einstieg nein).
+- **Kanten-Inflation Niemandsland (70 Audit-Kanten):** Vorerst elegant über
+  Regel 2 (`RANGE_AUSSENGRENZE` — nur die äußerste Linie handelt Einstiege)
+  gelöst. Ein ordentlicher Distanz-/Makro-Schwung-Filter gegen
+  Niemandsland-Kanten ist der **nächste Baustein nach Schritt C** (explizit
+  offen, blockiert nicht).
+- **Kausalität:** Sweep-Sperre strikt kausal (Daten bis k+2 — kein Blick über
+  den Reclaim-Grace-Horizont hinaus); Histogramm-POC wie §7.2 Regel 3
+  (60 Bins, Balance-Beginn bis k, Preisraum Einstiegskante→Gegenkante).
+
+**Scope (E4):** In der Box greift die Sweep-Regel OBEN-seitig (Bars 229/242).
+UNTEN-seitig liegt die äußerste Referenz beim transienten Crash-Seed 62.967
+(Bar 14) — kein Box-Docht unterschreitet sie; Soll-Lower-Touches (30–386) und
+die Staffelung K6/K10 bleiben unberührt. Post-Box (20.08) können 777/781 als
+**frisches Innen-Level** unter der 20.08-Spitze neu entstehen (post-box
+sekundär, E4).
+
+**Datenvertrag Sweep-Immunität (arretiert):**
+
+```python
+from dataclasses import dataclass
+from typing import List, Literal
+import pandas as pd
+
+KantenSeite = Literal["OBEN", "UNTEN"]
+
+
+@dataclass(frozen=True, slots=True)
+class SweepImmunitaetKonfiguration:
+    touch_band_pct: float = 0.12               # In-Band-Toleranz (Vorrang)
+    max_sweep_ueberdehnung_pct: float = 0.60   # Korridor [0.478; 0.625] %
+    reclaim_grace_bars: int = 2                # Reclaim-Schluss k, k+1 ODER k+2
+    referenz_modus: Literal["inkl_seeds", "nur_gekeimte"] = "inkl_seeds"
+
+
+def ist_sweep_einer_bestehenden_referenz(
+    seite: KantenSeite,
+    bar_k: int,
+    pivot_preis: float,
+    cl: List[float],
+    aeusserste_referenz_basis: float,
+    cfg: SweepImmunitaetKonfiguration,
+) -> bool:
+    """Kausal: Docht außerhalb des Touch-Bands, aber innerhalb der
+    Sweep-Toleranz; Reclaim-Schluss innerhalb k..k+2 zurück jenseits."""
+    basis: float = aeusserste_referenz_basis
+    # 1. In-Band-Vorrang: normales Touch-Band -> KEIN Sweep-Sperrfall
+    dist_pct: float = abs(pivot_preis - basis) / basis * 100.0
+    if dist_pct <= cfg.touch_band_pct:
+        return False
+    # 2. Überdehnung gegen die äußerste Referenz (inkl. Seeds)
+    if seite == "OBEN":
+        if not (pivot_preis > basis
+                and dist_pct <= cfg.max_sweep_ueberdehnung_pct):
+            return False
+        for step in range(cfg.reclaim_grace_bars + 1):
+            target_bar: int = bar_k + step
+            if target_bar < len(cl) and cl[target_bar] <= basis:
+                return True
+    else:
+        if not (pivot_preis < basis
+                and dist_pct <= cfg.max_sweep_ueberdehnung_pct):
+            return False
+        for step in range(cfg.reclaim_grace_bars + 1):
+            target_bar: int = bar_k + step
+            if target_bar < len(cl) and cl[target_bar] >= basis:
+                return True
+    return False
+```
+
+**Freigabe-Reihenfolge (aktualisiert):** Schritt A = dieser Docs-Only-Commit.
+Schritt B (Umbau `_replay_c` mit Sweep-Sperre + Histogramm-POC) erst nach
+formaler Abnahme dieses Nachtrags; Schritt C = AUG-Lauf `--modus C` + PNG.
+
 ---
 
 ## 8. Gate & Schritt-0-Replay (verbindlich)
@@ -948,9 +1086,11 @@ Null-Befund-Arretierung auch für Modus B.
 Da V3-Kanten **zeitlos** über den 2-Body-Bruch gesteuert werden, entfällt das
 `max_tage`-Grid {1, 5, 20, 60} für Modus C. Es gilt:
 
-- **Nachtrag 2026-09-08 (Straight-Edge, §7.2):** Die Default-Konfiguration von
-  Modus C wird durch §7.2 ersetzt (Cluster-Keimung ≥ 2 Dochte,
-  `SE_BAND_PCT ≈ 0,11–0,12 %`, Außenkanten-Prinzip, Histogramm-POC als TP1,
+- **Nachtrag 2026-09-08 (Straight-Edge, §7.2 + Sweep-Immunität):** Die
+  Default-Konfiguration von Modus C wird durch §7.2 ersetzt (Cluster-Keimung
+  ≥ 2 Dochte, **arretierter Default `SE_BAND_PCT`/`touch_band_pct = 0.12`**,
+  Außenkanten-Prinzip Regel 2, Sweep-Docht-Sperre inkl. Singleton-Seeds,
+  Histogramm-POC als TP1, Reife-Schwelle strikt V-S ≥ 3 Touches,
   Box-Phase 10.08.–18.08. als AUG-Eichmaßstab). Das C-Gate selbst bleibt
   unverändert: je Fenster genau 1 Durchlauf.
 - **Je Fenster genau 1 Durchlauf** (AUG, S1, S2) mit fester Default-Konfiguration

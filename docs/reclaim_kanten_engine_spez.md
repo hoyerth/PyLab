@@ -502,16 +502,39 @@ Hauptwand ab (Bar 249 → K18 statt K20).
   Touch). Verifikation der Reihenfolge in den M15-Rohdaten (silver_m15):
   Bar 101 high ≈ 66.22 (K18-Vorstufe) → Bar 107 high ≈ 66.46 (K20, äußeres
   Extrem = eigentliche Decke).
-- **Touch-Matching (Dominanz, arretiert):** Liegt ein Pivot-Docht im
-  0,23-%-Band mehrerer Kanten derselben Seite, gewinnt die **dominante Kante**
-  (höchste `touch_anzahl`; Tie-Break: ältere = kleinere `kanten_id`).
-  Nearest-Preis-Matching entfällt. Damit verliert K18 (66.223) den
-  Überlappungs-Touch Bar 249 an die etablierte Decke K20 (66.459).
-- **Junior-Edge-Politik:** Innere Vorläufer (z. B. K18), die VOR dem äußeren
+- **Touch-Matching (Dominanz, arretiert; U1-Fix 2026-09-08):** Liegt ein
+  Pivot-Docht im 0,23-%-Band mehrerer Kanten derselben Seite, gewinnt die
+  **dominante Kante**: höchste `touch_anzahl`; **bei Gleichstand das äußere
+  Extremum** (OBEN: höhere Basis; UNTEN: tiefere Basis). Der naive Tie-Break
+  „ältere Kante gewinnt" ist als **Retail-FIFO-Fehler arretiert** (Phase-0b-Befund
+  U1) — institutionelle Liquidität liegt an den Außenkanten. Korrektur: K12
+  (66.223, Junior) verliert Bar 237/249 an K14 (66.459, äußere Decke) →
+  UPPER erwartet 5/5 (107/237/249/529/536).
+- **Phase-0b-Arretierung (Ist-Tabelle, 2026-09-08, `test/tmp_v3_genese_audit.py`):
+  U1-Fix aktiv → 39 Kanten (OBEN 20, UNTEN 19), 33 Typ B, 63 verworfenen
+  Ring-Pivots (0,23–0,50 %).**
+
+  | Soll-Ebene | Soll | Ist (vor U1-Fix) | Erwartung nach U1-Fix |
+  |---|---|---|---|
+  | UPPER 66.46 | 5 | 3 (237/249 an Junior K12) | **5** (K14 = 107/237/249/529/536) |
+  | LOWER-MAIN 63.67 | 7 | 5 | **5** (U2, arretiert akzeptiert) |
+  | LOWER-MINOR 64.20 | 4 | 3 | **3** (U2, arretiert akzeptiert) |
+
+  **U2 — Zonen-Nominal vs. kausale Dochte (arretiert akzeptiert, keine
+  Zonen-Glättung):** Die menschliche Soll-Zählung (7/7, 4/4) fasst Zonen um
+  runde Nominale (63.70, 64.20) ±0,15 USD zusammen; die deterministische Engine
+  verankert kausal an konkreten Dochtspitzen. Dass die Engine die Unterseiten-
+  Liquidität über K5 (63.797, dist 0,199 % zum Anker 63.67) und K4 (64.071,
+  dist 0,201 % zum Anker 64.20) abdeckt, ist **Marktrealität auf Tick-Ebene,
+  kein Fehler**. Kein künstliches Verschmelzen/Zusammenziehen von Kanten im Ring
+  (Overfitting-Wunde von Modus A/B). **Validierung ausschließlich über das
+  Benchmark-Gate §8.4 (PF ≥ 1,30 & ΣR > 0 auf S1 und S2)** — die Soll-Tabelle
+  ist Diagnose, nicht Ziel.
+- **Junior-Edge-Politik:** Innere Vorläufer (z. B. K18/K12), die VOR dem äußeren
   Extrem geboren wurden, bleiben **bestehen** (keine künstliche Fusion per
   Code-Automatik — Mutationsrisiko). Sie verlieren über das Dominanz-Matching
   alle Überlappungs-Touches. Erreicht ein Junior im Schatten der Hauptwand
-  eigenständig ≥ 3 Touches, wird in Phase 0b geprüft, ob er legitimer
+  eigenständig ≥ 3 Touches, wird im Replay beobachtet, ob er legitimer
   Zwischen-Widerstand oder Störsignal ist.
 - **Touch-Band (Zählung) bleibt relativ `touch_band_pct` 0,23 %** (F2); die
   0,23–0,50-%-Ringzone ist **Zwischenwelle ohne Touch** (P1c). **Bekannte
@@ -571,6 +594,30 @@ def darf_kante_geboren_werden(
             if seite == "UNTEN" and neuer_preis >= kante.basis_preis:
                 return False  # innerer Pivot über bestehender Kante -> blockiert
     return True
+
+
+@dataclass(frozen=True, slots=True)
+class KantenDominanzVergleich:
+    """Dominanz-Matching mit U1-Fix: etablierte Kante gewinnt, bei
+    Gleichstand das äußere Extremum (institutionelle Liquidität)."""
+
+    seite: KantenSeite
+
+    def waehle_dominante_kante(
+        self,
+        kante_a_basis: float,
+        kante_a_touches: int,
+        kante_b_basis: float,
+        kante_b_touches: int,
+    ) -> Literal["A", "B"]:
+        """Etablierte Kante gewinnt; bei Gleichstand stets das äußere Extremum."""
+        if kante_a_touches != kante_b_touches:
+            return "A" if kante_a_touches > kante_b_touches else "B"
+        # Tie-Break: äußeres Extremum hat institutionellen Vorrang
+        if self.seite == "OBEN":
+            return "A" if kante_a_basis > kante_b_basis else "B"
+        else:
+            return "A" if kante_a_basis < kante_b_basis else "B"
 ```
 
 **V3-Datenverträge (Basis, arretiert):**
@@ -673,18 +720,15 @@ class ModusCSignal:
 3. **A/B-Katalog V3 (weiter offen):** Gegenkante ≥ 2/≥ 3 Touches, Split
    50/50 vs. 25/75, SL-Puffer 0,05 USD fest vs. konfigurierbar. Defaults
    arretiert: Gegenkante ≥ 2, Split 50/50, SL-Puffer 0,05 fest.
-4. **Soll/Ist-Genese-Verifikation (offen, vor Harness-Einbau):** Das
-   Genese-Audit (§7.1 F) muss frei geborene Kanten gegen die Soll-Zählung
-   (Upper 5/5, Main 7/7, Minor 4/4) abgleichen — Erwartung nach F1/F2:
-   Main 7/7 (Bar 386 via Doppel-Pivot), Minor-Zählung wird durch die
-   Touch-Definition (Band `touch_band_pct` 0,23 %, Abstand ≥ 3) geprüft.
-5. **Ring-Zähl-Regel (offen, Entscheidung nach Phase-0b-Tabelle):** Die
-   0,23–0,50-%-Ringzone ist arretiert als „Zwischenwelle ohne Touch" (P1c) —
-   ABER die menschliche Soll-Zählung enthält Ring-Kontakte (Main Bar 52 bei
-   63.797 = 0,281 % über K5-Basis). Phase 0b weist sie separat aus; danach
-   entscheidet der User, ob Ring-Kontakte (a) weiterhin verworfen werden
-   (Soll-Abweichung wird akzeptiert/dokumentiert) oder (b) als Zonen-Touches
-   der dominanten Wand zählen (nur Zählung/Klassifikation, kein Signal).
+4. ~~**Soll/Ist-Genese-Verifikation:**~~ **Arretiert 2026-09-08 (Phase 0b):**
+   U1-Fix (äußeres Extrem bei Gleichstand) → UPPER erwartet **5/5**; U2
+   (Zonen-Nominal vs. kausale Dochte) als kausale Eigenschaft **akzeptiert** —
+   Validierung über das Gate §8.4, nicht über die Soll-Strichzählung.
+5. ~~**Ring-Zähl-Regel:**~~ **Arretiert 2026-09-08 (U2-Akzeptanz):** Die
+   0,23–0,50-%-Ringzone bleibt „Zwischenwelle ohne Touch" (P1c). Ring-Kontakte
+   der menschlichen Soll-Zählung (Main Bar 30/63, Minor Bar 320) werden
+   **verworfen und nicht nachgezählt** — keine Zonen-Glättung, kein Overfitting
+   an runde Nominale. Das Audit weist sie weiterhin separat aus (Diagnose).
 
 ---
 

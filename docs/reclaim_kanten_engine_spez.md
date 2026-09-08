@@ -480,25 +480,98 @@ Admission noch Cooldown.
   Signal-Freigabe-Regel F3 (B). `poc_seite`/`crv`-Gate **entfällt** (kein POC
   in V3).
 
-**F. Kanten-Genese (E3, arretiert):**
-- **Geburt ohne Amplitudenzwang:** Jeder bestätigte Pivot (2-Bar-Puffer,
-  Nachbarschafts-Logik des Harness), der **keiner** bestehenden Kante gleicher
-  Seite zugeordnet werden kann, gebiert eine **neue statische Kante** bei
-  `basis_preis = Docht-Extremum` (high bei OBEN, low bei UNTEN), sofort AKTIV,
-  zählt als Touch #1. Kein SwingFilter-/Herkunfts-Gate (P2 entfällt für V3).
-- **Level-Matching (relativ):** Pivot-Extremum `p` → nächste Kante **gleicher
-  Seite** mit `|basis − p| / basis × 100 ≤ touch_band_pct` (0,23 %; AKTIV und
-  SCHLAFEND; kein VERFALLEN in V3). Bei zwei Kandidaten gewinnt die nähere,
-  Gleichstand die ältere. Kein Treffer → Geburt (siehe oben). Das relative Band
-  verhindert die Zersplitterung der 66,46-Decke in 3 getrennte Kanten
-  (E3-Korrektur).
+**F. Kanten-Genese (V3, arretiert 2026-09-08 — asymmetrische Geburts-Sperre +
+Dominanz-Matching, Nachtrag nach Phase-0-Befund):**
+
+Phase-0-Befund (`test/tmp_v3_genese_audit.py`): Die unbeschränkte Pivot-Geburt
+erzeugte 56 Kanten (43 Typ B) auf 1288 Bars — Retail-Chop. Ursachen: Sub-Wellen
+derselben Wand gebaren eigene Kanten (K5 63.618 vs. K8 63.797 = 0,281 %; K20
+66.459 vs. K18 66.223 = 0,355 %), und Nearest-Preis-Matching zog Touches von der
+Hauptwand ab (Bar 249 → K18 statt K20).
+
+- **Geburt ohne Amplitudenzwang, aber mit asymmetrischer Geburts-Sperre
+  (`geburts_sperr_pct = 0,50`):** Ein bestätigter Pivot (2-Bar-Puffer) gebiert
+  nur, wenn **keine** bestehende Kante gleicher Seite im 0,50-%-Nahbereich
+  liegt — **ODER** der neue Pivot das **äußere Extremum** der Zone bildet
+  (OBEN: `preis > basis_bestehend`; UNTEN: `preis < basis_bestehend`).
+  Range-Expansion/echtes Wand-Extremum wird **nie** unterdrückt (K20 66.459
+  darf trotz K18 66.223 bei 0,355 % gebären). **Innere Pivots** im
+  0,50-%-Nahbereich (OBEN: `preis ≤ basis_bestehend`; UNTEN:
+  `preis ≥ basis_bestehend`) sind **Zwischenwellen**: kein Touch, keine Geburt
+  — außer sie liegen im 0,23-%-Touchband einer bestehenden Kante (→ regulärer
+  Touch). Verifikation der Reihenfolge in den M15-Rohdaten (silver_m15):
+  Bar 101 high ≈ 66.22 (K18-Vorstufe) → Bar 107 high ≈ 66.46 (K20, äußeres
+  Extrem = eigentliche Decke).
+- **Touch-Matching (Dominanz, arretiert):** Liegt ein Pivot-Docht im
+  0,23-%-Band mehrerer Kanten derselben Seite, gewinnt die **dominante Kante**
+  (höchste `touch_anzahl`; Tie-Break: ältere = kleinere `kanten_id`).
+  Nearest-Preis-Matching entfällt. Damit verliert K18 (66.223) den
+  Überlappungs-Touch Bar 249 an die etablierte Decke K20 (66.459).
+- **Junior-Edge-Politik:** Innere Vorläufer (z. B. K18), die VOR dem äußeren
+  Extrem geboren wurden, bleiben **bestehen** (keine künstliche Fusion per
+  Code-Automatik — Mutationsrisiko). Sie verlieren über das Dominanz-Matching
+  alle Überlappungs-Touches. Erreicht ein Junior im Schatten der Hauptwand
+  eigenständig ≥ 3 Touches, wird in Phase 0b geprüft, ob er legitimer
+  Zwischen-Widerstand oder Störsignal ist.
+- **Touch-Band (Zählung) bleibt relativ `touch_band_pct` 0,23 %** (F2); die
+  0,23–0,50-%-Ringzone ist **Zwischenwelle ohne Touch** (P1c). **Bekannte
+  Konsequenz (transparent dokumentiert):** Die menschliche Soll-Zählung der
+  63.67-Wand enthält Ring-Kontakte — Bar 52 (low ≈ 63.797) liegt 0,281 % über
+  der K5-Basis 63.618 und damit **außerhalb** des 0,23-%-Bandes (Oberkante
+  63.764), aber innerhalb des menschlichen ±0,15-USD-Fensters um den nominalen
+  Anker 63.67 (bis 63.82). Phase 0b weist Ring-Ereignisse je Soll-Ebene
+  **separat** aus, damit die Abweichung quantifiziert und die Zähl-Regel
+  (Band vs. Zone) datenbasiert entschieden werden kann.
 - **Selbstfilternde Schwellen:** 1-Touch-Kanten bleiben harmlos; ≥ 2 Touches =
-  Kursziel (Typ A), ≥ 3 = Einstieg (Typ B). Over-Birth in trendigen Passagen
-  erzeugt nur passive Erinnerungs-Level.
+  Kursziel (Typ A), ≥ 3 = Einstieg (Typ B).
 - **Soll/Ist-Verifikation:** Das Genese-Audit (in `test/`, read-only) gleicht
   frei geborene Kanten gegen die 3 Soll-Ebenen (66.46/63.67/64.20) auf
   **`touch_band_pct`-Level-Äquivalenz** ab — Geburten können um bis zu 0,23 %
   vom Soll-Anker abweichen und vor dem Soll-Fensterstart liegen.
+- **Chart (D1, arretiert):** Das Genese-Audit rendert zusätzlich
+  `test/kanten_engine_genese_AUG.png` (matplotlib Agg, 300 dpi, 18×11):
+  Panel 1 = Close + Soll-Ebenen (66.46/63.67/64.20) als Linien + geborene
+  Kanten mit ≥ 2 Touches (OBEN durchgezogen/rot, UNTEN gestrichelt/grün) +
+  Touch-Eichpunkte + Bar-386-Markierung (Doppel-Pivot F1) + Box 10.08–18.08;
+  Panel 2 = Statistik (Kantenzahl, Typ-B-Anteil, Soll/Ist je Ebene).
+
+**Datenvertrag Genese (arretiert):**
+
+```python
+from dataclasses import dataclass, field
+from typing import List, Literal, Optional
+import pandas as pd
+
+KantenSeite = Literal["OBEN", "UNTEN"]
+
+
+@dataclass(frozen=True, slots=True)
+class AsymmetrischeGeneseRegeln:
+    touch_band_pct: float = 0.23        # Toleranz für Touch-Zuordnung (~0.15 USD)
+    geburts_sperr_pct: float = 0.50     # Sperre nur für innere Sub-Levels
+    min_bar_abstand: int = 3            # Zeitfilter zwischen Touches
+
+
+def darf_kante_geboren_werden(
+    seite: KantenSeite,
+    neuer_preis: float,
+    bestehende_kanten: List["StatischeKanteC"],
+    regeln: AsymmetrischeGeneseRegeln,
+) -> bool:
+    """Asymmetrisch: Äußeres Extremum darf immer gebären; innere Pivots
+    werden innerhalb geburts_sperr_pct geblockt (Zwischenwelle)."""
+    for kante in bestehende_kanten:
+        if kante.seite != seite:
+            continue
+        dist_pct = (abs(neuer_preis - kante.basis_preis)
+                    / kante.basis_preis * 100.0)
+        if dist_pct <= regeln.geburts_sperr_pct:
+            if seite == "OBEN" and neuer_preis <= kante.basis_preis:
+                return False  # innerer Pivot unter bestehender Kante -> blockiert
+            if seite == "UNTEN" and neuer_preis >= kante.basis_preis:
+                return False  # innerer Pivot über bestehender Kante -> blockiert
+    return True
+```
 
 **V3-Datenverträge (Basis, arretiert):**
 
@@ -605,6 +678,13 @@ class ModusCSignal:
    (Upper 5/5, Main 7/7, Minor 4/4) abgleichen — Erwartung nach F1/F2:
    Main 7/7 (Bar 386 via Doppel-Pivot), Minor-Zählung wird durch die
    Touch-Definition (Band `touch_band_pct` 0,23 %, Abstand ≥ 3) geprüft.
+5. **Ring-Zähl-Regel (offen, Entscheidung nach Phase-0b-Tabelle):** Die
+   0,23–0,50-%-Ringzone ist arretiert als „Zwischenwelle ohne Touch" (P1c) —
+   ABER die menschliche Soll-Zählung enthält Ring-Kontakte (Main Bar 52 bei
+   63.797 = 0,281 % über K5-Basis). Phase 0b weist sie separat aus; danach
+   entscheidet der User, ob Ring-Kontakte (a) weiterhin verworfen werden
+   (Soll-Abweichung wird akzeptiert/dokumentiert) oder (b) als Zonen-Touches
+   der dominanten Wand zählen (nur Zählung/Klassifikation, kein Signal).
 
 ---
 

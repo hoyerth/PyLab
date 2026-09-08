@@ -365,6 +365,14 @@ Admission noch Cooldown.
 > Das formale Freigabe-Gate für den **Harness-Einbau** (§9, Schritt 3/4) steht
 > noch aus — kein Modul-Code vor Freigabe. Die V3-Soll-Kanten-Arretierung bleibt
 > maßgeblich: Upper 5/5, Lower-Main 7/7 (via F1), Lower-Minor 4/4 (via F2).
+>
+> **Nachtrag 2026-09-08 (Straight-Edge-Revision, Mentor-Freigabe E1–E5):**
+> Die U2-Akzeptanz der Phase-0b-Tabelle (§7.1 F: „5/3, U2 arretiert
+> akzeptiert") ist **vollständig revidiert** — sie war die Zielverfehlung
+> (39 Kanten, PF 0,88). Verbindlich bleibt die obige Soll-Arretierung
+> 5/7/4. Die Korrektur-Genese und -Ausführung (Cluster-Keimung ≥ 2 Dochte,
+> Außenkanten-Prinzip, Histogramm-POC, Box-Phase als Eichmaßstab) ist in
+> **§7.2** arretiert.
 
 **Arretierungs-Befunde (Pflichtlektüre, Basis für V3):**
 
@@ -730,6 +738,149 @@ class ModusCSignal:
    **verworfen und nicht nachgezählt** — keine Zonen-Glättung, kein Overfitting
    an runde Nominale. Das Audit weist sie weiterhin separat aus (Diagnose).
 
+### 7.2 Straight-Edge-Revision (Korrektur der V3-Genese & -Ausführung, arretiert
+2026-09-08, Mentor-Freigabe E1–E5)
+
+> **Status:** Diese Revision **ersetzt** die U2-Akzeptanz aus §7.1 F (Commit
+> `61a0c29`). Die Phase-0b-Tabelle (39 Kanten, 33 Typ B, 63 Ring) bleibt nur
+> als **historischer Zielverfehlungs-Befund** stehen. Verbindlich sind die
+> Soll-Kanten der August-Box: **UPPER 5/5, LOWER-MAIN 7/7 (via F1),
+> LOWER-MINOR 4/4** — gemessen in der Box-Phase (10.08.–18.08.).
+
+**1. Falsifikations-Befund (knallhart, Basis dieser Revision):**
+
+Der AUG-C-Lauf (`test/tmp_kanten_engine_replay.py --modus C`) erzeugte
+**39 Kanten** (OBEN 20/UNTEN 19, 33 Typ B, 63 Ring-Verwerfungen) → **66 Trades,
+53 Verluste, −6,41 R, PF 0,88** (`kanten_liste_AUG_mC.txt`). Ursachen:
+
+- **Singulärer Docht zeugt eine Kante:** Das Crash-Tief Bar 7 (63.464) und die
+  Crash-Tiefs des 10.08. (62.967/64.071) verankerten Kanten an transienten
+  Spitzen statt an der fast-durchgehenden geraden Begrenzung.
+- **Erst-Extrem-Verankerung statt Linien-Mitte:** Die Kante erbte die *erste*
+  Dochtspitze; das spätere Docht-Cluster der Wand (63.60–63.80) konnte sich
+  nicht zu einer Linie bündeln.
+- **0,5-%-Ring-Sperre friert Wand-Dochte ein:** Bars 30/63 (Main) und 320
+  (Minor) sind zugehörige Wand-Dochte, wurden aber als „innere Zwischenwellen"
+  gegen die falsche (zu tiefe) Nachbarkante verworfen.
+- Folge: 16 Zwischenkanten im 4,4-%-Niemandsland (63.67–66.46), die nach 3
+  Berührungen als vollwertige Typ-B-Range-Grenzen handelten und
+  Trendbewegungen mitten im Niemandsland fadeten.
+
+**2. Regel 1 — Cluster-Keimung (≥ 2 Dochte im Band):**
+
+- Eine Kante entsteht **niemals aus einem singulären Docht**. Ein einzelner
+  bestätigter Pivot-Docht (2-Bar-Puffer, F1-dual) ist ein reines
+  **Markierungs-Ereignis** (Seed). Transiente Tiefs (63.464/62.967/64.071)
+  bleiben ohne Kante, bis ein **zweiter bestätigter Pivot-Docht** im
+  Toleranzband liegt.
+- **Einheitliches relatives Band (E2, kein Retail-Ebenen-Tuning):**
+  `SE_BAND_PCT ≈ 0,11–0,12 %` (≈ ±0,075 USD bei ~65 USD). Das Audit scannt
+  {0,11 / 0,115 / 0,12}; arretierter Default nach Audit-Abnahme.
+- **Basis-Preis = Mittel der akzeptierten Cluster-Dochte** (selbst-lokalisierende
+  Linie; läuft mit jedem akzeptierten Touch deterministisch mit; kausal, kein
+  Blick über Bar k). Kein Verankern an der ersten Spitze.
+- Touch-Mindestabstand `min_bar_abstand = 3` (gleiche Bewegung zählt nicht
+  doppelt).
+- **Konsequenz Unterseite (E2, institutionelle Staffelung):** Die Unterkante
+  der Box besteht aus **zwei versetzten Ebenen** — 63.62 (Tiefs 10.08.) und
+  63.70/63.79 (nach dem Bruch 14.08.). Das Audit bildet beide ab; die
+  Soll-Zählung 7/7 (Main) ist die menschliche Zonen-Zählung um 63.67 ±0,15.
+
+**3. Regel 2 — Begrenzungs-Hierarchie (`RANGE_AUSSENGRENZE` vs. `ZWISCHEN_LEVEL`):**
+
+- Jede Kante trägt eine Rolle. **Handelbar für Reclaim-Einstiege ist
+  ausschließlich die äußerste aktive Kante der Seite in der aktuellen
+  Balance-Phase** (OBEN: höchste aktive OBEN-Basis; UNTEN: tiefste aktive
+  UNTEN-Basis). Alle inneren Zwischenlevels (z. B. Minor 64.20/64.22 als
+  Kursziel ja, als Einstieg nein) sind **vollständig stummgeschaltet**.
+- **Zwei-Linien-Modell Minor (E1, voll freigegeben):** Die Minor-Zone wird als
+  **zwei** UNTEN-Linien abgebildet — **dominant 64.22** (Dochte 126/316/320/361,
+  = Soll-Minor 4/4) und **Junior 64.31** (130/162/368). Junior wird per
+  Regel 2 als `ZWISCHEN_LEVEL` markiert und für Einstiege stummgeschaltet —
+  Abbild der realen Orderbuch-Staffelung, ohne Dochte künstlich zu verleugnen.
+- Dominanz/Tie-Break bei Überlappung bleibt U1 (höchste `touch_anzahl`, bei
+  Gleichstand das äußere Extremum).
+
+**4. Regel 3 — Echter Volumen-Histogramm-POC als TP1 (Baseline v0.4.0):**
+
+- **Nachweis (Referenz `scripts/phasen_volumen_profil.py` Z. 477–605):** Die
+  Baseline v0.4.0 kannte **keinen Kanten-VWAP**. `build_volume_profile` zerlegt
+  die Spanne in `NUM_BINS = 60` Preis-Bins, verteilt `tick_volume` proportional
+  über die High-Low-Spanne, glättet mit `smooth_vol(win=3)` und bestimmt
+  `POC = peaks[0].poc` des dominanten Bergs (`MIN_MOUNTAIN_PCT 4,0`,
+  `VALLEY_REL 0,15`).
+- Der synthetische Kanten-VWAP `(bal·v_ein + gegen·v_geg) / v_sum` aus dem
+  Harness (Modi A/B) **entfällt** für Modus C.
+- **Kausales Histogramm-Fenster (E3, Option A+C kombiniert):** TP1 = POC des
+  60-Bin-Volumenprofils über **alle Bars seit Beginn der aktuellen
+  Balance-Phase bis zur Entscheidungs-Bar k**, **begrenzt auf den Preisraum
+  zwischen Einstiegskante und Zielkante**. Kein Blick über Bar k hinaus.
+- TP2 = äußere Gegenkante; Split **50/50** (arretiert).
+
+**5. Scope AUG (E4):**
+
+- **Eichmaßstab = Box-Phase 10.08.–18.08.** (dort liegen die 3 Soll-Kanten und
+  die erwarteten 6–9 echten Range-Reclaim-Setups).
+- Nach dem **Makro-Bruch am 19.08.** (Regimewechsel Richtung ~70 USD) muss die
+  Engine durch den 2-Body-Schutz **sauber schlafen gehen** und **keine
+  Fehlsignale** im neuen Regime erzeugen (Verifikation sekundär).
+
+**6. Freigabe & Reihenfolge (E5):**
+
+- Diese Arretierung ist der verbindliche Anhang des Übergabedokuments.
+- **Schritt A (vorliegend):** Spezifikations-Update (U2-Revokation, §7.2).
+- **Schritt B:** Read-Only-Audit `test/tmp_v3_straight_edge_audit.py` — kausaler
+  AUG-Scan zum Nachweis, dass die 39 Kanten auf die institutionellen
+  Begrenzungslinien kollabieren (Upper ~66.42/66.46; Unterkante Staffelung
+  63.62/63.70–63.79; Minor dominant 64.22 + Junior 64.31) und die Trade-Zahl in
+  der Box auf ca. 6–9 echte Range-Setups schrumpft (mit PNG).
+- **Schritt C:** Erst nach formaler Abnahme der Audit-Ergebnisse erfolgt der
+  Umbau von `_replay_c` im Harness.
+
+**Datenvertrag Straight-Edge (arretiert):**
+
+```python
+from dataclasses import dataclass, field
+from typing import List, Literal
+import pandas as pd
+
+KantenSeite = Literal["OBEN", "UNTEN"]
+KantenRolle = Literal["RANGE_AUSSENGRENZE", "ZWISCHEN_LEVEL"]
+
+
+@dataclass(slots=True)
+class StraightEdgeKante:
+    kanten_id: int
+    seite: KantenSeite
+    basis_preis: float                    # Fester horizontaler Preisanker
+    geburts_bar: int
+    touch_bars: List[int] = field(default_factory=list)
+    rolle: KantenRolle = "ZWISCHEN_LEVEL"
+    status: Literal["AKTIV", "SCHLAFEND"] = "AKTIV"
+
+    @property
+    def touch_anzahl(self) -> int:
+        return len(self.touch_bars)
+
+    @property
+    def ist_aktive_aussengrenze(self) -> bool:
+        """Handelsberechtigt für Reclaim-Einstiege nur reife Außenwände."""
+        return (
+            self.rolle == "RANGE_AUSSENGRENZE"
+            and self.touch_anzahl >= 3
+            and self.status == "AKTIV"
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class HistogrammPocPlan:
+    poc_preis: float
+    spanne_von: float
+    spanne_bis: float
+    anzahl_bars: int
+    gesamt_volumen: float
+```
+
 ---
 
 ## 8. Gate & Schritt-0-Replay (verbindlich)
@@ -797,6 +948,11 @@ Null-Befund-Arretierung auch für Modus B.
 Da V3-Kanten **zeitlos** über den 2-Body-Bruch gesteuert werden, entfällt das
 `max_tage`-Grid {1, 5, 20, 60} für Modus C. Es gilt:
 
+- **Nachtrag 2026-09-08 (Straight-Edge, §7.2):** Die Default-Konfiguration von
+  Modus C wird durch §7.2 ersetzt (Cluster-Keimung ≥ 2 Dochte,
+  `SE_BAND_PCT ≈ 0,11–0,12 %`, Außenkanten-Prinzip, Histogramm-POC als TP1,
+  Box-Phase 10.08.–18.08. als AUG-Eichmaßstab). Das C-Gate selbst bleibt
+  unverändert: je Fenster genau 1 Durchlauf.
 - **Je Fenster genau 1 Durchlauf** (AUG, S1, S2) mit fester Default-Konfiguration
   (§7.1: `touch_band_pct` 0,23, Abstand ≥ 3, Gegenkante ≥ 2, Split 50/50,
   SL-Puffer 0,05 USD fest). Keine `max_tage`-Sensitivitätsmatrix für C.

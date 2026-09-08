@@ -348,14 +348,18 @@ Admission noch Cooldown.
 > **Status:** V3-Entscheidungen **arretiert 2026-09-08** (E1–E5):
 > - **F1 — Doppel-Pivot:** H==L-Umkehrbar registriert **beidseitig** (Touch auf
 >   beiden Seiten); die P1-Regel „H gewinnt bei H==L" ist für V3 aufgehoben.
-> - **F2 — Touchband-Präzisierung:** Kanten-Touchband/Level-Matching bleibt
->   **±0,15 USD** (`DENSITY_BAND`, gegen Zersplitterung der 66,46-Decke); der
->   **Signal-Reclaim** (B) verlangt dagegen den **echten Docht-Durchstich** der
->   Linie (high > basis bzw. low < basis) — bloßer Bandkontakt triggert nicht.
+> - **F2 — Touchband-Präzisierung (2026-09-08, Nachtrag `touch_band_pct`):**
+>   Kanten-Touchband/Level-Matching ist **relativ** `touch_band_pct = 0,23`
+>   (Formel `|extremum − basis| / basis × 100 ≤ 0,23`; ≈ ±0,15 USD bei
+>   ~65 USD, symbol-unabhängig skaliert — gegen Zersplitterung der 66,46-Decke);
+>   der **Signal-Reclaim** (B) verlangt dagegen den **echten Docht-Durchstich**
+>   der Linie (high > basis bzw. low < basis) — bloßer Bandkontakt triggert
+>   nicht.
 > - **F3 — Re-Trigger:** neue Freigabe nur bei **neuestem bestätigtem Touch mit
 >   `pivot_bar > letzter_signal_bar`** UND **max. 1 offene Position je Kante**
 >   (kein Stacking, kein starrer Bar-Cooldown).
-> - **Genese (E3):** Pivot-Geburt ohne Amplitudenzwang, Level-Matching ±0,15.
+> - **Genese (E3):** Pivot-Geburt ohne Amplitudenzwang, Level-Matching
+>   `touch_band_pct = 0,23` (relativ).
 > - **C-Gate (E5):** je Fenster genau 1 Durchlauf (kein `max_tage`-Grid),
 >   Bestehenskriterium wie §8.2, Verankerung in §8.4.
 > Das formale Freigabe-Gate für den **Harness-Einbau** (§9, Schritt 3/4) steht
@@ -405,12 +409,14 @@ Admission noch Cooldown.
 - SCHLAFEND ausschließlich durch **2 konsekutive Kerzenkörper vollständig
   jenseits** des fixen `basis_preis` (2-Body-Semantik bleibt, aber gegen
   `basis_preis` statt `_ref_preis`).
-- **Touch-Registrierung (Zählung/Klassifikation, ±0,15):** Ein bestätigter
-  Pivot-Docht im **±0,15-Band um `basis_preis`** zählt als Touch und schaltet
-  eine SCHLAFENDE Kante sofort AKTIV (Reaktivierung; Heilung der
-  Reaktivierungs-Lücke Z. 516–524). Das Band bleibt ±0,15 (F2, arretiert) —
-  eine Reduktion würde die 5 Touches der 66,46-Decke über 3 Kanten
-  zersplittern (E3-Korrektur).
+- **Touch-Registrierung (Zählung/Klassifikation, relativ):** Ein bestätigter
+  Pivot-Docht im **`touch_band_pct`-Band (0,23 %) um `basis_preis`** zählt als
+  Touch und schaltet eine SCHLAFENDE Kante sofort AKTIV (Reaktivierung;
+  Heilung der Reaktivierungs-Lücke Z. 516–524). Relative Formel (symbol-
+  unabhängig):
+  `|extremum_preis − basis_preis| / basis_preis × 100 ≤ touch_band_pct`
+  (≈ ±0,15 USD bei ~65 USD). Eine Reduktion würde die 5 Touches der 66,46-Decke
+  über 3 Kanten zersplittern (E3-Korrektur).
 - **Doppel-Pivot (F1, arretiert):** Eine Umkehrbar mit H==L gleichzeitig
   (z. B. Bar 386 am 14.08.: low 63.663 tiefstes **und** high 64.077 höchstes
   der Umgebung) registriert **beidseitig**: Das Extremum zählt als Touch an der
@@ -419,11 +425,12 @@ Admission noch Cooldown.
   Regressionsanker A/B unangetastet; V3 nutzt eine eigene Pivot-Prüfung).
 - Touch-Mindestabstand `min_bar_abstand = 3` (verhindert Doppelzählung derselben
   Bewegung; keine 12-Bar-Signal-Sperre mehr, siehe E).
-- **Touchband vs. Signal-Durchstich (F2-Präzisierung):** Das ±0,15-Band wirkt
-  **nur** auf Touch-Zählung, Reaktivierung und Level-Matching der Genese. Für
-  den **Signal-Reclaim** (B) zählt ausschließlich der **echte Docht-Durchstich**
-  der Linie (`high[k] > basis` bzw. `low[k] < basis`) — ein bloßer Bandkontakt
-  ohne Durchstich erzeugt **kein** Signal.
+- **Touchband vs. Signal-Durchstich (F2-Präzisierung):** Das
+  `touch_band_pct`-Band (0,23 %) wirkt **nur** auf Touch-Zählung, Reaktivierung
+  und Level-Matching der Genese. Für den **Signal-Reclaim** (B) zählt
+  ausschließlich der **echte Docht-Durchstich** der Linie (`high[k] > basis`
+  bzw. `low[k] < basis`) — ein bloßer Bandkontakt ohne Durchstich erzeugt
+  **kein** Signal.
 
 **B. Einstieg (starke Kante, Typ B):**
 - Einstiegskante: **AKTIV** und **≥ 3 bestätigte Touches** (`ist_handelbar_typ_b`).
@@ -479,18 +486,19 @@ Admission noch Cooldown.
   Seite zugeordnet werden kann, gebiert eine **neue statische Kante** bei
   `basis_preis = Docht-Extremum` (high bei OBEN, low bei UNTEN), sofort AKTIV,
   zählt als Touch #1. Kein SwingFilter-/Herkunfts-Gate (P2 entfällt für V3).
-- **Level-Matching ±0,15:** Pivot-Extremum `p` → nächste Kante **gleicher
-  Seite** mit `|basis − p| ≤ 0,15 USD` (AKTIV und SCHLAFEND; kein VERFALLEN in
-  V3). Bei zwei Kandidaten gewinnt die nähere, Gleichstand die ältere. Kein
-  Treffer → Geburt (siehe oben). Das ±0,15-Band verhindert die Zersplitterung
-  der 66,46-Decke in 3 getrennte Kanten (E3-Korrektur).
+- **Level-Matching (relativ):** Pivot-Extremum `p` → nächste Kante **gleicher
+  Seite** mit `|basis − p| / basis × 100 ≤ touch_band_pct` (0,23 %; AKTIV und
+  SCHLAFEND; kein VERFALLEN in V3). Bei zwei Kandidaten gewinnt die nähere,
+  Gleichstand die ältere. Kein Treffer → Geburt (siehe oben). Das relative Band
+  verhindert die Zersplitterung der 66,46-Decke in 3 getrennte Kanten
+  (E3-Korrektur).
 - **Selbstfilternde Schwellen:** 1-Touch-Kanten bleiben harmlos; ≥ 2 Touches =
   Kursziel (Typ A), ≥ 3 = Einstieg (Typ B). Over-Birth in trendigen Passagen
   erzeugt nur passive Erinnerungs-Level.
 - **Soll/Ist-Verifikation:** Das Genese-Audit (in `test/`, read-only) gleicht
   frei geborene Kanten gegen die 3 Soll-Ebenen (66.46/63.67/64.20) auf
-  **±0,15-Level-Äquivalenz** ab — Geburten können um bis zu ±0,15 vom
-  Soll-Anker abweichen und vor dem Soll-Fensterstart liegen.
+  **`touch_band_pct`-Level-Äquivalenz** ab — Geburten können um bis zu 0,23 %
+  vom Soll-Anker abweichen und vor dem Soll-Fensterstart liegen.
 
 **V3-Datenverträge (Basis, arretiert):**
 
@@ -504,27 +512,37 @@ KantenStatus = Literal["AKTIV", "SCHLAFEND"]
 SignalRichtung = Literal["SHORT", "LONG"]
 
 
+@dataclass(frozen=True, slots=True)
+class ModusCKonfiguration:
+    touch_band_pct: float = 0.23   # relatives Band (~0.15 USD bei ~65 USD)
+    min_touch_bar_abstand: int = 3 # Touch-Mindestabstand (A)
+    min_signal_bar_abstand: int = 3  # (Diagnose; aktive Bremse ist F3)
+    tp_mindist_pct: float = 1.5    # Mindest-Raum Basis-zu-Basis (C/D)
+    sl_buffer_usd: float = 0.05    # struktureller SL-Puffer (B)
+    tp1_anteil_pct: float = 50.0   # Zwei-Stufen-Split (D)
+    erlaube_next_bar: bool = True  # next_bar als separater Split (G2)
+
+
 @dataclass(slots=True)
 class StatischeKanteC:
     """V3-Kante (User-Freigabe 2026-09-08).
 
     basis_preis ist der einzige, unverrückbare Anker. Status nur AKTIV/
     SCHLAFEND (kein VERFALLEN, kein Zeitverfall). Touch = bestätigter Pivot-
-    Docht im ±0,15-Band; SCHLAFEND = 2 konsekutive Körper vollständig
-    jenseits basis_preis; Reaktivierung per Docht-Touch im Band (F2).
-    letzter_signal_bar sperrt Re-Trigger ohne neuen bestätigten Touch (F3).
+    Docht im touch_band_pct-Band (0,23 %); SCHLAFEND = 2 konsekutive Körper
+    vollständig jenseits basis_preis; Reaktivierung per Docht-Touch im Band
+    (F2). letzter_signal_bar sperrt Re-Trigger ohne neuen Touch (F3).
     """
 
     kanten_id: int
     seite: KantenSeite
     basis_preis: float          # Unverrückbarer Fixpreis
     geburts_bar: int
-    letzter_touch_bar: int
+    letzter_touch_bar: int = -1000
+    letzter_signal_bar: int = -1000
     touch_bars: List[int] = field(default_factory=list)
-    touch_preise: List[float] = field(default_factory=list)
     outside_body_count: int = 0
     status: KantenStatus = "AKTIV"
-    letzter_signal_bar: int = -1          # F3: letzte Signal-Entscheidungs-Bar
 
     @property
     def touch_anzahl(self) -> int:
@@ -532,8 +550,8 @@ class StatischeKanteC:
 
     @property
     def neuester_touch_bar(self) -> int:
-        """Höchste pivot_bar aller bestätigten Touches (-1 wenn keine)."""
-        return self.touch_bars[-1] if self.touch_bars else -1
+        """Höchste pivot_bar aller bestätigten Touches (-1000 wenn keine)."""
+        return self.touch_bars[-1] if self.touch_bars else -1000
 
     @property
     def ist_handelbar_typ_b(self) -> bool:
@@ -545,6 +563,15 @@ class StatischeKanteC:
         """Mindestens 2 Touches als passives Kursziel (auch SCHLAFEND)."""
         return self.touch_anzahl >= 2
 
+    def ist_im_touch_band(
+        self, extremum_preis: float, cfg: ModusCKonfiguration
+    ) -> bool:
+        """Relatives Touch-Band: |p - basis| / basis * 100 <= touch_band_pct."""
+        diff_pct = (
+            abs(extremum_preis - self.basis_preis) / self.basis_preis * 100.0
+        )
+        return diff_pct <= cfg.touch_band_pct
+
 
 @dataclass(frozen=True, slots=True)
 class ModusCSignal:
@@ -555,9 +582,9 @@ class ModusCSignal:
     basis_preis: float
     sweep_preis: float          # high[k] bzw. low[k] (Docht-Durchstich)
     trigger_preis: float        # close[k] (Reclaim-Schluss)
-    entry_preis: float          # open[k+1]
-    stop_loss: float            # Sweep-Docht ± 0,05 USD (strukturell)
-    tp1_preis: float            # Nächste Gegenkante >= 1,5 % (Distanz Basis-zu-Basis)
+    entry_preis: float          # open[k+1] (in_bar) bzw. open[k+2] (next_bar)
+    stop_loss: float            # Sweep-Docht ± sl_buffer_usd (strukturell)
+    tp1_preis: float            # Nächste Gegenkante >= tp_mindist_pct
     tp2_preis: Optional[float]  # Übergeordnete Kante dahinter
     tp1_anteil_pct: float = 50.0
 ```
@@ -577,7 +604,7 @@ class ModusCSignal:
    Genese-Audit (§7.1 F) muss frei geborene Kanten gegen die Soll-Zählung
    (Upper 5/5, Main 7/7, Minor 4/4) abgleichen — Erwartung nach F1/F2:
    Main 7/7 (Bar 386 via Doppel-Pivot), Minor-Zählung wird durch die
-   Touch-Definition (Band ±0,15, Abstand ≥ 3) geprüft.
+   Touch-Definition (Band `touch_band_pct` 0,23 %, Abstand ≥ 3) geprüft.
 
 ---
 
@@ -647,8 +674,8 @@ Da V3-Kanten **zeitlos** über den 2-Body-Bruch gesteuert werden, entfällt das
 `max_tage`-Grid {1, 5, 20, 60} für Modus C. Es gilt:
 
 - **Je Fenster genau 1 Durchlauf** (AUG, S1, S2) mit fester Default-Konfiguration
-  (§7.1: Touchband ±0,15, Abstand ≥ 3, Gegenkante ≥ 2, Split 50/50, SL-Puffer
-  0,05 fest). Keine `max_tage`-Sensitivitätsmatrix für C.
+  (§7.1: `touch_band_pct` 0,23, Abstand ≥ 3, Gegenkante ≥ 2, Split 50/50,
+  SL-Puffer 0,05 USD fest). Keine `max_tage`-Sensitivitätsmatrix für C.
 - **Bestehenskriterium:** identisch zu §8.2 — `PF ≥ 1,30` UND `Summe R > 0` auf
   **S1 UND S2**; AUG bleibt reine Referenz (S1 ⊃ AUG).
 - **`--modus ALLE`:** Vergleichstabelle zeigt **Modus A (mt=60)**, **Modus B

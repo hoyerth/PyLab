@@ -345,9 +345,22 @@ Admission noch Cooldown.
 
 ### 7.1 Statisch-Kausale Reclaim-Engine V3 (Konzept-Entwurf, Audit 2026-09-06)
 
-> **Status:** Konzept-Entwurf — Niederschrift durch User-Freigabe erteilt.
-> Das **formale Freigabe-Gate** (Review dieses Abschnitts) steht aus; erst danach
-> wird der Replay-Harness angefasst (§9). Kein Modul-Code vor Freigabe.
+> **Status:** V3-Entscheidungen **arretiert 2026-09-08** (E1–E5):
+> - **F1 — Doppel-Pivot:** H==L-Umkehrbar registriert **beidseitig** (Touch auf
+>   beiden Seiten); die P1-Regel „H gewinnt bei H==L" ist für V3 aufgehoben.
+> - **F2 — Touchband-Präzisierung:** Kanten-Touchband/Level-Matching bleibt
+>   **±0,15 USD** (`DENSITY_BAND`, gegen Zersplitterung der 66,46-Decke); der
+>   **Signal-Reclaim** (B) verlangt dagegen den **echten Docht-Durchstich** der
+>   Linie (high > basis bzw. low < basis) — bloßer Bandkontakt triggert nicht.
+> - **F3 — Re-Trigger:** neue Freigabe nur bei **neuestem bestätigtem Touch mit
+>   `pivot_bar > letzter_signal_bar`** UND **max. 1 offene Position je Kante**
+>   (kein Stacking, kein starrer Bar-Cooldown).
+> - **Genese (E3):** Pivot-Geburt ohne Amplitudenzwang, Level-Matching ±0,15.
+> - **C-Gate (E5):** je Fenster genau 1 Durchlauf (kein `max_tage`-Grid),
+>   Bestehenskriterium wie §8.2, Verankerung in §8.4.
+> Das formale Freigabe-Gate für den **Harness-Einbau** (§9, Schritt 3/4) steht
+> noch aus — kein Modul-Code vor Freigabe. Die V3-Soll-Kanten-Arretierung bleibt
+> maßgeblich: Upper 5/5, Lower-Main 7/7 (via F1), Lower-Minor 4/4 (via F2).
 
 **Arretierungs-Befunde (Pflichtlektüre, Basis für V3):**
 
@@ -392,17 +405,39 @@ Admission noch Cooldown.
 - SCHLAFEND ausschließlich durch **2 konsekutive Kerzenkörper vollständig
   jenseits** des fixen `basis_preis` (2-Body-Semantik bleibt, aber gegen
   `basis_preis` statt `_ref_preis`).
-- Reaktivierung: **jeder Pivot-Kontakt im ±0,15-Band um `basis_preis`** schaltet
-  sofort AKTIV und zählt als Touch (Heilung der Reaktivierungs-Lücke Z. 516–524).
+- **Touch-Registrierung (Zählung/Klassifikation, ±0,15):** Ein bestätigter
+  Pivot-Docht im **±0,15-Band um `basis_preis`** zählt als Touch und schaltet
+  eine SCHLAFENDE Kante sofort AKTIV (Reaktivierung; Heilung der
+  Reaktivierungs-Lücke Z. 516–524). Das Band bleibt ±0,15 (F2, arretiert) —
+  eine Reduktion würde die 5 Touches der 66,46-Decke über 3 Kanten
+  zersplittern (E3-Korrektur).
+- **Doppel-Pivot (F1, arretiert):** Eine Umkehrbar mit H==L gleichzeitig
+  (z. B. Bar 386 am 14.08.: low 63.663 tiefstes **und** high 64.077 höchstes
+  der Umgebung) registriert **beidseitig**: Das Extremum zählt als Touch an der
+  OBEN-Kante (Hoch) **und** an der UNTEN-Kante (Tief). Die P1-Regel „H gewinnt
+  bei H==L" ist für V3 **aufgehoben** (A/B-Harness-Zeile 408 bleibt für die
+  Regressionsanker A/B unangetastet; V3 nutzt eine eigene Pivot-Prüfung).
 - Touch-Mindestabstand `min_bar_abstand = 3` (verhindert Doppelzählung derselben
   Bewegung; keine 12-Bar-Signal-Sperre mehr, siehe E).
+- **Touchband vs. Signal-Durchstich (F2-Präzisierung):** Das ±0,15-Band wirkt
+  **nur** auf Touch-Zählung, Reaktivierung und Level-Matching der Genese. Für
+  den **Signal-Reclaim** (B) zählt ausschließlich der **echte Docht-Durchstich**
+  der Linie (`high[k] > basis` bzw. `low[k] < basis`) — ein bloßer Bandkontakt
+  ohne Durchstich erzeugt **kein** Signal.
 
 **B. Einstieg (starke Kante, Typ B):**
 - Einstiegskante: **AKTIV** und **≥ 3 bestätigte Touches** (`ist_handelbar_typ_b`).
-- Trigger **in_bar primär**: Sweep = Docht durchbricht `basis_preis`; Reclaim =
+- Trigger **in_bar primär**: Sweep = Docht **durchbricht** `basis_preis`; Reclaim =
   Close schließt in **derselben** Bar zurück. Entry = `open[k+1]`.
 - **next_bar sekundär** (Fallback für verspätete Rückeroberung, bleibt im Harness
   als Split berichtet).
+- **Signal-Freigabe (F3, arretiert):** Eine Kante feuert nach einem Trade erst
+  wieder, wenn ein **neuer bestätigter Touch** vorliegt, dessen `pivot_bar`
+  **größer** als `letzter_signal_bar` der Kante ist (`letzter_signal_bar` wird
+  bei jeder Signal-Erzeugung auf die Entscheidungs-Bar gesetzt). Zusätzlich gilt
+  **max. 1 offene Position je Kante** (kein Stacking). Kein starrer
+  Bar-Cooldown; legitime Mehrfach-Reclaims mit Touch-Abstand > 3 (237 vs. 249)
+  bleiben erlaubt.
 - **Stop-Loss strukturell:** jenseits des **Sweep-Extremums + 0,05 USD Puffer**
   (institutioneller Invalidierungspunkt: erneuter Schlusskurs-Bruch des
   Docht-Extremums = Trendexpansion, kein Reclaim). Fixer 0,45 % nur noch als
@@ -434,67 +469,115 @@ Admission noch Cooldown.
 - `spread_zu_eng` gegen dynamische Gegenkanten-Balance **entfällt** (ersetzt durch
   statische Distanz-Prüfung Basis-zu-Basis ≥ 1,5 % in D/C).
 - Gegenkanten-Handelbarkeits-/Typ-B-Pflicht **entfällt** (C).
-- 12-Bar-Cooldown **entfällt**; einzige Bremse = Touch-Mindestabstand 3 (A).
-- `poc_seite`/`crv`-Gate **entfällt** (kein POC in V3).
+- 12-Bar-Cooldown **entfällt**; Bremsen = Touch-Mindestabstand 3 (A) +
+  Signal-Freigabe-Regel F3 (B). `poc_seite`/`crv`-Gate **entfällt** (kein POC
+  in V3).
+
+**F. Kanten-Genese (E3, arretiert):**
+- **Geburt ohne Amplitudenzwang:** Jeder bestätigte Pivot (2-Bar-Puffer,
+  Nachbarschafts-Logik des Harness), der **keiner** bestehenden Kante gleicher
+  Seite zugeordnet werden kann, gebiert eine **neue statische Kante** bei
+  `basis_preis = Docht-Extremum` (high bei OBEN, low bei UNTEN), sofort AKTIV,
+  zählt als Touch #1. Kein SwingFilter-/Herkunfts-Gate (P2 entfällt für V3).
+- **Level-Matching ±0,15:** Pivot-Extremum `p` → nächste Kante **gleicher
+  Seite** mit `|basis − p| ≤ 0,15 USD` (AKTIV und SCHLAFEND; kein VERFALLEN in
+  V3). Bei zwei Kandidaten gewinnt die nähere, Gleichstand die ältere. Kein
+  Treffer → Geburt (siehe oben). Das ±0,15-Band verhindert die Zersplitterung
+  der 66,46-Decke in 3 getrennte Kanten (E3-Korrektur).
+- **Selbstfilternde Schwellen:** 1-Touch-Kanten bleiben harmlos; ≥ 2 Touches =
+  Kursziel (Typ A), ≥ 3 = Einstieg (Typ B). Over-Birth in trendigen Passagen
+  erzeugt nur passive Erinnerungs-Level.
+- **Soll/Ist-Verifikation:** Das Genese-Audit (in `test/`, read-only) gleicht
+  frei geborene Kanten gegen die 3 Soll-Ebenen (66.46/63.67/64.20) auf
+  **±0,15-Level-Äquivalenz** ab — Geburten können um bis zu ±0,15 vom
+  Soll-Anker abweichen und vor dem Soll-Fensterstart liegen.
 
 **V3-Datenverträge (Basis, arretiert):**
 
 ```python
-from dataclasses import dataclass
-from typing import List, Literal, Optional
+from dataclasses import dataclass, field
+from typing import List, Literal, Optional, Tuple
 import pandas as pd
 
 KantenSeite = Literal["OBEN", "UNTEN"]
 KantenStatus = Literal["AKTIV", "SCHLAFEND"]
+SignalRichtung = Literal["SHORT", "LONG"]
 
 
-@dataclass(frozen=True, slots=True)
-class StatischeKanteV3:
+@dataclass(slots=True)
+class StatischeKanteC:
+    """V3-Kante (User-Freigabe 2026-09-08).
+
+    basis_preis ist der einzige, unverrückbare Anker. Status nur AKTIV/
+    SCHLAFEND (kein VERFALLEN, kein Zeitverfall). Touch = bestätigter Pivot-
+    Docht im ±0,15-Band; SCHLAFEND = 2 konsekutive Körper vollständig
+    jenseits basis_preis; Reaktivierung per Docht-Touch im Band (F2).
+    letzter_signal_bar sperrt Re-Trigger ohne neuen bestätigten Touch (F3).
+    """
+
     kanten_id: int
     seite: KantenSeite
-    basis_preis: float
+    basis_preis: float          # Unverrückbarer Fixpreis
     geburts_bar: int
     letzter_touch_bar: int
-    touch_bars: List[int]
+    touch_bars: List[int] = field(default_factory=list)
+    touch_preise: List[float] = field(default_factory=list)
+    outside_body_count: int = 0
     status: KantenStatus = "AKTIV"
+    letzter_signal_bar: int = -1          # F3: letzte Signal-Entscheidungs-Bar
+
+    @property
+    def touch_anzahl(self) -> int:
+        return len(self.touch_bars)
+
+    @property
+    def neuester_touch_bar(self) -> int:
+        """Höchste pivot_bar aller bestätigten Touches (-1 wenn keine)."""
+        return self.touch_bars[-1] if self.touch_bars else -1
 
     @property
     def ist_handelbar_typ_b(self) -> bool:
-        """Mindestens 3 Touches und aktiv für Reclaim-Einstieg."""
-        return len(self.touch_bars) >= 3 and self.status == "AKTIV"
+        """Zwingend >= 3 Touches für den Einstieg (nur AKTIV)."""
+        return self.touch_anzahl >= 3 and self.status == "AKTIV"
 
     @property
-    def ist_kursziel_typ_a(self) -> bool:
-        """Mindestens 2 Touches für passives Kursziel (auch schlafend)."""
-        return len(self.touch_bars) >= 2
+    def ist_gueltiges_kursziel_typ_a(self) -> bool:
+        """Mindestens 2 Touches als passives Kursziel (auch SCHLAFEND)."""
+        return self.touch_anzahl >= 2
 
 
 @dataclass(frozen=True, slots=True)
-class ZweiStufenTradePlan:
-    bar_index: int
+class ModusCSignal:
+    bar_index: int              # Entscheidungs-Bar k (Reclaim in Bar k)
     zeitstempel: pd.Timestamp
-    richtung: Literal["SHORT", "LONG"]
-    einstiegs_kante_id: int
+    kanten_id: int
+    richtung: SignalRichtung
     basis_preis: float
-    sweep_hoch_tief: float
-    entry_preis: float          # Open[k+1]
-    stop_loss: float            # Jenseits des Sweep-Dochts (+ 0,05 USD)
-    tp1_preis: float            # Nächstgelegene Kante >= 1,5 %
-    tp1_kanten_id: int
-    tp1_anteil_pct: float       # 50.0 (Standard) / 25.0 (A/B-Variante)
+    sweep_preis: float          # high[k] bzw. low[k] (Docht-Durchstich)
+    trigger_preis: float        # close[k] (Reclaim-Schluss)
+    entry_preis: float          # open[k+1]
+    stop_loss: float            # Sweep-Docht ± 0,05 USD (strukturell)
+    tp1_preis: float            # Nächste Gegenkante >= 1,5 % (Distanz Basis-zu-Basis)
     tp2_preis: Optional[float]  # Übergeordnete Kante dahinter
-    tp2_kanten_id: Optional[int]
+    tp1_anteil_pct: float = 50.0
 ```
 
 **Offene Restpunkte (explizit, blockieren die Freigabe nicht):**
-1. **Zeitverfall:** Entfall des `max_tage`-Verfalls ersetzt den H3-Zeitscan
-   (1/5/20/60) — Konsequenz für die Gate-Läufe ist zu klären (Kante lebt
-   unbegrenzt bis 2-Body-Bruch?).
-2. **Re-Trigger-Semantik:** Darf nach einem Trade eine erneute
-   Sweep-Reclaim-Sequenz ohne neuen bestätigten Touch (Abstand < 3) sofort
-   feuern?
-3. **A/B-Katalog V3:** Gegenkante ≥ 2/≥ 3 Touches, Split 50/50 vs. 25/75,
-   SL-Puffer 0,05 USD fest vs. konfigurierbar.
+1. ~~**Zeitverfall:**~~ **Entschieden 2026-09-08 (E5):** Kante lebt unbegrenzt bis
+   2-Body-Bruch; `max_tage`-Verfall entfällt in V3. C-Gate ohne
+   `max_tage`-Grid: je Fenster (AUG/S1/S2) genau 1 Durchlauf, Kriterium §8.2
+   (§8.4). H3-Zeitscan (1/5/20/60) betrifft nur noch die A/B-Regressionsanker.
+2. ~~**Re-Trigger-Semantik:**~~ **Arretiert 2026-09-08 (F3/E4):** neue Freigabe
+   nur bei neuestem bestätigtem Touch mit `pivot_bar > letzter_signal_bar` +
+   max. 1 offene Position je Kante; kein starrer Bar-Cooldown (B).
+3. **A/B-Katalog V3 (weiter offen):** Gegenkante ≥ 2/≥ 3 Touches, Split
+   50/50 vs. 25/75, SL-Puffer 0,05 USD fest vs. konfigurierbar. Defaults
+   arretiert: Gegenkante ≥ 2, Split 50/50, SL-Puffer 0,05 fest.
+4. **Soll/Ist-Genese-Verifikation (offen, vor Harness-Einbau):** Das
+   Genese-Audit (§7.1 F) muss frei geborene Kanten gegen die Soll-Zählung
+   (Upper 5/5, Main 7/7, Minor 4/4) abgleichen — Erwartung nach F1/F2:
+   Main 7/7 (Bar 386 via Doppel-Pivot), Minor-Zählung wird durch die
+   Touch-Definition (Band ±0,15, Abstand ≥ 3) geprüft.
 
 ---
 
@@ -557,6 +640,22 @@ Schwellwert-Schleife** (Abbruch-Regel angewandt). Messung: Schritt-0-Replay
 Harness über den A/B-Schalter (§8.1) gegen dasselbe Gate (§8.2) gemessen;
 Sweeps nur über die in §8.1 genannten V2-Parameter. Erneutes Verfehlen →
 Null-Befund-Arretierung auch für Modus B.
+
+### 8.4 Modus-C-Gate (V3, arretiert 2026-09-08, E5)
+
+Da V3-Kanten **zeitlos** über den 2-Body-Bruch gesteuert werden, entfällt das
+`max_tage`-Grid {1, 5, 20, 60} für Modus C. Es gilt:
+
+- **Je Fenster genau 1 Durchlauf** (AUG, S1, S2) mit fester Default-Konfiguration
+  (§7.1: Touchband ±0,15, Abstand ≥ 3, Gegenkante ≥ 2, Split 50/50, SL-Puffer
+  0,05 fest). Keine `max_tage`-Sensitivitätsmatrix für C.
+- **Bestehenskriterium:** identisch zu §8.2 — `PF ≥ 1,30` UND `Summe R > 0` auf
+  **S1 UND S2**; AUG bleibt reine Referenz (S1 ⊃ AUG).
+- **`--modus ALLE`:** Vergleichstabelle zeigt **Modus A (mt=60)**, **Modus B
+  (mt=60)** und **Modus C (statisch)** je Fenster — A/B als historische
+  Regressionsanker unberührt, C autark.
+- **Abbruch:** Verfehlt S1 oder S2 das Gate → V3 wird als statistischer
+  Null-Befund arretiert (kein Parametertuning, keine Schwellwert-Schleife).
 
 ---
 

@@ -1318,8 +1318,11 @@ Da V3-Kanten **zeitlos** über den 2-Body-Bruch gesteuert werden, entfällt das
   Box-Phase 10.08.–18.08. als AUG-Eichmaßstab). Das C-Gate selbst bleibt
   unverändert: je Fenster genau 1 Durchlauf.
 - **Je Fenster genau 1 Durchlauf** (AUG, S1, S2) mit fester Default-Konfiguration
-  (§7.1: `touch_band_pct` 0,23, Abstand ≥ 3, Gegenkante ≥ 2, Split 50/50,
-  SL-Puffer 0,05 USD fest). Keine `max_tage`-Sensitivitätsmatrix für C.
+  (§7.2: `touch_band_pct` **0,12**, Abstand ≥ 3, Gegenkante ≥ 2, Split 50/50,
+  SL-Puffer 0,05 USD fest; **Block 2/3 + M6:** `retest_zyklus_bars` 24,
+  `quartil_distanz_pct` 25,0, `max_seed_distanz_pct` 0,75 — 1:1 der
+  Harness-Default `StraightEdgeHarnessKonfiguration`). Keine
+  `max_tage`-Sensitivitätsmatrix für C.
 - **Bestehenskriterium:** identisch zu §8.2 — `PF ≥ 1,30` UND `Summe R > 0` auf
   **S1 UND S2**; AUG bleibt reine Referenz (S1 ⊃ AUG).
 - **`--modus ALLE`:** Vergleichstabelle zeigt **Modus A (mt=60)**, **Modus B

@@ -726,3 +726,80 @@ Engine unverändert: SHA256 `3ba15c72…`.
 weiteren Regime-Untersuchungen. Die Zone bleibt exakt der arretierte Zustand
 von Lauf B (5 Trades / +2.4809 R). Fragen T1/T2/T4 sind damit geschlossen,
 T3 („MAKRO dauerhaft, dokumentiert") ist erfüllt.
+
+---
+
+# Addendum v0.8 — Neuer PNG-Satz für den Sichttest (AUG komplett)
+
+## 30. Auftrag und Artefakt
+
+Auftrag: „mache ein neues Set von PNG für den Sichttest über AUG komplett".
+
+| Datei | Zeilen | Bytes | Status |
+|---|---|---|---|
+| `test/tmp_png_aug_sichttest.py` | 703 | 32.303 | gitignored (kein Commit) |
+| `test/tmp_png_aug_sichttest_out.txt` | – | – | gitignored (Lauf-Protokoll) |
+
+Erzeugt **5 PNGs** (dpi 300) in `test/`, read-only, Engine unverändert
+(SHA256 `3ba15c72…5255cb006` nach dem Lauf erneut geprüft):
+
+| # | Datei | Fenster | Pixel | Bytes |
+|---|---|---|---|---|
+| 01 | `aug_sichttest_01_gesamt.png` | 0..1288 | 6600×3900 | 1.657.807 |
+| 02 | `aug_sichttest_02_h1_box.png` | 0..660 | 6000×3600 | 652.507 |
+| 03 | `aug_sichttest_03_h2_phasen.png` | 620..1288 | 6600×3600 | 1.168.856 |
+| 04 | `aug_sichttest_04_p9_regime.png` | 820..1045 | 6300×3600 | 698.274 |
+| 05 | `aug_sichttest_05_kantenkarte.png` | 0..1288 | 6600×3900 | 1.626.925 |
+
+## 31. Eingebaute Asserts (Fail-Loud, alle erfüllt)
+
+| Assert | Soll | Ist |
+|---|---|---|
+| V0 Trades / R | 14 / ≈ +40.45 | **14 / +40.445143** ✅ |
+| H1 V1 (bit-identisch) | 8 / +38.964262 ± 1e-6 | **8 / +38.964262** ✅ |
+| H2 V1 | 7 / +7.9021 ± 1e-3 | **7 / +7.902085** ✅ |
+| Regime-Summe K73 | +5.4212 ± 1e-3 | **+5.4212** ✅ |
+
+Gesamt V1: **15 Trades / +46.866348 R** (H1 8 / +38.964262 + H2 7 /
++7.902085). Voll-Lauf (`scan["box_end_bar"] = n = 1288`), Adapter v0.1
+(`segmente = (P9,)`, `start_scope_bar = 848`), Bindung per RAM-Patch
+(identische AST-Anker wie `tmp_test_phasen_regime_adapter.py`).
+
+## 32. Inhalt der Grafiken
+
+| # | Inhalt |
+|---|---|
+| 01 | Close-Linie + Wicks, alle 15 Trades, H1/H2-Trennung bei 640, Phasen-Zonen, Kanten-Linien mit `kid`, Tombstone-Bänder, Sweep-Sperren (×), H2-Neugeburten (▲), 7-zeiliges Statistik-Panel |
+| 02 | Kerzen 0..660, H1-Box grau hinterlegt, 8 H1-Trades (gefüllt), Trade-Detail-Zeile im Panel |
+| 03 | Kerzen 620..1288, 7 H2-Trades, **grün = P9 AKTIV**, **grau = P12 RESERVE**, rot schraffiert = Lücken (BLOCKIERT), Park-Zeile (K1/K3/K45/K16/K51 = 5 / +2.4809 R) |
+| 04 | P9-Detail: K67/K73/K76/K77/K82 fett, `U_final 69.9140` / `L_final 68.3700 (Ziel)` als Strichlinien, Hook-1/Hook-2-Annotation an Bar 980 + 1020, Sweep-Sperren |
+| 05 | Kanten-Landkarte ohne Kerzen (nur Close): 59 edges + 14 seeds, R21-gelöschte Kanten **unsichtbar** (nur Tombstone-Bänder), Statistik zu R21/Promotionen |
+
+## 33. Konventionen (eingehalten)
+
+- Statistik **mittig** im unteren Panel (`stats_panel`, `ha="center"`).
+- Legende **oben links** (`legend`, `loc="upper left"`).
+- H1/H2-Grenze aus `scan["box_end_bar"]` (640) interpoliert, **nicht**
+  hardcodiert — behebt die Altlast des 644-Labels früherer Skripte.
+- `matplotlib.use("Agg")` (kein GUI), LF-only, kein BOM, deutsche Docstrings.
+
+## 34. Korrektur während des Laufs
+
+Erster Lauf erzeugte 4 × `UserWarning: Setting the 'color' property will
+override the edgecolor or facecolor properties` (Hatch-Flächen in
+`shade_phases` bzw. `png_04`). Ursache: `axvspan(color=…, edgecolor=…)`.
+Behoben durch `facecolor=C_GAP` + `edgecolor=C_GAP`; zweiter Lauf ist
+**warnungsfrei**, Pixelmaße und Bytegrößen der PNGs sind identisch
+(deterministisches Rendering). Zusätzlich `box_end` im 01-Label als f-String
+verankert.
+
+## 35. Status
+
+Sichttest-Satz bereitgestellt. Da `test/` gitignored ist, sind Skript und
+PNGs **nicht** versioniert; Reproduktion:
+
+```
+$env:PYTHONIOENCODING="utf-8"; .venv\Scripts\python.exe test\tmp_png_aug_sichttest.py
+```
+
+Kein Engine-Eingriff, keine Adapter-Änderung, keine Baseline-Veränderung.

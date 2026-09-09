@@ -2968,6 +2968,14 @@ Da V3-Kanten **zeitlos** über den 2-Body-Bruch gesteuert werden, entfällt das
 - **`--modus ALLE`:** Vergleichstabelle zeigt **Modus A (mt=60)**, **Modus B
   (mt=60)** und **Modus C (statisch)** je Fenster — A/B als historische
   Regressionsanker unberührt, C autark.
+- **Sichtprüfungs-Konvention (verankert 2026-09-09, Patch `_p10`):** Jede
+  Sichtprüfungs-Grafik zeigt die **Legende oben links** im Chart und die
+  **Statistik mittig** im Panel (`axs.text(0.5, 0.97, …, ha="center")`).
+  Umgesetzt in `_zeichne_se_png` (offizielles Modus-C-PNG,
+  `test/tmp_kanten_engine_replay.py`) und in den H1/H2-Generatoren
+  (`test/tmp_png_h1h2_full.py`, `tmp_png_h2_zoom.py`, `tmp_png_vollzeitraum.py`).
+  Rein kosmetisch: **keine Logik-/Datenänderung** (Kennzahl unverändert
+  9 Trades / +37,96 R im Box-Lauf, 14 / +40,45 R im Voll-Lauf).
 - **Abbruch:** Verfehlt S1 oder S2 das Gate → V3 wird als statistischer
   Null-Befund arretiert (kein Parametertuning, keine Schwellwert-Schleife).
 

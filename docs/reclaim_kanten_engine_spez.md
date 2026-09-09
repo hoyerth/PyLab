@@ -357,7 +357,8 @@ Admission noch Cooldown.
 >   nicht.
 > - **F3 — Re-Trigger:** neue Freigabe nur bei **neuestem bestätigtem Touch mit
 >   `pivot_bar > letzter_signal_bar`** UND **max. 1 offene Position je Kante**
->   (kein Stacking, kein starrer Bar-Cooldown).
+>   (kein Stacking, kein starrer Bar-Cooldown). **Durchsetzung: §7.2 Teil 4**
+>   (Entry-Zeit-Lesart `entry_bar <= exit_final_bar`, Stacking-Gate arretiert).
 > - **Genese (E3):** Pivot-Geburt ohne Amplitudenzwang, Level-Matching
 >   `touch_band_pct = 0,23` (relativ).
 > - **C-Gate (E5):** je Fenster genau 1 Durchlauf (kein `max_tage`-Grid),
@@ -450,7 +451,8 @@ Admission noch Cooldown.
   wieder, wenn ein **neuer bestätigter Touch** vorliegt, dessen `pivot_bar`
   **größer** als `letzter_signal_bar` der Kante ist (`letzter_signal_bar` wird
   bei jeder Signal-Erzeugung auf die Entscheidungs-Bar gesetzt). Zusätzlich gilt
-  **max. 1 offene Position je Kante** (kein Stacking). Kein starrer
+  **max. 1 offene Position je Kante** (kein Stacking; **durchgesetzt seit §7.2 Teil 4**,
+  Entry-Zeit-Lesart `kandidat_entry_bar <= max(exit1_bar, exit2_bar)`). Kein starrer
   Bar-Cooldown; legitime Mehrfach-Reclaims mit Touch-Abstand > 3 (237 vs. 249)
   bleiben erlaubt.
 - **Stop-Loss strukturell:** jenseits des **Sweep-Extremums + 0,05 USD Puffer**
@@ -724,7 +726,8 @@ class ModusCSignal:
    (§8.4). H3-Zeitscan (1/5/20/60) betrifft nur noch die A/B-Regressionsanker.
 2. ~~**Re-Trigger-Semantik:**~~ **Arretiert 2026-09-08 (F3/E4):** neue Freigabe
    nur bei neuestem bestätigtem Touch mit `pivot_bar > letzter_signal_bar` +
-   max. 1 offene Position je Kante; kein starrer Bar-Cooldown (B).
+   max. 1 offene Position je Kante; kein starrer Bar-Cooldown (B). **Durchsetzung:
+   §7.2 Teil 4** (Gate im Harness aktiv, Entry-Zeit-Lesart).
 3. **A/B-Katalog V3 (weiter offen):** Gegenkante ≥ 2/≥ 3 Touches, Split
    50/50 vs. 25/75, SL-Puffer 0,05 USD fest vs. konfigurierbar. Defaults
    arretiert: Gegenkante ≥ 2, Split 50/50, SL-Puffer 0,05 fest.
@@ -1362,8 +1365,9 @@ class RetestParameterReihe:
         default_factory=lambda: [12, 16, 20, 24])
     standard_zyklus_bars: int = 12        # AUG-arretiert (Teil 3); vorher 24
     test_zyklus_bars: int = 12            # freigegeben fuer Bar 245
-    plateau_grenzen_bars: Tuple[int, int] = (3, 15)   # Teil 3, Grenzkarte
-    erlaube_parallele_exposition: bool = True
+    plateau_grenzen_bars: Tuple[int, int] = (3, 15)   # GATE-FREI (§7.2 Teil 4)
+    # REVOZIERT in §7.2 Teil 4 (Befund A): Stacking-Verbot §7.1 B ist verbindlich.
+    erlaube_parallele_exposition: bool = False
 ```
 
 ### Nachtrag 2026-09-09 (Teil 3) — Plateau-Analyse & Arretierung des Re-Test-Zyklus auf 12 Bars
@@ -1504,6 +1508,11 @@ unveraendert; AUG bleibt reine Referenz.
 
 **Datenvertrag Arretierungsstatus (arretiert):**
 
+> **SUPERSEDED (2026-09-09, §7.2 Teil 4):** `ArretierungsStatusV3` beschreibt das
+> **gate-freie** Modell (`plateau_grenzen = (3, 15)`). Ersetzt durch
+> `ArretierungsStatusV4` in Teil 4, Abschnitt 16. Bleibt zur
+> Revisionssicherheit stehen; **nicht** mehr maßgeblich.
+
 ```python
 from dataclasses import dataclass
 from typing import Literal, Tuple
@@ -1522,6 +1531,238 @@ class ArretierungsStatusV3:
         "VORBEHALT_WEGEN_ROUTING_BLOCKER")
     low_n_warnung_aktiv: bool = True
 ```
+
+### Nachtrag 2026-09-09 (Teil 4) — Stacking-Verbot §7.1 B: Durchsetzung & Kennzahlen
+
+> **Status: ARRETIERT (Mentor-Freigabe 2026-09-09, Fragen 1–3).**
+> Dieser Nachtrag **hebt die Plateau-Begruendung aus Teil 3 auf**: das dort
+> arretierte Plateau `[3; 15]` und die Kennzahl `+27,08 R` sind **gate-freie
+> Artefakte** (Abschnitte 3–5). Arretiert bleiben: `retest_zyklus_bars = 12`
+> als **institutioneller Arbeitswert** (neue Begruendung `v >= 7`), die
+> Re-Test-Sequenz (Teil 2), `touch_band_pct` 0,12, M2/M6, B23-3/4/5.
+> Revoziert werden: `plateau_grenzen_bars = (3, 15)` als
+> Arretierungsgrundlage, `erlaube_parallele_exposition = True` (Z. 1366) und
+> der Datenvertrag `ArretierungsStatusV3` (Z. 1512–1524) — ersetzt durch
+> `ArretierungsStatusV4` (Abschnitt 16).
+
+**1. Forensischer Befund: §7.1 B war arretiert, aber nie implementiert.**
+
+§7.1 B (Z. 453) und F3 (Z. 358–360) arretieren seit 2026-09-08 verbindlich
+„max. 1 offene Position je Kante (kein Stacking)". Der Harness hat diese
+Bedingung **nie geprueft**: `letzter_trade: Dict[int, _SESetup]` (Z. 2289)
+wird bei Z. 2577 geschrieben, im gesamten Quelltext aber **kein einziges Mal
+gelesen** (`letzter_trade[` = 1 Vorkommen = der Schreibzugriff). Der Kommentar
+Z. 2267 („F2 — Einstieg nur ohne offene Position ODER nach De-Risking")
+beschreibt damit **nicht ausgeführten Code**. Forensischer Nachweis:
+`test/tmp_stacking_audit.txt` (read-only Audit 2026-09-09).
+
+**2. Audit-Methode (read-only, kein Engine-Eingriff).**
+
+Frischer `_se_scan("AUG", StraightEdgeHarnessKonfiguration())` je Variante
+(der Scan mutiert `letzter_sweep_bar`; geteilte Scans verfaelschen das
+Ergebnis). Zwei Laeufe: Box (`box_end_bar = 644`) und Voll
+(`scan["box_end_bar"] = n = 1288`). Gate-Wirkung durch **In-Memory-Patch**
+der Modulkopie — die Engine-Datei blieb unveraendert (185.290 B, CRLF 4.371,
+kein BOM).
+
+**3. Befund 1 — drei Stacking-Verletzungen im Gesamtfenster (Bars 0–1288).**
+
+| Kante | T1 entry → exit_final | T1 R | T2 entry | T2 R | Ueberlappung | Phase |
+|---|---|---|---|---|---|---|
+| **K20** | 231 → 398 | **+6,92** | 245 | +3,95 | **154 Bars** | BOX |
+| **K31** | 531 → 639 | **+8,41** | 567 | +3,14 | **73 Bars** | BOX |
+| **K62** | 855 → 867 | −1,00 | 866 | −1,00 | **1 Bar** | POST |
+
+**Box-Fenster (0–641): 2 Verletzungen — beide auf einem laufenden GEWINNER.**
+Beide Lesarten (bis `exit1` / bis `exit2`) liefern im vorliegenden Datensatz
+identische Blockierungen; die De-Risking-Lesart wird dennoch verworfen
+(Abschnitt 7). Kantenuebergreifende Ueberlappung (nicht durch §7.1 B
+verboten): K48 (681→733) parallel zu K16 (718→728), 15 Bars, gegenlaeufig.
+
+**4. Befund 2 — die Box-Kennzahl +27,08 R ist ein Gate-Artefakt.**
+
+| Phase | ohne Gate | mit Gate | Differenz |
+|---|---|---|---|
+| BOX (0–641) | n=6, **+27,08 R** | n=4, **+19,99 R** | **−7,09 R / −2 Trades** |
+| POST (644–1287) | n=6, +2,03 R | n=5, +3,03 R | +1,00 R / −1 Trade |
+| GESAMT | n=12, +29,11 R | n=9, **+23,02 R** | −6,09 R |
+
+Gate-Blockierungen (v = 12): `k=242` und `k=244` (beide → Entry 245, K20),
+`k=564` (→ 567, K31), `k=865` (→ 866, K62). **Wichtig:** Weil ein geblockter
+Kandidat die Zyklus-Uhr nicht zuruecksetzt (B23-5), bleibt nach der Sperre von
+Bar 242 der Alternativpfad Bar 244 offen (`Δ15 >= 12`) und laeuft ebenfalls in
+das Gate — die Pfad-Substitution aus Teil 3 wird durch das Gate neutralisiert.
+
+**5. Befund 3 — `retest_zyklus_bars` ist in der Box nicht identifizierbar.**
+
+| v | ohne Gate: n / Netto-R | mit Gate: n / Netto-R |
+|---|---|---|
+| 0–2 | 7 / +26,08 | 4 / +19,99 |
+| **3–13** | 6 / +27,08 | **4 / +19,99** |
+| 14–15 | 6 / +27,09 | 4 / +19,99 |
+| 16–24 | 5 / +23,13 | 4 / +19,99 |
+
+**Mit Gate ist das Box-Ergebnis fuer alle `v ∈ [0; 24]` exakt konstant
+(n=4 / +19,99 R).** Die drei in Teil 3 arretierten „exakten Schwellen"
+(`v >= 3`, `v <= 15`, Sprung bei 14) existieren **nur gate-frei**. Das Plateau
+`[3; 15]` ist damit als Arretierungsgrundlage **aufgehoben**.
+
+**6. Befund 4 — Gate und Zyklus ueberlappen, sind aber nicht redundant.**
+
+Gesamtfenster, Gate-Blockierungen je `v`:
+
+| v | Blockierungen | betroffene Entries |
+|---|---|---|
+| 0–1 | 13 | K20@245(2×), K31@531/533/567, K3@653(2×), K48@681, K62@855/861(2×)/863/866 |
+| 2 | 9 | K20@245(2×), K31@533/567, K3@653, K62@861(2×)/863/866 |
+| 3–6 | 7 | K20@245(2×), K31@567, K62@861(2×)/863/866 |
+| 7 | 6 | K20@245(2×), K31@567, K62@861/863/866 |
+| 8–9 | 5 | K20@245(2×), K31@567, K62@863/866 |
+| 10–12 | 4 | K20@245(2×), K31@567, K62@866 |
+| 13 | 3 | K20@245(2×), K31@567 |
+| 14–15 | 2 | K20@245, K31@567 |
+| **16–24** | **1** | **K31@567** |
+
+Das Gate wirkt auf die **Positions-Laufzeit**, der Zyklus auf den
+**Signal-Abstand**: Das Gate faengt zusaetzlich K31@567 (das der Zyklus ab
+`v >= 16` nicht mehr sieht), die K62-Kaskade (855/861/863/866) und die
+Doppelpfade K20@245 / K3@653. Gesamtfenster mit Gate: `+21,02` (v 0–4) →
+`+22,02` (v 5–6) → **`+23,02` (v >= 7, konstant)**.
+
+**7. Arretierung A — Auslegung „offene Position" (Frage 1).**
+
+Verbindlich: **`kandidat_entry_bar <= exit_final_bar`** mit
+`exit_final_bar = max(exit1_bar, exit2_bar)`. Maßgeblich ist der
+**Ausfuehrungszeitpunkt (Entry-Bar)**, nicht der Entscheidungs-Bar `k`: Ein
+Reclaim ist ein Prozess, aber Exposure entsteht erst mit der Ausfuehrung. Ist
+der Alt-Trade an Bar 244 geschlossen und der Neu-Trade geht an Bar 245 in den
+Markt, existiert **zu keinem Zeitpunkt doppeltes Exposure**. Die
+De-Risking-Lesart („frei ab TP1") wird **verworfen**: Die Restposition bindet
+weiterhin Margin und Marktrisiko, solange ein Kontrakt an der Kante liegt.
+
+**8. Arretierung B — Einbauposition des Gates.**
+
+Das Gate greift **vor allen drei Seiteneffekten** des Trade-Pfads:
+
+1. vor `getradete_entry_bars.add(entry_bar)` / Dedup-`continue` (Z. 2557–2559)
+   → ein geblockter Bar belegt **keinen** globalen Slot;
+2. vor `kd.letzter_sweep_bar = k` / `kd.letzter_signal_bar = k` (Z. 2560–2561)
+   → ein geblockter Kandidat setzt die Kanten-Uhr **nicht** zurueck (B23-5);
+3. vor `letzter_trade[kd.kid] = setup` (Z. 2577) → der Tracker wird **nicht**
+   ueberschrieben (sonst entwaffnet die Sperre sich selbst).
+
+Praktische Platzierung: **vor `_c_loese_trade` (Z. 2554)** — die Exit-Bars des
+Vortrades liegen bereits in `letzter_trade[kid]` vor; `_c_loese_trade` ist
+seiteneffektfrei. Die gemessenen Zahlen (+19,99 R / +23,02 R) sind mit beiden
+Platzierungen identisch.
+
+**9. Arretierung C — `v >= 7`, Arbeitswert 12 (Frage 2).**
+
+Der Parameter `v` ist in der Box unter dem Gate **invariant** (`v ∈ [0; 24]`);
+im Gesamtfenster verlangt das Optimum **`v >= 7`** (darunter +21,02/+22,02 R,
+darueber konstant +23,02 R). Arretiert wird daher **nicht** ein Datenoptimum,
+sondern: **Untergrenze `v >= 7`** (Abwehr von Rausch-Setups) und
+**Arbeitswert `v = 12` = 3,0 Stunden** (halbe FX-/Rohstoff-Handelssitzung,
+institutionelle Standardzeit). Teil 3 wird insoweit praezisiert: 12 ist
+**institutionell motiviert**, nicht datenoptimal.
+
+**10. Kennzahlen-Neufassung (ungeschminkt, Revisionssicherheit).**
+
+| Stand | Gate | BOX | POST | GESAMT |
+|---|---|---|---|---|
+| Phase 1/2/3 (Teile 1–3) | **inaktiv** | n=6 / +27,08 R | n=6 / +2,03 R | n=12 / +29,11 R |
+| **Teil 4 (arretiert)** | **aktiv** | **n=4 / +19,99 R** | **n=5 / +3,03 R** | **n=9 / +23,02 R** |
+
+Die Zahlen der Teile 1–3 bleiben im Dokument **erhalten** und werden als
+**gate-frei** gekennzeichnet; sie sind **keine** gueltige Kennzahl der
+arretierten Engine.
+
+**11. Low-n-Eskalation (§8.2).**
+
+Die Box-Stichprobe sinkt auf **n = 4**, das Gesamtfenster auf **n = 9**.
+Profit-Faktoren und Erwartungswerte sind damit **statistisch wertlos**
+(§8.2: Warnung ab `n < 20`). Die Validitaet speist sich ausschliesslich aus
+der **kausalen Marktstruktur** (Sweep → Non-Expansion → Reclaim) und aus der
+Regelkonformitaet, **nicht** aus der R-Summe.
+
+**12. Harness-Contract fuer `_p7` (Frage 2, freigegeben).**
+
+```python
+stats["stacking_blockiert"]: int = 0
+stats["stacking_liste"]: List[str] = []
+# Meldung:
+# f"bar {k:4d} {richtung:5s} K{kd.kid:3d} -> STACKING-SPERRE "
+# f"(Position Bar {vorheriger.entry_bar} offen bis {vorheriger.exit_final_bar})"
+```
+
+Eigene Report-Sektion: **`STACKING-GESPERRTE SETUPS (§7.1 B)`**.
+
+**13. Revokationen (Frage 3, gebuendelt in diesem Commit).**
+
+- **Befund A:** Z. 1366 `erlaube_parallele_exposition: bool = True` wird auf
+  **`False`** gesetzt und ausdruecklich revoziert — der Widerspruch zu §7.1 B
+  und F3 wird damit geschlossen.
+- **Befund B:** Z. 1365 `plateau_grenzen_bars = (3, 15)` verliert den Status
+  einer Arretierung (gate-frei, nur historische Messmarke).
+- **Befund C:** Der Datenvertrag `ArretierungsStatusV3` (Z. 1512–1524) wird als
+  **SUPERSEDED** markiert (Revisionssicherheit) und durch
+  `ArretierungsStatusV4` ersetzt (Abschnitt 16).
+
+**14. Wirkung auf §8.4.**
+
+Die Harness-Defaults bleiben `retest_zyklus_bars = 12`; ergaenzt wird:
+`stacking_gate_aktiv = True`, `max_offene_positionen_je_kante = 1`,
+`v_minimum_gesamt = 7`. Die Gate-Semantik (§8.2: `PF >= 1,30` UND
+`Summe R > 0` auf S1 UND S2) bleibt unveraendert; AUG bleibt Referenz.
+
+**15. S1/S2-Vorbehalt (ausdruecklich aufrechterhalten).**
+
+Der Routing-Blocker besteht fort (S1/S2 laufen ueber `_lauf_c` → Alt-C ohne
+SE-Zaehler). Die Messung auf S1/S2 ist **weiterhin nicht moeglich**; `v = 12`
+bleibt AUG-Arbeitswert unter Vorbehalt. Zusaetzlich offen: Der Stacking-Ban
+muss auf S1/S2 mit demselben Gate gemessen werden (Teil der Routing-Aufgabe).
+
+**16. Datenvertrag (arretiert).**
+
+```python
+from dataclasses import dataclass
+from typing import Literal
+
+
+@dataclass(frozen=True, slots=True)
+class PositionstrackingEintrag:
+    kanten_id: int
+    entry_bar: int
+    exit_final_bar: int  # max(exit1_bar, exit2_bar)
+
+    def blockiert_entry(self, kandidaten_entry_bar: int) -> bool:
+        \"\"\"Sperrt Folgetrades, solange der Vorgaenger im Markt aktiv ist.\"\"\"
+        return kandidaten_entry_bar <= self.exit_final_bar
+
+
+@dataclass(frozen=True, slots=True)
+class ArretierungsStatusV4:
+    stacking_verbot_aktiv: bool = True
+    erlaube_parallele_exposition: bool = False  # Befund A: Vollrevokation Z. 1366
+    v_minimum_gesamt: int = 7                   # untere Schranke Gesamtfenster
+    v_arbeitswert_institutionell: int = 12      # 3,0 h Halbtagssitzung
+    box_n_trades: int = 4                       # ungeschminkte Stichprobe
+    box_netto_r: float = 19.99
+    post_box_n_trades: int = 5
+    post_box_netto_r: float = 3.03
+    gesamt_n_trades: int = 9
+    gesamt_netto_r: float = 23.02
+    plateau_box_status: Literal["INVARIANT_0_BIS_24"] = "INVARIANT_0_BIS_24"
+    low_n_warnung_eskalation: bool = True
+```
+
+**17. Folgearbeiten (nicht Teil dieses Commits).**
+
+1. Patch `_p7`: Gate + Stats-/Report-Contract (§12, §8).
+2. Routing-Generalisierung S1/S2 (`box_end_bar` parametrisieren, Typ-Adapter).
+3. Neue Kennzahlen-Basis n=4/n=9 → Gate-Messung auf S1/S2 nachholen.
+4. `--engine se|alt`-Schalter (Alt-C als Referenz isolieren).
+
 ---
 
 ## 8. Gate & Schritt-0-Replay (verbindlich)
@@ -1599,7 +1840,9 @@ Da V3-Kanten **zeitlos** über den 2-Body-Bruch gesteuert werden, entfällt das
 - **Je Fenster genau 1 Durchlauf** (AUG, S1, S2) mit fester Default-Konfiguration
   (§7.2: `touch_band_pct` **0,12**, Abstand ≥ 3, Gegenkante ≥ 2, Split 50/50,
   SL-Puffer 0,05 USD fest; **Block 2/3 + M6 + Teil 3:** `retest_zyklus_bars`
-  **12** (AUG-arretiert unter S1/S2-Vorbehalt, Plateau `[3; 15]`),
+  **12** (AUG-arbeitswert unter S1/S2-Vorbehalt; Plateau `[3; 15]` ist
+  **gate-frei** und seit §7.2 Teil 4 **aufgehoben** — Untergrenze `v >= 7`),
+  **§7.2 Teil 4:** `stacking_gate_aktiv = True`, `max_offene_positionen_je_kante = 1`,
   `quartil_distanz_pct` 25,0, `max_seed_distanz_pct` 0,75 — 1:1 der
   Harness-Default `StraightEdgeHarnessKonfiguration`). Keine
   `max_tage`-Sensitivitätsmatrix für C.

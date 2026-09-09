@@ -1,0 +1,164 @@
+======================================================================================================================
+V3-STRAIGHT-EDGE-HARNESS AUG | SE_BAND 0.120% | Box < 19.08 (bars < 640) | arretiert a771e04
+======================================================================================================================
+Gekeimte SE-Kanten: 59 (OBEN 32/UNTEN 27) | >= 3 Touches: 47 | Seeds offen: 14
+
+----------------------------------------------------------------------------------------------------------------------
+SWEEP-SPERRE (blockierte Seed-Geburten):
+----------------------------------------------------------------------------------------------------------------------
+  bar    9 OBEN  docht=64.013 ref=63.906 ueber 0.167% -> KEIN Seed
+  bar   39 OBEN  docht=64.437 ref=64.312 ueber 0.194% -> KEIN Seed
+  bar   42 OBEN  docht=64.409 ref=64.312 ueber 0.151% -> KEIN Seed
+  bar  101 OBEN  docht=66.223 ref=66.046 ueber 0.268% -> KEIN Seed
+  bar  229 OBEN  docht=66.776 ref=66.459 ueber 0.477% -> KEIN Seed   <== K33 (Seed 229/66.776) ELIMINIERT
+  bar  242 OBEN  docht=66.663 ref=66.459 ueber 0.307% -> KEIN Seed   <== K36 (Seed 242/66.663) ELIMINIERT
+  bar  650 UNTEN docht=62.721 ref=62.967 ueber 0.391% -> KEIN Seed
+  bar  745 OBEN  docht=67.288 ref=67.076 ueber 0.316% -> KEIN Seed
+  bar  752 OBEN  docht=67.294 ref=67.076 ueber 0.325% -> KEIN Seed
+  bar  756 OBEN  docht=67.188 ref=67.076 ueber 0.167% -> KEIN Seed
+  bar  759 OBEN  docht=67.236 ref=67.076 ueber 0.239% -> KEIN Seed
+  bar  764 OBEN  docht=67.282 ref=67.076 ueber 0.307% -> KEIN Seed
+  bar  853 OBEN  docht=69.172 ref=68.989 ueber 0.265% -> KEIN Seed
+  bar  859 OBEN  docht=69.188 ref=68.989 ueber 0.288% -> KEIN Seed
+  -> K33 eliminiert: True | K36 eliminiert: True
+
+----------------------------------------------------------------------------------------------------------------------
+PROMOVIERTE PRIMAER-ANKER (Q9b: Sweep+Reclaim = ereignisgetriebene Promotion):
+----------------------------------------------------------------------------------------------------------------------
+  K  6 OBEN  basis=  64.312 geb=  45 promo_ab=  39 n=3
+  K 15 OBEN  basis=  66.046 geb= 220 promo_ab= 101 n=3
+  K 20 OBEN  basis=  66.459 geb= 529 promo_ab= 229 n=3
+  K  3 UNTEN basis=  62.967 geb= 682 promo_ab= 650 n=3
+  K 59 OBEN  basis=  68.989 geb= 847 promo_ab= 853 n=10
+
+----------------------------------------------------------------------------------------------------------------------
+SE-KANTEN MIT BOX-DOCHT (basis = Box-Mittel):
+----------------------------------------------------------------------------------------------------------------------
+  K  2 OBEN  basis=  63.678 geb=  18 n=2 wicks=[12,18]
+  K  0 OBEN  basis=  63.884 geb=  25 n=4 wicks=[5,25,634,638]
+  K  6 OBEN  basis=  64.312 geb=  45 n=3 wicks=[31,45,400]
+  K  8 UNTEN basis=  63.758 geb=  57 n=5 wicks=[52,57,380,627,635]
+  K  5 UNTEN basis=  63.633 geb=  60 n=5 wicks=[30,60,63,386,632]
+  K  9 OBEN  basis=  64.108 geb=  62 n=4 wicks=[56,62,386,624]
+  K 12 OBEN  basis=  65.257 geb=  78 n=9 wicks=[72,78,148,155,275,463,578,609,614]
+  K 16 OBEN  basis=  65.905 geb=  96 n=12 wicks=[90,96,114,478,492,495,498,510,514,547 (+2 n.Box)]
+  K 17 UNTEN basis=  65.602 geb= 111 n=13 wicks=[92,111,242,246,252,475,493,497,512,544,553 (+2 n.Box)]
+  K 11 UNTEN basis=  64.457 geb= 122 n=6 wicks=[69,122,177,342,349,410]
+  K 10 OBEN  basis=  64.845 geb= 135 n=7 wicks=[67,135,179,187,315,357,416]
+  K 13 UNTEN basis=  64.730 geb= 154 n=10 wicks=[75,154,157,192,196,334,442,447,466,582]
+  K 25 OBEN  basis=  65.126 geb= 160 n=7 wicks=[141,160,165,196,343,594,603]
+  K 23 UNTEN basis=  64.331 geb= 162 n=7 wicks=[130,162,172,320,346,368,372]
+  K 24 UNTEN basis=  64.607 geb= 184 n=8 wicks=[136,184,312,356,414,420,452,458]
+  K 14 UNTEN basis=  65.031 geb= 209 n=7 wicks=[81,209,259,279,300,437,520]
+  K 26 OBEN  basis=  65.326 geb= 211 n=2 wicks=[144,211]
+  K 15 OBEN  basis=  66.046 geb= 220 n=3 wicks=[85,220 (+1 n.Box)]
+  K 31 OBEN  basis=  66.360 geb= 249 n=5 wicks=[237,249,286,536 (+1 n.Box)]
+  K 33 OBEN  basis=  65.594 geb= 267 n=4 wicks=[262,267,296,306]
+  K 34 UNTEN basis=  65.213 geb= 273 n=2 wicks=[264,273]
+  K 29 UNTEN basis=  64.910 geb= 294 n=3 wicks=[214,294,606]
+  K 21 UNTEN basis=  64.206 geb= 316 n=4 wicks=[126,316,361,406]
+  K  1 UNTEN basis=  63.485 geb= 398 n=3 wicks=[7,398,621]
+  K 28 OBEN  basis=  65.709 geb= 433 n=2 wicks=[204,433]
+  K 36 OBEN  basis=  64.993 geb= 444 n=2 wicks=[327,444]
+  K 20 OBEN  basis=  66.459 geb= 529 n=3 wicks=[107,529,565]
+  K 44 OBEN  basis=  65.462 geb= 585 n=3 wicks=[572,585 (+1 n.Box)]
+  K  3 UNTEN basis=  62.967 geb= 682 n=3 wicks=[14 (+2 n.Box)]
+
+----------------------------------------------------------------------------------------------------------------------
+REGEL-2-TRADES (V-S >= 3 Touches, Stufen 1-3, De-Risk, Box): 8
+----------------------------------------------------------------------------------------------------------------------
+  SHORT bar  229 STUFE_2_KERZE_2 reclaim= 230 entry= 231 an K 20 basis=66.459 sweep=66.776 close=66.471 | E=66.424 SL=66.826 TP1(POC)=63.676 TP2=63.605 | H1=TP1 @386 | GEWONNEN  +6.92R [PRIMAER-ANKER]
+  SHORT bar  242 STUFE_3_KERZE_3 reclaim= 244 entry= 245 an K 20 basis=66.459 sweep=66.663 close=66.480 | E=66.092 SL=66.713 TP1(POC)=63.676 TP2=63.605 | H1=TP1 @386 | GEWONNEN  +3.95R [PRIMAER-ANKER]
+  LONG  bar  383 STUFE_1_IN_BAR  reclaim= 383 entry= 384 an K  8 basis=63.752 sweep=63.736 close=63.789 | E=63.798 SL=63.686 TP1(POC)=63.820 TP2=66.459 | H1=TP1 @384 | VERLOREN  -0.40R
+  LONG  bar  398 STUFE_1_IN_BAR  reclaim= 398 entry= 399 an K  5 basis=63.619 sweep=63.485 close=63.757 | E=63.763 SL=63.435 TP1(POC)=64.779 TP2=66.459 | H1=TP1 @415 | GEWONNEN  +5.66R
+  SHORT bar  492 STUFE_1_IN_BAR  reclaim= 492 entry= 493 an K 16 basis=65.873 sweep=65.940 close=65.818 | E=65.819 SL=65.990 TP1(POC)=65.813 TP2=63.474 | H1=TP1 @493 | VERLOREN  -0.48R
+  SHORT bar  529 STUFE_2_KERZE_2 reclaim= 530 entry= 531 an K 20 basis=66.459 sweep=66.538 close=66.515 | E=66.324 SL=66.588 TP1(POC)=64.743 TP2=63.474 | H1=TP1 @582 | GEWONNEN  +8.39R [PRIMAER-ANKER]
+  SHORT bar  564 STUFE_1_IN_BAR  reclaim= 564 entry= 565 an K 20 basis=66.459 sweep=66.530 close=66.433 | E=66.434 SL=66.580 TP1(POC)=64.743 TP2=63.474 | H1=TP1 @582 | GEWONNEN +15.93R [PRIMAER-ANKER]
+  LONG  bar  620 STUFE_1_IN_BAR  reclaim= 620 entry= 621 an K  8 basis=63.752 sweep=63.722 close=63.789 | E=63.790 SL=63.672 TP1(POC)=64.948 TP2=66.459 | H1=SL  @621 | VERLOREN  -1.00R
+  Ablehnungen: kein_Gegner=0 F3=0 Blocker=5 Zyklus=11 Quartil=25 kein_Raum=1 Stacking=0 R21=17
+  Promovierte Primaer-Anker: 5
+
+  ZYKLUS-GESPERRTE SETUPS (Retest < retest_zyklus_bars an derselben Kante):
+    bar  230 SHORT K 20 basis=66.459 -> ZYKLUS-SPERRE (letzter Sweep Bar 229, Abstand 1 < 12)
+    bar  231 SHORT K 20 basis=66.459 -> ZYKLUS-SPERRE (letzter Sweep Bar 229, Abstand 2 < 12)
+    bar  241 SHORT K 20 basis=66.459 -> ZYKLUS-SPERRE (letzter Sweep Bar 229, Abstand 12 < 12)
+    bar  244 SHORT K 20 basis=66.459 -> ZYKLUS-SPERRE (letzter Sweep Bar 242, Abstand 2 < 12)
+    bar  384 LONG  K  8 basis=63.752 -> ZYKLUS-SPERRE (letzter Sweep Bar 383, Abstand 1 < 12)
+    bar  495 SHORT K 16 basis=65.886 -> ZYKLUS-SPERRE (letzter Sweep Bar 492, Abstand 3 < 12)
+    bar  496 SHORT K 16 basis=65.886 -> ZYKLUS-SPERRE (letzter Sweep Bar 492, Abstand 4 < 12)
+    bar  498 SHORT K 16 basis=65.898 -> ZYKLUS-SPERRE (letzter Sweep Bar 492, Abstand 6 < 12)
+    bar  530 SHORT K 20 basis=66.459 -> ZYKLUS-SPERRE (letzter Sweep Bar 529, Abstand 1 < 12)
+    bar  531 SHORT K 20 basis=66.459 -> ZYKLUS-SPERRE (letzter Sweep Bar 529, Abstand 2 < 12)
+    bar  565 SHORT K 20 basis=66.459 -> ZYKLUS-SPERRE (letzter Sweep Bar 564, Abstand 1 < 12)
+
+  QUARTIL-GESPERRTE SETUPS (Niemandsland, ausserhalb des aeusseren Quartils):
+    bar   60 LONG  K  5 basis=63.618 sweep=63.577 -> QUARTIL-SPERRE (Mitte der Range)
+    bar  161 LONG  K 13 basis=64.724 sweep=64.717 -> QUARTIL-SPERRE (Mitte der Range)
+    bar  163 LONG  K 13 basis=64.724 sweep=64.570 -> QUARTIL-SPERRE (Mitte der Range)
+    bar  294 LONG  K 14 basis=65.035 sweep=64.925 -> QUARTIL-SPERRE (Mitte der Range)
+    bar  307 LONG  K 14 basis=65.042 sweep=64.881 -> QUARTIL-SPERRE (Mitte der Range)
+    bar  308 LONG  K 14 basis=65.042 sweep=64.819 -> QUARTIL-SPERRE (Mitte der Range)
+    bar  310 LONG  K 13 basis=64.723 sweep=64.645 -> QUARTIL-SPERRE (Mitte der Range)
+    bar  311 LONG  K 13 basis=64.723 sweep=64.719 -> QUARTIL-SPERRE (Mitte der Range)
+    bar  315 LONG  K 11 basis=64.482 sweep=64.460 -> QUARTIL-SPERRE (Mitte der Range)
+    bar  316 LONG  K 23 basis=64.333 sweep=64.204 -> QUARTIL-SPERRE (Mitte der Range)
+    bar  317 LONG  K 23 basis=64.333 sweep=64.244 -> QUARTIL-SPERRE (Mitte der Range)
+    bar  361 LONG  K 23 basis=64.326 sweep=64.198 -> QUARTIL-SPERRE (Mitte der Range)
+    bar  378 LONG  K 21 basis=64.203 sweep=64.178 -> QUARTIL-SPERRE (Mitte der Range)
+    bar  428 SHORT K 25 basis=65.129 sweep=65.234 -> QUARTIL-SPERRE (Mitte der Range)
+    bar  429 SHORT K 25 basis=65.129 sweep=65.156 -> QUARTIL-SPERRE (Mitte der Range)
+    bar  430 SHORT K 25 basis=65.129 sweep=65.443 -> QUARTIL-SPERRE (Mitte der Range)
+    bar  431 SHORT K 25 basis=65.129 sweep=65.413 -> QUARTIL-SPERRE (Mitte der Range)
+    bar  432 SHORT K 33 basis=65.594 sweep=65.636 -> QUARTIL-SPERRE (Mitte der Range)
+    bar  433 SHORT K 33 basis=65.594 sweep=65.684 -> QUARTIL-SPERRE (Mitte der Range)
+    bar  614 LONG  K 24 basis=64.607 sweep=64.524 -> QUARTIL-SPERRE (Mitte der Range)
+    bar  615 LONG  K 13 basis=64.730 sweep=64.644 -> QUARTIL-SPERRE (Mitte der Range)
+    bar  616 LONG  K 24 basis=64.607 sweep=64.509 -> QUARTIL-SPERRE (Mitte der Range)
+    bar  617 LONG  K 24 basis=64.607 sweep=64.526 -> QUARTIL-SPERRE (Mitte der Range)
+    bar  618 LONG  K 11 basis=64.457 sweep=64.253 -> QUARTIL-SPERRE (Mitte der Range)
+    bar  619 LONG  K 21 basis=64.206 sweep=64.088 -> QUARTIL-SPERRE (Mitte der Range)
+
+  BLOCKER-GESPERRTE SETUPS (unerreichte Aussenwand in Schlagdistanz, <= 0.75 %):
+    bar  223 SHORT K 15 basis=66.046 sweep=66.146 -> BLOCKER-SPERRE (unerreichte Aussenwand K20 66.459)
+    bar  224 SHORT K 15 basis=66.046 sweep=66.166 -> BLOCKER-SPERRE (unerreichte Aussenwand K20 66.459)
+    bar  225 SHORT K 15 basis=66.046 sweep=66.262 -> BLOCKER-SPERRE (unerreichte Aussenwand K20 66.459)
+    bar  527 SHORT K 31 basis=66.327 sweep=66.378 -> BLOCKER-SPERRE (unerreichte Aussenwand K20 66.459)
+    bar  528 SHORT K 31 basis=66.327 sweep=66.356 -> BLOCKER-SPERRE (unerreichte Aussenwand K20 66.459)
+
+
+  R21-BEREINIGTE KANTEN & TOMBSTONES (§7.2 Teil 5):
+    geloescht: 17 | Geburten gesperrt: 17 | Tombstones: 17
+    bar  290 K 18 UNTEN basis=65.695 pivot=98 alter=192
+    bar  296 K 19 UNTEN basis=65.400 pivot=104 alter=192
+    bar  320 K 22 OBEN  basis=64.552 pivot=128 alter=192
+    bar  365 GEBURT GESPERRT OBEN  px=64.464
+    bar  367 K 27 OBEN  basis=64.738 pivot=175 alter=192
+    bar  376 GEBURT GESPERRT OBEN  px=64.708
+    bar  407 GEBURT GESPERRT OBEN  px=64.681
+    bar  427 K 30 UNTEN basis=66.076 pivot=235 alter=192
+    bar  447 K 32 UNTEN basis=65.494 pivot=255 alter=192
+    bar  479 GEBURT GESPERRT UNTEN px=65.414
+    bar  483 K 35 UNTEN basis=65.293 pivot=291 alter=192
+    bar  485 GEBURT GESPERRT UNTEN px=65.362
+    bar  500 GEBURT GESPERRT UNTEN px=65.478
+    bar  503 GEBURT GESPERRT UNTEN px=65.433
+    bar  508 GEBURT GESPERRT UNTEN px=65.424
+    bar  522 K 37 UNTEN basis=64.823 pivot=330 alter=192
+    bar  534 GEBURT GESPERRT UNTEN px=66.234
+    bar  544 K 39 OBEN  basis=64.943 pivot=352 alter=192
+    bar  550 GEBURT GESPERRT UNTEN px=65.702
+    bar  582 K 40 OBEN  basis=64.184 pivot=390 alter=192
+    bar  592 GEBURT GESPERRT UNTEN px=64.818
+    bar  629 GEBURT GESPERRT OBEN  px=63.994
+    bar  707 GEBURT GESPERRT UNTEN px=64.824
+    bar  725 GEBURT GESPERRT UNTEN px=65.474
+    bar  864 K 50 OBEN  basis=62.878 pivot=672 alter=192
+    bar  969 K 56 OBEN  basis=66.842 pivot=777 alter=192
+    bar  973 K 57 OBEN  basis=66.744 pivot=781 alter=192
+    bar  978 K 58 OBEN  basis=66.939 pivot=786 alter=192
+    bar 1078 K 69 UNTEN basis=69.043 pivot=886 alter=192
+    bar 1083 K 70 OBEN  basis=69.841 pivot=891 alter=192
+    bar 1104 K 74 OBEN  basis=69.613 pivot=912 alter=192
+    bar 1124 GEBURT GESPERRT UNTEN px=69.084
+    bar 1214 GEBURT GESPERRT UNTEN px=69.020
+    bar 1278 GEBURT GESPERRT UNTEN px=68.987

@@ -2996,6 +2996,146 @@ Docstring-Invariante (Z. 61-64).
 
 ---
 
+### Nachtrag 2026-09-09 (Teil 11) - Revisions-Snapshot `aug_p11` & Korrektur der Gate-Prosa
+
+> **Status: ARRETIERUNG VOLLZOGEN (durch Versionierung, nicht durch Laufzeit-Gate).**
+> Dieser Nachtrag **revoziiert** die in Teil 9 aufgestellte Behauptung, ein
+> Exit-3-Waechter pruefe vor dem Schreiben. Es gibt **kein** Runtime-Gate und
+> es wird **keines** gebaut. Die Arretierung erfolgt stattdessen ueber einen
+> unveraenderlichen, git-versionierten Baseline-Snapshot.
+
+**1. Richtigstellung (Replikation der Wunde).**
+
+Teil 9 (Abschnitt 6) formulierte:
+
+> "Das Gate prueft **vor** dem Schreiben: `len(tr) == 14`,
+> `round(sum(r), 2) == 40.45`, `stacking_blockiert == 0` - sonst kein Write
+> (Rueckgabecode 3). Ergebnis: **ERREICHT**."
+
+**Befund:** Im Code existiert davon **keine Zeile**. `P9ScharfschaltungsSoll`
+hat in `test/tmp_kanten_engine_replay.py` **0 Treffer**; ebenso wenig
+`returncode` oder `BEREIT_FUER_APPLY`. `_replay_c_se_main` (Z. 2936-2941)
+berechnet einen Lauf und schreibt TXT + PNG **bedingungslos**:
+
+```python
+scan          = _se_scan(fenster, cfg)
+setups, stats = _se_trades(scan, cfg)
+_se_report(fenster, scan, setups, stats, nach_datei=True)   # TXT
+out_png       = _zeichne_se_png(fenster, scan, setups, dpi=dpi)  # PNG
+```
+
+Die Meldung "ERREICHT" stammte aus `test/tmp_p9_gegenueberstellung.py` - einem
+**Read-only-Auditskript**, das nichts schuetzt. Es handelte sich damit um eine
+**Doku-/Code-Drift** (Papiertiger), nicht um eine Sicherung.
+
+**2. Entschiedene Alternative: Versionierung statt Runtime-Gate.**
+
+Ein harter `sys.exit(3)`-Waechter im Laufzeitpfad wurde **verworfen**
+(Entscheidung des Anwenders): Er blockiert legitime Weiterentwicklung, trifft
+den falschen Pfad (`--modus C` faehrt den **Box-Lauf** mit 8 Trades, nicht die
+14 des Voll-Laufs) und kaeme ohnehin **nach** dem Schreiben. Institutionelle
+Absicherung erfolgt durch **revisionssichere Snapshots**.
+
+**3. Revisions-Snapshot `docs/artefakte/aug_p11/`.**
+
+| Datei | Original | Bytes | SHA256 (16) |
+|---|---|---|---|
+| `kanten_engine_replay_v40r.py.snapshot` | `test/tmp_kanten_engine_replay.py` | 191.814 | `3ba15c723958161f` |
+| `harness_AUG_v40r.txt.snapshot` | `test/tmp_v3_straight_edge_harness_AUG.txt` | 12.579 | `cd032d17004be8b9` |
+| `trades_AUG_mC_v40r.png` | `test/kanten_engine_trades_AUG_mC.png` | 556.793 | `2758dd6212687423` |
+
+Begleitend `.gitattributes` mit `docs/artefakte/aug_p11/** -text`:
+Da `core.autocrlf = true` gilt und keine `.gitattributes` existierte, haette Git
+die Zeilenenden beim Add/Checkout normalisiert und die SHA256-Hashes auf
+Linux/macOS **ungueltig** gemacht. `-text` erzwingt Bit-Identitaet.
+
+**4. Datenbank-Fingerprint (zweistufig, read-only geprueft 2026-09-09).**
+
+| Ebene | Tabelle | Umfang | Zeitraum |
+|---|---|---|---|
+| **Partition** | `ohlcv_bars` (einzige Tabelle; **keine** View `silver_m15`) | **222.944** Bars | `2013-06-05 02:00+02:00` - `2026-09-05 00:45+02:00` |
+| **Fenster AUG** | Engine-WHERE (`time AT TIME ZONE 'UTC'`) | **1.288** Bars | `2026-08-10 02:00+02:00` - `2026-08-28 00:45+02:00` |
+
+Die DB selbst ist **nicht versioniert** (`*.duckdb`, 3.319 MB) - der Fingerprint
+ist die einzige Bruecke zur Reproduzierbarkeit.
+
+**5. Lauf-Trennung (verbindlich, Praefix-Konvention).**
+
+| Lauf | Ausloesung | Trades | Netto-R (Float) | Display |
+|---|---|---|---|---|
+| **A** `lauf_a_cli_box_*` | CLI `--fenster AUG --modus C`, `box_end_bar = 640` | **8** | **+38,9643** | +38,97 |
+| **B** `lauf_b_programmatisch_voll_*` | In-Memory `sc["box_end_bar"] = sc["n"] = 1288` | **14** | **+40,4451** | +40,45 |
+
+`box_end_bar` ist hart verdrahtet (`np.searchsorted(ts_arr, "2026-08-19")`,
+Z. 2185) und **nicht** per CLI steuerbar - **Lauf B ist durch den Snapshot
+nicht ausfuehrbar**, sondern nur programmatisch.
+
+**Rundungsdelta Lauf A:** Der TXT-Report enthaelt **keine Aggregat-Zeile**;
+die Summe der Anzeigewerte (`+6,92 +3,95 -0,40 +5,66 -0,48 +8,39 +15,93 -1,00`)
+ergibt **+38,97 R** gegenueber **+38,9643 R** Float - Delta **+0,0057 R**.
+**Massgeblich ist der Float-Wert.**
+
+**6. Referenz-Kennzahl (Anwender-Entscheidung, hiermit arretiert).**
+
+> **Voll-Fenster (Lauf B): `n = 14 / +40,45 R` ist die PRIMAERE Referenz.**
+> **Box-Lauf (Lauf A): `n = 8 / +38,96 R`** wird strikt als
+> **H1-Teilabschnittsmetrik** gefuehrt.
+> **Nicht-Box-Anteil: `6 / +1,48 R`** (Lauf-Definition).
+
+Damit ist die in Teil 9 (Abschnitt 8.1) und Teil 10 (Abschnitt 6.3) offene
+Frage entschieden.
+
+**7. Kennzahl-Konstellation (transparent, beide arithmetisch korrekt).**
+
+| Lesart | Box | Rest | Summe |
+|---|---|---|---|
+| Semantisch (Signal-Bar < 640) | 9 / +37,9700 | 5 / +2,4800 | 14 / +40,4500 |
+| Lauf-Definition (`range(2, box_end-3)`) | 8 / +38,9643 | 6 / +1,4808 | 14 / +40,4500 |
+
+Die Differenz betrifft ausschliesslich die Zuordnung von **Bar 639
+(Entry 640, -1,00 R)**: Bei `box_end_bar = 640` laeuft
+`for k in range(2, box_end - 3)` nur bis Bar 636, sodass Signal-Bar 639 nicht
+mehr im Box-Lauf erscheint. Bar 639 ist Wanduhr **18.08. 21:45** und liegt
+somit **innerhalb** der Box-Grenze 640 - er rutscht allein durch die
+Lookahead-Marge hinaus. Die Teil-10-Formulierung, der entfallende Trade sei
+"Bar 650/Entry 653", war eine **Fehlattribution** und ist hiermit richtiggestellt.
+
+**8. Historischer Header im TXT-Snapshot.**
+
+Zeile 2 von `harness_AUG_v40r.txt.snapshot` verweist auf `arretiert a771e04`
+(frueherer Commit). Der Header wurde **bewusst nicht** angepasst
+(Revisionsprinzip: der Snapshot bildet den Stand unveraendert ab). Der
+tatsaechliche Stand ist Patch `_p11`.
+
+**9. Nicht-Ausfuehrbarkeit am Archivort (deklariert).**
+
+`ROOT = Path(__file__).resolve().parent.parent` (Z. 104) loest am Zielort zu
+`docs/artefakte` auf; `DB_PATH` (Z. 107) und die Schreibziele (Z. 108, 3974,
+3980) brechen entsprechend. Der Snapshot ist **Beweisstueck, kein Werkzeug**.
+Abhaengigkeiten: nur `argparse`, `os`, `sys`, `time`, `dataclasses`, `pathlib`,
+`typing`, `duckdb`, `numpy`, `pandas` - **keine** `tmp_*`-Module.
+
+**10. Sperrung und Folgearbeit.**
+
+Der Stand `aug_p11` ist mit diesem Nachtrag **gesperrt**; neue Staende erhalten
+einen neuen Ordner (`aug_p12`, ...). **Freigabe erteilt:** Folgeanpassungen
+(Transition Zone, H2) duerfen H1 beeinflussen; jede Abweichung wird gegen
+diesen Snapshot gemessen und dokumentiert.
+
+**11. Revisionssicherheit.**
+
+| Dokument/Aussage | Status |
+|---|---|
+| Teil 9 Abschnitt 6 (Exit-3-Gate "ERREICHT") | **REVOZIERT** - kein Runtime-Gate im Code |
+| Teil 9 Abschnitt 8.1 / Teil 10 Abschnitt 6.3 (Referenz offen) | **ENTschieden**: Voll = primaer |
+| Teil 10 (Fehlattribution "Bar 650") | **korrigiert**: Bar 639 / Entry 640 |
+| Teil 9 Abschnitt 3 (Voll 14 / +40,45) | **unveraendert gueltig**, jetzt primaere Referenz |
+| Teil 10 (Box 8 / +38,96) | **bestaetigt** als H1-Teilabschnittsmetrik |
+| `docs/artefakte/aug_p11/MANIFEST.md` | **neu**, fuehrt Hashes, Fingerprint, Lauf-Trennung |
+| `.gitattributes` (`-text`) | **neu**, sichert Bit-Identitaet der Snapshots |
+
+---
+
 ## 8. Gate & Schritt-0-Replay (verbindlich)
 
 ### 8.1 Replay-Harness (`test/tmp_kanten_engine_replay.py`, Schritt 0)

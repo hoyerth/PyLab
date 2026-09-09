@@ -1,0 +1,13 @@
+# ==============================================================================
+# Git-Attribute (Revisionssicherheit der Baseline-Snapshots)
+# ==============================================================================
+# Die Artefakte unter docs/artefakte/aug_p11/ werden als BEWEISSTUECKE gefuehrt.
+# Ihre SHA256-Hashes stehen in docs/artefakte/aug_p11/MANIFEST.md und muessen
+# plattformunabhaengig bit-identisch bleiben.
+#
+# Ohne diese Regel normalisiert Git (core.autocrlf=true auf Windows) die
+# Zeilenenden beim Add/Checkout -> anderer SHA256 auf Linux/macOS -> der
+# kryptografische Anker waere zerstoert.
+#
+# -text = keine Zeilenenden-Konvertierung, keine Normalisierung (Binaer-Semantik).
+docs/artefakte/aug_p11/** -text

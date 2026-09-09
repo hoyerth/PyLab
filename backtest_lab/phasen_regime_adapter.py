@@ -34,8 +34,22 @@ Invarianten (nicht verhandelbar):
    regulaere Q1-Setups (``dist >= 0``) bleiben unangetastet.
 6. Luecken zwischen Segmenten sind strikt fail-closed.
 
+Segment-Bestaende (Dreiteilung, Addendum v0.6 Abschnitt 24.1):
+
+* ``AKTIVE_DEFAULT_SEGMENTE`` - operativ freigegeben und ertragsbelegt
+  (P9, +5.4212 R). Ausschliesslich diese Liste ist der Default.
+* ``P12_RESERVE``             - strukturell geprueft, operativ inert
+  (August-Fenster: 0 Trades). Wird vom Test ueber
+  ``RESERVE_SEGMENTE`` auditiert, damit die Konstante kein totes Kapital ist.
+* ``RESERVE_SEGMENTE``        - Bindungspfad der Reserve fuer
+  ``verifiziere_gegen_scan``.
+
+Die Transition-Zone (Bars 640-847) ist bewusst KEIN Segment: sie laeuft
+kausal unter MAKRO (5 Park-Trades / +2.4809 R der arretierten Baseline) und
+wird nicht angefasst.
+
 Provenienz: ``reports/h2_phasenregime/H2_PHASENREGIME_ADAPTER_SPEZ.md``
-(Addendum v0.3, Abschnitte 12-17).
+(Addenda v0.3-v0.6, Abschnitte 12-25).
 """
 from dataclasses import dataclass
 from enum import Enum
@@ -132,6 +146,28 @@ P9: PhasenSegmentEintrag = PhasenSegmentEintrag(
     ziel_preis_long=69.9140,
 )
 
+# Aktive, empirisch verifizierte Standard-Segmente (einziger Default).
+AKTIVE_DEFAULT_SEGMENTE: Tuple[PhasenSegmentEintrag, ...] = (P9,)
+
+# --- P12 (Reserve: strukturell geprueft, operativ inert) -------------------
+# August-Fenster: 0 Trades. Freigabe der Decke K73 promoviert die Innenlinie
+# K76, die M6-Aussenwand K67 (69.9458, +0.63 %) sperrt; Bar 1259 LONG
+# scheitert an Q29. Entscheidung #6 verweigert die K67-Freigabe in P12.
+# Ziel 67.6355 = v0.4 L_final (Provenienz-Norm, empirisch noch unbelegt).
+P12_RESERVE: PhasenSegmentEintrag = PhasenSegmentEintrag(
+    phasen_id="P12",
+    start_bar=1171,
+    end_bar=1272,
+    decke=PhasenKanteInfo(kid=73, provenienz_basis=69.5550),
+    boden=PhasenKanteInfo(kid=82, provenienz_basis=67.6355),
+    ziel_preis_short=67.6355,
+    ziel_preis_long=69.5550,
+)
+
+# Bindungsliste der Reserve - ausschliesslich fuer die Fail-Loud-Auditierung
+# in Tests; NICHT Teil der aktiven Ausfuehrung.
+RESERVE_SEGMENTE: Tuple[PhasenSegmentEintrag, ...] = (P12_RESERVE,)
+
 
 @dataclass(frozen=True, slots=True)
 class PhasenRegimeAdapter:
@@ -139,11 +175,13 @@ class PhasenRegimeAdapter:
 
     Args:
         start_scope_bar: Erstes Bar, ab dem das Regime greift (Mentor: 848).
-        segmente: Chronologische Segmentliste. Default = P9 (v0.1).
+        segmente: Chronologische Segmentliste. Default =
+            ``AKTIVE_DEFAULT_SEGMENTE`` (nur P9); die Reserve wird bewusst
+            nicht automatisch aktiviert.
     """
 
     start_scope_bar: int = 848
-    segmente: Tuple[PhasenSegmentEintrag, ...] = (P9,)
+    segmente: Tuple[PhasenSegmentEintrag, ...] = AKTIVE_DEFAULT_SEGMENTE
 
     def aktive_phase_bei(self, bar_idx: int) -> Optional[PhasenSegmentEintrag]:
         """Loest ein Bar auf das aktive Segment auf (strikt fail-closed).

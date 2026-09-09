@@ -672,3 +672,57 @@ eigenes, **baseline-veränderndes** Entscheidungsfeld geführt. Begründung:
 | H1-Baseline | bit-identisch 8 / +38.964262 R |
 | Engine | unverändert (SHA256 `3ba15c72…`) |
 | Transition-Zone 640–847 | **offen**, separat, baseline-verändernd |
+
+---
+
+# Addendum v0.7 — Reserve-Struktur implementiert (2026-09-09)
+
+## 26. Umsetzung (Dreiteilung)
+
+`backtest_lab/phasen_regime_adapter.py`:
+
+```python
+P9: PhasenSegmentEintrag = ...                 # unverändert
+AKTIVE_DEFAULT_SEGMENTE: Tuple[...] = (P9,)
+P12_RESERVE: PhasenSegmentEintrag = ...        # kid 73/82, Ziel 67.6355
+RESERVE_SEGMENTE: Tuple[...] = (P12_RESERVE,)
+# PhasenRegimeAdapter.segmente default = AKTIVE_DEFAULT_SEGMENTE
+```
+
+Modul-Docstring erweitert: Dreiteilung dokumentiert, Transition-Zone explizit
+als **kein** Segment ausgewiesen.
+
+## 27. Bindungsprüfung (Test 1b, neu)
+
+| Prüfung | Ergebnis |
+|---|---|
+| Katalog-Bar `REF_BAR_RESERVE = 1259` (für P9 **und** P12 gültig) | K73 `OBEN` 69.6714 · K82 `UNTEN` 67.5273 |
+| `verifiziere_gegen_scan(RESERVE_SEGMENTE)` | **OK** (Existenz, Seite, Basisband) |
+| `AKTIVE_DEFAULT_SEGMENTE` | `['P9']` |
+| `DEFAULT_ADAPTER.segmente` | `['P9']` → Reserve **nicht** aktiv |
+| `DEFAULT_ADAPTER.hook_2_ziel(1200, "SHORT")` | **BLOCKIERT** (fail-closed) |
+
+**Begründung des Referenz-Bars:** `REF_BAR = 980` ist für P12 untauglich —
+K82 hat `erster_pivot = 1031`, daher liefert `basis_bei(980)` die
+Initial-Basis statt der kausalen Mittel-Basis. Bar 1259 ist für beide
+Segmente gültig (K67 0,0455 % · K77 0,0150 % · K73 0,167 % · K82 0,160 %).
+
+## 28. Regressionsnachweis nach der Moduländerung
+
+| Prüfung | Soll | Ergebnis |
+|---|---|---|
+| H1 (bit-identisch) | 8 / +38.964262 R | **8 / +38.964262 R** ✅ |
+| K73@980 | +2.4119 | **+2.4119** ✅ |
+| K73@1020 | +3.0093 | **+3.0093** ✅ |
+| Summe | +5.4212 | **+5.4212** ✅ |
+| K59@853 | entfällt | **entfällt** ✅ |
+| Tri-State 640/900/1025/1150 | MAKRO/PHASE/BLOCKIERT/BLOCKIERT | **alle OK** ✅ |
+
+Engine unverändert: SHA256 `3ba15c72…`.
+
+## 29. Transition-Zone — Entscheidung geschlossen
+
+**Nicht anfassen.** Dauerhaft MAKRO unter `start_scope_bar = 848`; keine
+weiteren Regime-Untersuchungen. Die Zone bleibt exakt der arretierte Zustand
+von Lauf B (5 Trades / +2.4809 R). Fragen T1/T2/T4 sind damit geschlossen,
+T3 („MAKRO dauerhaft, dokumentiert") ist erfüllt.

@@ -1124,6 +1124,13 @@ Innenlevel-Blocker — arretiert)
 > `test/tmp_kanten_engine_replay.py`. Vorher 6 Trades / +21,13 R (mit
 > unberechtigtem SHORT 223), nachher **5 Trades / +23,13 R**
 > (Ablehnungen: Blocker=3, Zyklus=4, Quartil=20).
+>
+> **TEILWEISE SUPERSEDED (2026-09-09, Teil 3):** Die M0-Arretierung
+> `retest_zyklus_bars = 24` und die Hilfsentscheidung **F1/Option A** sind
+> durch den Nachtrag "Teil 3" revoziert (neuer Wert **12**, Zyklus-Zaehler
+> **3**). Die uebrigen Arretierungen dieses Nachtrags (M2, M6, B23-3/4/5,
+> M1/M1b) bleiben unveraendert gueltig. Die Kennzahlen dieses Abschnitts
+> bleiben als **Phase 1** historisch stehen (H3-Transparenzgebot).
 
 **Ausgangsbefund (Anlass der Arretierung):** Der SHORT 223 an der Innenkante
 K15 (66,046) war unberechtigt — der Markt stach nur bis 66,146 (+0,151 %) und
@@ -1138,14 +1145,15 @@ Retest-Zyklus war nur unvollstaendig abgebildet.
 
 | Kennung | Parameter | Wert | Regel / Begruendung |
 |---|---|---|---|
-| M0 | `retest_zyklus_bars` | **24** (6 h) | Ersetzt Q8/F2-Vollrisiko: dieselbe Kante ist nach einem genommenen Sweep erst nach einem neuen Liquiditaetszyklus wieder handelbar. |
+| M0 | `retest_zyklus_bars` | ~~**24** (6 h)~~ → **12** (3 h), revoziert in Teil 3 | Ersetzt Q8/F2-Vollrisiko: dieselbe Kante ist nach einem genommenen Sweep erst nach einem neuen Liquiditaetszyklus wieder handelbar. Gueltiger Wertebereich siehe Teil 3 (Plateau `[3; 15]`). |
 | M2 | `quartil_distanz_pct` | **25,0** (Prozent-Konvention, nicht 0,25) | Q29 Niemandsland-Sperre: nur das aeussere Quartil der kausalen Spanne 0…k handelt. |
 | M6 | `max_seed_distanz_pct` | **0,75** (wiederverwendet) | Schlagdistanz des Innenlevel-Blockers (Q9b-Sicherheitsnetz, unveraendert). |
 | M6 | Blocker-Quelle | nur `_existiert`-Linien (AKTIV) | F3: schlafende/dormante Linien sperren nicht. |
 | B23-4 | `max_schwung_bars` | **ersatzlos entfallen** | Der Zyklus (M0) uebernimmt die Sperre; kein zweiter, paralleler Zeitparameter. |
 
-**1. M0 — Retest-Zyklus ersetzt Q8/F2 (`retest_zyklus_bars = 24`):** Nach
-einem genommenen Trade an Kante X gilt `k - kd.letzter_sweep_bar < 24` als
+**1. M0 — Retest-Zyklus ersetzt Q8/F2 (`retest_zyklus_bars = 24` → 12,
+revoziert in Teil 3):** Nach
+einem genommenen Trade an Kante X gilt `k - kd.letzter_sweep_bar < 12` als
 Zyklus-Sperre (kein Vollrisiko-Re-Trigger im selben Liquiditaetszyklus).
 Fortschreibung **nur bei tatsaechlich genommenem Trade** (B23-5) — ein
 abgewiesener Kontakt setzt die Uhr nicht zurueck.
@@ -1172,13 +1180,19 @@ wurde und deren Abstand zur Kandidatenbasis `<= 0,75 %` ist. Entscheidend ist
 die aeusserste Linie: eine naehere Innenlinie darf die Sperre nicht ausloesen,
 wenn die Aussenwand selbst erreicht wurde (sonst wuerde der Kern-Gewinner
 LONG 398 an K5 eliminiert). Basis ist kausal `basis_bei(k)`, **nicht** der
-Report-End-Mittelwert. **F1 = Option A:** die E3-Stufe (Bar 245) wird
+Report-End-Mittelwert. ~~**F1 = Option A:** die E3-Stufe (Bar 245) wird
 zurueckgenommen — sie kollidiert mit der Pivot-Zaehlung E2 und mit M0
-(244 − 229 = 15 < 24). **F2** = `max_seed_distanz_pct = 0,75` wiederverwendet.
-**F3** = nur `_existiert`-Linien sperren. **F4** = Go fuer den Einbau.
+(244 − 229 = 15 < 24).~~ **F1/Option A ist vollstaendig revoziert (Teil 3,
+2026-09-09):** Die E3-Stufe (Bar 245) ist mit `retest_zyklus_bars = 12`
+zugelassen; die damalige Begruendung entfaellt, weil die Kollision
+ausschliesslich gegen den alten M0-Wert 24 bestand. **F2** =
+`max_seed_distanz_pct = 0,75` wiederverwendet. **F3** = nur
+`_existiert`-Linien sperren. **F4** = Go fuer den Einbau.
 
-**Verifikation (AUG, Modus C):** 5 Trades / +23,13 R — SHORT 229 (+6,92),
+**Verifikation (AUG, Modus C, Phase 1 mit `retest_zyklus_bars = 24`):**
+5 Trades / +23,13 R — SHORT 229 (+6,92),
 LONG 398 (+5,66), SHORT 529 (+8,41), SHORT 564 (+3,14), LONG 639 (−1,00).
+Phase 2 (`retest_zyklus_bars = 12`): 6 Trades / +27,08 R, Zyklus=3 (Teil 3).
 Blocker-Sperren: 223/224/225 (K15 → unerreichte Wand K20 66,459).
 `test/tmp_v3_straight_edge_harness_AUG.txt`,
 `test/kanten_engine_trades_AUG_mC.png`.
@@ -1252,6 +1266,13 @@ def blockiert_durch_aussenkante(richtung: SignalRichtung, k: int,
 > `retest_zyklus_bars` 24 → 12 ist **nicht arretiert**, sondern als
 > **Parameter-Reihentest** vorgemerkt (Pruefhypothese). Kein Code-Eingriff vor
 > Abschluss der Parameterreihe auf S1/S2.
+>
+> **AKTUALISIERT (2026-09-09, Teil 3):** Der Reihentest ist auf AUG
+> abgeschlossen; `retest_zyklus_bars = 12` ist als **AUG-arretierter
+> Arbeitswert unter S1/S2-Vorbehalt** gesetzt (Plateau `[3; 15]`). Die
+> Curve-Fitting-Warnung in Punkt 4 bleibt inhaltlich bestehen — der
+> S1/S2-Vorbehalt ist wegen des Alt-C-Routing-Blockers derzeit nicht
+> messbar (siehe Teil 3, Abschnitt 9).
 
 **1. Die Sequenz (M15-Rohdaten, Wanduhr, verifiziert):**
 
@@ -1296,7 +1317,7 @@ Hinweis zum Risiko-Unterschied: Der SL folgt dem jeweiligen Sweep-Cluster
 resultiert der um 54 % groessere Risikoabstand. Die Gegenkante ist in beiden
 Faellen identisch.
 
-**4. Parameter-Reihentest (vorgemerkt, NICHT arretiert):**
+**4. Parameter-Reihentest (Phase 1; ueberholt durch Teil 3):**
 
 Read-only gemessen (AUG, Modus C, je Variante frischer Scan — der Scan mutiert
 `letzter_sweep_bar`, ein geteilter Scan verfaelscht das Ergebnis):
@@ -1306,20 +1327,23 @@ Read-only gemessen (AUG, Modus C, je Variante frischer Scan — der Scan mutiert
 | **24 (Status quo)** | 5 | +23,13 | 4 | [231] |
 | 20 | 5 | +23,13 | 4 | [231] |
 | 16 | 5 | +23,13 | 4 | [231] |
-| **12 (Pruefhypothese)** | 6 | **+27,08** | 3 | [231, **245**] |
+| **12 (AUG-arretiert, Teil 3)** | 6 | **+27,08** | 3 | [231, **245**] |
 | 8 | 6 | +27,08 | 3 | [231, 245] |
 | 4 | 6 | +27,08 | 3 | [231, 245] |
 | 0 | 7 | +26,08 | 0 | [231, 245] |
 
-- Die Schwelle zwischen „245 gesperrt" und „245 frei" liegt bei **12 Bars**
-  (242 − 229 = 13).
+- Die Schwelle zwischen „245 gesperrt" und „245 frei" liegt **zwischen 13 und
+  14 Bars** (Signal-Bar 242 wird ab `v >= 14` gesperrt; bei `v = 13` feuert
+  Bar 242 noch). Exakte Grenzkarte `0…24` in Teil 3.
 - Bei `0` entsteht zusaetzlich ein **toxischer Trade** (Sweep 531 → Entry 533
   an K31, −1,00 R, nur 2 Bars nach dem 529er-Sweep) → die Sperre darf **nicht
-  ersatzlos entfallen**.
-- **Curve-Fitting-Warnung:** Diese Zahlen sind auf AUG gemessen. Eine
-  Arretierung von 12 allein auf AUG-Basis waere Optimierung auf ein einzelnes
-  Fenster. Der Reihentest (12/16/20/24) ist **auf S1 und S2** zu wiederholen;
-  erst danach Entscheidung.
+  ersatzlos entfallen**. Exakt: toxisch fuer `v <= 2`, eliminiert ab `v >= 3`.
+- **Curve-Fitting-Warnung (BESTEHT FORT):** Diese Zahlen sind auf AUG
+  gemessen. Eine Arretierung von 12 allein auf AUG-Basis waere Optimierung auf
+  ein einzelnes Fenster. Der Reihentest (12/16/20/24) ist **auf S1 und S2** zu
+  wiederholen. Teil 3 setzt 12 daher ausdruecklich als **Arbeitswert unter
+  S1/S2-Vorbehalt**; die Bestaetigung ist nach Behebung des Routing-Blockers
+  (S1/S2 laufen derzeit im Alt-C ohne SE-Zaehler) nachzuholen.
 - Zu pruefen bleibt, ob die M0-Sperre besser durch die **De-Risk-Semantik**
   (F2/Q11: Re-Trigger nur ohne offene Position ODER nach TP1) ersetzt wird —
   sie bildet den institutionellen Sachverhalt genauer ab als ein starrer
@@ -1329,18 +1353,175 @@ Read-only gemessen (AUG, Modus C, je Variante frischer Scan — der Scan mutiert
 
 ```python
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Tuple
 
 
 @dataclass(frozen=True, slots=True)
 class RetestParameterReihe:
     kandidaten_zyklus_bars: List[int] = field(
         default_factory=lambda: [12, 16, 20, 24])
-    standard_zyklus_bars: int = 24        # Status quo (arretiert)
-    test_zyklus_bars: int = 12            # Freigabe-Kandidat fuer Bar 245
+    standard_zyklus_bars: int = 12        # AUG-arretiert (Teil 3); vorher 24
+    test_zyklus_bars: int = 12            # freigegeben fuer Bar 245
+    plateau_grenzen_bars: Tuple[int, int] = (3, 15)   # Teil 3, Grenzkarte
     erlaube_parallele_exposition: bool = True
 ```
 
+### Nachtrag 2026-09-09 (Teil 3) — Plateau-Analyse & Arretierung des Re-Test-Zyklus auf 12 Bars
+
+> **Status:** **AUG-ARRETIERTER ARBEITSWERT UNTER S1/S2-VORBEHALT.**
+> Mentor-Freigabe 2026-09-09 (H1–H6): `retest_zyklus_bars` 24 → **12**
+> (3,0 Stunden = halbe Handelssitzung). F1/Option A **vollstaendig revoziert**.
+> Messbasis: AUG-Lauf `--modus C` auf `test/tmp_kanten_engine_replay.py`,
+> read-only Grenzkarte `v = 0…24`, je Variante frischer `_se_scan` (der Scan
+> mutiert `letzter_sweep_bar`; ein geteilter Scan verfaelscht das Ergebnis).
+
+**1. Anlass und Gegenstand:**
+
+Der Reihentest aus Teil 2 ist auf AUG abgeschlossen. Gegenstand ist allein die
+Wahl der Zyklus-Hoehe fuer `retest_zyklus_bars` — **nicht** die Re-Test-Sequenz
+selbst (die bleibt wie in Teil 2 arretiert).
+
+**2. Grenzkarte `retest_zyklus_bars` = 0…24 (AUG, Box-Loop 641, read-only):**
+
+Der Scan ist ueber die gesamte Reihe invariant: `box_end = 644`,
+`edges = 65` (OBEN 33/UNTEN 32), `seeds = 28`. Ebenfalls invariant ueber
+**alle** Varianten: `Blocker = 3`, `Quartil = 20`, `F3 = 0`,
+`kein_Gegner = 0`.
+
+| `v`-Bereich | Trades | Netto-R | Zyklus-Sperren | K20-Setup | Verluste |
+|---|---|---|---|---|---|
+| **0–2** | 7 | +26,08 | 0–1 | Bar 242 | **2** (inkl. toxisch 531/533) |
+| **3–13** | 6 | +27,08 | 3 | Bar 242 (`STUFE_3_KERZE_3`) | 1 |
+| **14–15** | 6 | **+27,09** | 3 | Bar 244 (`STUFE_1_IN_BAR`) | 1 |
+| **16–24** | 5 | +23,13 | 4 | keines | 1 |
+
+**Distinkte Trade-Sets: 4.** Der einzige Unterschied zwischen den Varianten ist
+genau ein Setup: `(bar 242, K20)` bzw. `(bar 244, K20)` — beide erzeugen
+denselben Entry 245. (Die +0,01-R-Differenz bei `v = 14/15` stammt aus dem
+SL-Cluster 66,712 statt 66,713.)
+
+**3. Die drei exakten Schwellen (Korrektur gegenueber Teil 2):**
+
+- **Untergrenze `v >= 3`:** Der toxische Trade (Sweep 531 → Entry 533 an K31,
+  −1,00 R) existiert fuer `v <= 2` und ist ab `v >= 3` eliminiert. Bei `v = 2`
+  sperrt die Regel nur Bar 530 (`Δ1 < 2`), nicht Bar 531 (`Δ2`).
+- **Obergrenze `v <= 15`:** Das K20-Setup (Entry 245) feuert fuer `v <= 15` und
+  ist ab `v >= 16` gesperrt. Bei `v = 16` faengt die Zyklus-Sperre den
+  Signal-Bar 242 (`Δ13 < 16`).
+- **Plateau: `[3; 15]`.** Innerhalb dieses Bereichs ist der Netto-Ertrag
+  +27,08/+27,09 R bei 6 Trades konstant.
+
+**Korrektur zu Teil 2:** Dort stand „Die Schwelle … liegt bei 12 Bars". Exakt
+liegt sie **zwischen 13 und 14** (bei `v = 13` feuert Bar 242 noch). Die
+toxische Untergrenze liegt exakt bei `v = 3`, nicht „unter 4".
+
+**4. Pfad-Substitution (Praezisierung der Mechanik, H4):**
+
+Entry 245 ist **doppelt verankert**, aber die beiden Pfade sind **gegenseitig
+ausschliessend** — es handelt sich **nicht** um eine simultane
+Dedup-Zusammenfuehrung:
+
+| `v` | Bar 242 | Bar 244 | Ergebnis |
+|---|---|---|---|
+| 13 | feuert (`STUFE_3_KERZE_3`) | zyklus-gesperrt (Sweep 242, `Δ2 < 13`) | Entry 245 |
+| 14–15 | zyklus-gesperrt (Sweep 229, `Δ13 < 14`) | feuert (`STUFE_1_IN_BAR`) | Entry 245 |
+
+F3 (`k <= letzter_sweep_bar`) sperrt Bar 242 nicht selbst; bei `v = 13` bleibt
+Bar 244 mit `Δ2` unterhalb der Sperre frei. Bei `v = 14` wird 242 gesperrt,
+wodurch der Loop bis Bar 244 weiterlaeuft und dort ueber `STUFE_1_IN_BAR`
+denselben Entry erzeugt. Das Dedup-Gate `getradete_entry_bars` (B23-3) bleibt
+als generischer Sicherheitsgurt bestehen, wird hier aber **nicht** als
+Begruendung herangezogen.
+
+Institutionell ist das **robuster als ein Dedup**: Das
+Reversal-Reclaim-Phaenomen ist ueber zwei unabhaengige Reclaim-Stufen
+abgesichert und haengt nicht an einem Einzel-Bar.
+
+**5. Institutionelle Begruendung des Zielwerts 12:**
+
+- `v = 3` (45 min) waere Retail-Scalping — die Liquiditaet eines vorangegangenen
+  Fehlausbruchs ist institutionell nicht absorbiert.
+- `v = 15` (3 h 45 min) ist die Abbruchkante — eine Verzoegerung um einen
+  einzigen M15-Bar kippt das Setup.
+- **`v = 12` (3,0 Stunden)** entspricht einer halben Handelssitzung, liegt
+  stabil im Plateau-Kern `[3; 15]` und gibt dem Markt Zeit, das vorherige Hoch
+  zu verdauen, das Zwischen-Tief bei 65,598 USD (Bar 242) auszubilden und mit
+  neuem Schwung die Decke anzutesten.
+
+**6. Revokation F1/Option A (H1, vollstaendig und namentlich):**
+
+> **F1/Option A wird vollumfaenglich revoziert.** Die fruehere
+> Hilfsentscheidung — „die E3-Stufe (Bar 245) wird zurueckgenommen, sie
+> kollidiert mit der Pivot-Zaehlung E2 und mit M0 (244 − 229 = 15 < 24)" —
+> wird aufgehoben. **Die damalige Begruendung entfaellt durch die
+> Neuarretierung des Re-Test-Zyklus auf 12 Bars:** Die Kollision bestand
+> ausschliesslich gegen den alten M0-Wert 24. Die Pivot-Zaehlung E2 ist von
+> der Zyklus-Hoehe unabhaengig und bleibt unberuehrt.
+
+**7. Kennzahlen-Progression (H3, transparente Historie):**
+
+| Stand | `retest_zyklus_bars` | Trades | Netto-R | Zyklus-Sperren | Verluste |
+|---|---|---|---|---|---|
+| **Phase 1** (Nachtrag Block 2/3 & M6) | 24 | 5 | +23,13 | 4 | 1 |
+| **Phase 2** (dieser Nachtrag) | **12** | **6** | **+27,08** | **3** | 1 |
+
+Die Phase-1-Werte bleiben im Dokument **erhalten** (Revisionssicherheit); sie
+werden nicht ueberschrieben. Zusaetzlicher Trade in Phase 2: SHORT
+`bar 242` → Entry 245, `STUFE_3_KERZE_3`, +3,95 R.
+
+**8. Low-n-Transparenz (§8.2):**
+
+`n = 6` entschiedene Trades in der Box ⇒ **PF nicht belastbar** (§8.2:
+Warnung ab `n < 20`). Die Arretierung ist daher primaer eine
+**Regelpraezisierung** (Zulassung der E3-Stufe), **kein** statistisch belegter
+Edge. Eine Aussage ueber Erwartungswert oder Profit-Faktor ist daraus nicht
+ableitbar.
+
+**9. S1/S2-Vorbehalt (H2, ausdruecklich aufrechterhalten):**
+
+Der in Teil 2 formulierte Vorbehalt bleibt **wortgleich bestehen** und wird
+nicht wegdefiniert:
+
+> Der Reihentest (12/16/20/24) ist **auf S1 und S2** zu wiederholen; erst
+> danach Entscheidung.
+
+Faktische Lage 2026-09-09: Die Messung auf S1/S2 ist **derzeit nicht
+moeglich**. `main()` routet nur `fenster == "AUG"` in den SE-Harness
+(`_replay_c_se_main`); S1/S2 laufen ueber `_lauf_c` → **Alt-C**
+(`_replay_c`), in dem die SE-Symbole (`_se_scan`, `_se_trades`,
+`blockiert_durch_aussenkante`, `basis_bei`, `_existiert`, `retest_zyklus`)
+**0×** vorkommen. S1/S2 wuerden folglich eine andere Engine messen.
+`retest_zyklus_bars = 12` ist damit ein **AUG-Arbeitswert**, keine
+gate-konforme Endarretierung. Die Bestaetigung ist nach Behebung des
+Routing-Blockers nachzuholen.
+
+**10. Wirkung auf §8.4:**
+
+Die Harness-Defaults in §8.4 werden auf `retest_zyklus_bars` **12** korrigiert
+(1:1 zur Klassenebene `StraightEdgeHarnessKonfiguration`). Die
+Gate-Semantik (§8.2: `PF >= 1,30` UND `Summe R > 0` auf S1 UND S2) bleibt
+unveraendert; AUG bleibt reine Referenz.
+
+**Datenvertrag Arretierungsstatus (arretiert):**
+
+```python
+from dataclasses import dataclass
+from typing import Literal, Tuple
+
+
+@dataclass(frozen=True, slots=True)
+class ArretierungsStatusV3:
+    parameter_name: str = "retest_zyklus_bars"
+    wert_alt: int = 24
+    wert_neu: int = 12
+    plateau_grenzen: Tuple[int, int] = (3, 15)
+    untergrenze_toxisch_bars: int = 3
+    obergrenze_entry245_entfaellt_bars: int = 15
+    f1_option_a_revoziert: bool = True
+    s1_s2_status: Literal["VORBEHALT_WEGEN_ROUTING_BLOCKER"] = (
+        "VORBEHALT_WEGEN_ROUTING_BLOCKER")
+    low_n_warnung_aktiv: bool = True
+```
 ---
 
 ## 8. Gate & Schritt-0-Replay (verbindlich)
@@ -1417,7 +1598,8 @@ Da V3-Kanten **zeitlos** über den 2-Body-Bruch gesteuert werden, entfällt das
   unverändert: je Fenster genau 1 Durchlauf.
 - **Je Fenster genau 1 Durchlauf** (AUG, S1, S2) mit fester Default-Konfiguration
   (§7.2: `touch_band_pct` **0,12**, Abstand ≥ 3, Gegenkante ≥ 2, Split 50/50,
-  SL-Puffer 0,05 USD fest; **Block 2/3 + M6:** `retest_zyklus_bars` 24,
+  SL-Puffer 0,05 USD fest; **Block 2/3 + M6 + Teil 3:** `retest_zyklus_bars`
+  **12** (AUG-arretiert unter S1/S2-Vorbehalt, Plateau `[3; 15]`),
   `quartil_distanz_pct` 25,0, `max_seed_distanz_pct` 0,75 — 1:1 der
   Harness-Default `StraightEdgeHarnessKonfiguration`). Keine
   `max_tage`-Sensitivitätsmatrix für C.

@@ -1116,6 +1116,135 @@ Dochtspitze ist für die Neugeburt von Kanten gesperrt (Anti-Spike-Garantie).
 
 ---
 
+### Nachtrag 2026-09-09 (Block 2/3 & M6: Retest-Zyklus, Aussenquartil,
+Innenlevel-Blocker — arretiert)
+
+> **Status:** Arretiert nach Mentoren-Freigabe B23-1…B23-6 (Block 2/3) und
+> F1–F4 (M6). Messbasis: AUG-Lauf `--modus C` auf
+> `test/tmp_kanten_engine_replay.py`. Vorher 6 Trades / +21,13 R (mit
+> unberechtigtem SHORT 223), nachher **5 Trades / +23,13 R**
+> (Ablehnungen: Blocker=3, Zyklus=4, Quartil=20).
+
+**Ausgangsbefund (Anlass der Arretierung):** Der SHORT 223 an der Innenkante
+K15 (66,046) war unberechtigt — der Markt stach nur bis 66,146 (+0,151 %) und
+schloss 0,010 USD unter der Basis, waehrend die kausal seit Bar 109
+existierende Aussenwand K20 (66,459) unerreicht blieb. Ein Fade im Schatten
+einer intakten Aussenwand ist institutionell unbegruendet (kein Liquidity-Sweep
+der verteidigten Decke). Ferner zaehlte der Algo 229 faelschlich als 3. Touch
+(Events @229 = {107, 228}; der 3. Kontakt folgt erst @242), und der
+Retest-Zyklus war nur unvollstaendig abgebildet.
+
+**Arretierte Parameter (Block 2/3 & M6):**
+
+| Kennung | Parameter | Wert | Regel / Begruendung |
+|---|---|---|---|
+| M0 | `retest_zyklus_bars` | **24** (6 h) | Ersetzt Q8/F2-Vollrisiko: dieselbe Kante ist nach einem genommenen Sweep erst nach einem neuen Liquiditaetszyklus wieder handelbar. |
+| M2 | `quartil_distanz_pct` | **25,0** (Prozent-Konvention, nicht 0,25) | Q29 Niemandsland-Sperre: nur das aeussere Quartil der kausalen Spanne 0…k handelt. |
+| M6 | `max_seed_distanz_pct` | **0,75** (wiederverwendet) | Schlagdistanz des Innenlevel-Blockers (Q9b-Sicherheitsnetz, unveraendert). |
+| M6 | Blocker-Quelle | nur `_existiert`-Linien (AKTIV) | F3: schlafende/dormante Linien sperren nicht. |
+| B23-4 | `max_schwung_bars` | **ersatzlos entfallen** | Der Zyklus (M0) uebernimmt die Sperre; kein zweiter, paralleler Zeitparameter. |
+
+**1. M0 — Retest-Zyklus ersetzt Q8/F2 (`retest_zyklus_bars = 24`):** Nach
+einem genommenen Trade an Kante X gilt `k - kd.letzter_sweep_bar < 24` als
+Zyklus-Sperre (kein Vollrisiko-Re-Trigger im selben Liquiditaetszyklus).
+Fortschreibung **nur bei tatsaechlich genommenem Trade** (B23-5) — ein
+abgewiesener Kontakt setzt die Uhr nicht zurueck.
+
+**2. M1/M1b — Kausalitaets-Haertung:** `_gegenkante` nutzt dieselbe
+Existenz-Semantik wie `_kandidat` (`erster_pivot_bar + 2 <= k + 1`), bewusst
+ohne AKTIV-Gate (Q5/Q14: schlafende Gegenkanten erlaubt), mit
+Anker-Ausnahme. M1b: `ist_prim_anker` wirkt erst ab `promoviert_ab_bar` —
+kein Lookahead durch einen noch nicht promovierten Anker.
+
+**3. M2 — Aussenquartil-Sperre (Q29):** Distanz des Sweep-Extremums zum
+laufenden kausalen Range-Extrem `0…k`, normiert auf die Spanne;
+handelbar nur `<= 25 %`. Sperrt Fades mitten in der Range (Niemandsland).
+
+**4. M3 — Dedup je Entry-Bar (B23-3):** `getradete_entry_bars` verhindert
+Doppel-Trades auf derselben Ausfuehrungs-Bar.
+
+**5. M4 — Report-Ausweisung:** Eigene Sektionen fuer Zyklus-, Quartil- und
+Blocker-Sperren; `Ablehnungen:` fuehrt `Blocker`, `Zyklus`, `Quartil`.
+
+**6. M6 — Innenlevel-Blocker (F1–F4):** Blocker ist die **aeusserste
+existierende** Linie derselben Seite, die vom Sweep-Extremum **nicht erreicht**
+wurde und deren Abstand zur Kandidatenbasis `<= 0,75 %` ist. Entscheidend ist
+die aeusserste Linie: eine naehere Innenlinie darf die Sperre nicht ausloesen,
+wenn die Aussenwand selbst erreicht wurde (sonst wuerde der Kern-Gewinner
+LONG 398 an K5 eliminiert). Basis ist kausal `basis_bei(k)`, **nicht** der
+Report-End-Mittelwert. **F1 = Option A:** die E3-Stufe (Bar 245) wird
+zurueckgenommen — sie kollidiert mit der Pivot-Zaehlung E2 und mit M0
+(244 − 229 = 15 < 24). **F2** = `max_seed_distanz_pct = 0,75` wiederverwendet.
+**F3** = nur `_existiert`-Linien sperren. **F4** = Go fuer den Einbau.
+
+**Verifikation (AUG, Modus C):** 5 Trades / +23,13 R — SHORT 229 (+6,92),
+LONG 398 (+5,66), SHORT 529 (+8,41), SHORT 564 (+3,14), LONG 639 (−1,00).
+Blocker-Sperren: 223/224/225 (K15 → unerreichte Wand K20 66,459).
+`test/tmp_v3_straight_edge_harness_AUG.txt`,
+`test/kanten_engine_trades_AUG_mC.png`.
+
+**Datenvertrag Block 2/3 & M6 (arretiert):**
+
+```python
+from dataclasses import dataclass
+from typing import Literal, Optional
+import numpy as np
+
+SignalRichtung = Literal["SHORT", "LONG"]
+KantenSeite = Literal["OBEN", "UNTEN"]
+
+
+@dataclass(frozen=True, slots=True)
+class Block23Konfiguration:
+    retest_zyklus_bars: int = 24          # M0: neuer Liquiditaetszyklus (6 h)
+    quartil_distanz_pct: float = 25.0     # M2: nur aeusseres Quartil handelt
+    max_seed_distanz_pct: float = 0.75    # M6: Schlagdistanz Innenlevel-Blocker
+
+
+def im_aussenquartil(richtung: SignalRichtung, k: int, sweep_px: float,
+                     hi: np.ndarray, lo: np.ndarray,
+                     cfg: Block23Konfiguration) -> bool:
+    """M2/Q29: Einstieg nur an der aeusseren lebenden Wand (kausale Spanne 0..k)."""
+    ex_hi = float(np.max(hi[:k + 1]))
+    ex_lo = float(np.min(lo[:k + 1]))
+    spanne = ex_hi - ex_lo
+    if spanne <= 0.0:
+        return True
+    distanz = ((ex_hi - sweep_px) if richtung == "SHORT"
+               else (sweep_px - ex_lo)) / spanne * 100.0
+    return distanz <= cfg.quartil_distanz_pct
+
+
+def blockiert_durch_aussenkante(richtung: SignalRichtung, k: int,
+                                basis_k: float, sweep_px: float,
+                                seite_edges: dict[KantenSeite, list],
+                                existiert, cfg: Block23Konfiguration):
+    """M6: Blocker = AEUSSERSTE _existiert-Linie jenseits des Sweeps (<= 0.75 %)."""
+    seite: KantenSeite = "OBEN" if richtung == "SHORT" else "UNTEN"
+    aussen: Optional[object] = None
+    for e in seite_edges[seite]:
+        if not existiert(e, k):
+            continue
+        b = e.basis_bei(k)
+        if seite == "OBEN":
+            if b <= sweep_px:
+                continue                      # erreicht -> kein Blocker
+            if aussen is None or b > aussen.basis_bei(k):
+                aussen = e
+        else:
+            if b >= sweep_px:
+                continue
+            if aussen is None or b < aussen.basis_bei(k):
+                aussen = e
+    if aussen is None:
+        return None
+    b = aussen.basis_bei(k)
+    dist = ((b - basis_k) if seite == "OBEN" else (basis_k - b)) / basis_k * 100.0
+    return aussen if 0.0 < dist <= cfg.max_seed_distanz_pct else None
+```
+
+---
+
 ## 8. Gate & Schritt-0-Replay (verbindlich)
 
 ### 8.1 Replay-Harness (`test/tmp_kanten_engine_replay.py`, Schritt 0)

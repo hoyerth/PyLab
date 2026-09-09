@@ -451,10 +451,14 @@ Admission noch Cooldown.
   wieder, wenn ein **neuer bestätigter Touch** vorliegt, dessen `pivot_bar`
   **größer** als `letzter_signal_bar` der Kante ist (`letzter_signal_bar` wird
   bei jeder Signal-Erzeugung auf die Entscheidungs-Bar gesetzt). Zusätzlich gilt
-  **max. 1 offene Position je Kante** (kein Stacking; **durchgesetzt seit §7.2 Teil 4**,
-  Entry-Zeit-Lesart `kandidat_entry_bar <= max(exit1_bar, exit2_bar)`). Kein starrer
-  Bar-Cooldown; legitime Mehrfach-Reclaims mit Touch-Abstand > 3 (237 vs. 249)
-  bleiben erlaubt.
+  ein **Mindestabstand von `retest_zyklus_bars` = 12 Bars auf der Entry-Referenz**
+  (**B2, §7.2 Teil 7**): Der neue Entry muss mindestens 12 Bars nach dem Entry des
+  letzten genommenen Trades **derselben Kante** liegen. Das frühere Verbot
+  „max. 1 offene Position je Kante" (Stacking-Gate, §7.2 Teil 4,
+  `kandidat_entry_bar <= max(exit1_bar, exit2_bar)`) ist **seit §7.2 Teil 7
+  REVOZIERT und ersatzlos entfernt** — es hat legitime Re-Entries bis Exit 2
+  erdrosselt. Kein starrer Bar-Cooldown; legitime Mehrfach-Reclaims mit
+  Touch-Abstand > 3 (237 vs. 249) bleiben erlaubt.
 - **Stop-Loss strukturell:** jenseits des **Sweep-Extremums + 0,05 USD Puffer**
   (institutioneller Invalidierungspunkt: erneuter Schlusskurs-Bruch des
   Docht-Extremums = Trendexpansion, kein Reclaim). Fixer 0,45 % nur noch als
@@ -2236,6 +2240,325 @@ Konfiguration). Offen bleiben die Folgearbeiten aus Teil 5 (Routing-
 Generalisierung S1/S2, Gate-Messung) sowie die R22-Messung
 (Trendrichtungs-Filter am Signal, noch nicht beauftragt).
 
+### Nachtrag 2026-09-09 (Teil 7) — B2-Entry-Referenz & Sweep-Entkopplung: Arretierung
+
+> **Status: ARRETIERT (Mentor-Freigabe 2026-09-09, D1–D7).**
+> Dieser Nachtrag **hebt §7.1 B (Stacking-Verbot) und §7.2 Teil 4 auf**.
+> Arretiert werden: **B2** (Zyklus-Uhr auf der Entry-Referenz, `v = 12`),
+> die **ersatzlose Entfernung** des Stacking-Gates und die **Entkopplung der
+> Sweep-Schwelle** (`high[k] > basis` genuegt, kein Mindestdurchstich).
+> Neue Kennzahl: **14 Trades / +40,45 R** (fixes Risiko), Notional
+> **+12,768 USD**. Die Kennzahl `+23,02 R` (Teil 4) wird als **gate-verzerrt**
+> gekennzeichnet und bleibt nur als Revisionsanker erhalten.
+
+**1. Anlass und Gegenstand.**
+
+Die IDE hat in der H1-Forensik zu K20 einen **eigenen Methodikfehler** der
+Zwischenmessung aufgedeckt und korrigiert: Das Feld `kd.letzter_sweep_bar`
+traegt **zwei Rollen** —
+
+| # | Rolle | Ort | Semantik |
+|---|---|---|---|
+| (a) | F3-Frische-Gate | `_se_trades`, Z. 2571 (`if k <= kd.letzter_sweep_bar`) | kein zweiter Sweep derselben Bar |
+| (b) | Zyklus-Uhr | `_se_trades`, Z. 2585 (`if k - kd.letzter_sweep_bar < v`) | Retest-Abstand |
+
+Eine erste Messung der Entry-Referenz hatte `kd.letzter_sweep_bar = entry_bar`
+gesetzt und damit **gleichzeitig (a) verschoben** — das Ergebnis war nicht
+isoliert. Die Messung wurde mit zwei unabhaengigen, seiteneffektfreien
+Implementierungen wiederholt (Abschnitt 12) und stimmt ueberein.
+
+Gegenstand: Entkopplung der beiden Barrieren (Sweep-Bandbreite, Totalsperre bis
+Exit 2) sowie die Frage der Zaehlungs-Referenz der Zyklus-Uhr.
+
+**2. Der methodische Fund: Sweep-Referenz vs. Entry-Referenz.**
+
+Rohdaten 12.08., Basis K20 = 66.459, erster Sweep Bar 229, Entry 231:
+
+| Bar | Zeit | high | dist | close | Stufe | Entry | Δ zu 231 | Δ zu 229 |
+|---|---|---|---|---|---|---|---|---|
+| 229 | 11:15 | **66.776** | +0,4770 % | 66.471 | 2 | 231 | −2 | 0 |
+| 241 | 14:15 | 66.506 | +0,0707 % | 66.437 | 1 | 242 | **10/11** | 12 |
+| 242 | 14:30 | **66.663** | +0,3070 % | 66.480 | 3 | 245 | **14** | 13 |
+| 243 | 14:45 | 66.528 | +0,1038 % | 66.523 | 0 | — | 12 | 14 |
+| 244 | 15:00 | 66.662 | +0,3055 % | 66.090 | 1 | 245 | 13 | 15 |
+
+Bei `v = 12` entscheidet **allein die Referenz**:
+
+| Referenz | Bar 241 | Bar 242 | Auslöser | Ergebnis |
+|---|---|---|---|---|
+| **Sweep-Ref** (Ist-Code) | Δ12 → **frei, feuert** | gesperrt (Uhr steht) | Bar 241 → Entry 242 | **−1,00 R** |
+| **Entry-Ref (B2)** | Δ11 < 12 → **gesperrt** | Δ14 ≥ 12 → **frei** | **Bar 242 → Entry 245** | **+3,95 R** |
+
+Die Sweep-Referenz hat deshalb eine **tote Zone `[4; 12]`** (Abschnitt 5), in der
+der K20-Zweit-Trade vollstaendig verschwindet, und haengt an einem
+Rausch-Docht (Bar 241, +0,0707 %). Die Entry-Referenz ist monoton, hat kein
+Fenster ohne K20-Trade und misst den Abstand dort, wo Exposure entsteht:
+**Positionierungszeit statt Wick-Spitze.**
+
+**3. Arretierung B2 (D1) — Entry-Referenz ohne neues Feld.**
+
+Verbindlich: Die Zyklus-Uhr referenziert den **Entry-Bar des letzten
+genommenen Trades derselben Kante**, gelesen aus dem **bestehenden**
+`letzter_trade: Dict[int, _SESetup]` (Z. 2368). **Kein neues Dataclass-Feld**,
+**kein Eingriff** in das F3-Frische-Gate (Z. 2571). Damit bleibt die
+`@dataclass(frozen=True, slots=True)`-Struktur von `_SEEdgeH` unberuehrt.
+
+Geprueft wurden zwei Implementierungen mit **bit-identischen Trade-Listen**:
+
+| Variante | Umsetzung | Stellen |
+|---|---|---|
+| B1 | neues Feld `letzter_entry_bar` in `_SEEdgeH` | 3 |
+| **B2 (arretiert)** | `letzter_trade[kd.kid].entry_bar` | **1** |
+
+B2 ist minimal-invasiv und seiteneffektfrei (`f3 = 0` in allen Varianten,
+read-only nachgewiesen).
+
+**4. Arretierung Barriere 1 (D3/D4) — Sweep = reiner Durchstich.**
+
+`touch_band_pct = 0,12 %` behaelt **ausschliesslich** die Rollen (i) Cluster-Band,
+(ii) In-Band-Vorrang, (ii') Seed-Pool. Die Rolle (iii)
+**Sweep-Mindestdurchstich entfaellt**:
+
+| Ort | vorher | nachher |
+|---|---|---|
+| `_reclaim_stufe` OBEN (Z. 2013) | `hi[k] > basis and band < dist_o` | `hi[k] > basis and 0.0 < dist_o` |
+| `_reclaim_stufe` UNTEN (Z. 2026) | `lo[k] < basis and band < dist_u` | `lo[k] < basis and 0.0 < dist_u` |
+| `_kandidat` Kaskade (Z. 2513) | `dist <= cfg.touch_band_pct: continue` | `dist <= 0.0: continue` |
+| `_kandidat` Seed-Pool (Z. 2500) | `cfg.touch_band_pct < d <= max` | `0.0 < d <= max` |
+
+Der In-Band-Vorrang (Z. 2513) wird damit von einem **Schwellen**-Vergleich auf
+einen **Vorzeichen**-Vergleich reduziert: Nur eine Linie, deren Basis **nicht
+durchstochen** ist, verliert den Vorrang. **Kein Mindestdurchstich** — die
+generische Reclaim-Semantik bleibt erhalten.
+
+**5. Grenzkarte unter dem neuen Regime (read-only, AUG Voll n = 1288).**
+
+`tmp_h1_zyklus_grenzkarte.py` / `tmp_h1_zyklus_ref2.py` / `tmp_h1_zyklus_ref3.py`
+(je Variante frischer `_se_scan`; `_se_scan` mutiert beim Lesen).
+
+| `v` | Entry-Ref (B2) | Sweep-Ref |
+|---|---|---|
+| 0–1 | 37 / +34,01 (Rausch-Phase) | 37 / +34,01 |
+| 2–3 | 22–26 / +29,6 … +33,0 | 24–29 / +26,6 … +31,0 |
+| **4–11** | 15–19 / +31,1 … +34,5 | **16–20 / +30,1 … +33,5 (tote Zone, K20-Zweit-Trade fehlt)** |
+| **12–14** | **14 / +40,45 (Plateau)** | 14 / +40,45 (nur `v = 13/14`) |
+| 15–24 | 13 / +36,50 | 13 / +36,50 |
+
+**B2-Plateau: `[12; 14]`, monoton.** Die Sweep-Referenz hat **kein** Plateau:
+`v = 13/14` liefern zwar ebenfalls 14 / +40,45 R, aber `[4; 12]` ist eine tote
+Zone (nur `v = 12` liefert dort den verzerrten −1,00-R-Pfad ueber Bar 241).
+
+**6. Arretierung Barriere 2 (D3) — Stacking-Gate ersatzlos entfernt.**
+
+Das Gate `entry_bar <= max(exit1_bar, exit2_bar)` (`_p7`, Z. 2639–2648) wird
+**gestrichen**. Der Schutz gegen Order-Spamming liegt jetzt vollstaendig beim
+**12-Bar-Entry-Mindestabstand** (B2). Der Entry-Dedup **B23-3**
+(`getradete_entry_bars`) bleibt als generischer Sicherheitsgurt bestehen.
+
+**7. 2×2×2-Dekompensation der Wirkung (`tmp_h1_dekomposition.py`).**
+
+| Gate | Band | Uhr | Trades | Netto-R | Δ zu V0 |
+|---|---|---|---|---|---|
+| AN | 0,12 % | Sweep-Ref | 9 | **+23,02** | — (V0) |
+| AN | 0,12 % | Entry-Ref | 9 | +23,02 | ±0,00 |
+| AN | entkoppelt | beide | 12 | +20,57 | −2,45 |
+| AUS | 0,12 % | Sweep-Ref | 12 | +29,11 | **+6,09** |
+| AUS | 0,12 % | Entry-Ref | 11 | +30,11 | +7,09 |
+| AUS | entkoppelt | Sweep-Ref | 15 | +34,50 | +11,48 |
+| **AUS** | **entkoppelt** | **Entry-Ref** | **14** | **+40,45** | **+17,43** |
+
+**Zwei institutionelle Befunde:**
+
+1. **Barriere 2 muss fallen, damit Barriere 1 wirken kann.** Mit aktivem Gate
+   verschlechtert die Band-Entkopplung das Ergebnis (−2,45 R): Das Gate faengt
+   die neu entstehenden Kandidaten ab, ohne dass die Zyklus-Uhr sie entzerrt.
+2. **B2 wirkt nur bei entferntem Gate.** Unter dem Gate sind Sweep-Ref und
+   Entry-Ref identisch (9/+23,02 bzw. 12/+20,57) — das Gate maskiert die Uhr
+   vollstaendig. Erst ohne Gate entfaltet B2 seine Wirkung (+34,50 → +40,45).
+
+Wirkungsanteile (kumulativ): **Gate +6,09 R · Band +5,39 R · B2 +5,95 R**
+= **+17,43 R**.
+
+**8. Barriere-1-Testmatrix (Stacking-Gate aktiv, `v = 12`).**
+
+| Durchstich-Schwelle | Trades | Netto-R | Δ zu 0,12 % |
+|---|---|---|---|
+| 0,00 % | 12 | +20,57 | −2,45 |
+| 0,05 % | 11 | +21,52 | −1,50 |
+| **0,12 % (arretiert)** | **9** | **+23,02** | — |
+
+Dies bestaetigt **Teil 6, Abschnitt 9** (`sweep_min ∈ [0,12; 0,15]`
+signaturidentisch) und ergaenzt es: Unter dem **alten** Regime (Gate aktiv)
+verschlechtert jede Lockerung das Ergebnis. Die Lockerung ist erst unter dem
+**neuen** Regime (Gate entfernt + B2) produktiv — die beiden Barrieren waren
+gekoppelt.
+
+**9. Arretierte Kennzahl (D5).**
+
+Trade-Liste AUG Voll (14 Trades, `tmp_h1_risk_norm.py`):
+
+| Bar | Zeit | K | Entry | E | SL | Risk USD | R |
+|---|---|---|---|---|---|---|---|
+| 229 | 12.08 11:15 | K20 | 231 | 66,424 | 66,826 | 0,402 | +6,92 |
+| **242** | **12.08 14:30** | **K20** | **245** | **66,092** | **66,713** | **0,621** | **+3,95** |
+| 383 | 14.08 03:45 | K8 | 384 | 63,798 | 63,686 | 0,112 | −0,40 |
+| 398 | 14.08 07:30 | K5 | 399 | 63,763 | 63,435 | 0,328 | +5,66 |
+| 492 | 17.08 08:00 | K16 | 493 | 65,819 | 65,990 | 0,171 | −0,48 |
+| 529 | 17.08 17:15 | K20 | 531 | 66,324 | 66,588 | 0,264 | +8,39 |
+| 564 | 18.08 03:00 | K20 | 565 | 66,434 | 66,580 | 0,146 | +15,93 |
+| 620 | 18.08 17:00 | K8 | 621 | 63,790 | 63,672 | 0,118 | −1,00 |
+| 639 | 18.08 21:45 | K1 | 640 | 63,534 | 63,298 | 0,236 | −1,00 |
+| 650 | 19.08 01:30 | K3 | 653 | 63,011 | 62,671 | 0,340 | −1,00 |
+| 679 | 19.08 08:45 | K45 | 681 | 63,181 | 62,792 | 0,389 | +6,48 |
+| 715 | 19.08 17:45 | K16 | 716 | 65,882 | 65,955 | 0,073 | −1,00 |
+| 760 | 20.08 06:00 | K51 | 762 | 66,990 | 67,237 | 0,247 | −1,00 |
+| 853 | 21.08 06:15 | K59 | 855 | 68,979 | 69,222 | 0,243 | −1,00 |
+
+| Kennzahl | Wert |
+|---|---|
+| **Summe R (fixes Risiko, arretiert)** | **+40,45 R** |
+| Notional (fixe Losgroesse) | **+12,768 USD** |
+| Notional in R beim Mittelrisiko (0,2636 USD) | +48,44 R |
+| Trefferquote | 6/14 = **42,9 %** |
+| Summe Gewinne / Verluste | +47,33 R / −6,88 R |
+| Payoff | **6,87** |
+| Risiko-Streuung (min/median/max) | 0,073 / 0,247 / 0,621 USD |
+
+**R-Multiples sind per Konstruktion risiko-normiert** (`r = PnL / Risk`); die
+R-Summe ist daher die Kennzahl bei **fixem Risiko je Trade**. Die
+Notional-Summe wird als ergaenzende Metrik dokumentiert, **nicht** arretiert.
+Eine frueher genannte Zahl „+33,3 R" (inkonsistente Einzelkorrektur nur des
+564er Trades) ist **verworfen**.
+
+**10. Rausch-Trades (D4) — bewusst im Set.**
+
+| Bar | K | R | Charakter |
+|---|---|---|---|
+| 383 | K8 | −0,40 | reiner Durchstich, Gegenkante 0,068 USD entfernt |
+| 492 | K16 | −0,48 | reiner Durchstich |
+| 620 | K8 | −1,00 | reiner Durchstich |
+| 715 | K16 | −1,00 | reiner Durchstich |
+| **Summe** | | **−2,88 R** | Preis der Barriere-1-Freiheit |
+
+Der durch B2 **eliminierte** Rausch-Docht Bar 241 (−1,00 R) ist hierin **nicht**
+enthalten. Die vier Trades bleiben drin: Wer den Mindestdurchstich abbaut, muss
+das unvermeidliche Rauschen annehmen. Kein nachtraegliches Fummeln an
+Schwellen.
+
+**11. De-Risking-Vertrag (D6) — SUPERSEDED.**
+
+Der Vertrag „`ist_nach_de_risking_zulaessig = entry > tp1_bar`" wird als
+**historisch ueberholt** markiert. Die Steuerung erfolgt ausschliesslich ueber
+den 12-Bar-Entry-Mindestabstand (B2). **Zusatz aus Befund 4E:** Bei einem
+SL-Trade ohne TP1 ist `tp1_bar = None`; der Ausdruck `entry > None` haette in
+Python 3 einen `TypeError` ausgeloest bzw. in einer toleranten Lesart `True`
+geliefert und einen Zusatzverlierer erzeugt. Gueltig bleibt:
+
+```python
+grund1 != "TP1"  ->  nicht de-risked, Sperre bis exit_final
+```
+
+**12. Datenvertrag (arretiert).**
+
+```python
+from dataclasses import dataclass
+from typing import Dict, Literal, Optional
+
+SignalRichtung = Literal["SHORT", "LONG"]
+
+
+@dataclass(frozen=True, slots=True)
+class LetzterTradeEintrag:
+    bar: int
+    entry_bar: int
+    richtung: SignalRichtung
+    kanten_id: int
+
+
+def ist_zyklus_gesperrt_b2(
+    kandidat_entry_bar: int,
+    kanten_id: int,
+    letzter_trade_speicher: Dict[int, LetzterTradeEintrag],
+    mindest_zyklus_bars: int = 12,
+) -> bool:
+    """Prueft strikt kausal ueber B2: Liegt der neue Entry mindestens
+
+    `mindest_zyklus_bars` nach dem Entry des vorherigen Trades an derselben Kante?
+    """
+    if kanten_id not in letzter_trade_speicher:
+        return False
+    letzter_eintrag = letzter_trade_speicher[kanten_id]
+    abstand_bars: int = kandidat_entry_bar - letzter_eintrag.entry_bar
+    return abstand_bars < mindest_zyklus_bars
+
+
+@dataclass(frozen=True, slots=True)
+class ArretierungsStatusV5:
+    zyklus_referenz: Literal["ENTRY"] = "ENTRY"      # B2 (Teil 7)
+    retest_zyklus_bars: int = 12                     # Plateau [12; 14]
+    stacking_gate_aktiv: bool = False                # §7.1 B revoziert
+    sweep_mindestdurchstich_pct: float = 0.0         # Barriere 1 entkoppelt
+    touch_band_pct: float = 0.12                     # nur Rollen (i)/(ii)/(ii')
+    gesamt_n_trades: int = 14
+    gesamt_netto_r: float = 40.45                    # fixes Risiko
+    gesamt_notional_usd: float = 12.768              # fixe Losgroesse
+    trefferquote_pct: float = 42.9
+    payoff: float = 6.87
+    de_risking_vertrag_status: Literal["SUPERSEDED"] = "SUPERSEDED"
+```
+
+**13. §8.4-Aenderungen (D3, D5).**
+
+- `stacking_gate_aktiv = True` → **`False`**.
+- `max_offene_positionen_je_kante = 1` → **entfaellt** (ersetzt durch den
+  12-Bar-Entry-Abstand).
+- neu: `retest_zyklus_referenz = "ENTRY"`, `sweep_mindestdurchstich_pct = 0.0`.
+- `retest_zyklus_bars = 12` **bleibt** (Plateau `[12; 14]`, exakt 3,0 h).
+- `touch_band_pct = 0,12` **bleibt**, aber nur fuer die Rollen (i)/(ii)/(ii').
+- Kennzahl-Basis: **n = 14 / +40,45 R** (vorher n = 9 / +23,02 R).
+
+**14. S1/S2-Vorbehalt (aufrechterhalten).**
+
+Der Routing-Blocker besteht fort (S1/S2 laufen ueber `_lauf_c` → Alt-C ohne
+SE-Zaehler). Alle Zahlen dieses Nachtrags sind **AUG-Werte unter S1/S2-Vorbehalt**.
+Die Gate-Messung auf S1/S2 ist nach Behebung des Blockers nachzuholen; dabei
+sind **beide** neuen Freiheitsgrade (B2, Gate-Aus) gemeinsam zu messen.
+
+**15. Low-n-Eskalation (§8.2).**
+
+n steigt von 9 auf **14**, bleibt aber **unter der Warnschwelle n = 20**.
+Profit-Faktoren und Erwartungswerte bleiben statistisch **wertlos**. Die
+Validitaet speist sich weiterhin aus der **kausalen Marktstruktur**
+(Sweep → Non-Expansion → Reclaim) und der Regelkonformitaet, **nicht** aus der
+R-Summe. Der Anstieg +17,43 R ist **kein** Guetekriterium.
+
+**16. Revisionssicherheit: was aufgehoben wird.**
+
+| Dokument | Aussage | Status |
+|---|---|---|
+| §7.1 B (Z. 453) | „max. 1 offene Position je Kante" | **REVOZIERT** |
+| §7.2 Teil 4 (Abschnitt 7) | Exit-final-Lesart `entry_bar <= exit_final` | **REVOZIERT** |
+| §7.2 Teil 4 (Abschnitt 9) | `v >= 7` als Gate-Untergrenze | **ersetzt** durch Plateau `[12; 14]` |
+| §7.2 Teil 4 (Abschnitt 10) | Kennzahl n = 9 / +23,02 R | **gate-verzerrt**, nur Revisionsanker |
+| §7.2 Teil 3 (Abschnitt 2) | Plateau `[3; 15]` | **historisch** (gate-frei), ersetzt durch `[12; 14]` |
+| §7.2 Teil 6 (Abschnitt 9) | `sweep_min ∈ [0,12; 0,15]` wirkungslos | **praezisiert**: gilt unter Gate; ohne Gate produktiv |
+| §7.2 Teil 2 (Abschnitt 2) | Bar 245 als eigenstaendiger Trade | **bestaetigt**, jetzt ueber Bar 242 realisiert |
+
+Erhalten bleiben: `touch_band_pct = 0,12` (Cluster/In-Band/Seed), M2/M6, Q29,
+B23-3/4/5, R21 + Tombstone (Teil 5), `retest_zyklus_bars = 12`.
+
+**17. Folgearbeiten (nicht Teil dieses Commits).**
+
+1. Patch `_p9`: B2-Zykluspruefung (1 Stelle), Gate-Entfernung, Sweep-Entkopplung
+   (4 Stellen), §8.4-Contract.
+2. Routing-Generalisierung S1/S2, dann gemeinsame Messung B2 + Gate-Aus.
+3. Neue Kennzahlen-Basis n = 14 / +40,45 R → Gate-Messung (§8.2) auf S1/S2.
+4. Pfad C (H2) nach Abschluss H1/K20.
+
+---
+
+---
+
 ---
 
 ---
@@ -2315,9 +2638,13 @@ Da V3-Kanten **zeitlos** über den 2-Body-Bruch gesteuert werden, entfällt das
 - **Je Fenster genau 1 Durchlauf** (AUG, S1, S2) mit fester Default-Konfiguration
   (§7.2: `touch_band_pct` **0,12**, Abstand ≥ 3, Gegenkante ≥ 2, Split 50/50,
   SL-Puffer 0,05 USD fest; **Block 2/3 + M6 + Teil 3:** `retest_zyklus_bars`
-  **12** (AUG-arbeitswert unter S1/S2-Vorbehalt; Plateau `[3; 15]` ist
-  **gate-frei** und seit §7.2 Teil 4 **aufgehoben** — Untergrenze `v >= 7`),
-  **§7.2 Teil 4:** `stacking_gate_aktiv = True`, `max_offene_positionen_je_kante = 1`,
+  **12** (AUG-arbeitswert unter S1/S2-Vorbehalt; **§7.2 Teil 7:** Plateau
+  `[12; 14]` auf der **Entry-Referenz B2**, monoton; die Plateau-Angaben der
+  Teile 3 (`[3; 15]`) und 4 (`v >= 7`) sind damit historisch),
+  **§7.2 Teil 4 REVOZIERT, §7.2 Teil 7 arretiert:** `stacking_gate_aktiv = False`
+  (Gate ersatzlos entfernt), `max_offene_positionen_je_kante` **entfällt**
+  (ersetzt durch B2), `retest_zyklus_referenz = "ENTRY"`,
+  `sweep_mindestdurchstich_pct = 0.0` (Sweep = reiner Durchstich),
   `quartil_distanz_pct` 25,0, `max_seed_distanz_pct` 0,75,
   **§7.2 Teil 5:** `r21_loeschung_aktiv = True`,
   `ruhezeit_roher_touch_bars = 192`, `tombstone_band_pct = 0.30`,

@@ -2787,9 +2787,10 @@ Die Differenz sind **5 Trades ausserhalb der Box** (Bar >= 644):
 | 715 | SHORT | 16 | 716 | -1,00 |
 | 760 | SHORT | 51 | 762 | -1,00 |
 | 853 | SHORT | 59 | 855 | -1,00 |
-| **Summe** | | | | **+2,49** (Rundung) |
+| **Summe** | | | | **+2,48** |
 
-`37,96 + 2,49 = 40,45 R` — die beiden Kennzahlen sind **konsistent**, nicht
+`37,9643 + 2,4809 = 40,4451 R` (gerundet: `9 / +37,96` und `14 / +40,45`) —
+die beiden Kennzahlen sind **konsistent**, nicht
 widerspruechlich. **Ursache der Verifikations-Diskrepanz:** Die Pruef-Harnesses
 (`test/tmp_p8_verify.py`, `test/tmp_h1_entry_ausfuehrung3.py`) setzen
 `sc["box_end_bar"] = sc["n"]` und messen damit den **Voll-Lauf** (in

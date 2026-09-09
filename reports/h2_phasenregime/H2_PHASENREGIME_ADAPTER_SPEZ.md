@@ -1,0 +1,511 @@
+# H2-Phasenregime-Adapter — READ-ONLY-Spezifikation v0.1
+
+**Status:** Exploration. Kein Produktivcode, keine Änderung an
+`test/tmp_kanten_engine_replay.py`. Alle Aussagen sind durch
+`test/tmp_hook_semantik_check.py` (+ `_out.txt`) reproduzierbar.
+
+**Arretierte Baseline (nicht antasten):**
+
+| Lauf | Definition | Trades | R |
+|---|---|---|---|
+| Lauf A (Box) | `entry_bar < 640` | 8 | **+38.964262** |
+| Lauf B (Voll) | alle | 14 | **+40.445143** |
+
+V0-Referenz in der Verifikation = Lauf B: H1 8 / +38.9643 R + H2 6 / +1.4809 R.
+
+---
+
+## 1. Kernbefund: Hook 1 ist ein Prädikat an ZWEI Stellen
+
+Regel (A) („Wand-Docht-Exception": der Sweep hat Liquidität an der Wand
+selbst abgeholt ⇒ die Wand gilt als **erreicht**) ist mechanisch **nicht**
+durch einen Rückgabewert eines einzelnen Aufrufs abbildbar. Sie muss als
+**Prädikat** an zwei unabhängigen Stellen desselben Bar-Durchlaufs
+ausgewertet werden.
+
+Messung (`test/tmp_hook_semantik_check_out.txt`, Abschnitt A/B/E):
+
+| Variante | Hook-1a Pool | Hook-1b M6 | Kriterium | Scope | H1 n/R | H2 n/R | K73@980 | K73@1020 |
+|---|---|---|---|---|---|---|---|---|
+| V0 Referenz | – | – | – | – | 8 / +38.9643 | 6 / +1.4809 | – | – |
+| V1 F1 `continue` | – | ja | W | 640 | 8 / +38.9643 | 5 / +2.4809 | – | – |
+| V2 F2 Pool-Filter allein | ja | – | W | 640 | 8 / +38.9643 | 5 / +2.4809 | – | – |
+| **V3 F2 + M6** | ja | ja | W | 640 | 8 / +38.9643 | 7 / +7.9021 | +2.4119 | +3.0093 |
+| **V4 F2 + M6** | ja | ja | **M** | 640 | 8 / +38.9643 | 7 / +8.4496 | +2.4119 | +3.0093 |
+| V5 F2 + M6 | ja | ja | M | 848 | 8 / +38.9643 | 7 / +7.9021 | +2.4119 | +3.0093 |
+| V6 F3 (`continue` + V-S-Erlass) + M6 | – | ja | M | 640 | 8 / +38.9643 | 9 / +6.5170 | +2.4119 | +3.0093 |
+| **V7 F2 + M6** | ja | ja | M | **PHASE** | 8 / +38.9643 | 7 / +7.9021 | +2.4119 | +3.0093 |
+
+**Schlüsse:**
+
+1. **V1 und V2 sind inert** — weder `continue` im `dist<0`-Zweig noch der
+   Pool-Filter allein erzeugen die Benchmark-Trades. Ursache: die erreichte
+   Wand K67 (Basis > Sweep) wird von `_blockiert_durch_aussenkante` (M6)
+   weiterhin als Außenwand gesehen und sperrt K73.
+2. **Erst 1a + 1b zusammen** liefern K73@980 und K73@1020.
+3. **H1 ist in ALLEN Varianten bit-identisch** (8 / +38.964262 R) —
+   Scoping `k >= 640` bzw. `k in Phase` schützt die Box vollständig.
+4. V6 zeigt: der V-S-Erlass (F3) ist **verzichtbar** und erzeugt sogar
+   zwei Zusatztrades (H2 9 / +6.5170 R) ⇒ **nicht verwenden**.
+5. Kriterium **M** (Touch-Band 0.12 %) ist für den Benchmark **äquivalent zu W**
+   (identische R), verändert aber bei Scope 640 den Park-Trade
+   K16@715 → K16@716 (−1.0000 → −0.4525 R).
+
+---
+
+## 2. Hook-Stellen mit Zeilennummern und Variablenverträgen
+
+Quelldatei: `test/tmp_kanten_engine_replay.py` (191.814 B, 4.501 Zeilen).
+
+### Hook 1a — Kandidaten-Pool (`_kandidat`, Z. 2471)
+
+| | |
+|---|---|
+| Datei/Zeile | Z. 2513–2515 (`if not pool: … / pool.sort(...)`) |
+| Einfügepunkt | **nach** Z. 2515, **vor** Z. 2516 `for pos, e in enumerate(pool)` |
+| Wirkung | `pool = [e for e in pool if not hook.wand_hat_geliefert(e, k, sweep_px)]` |
+| Lokale Verträge | `e: _SEEdgeH`; `k: int`; `sweep_px = hi[k]` (SHORT) / `lo[k]` (LONG); `seite = "OBEN" if richtung=="SHORT" else "UNTEN"`; `pool` bereits nach `basis_bei(k)` sortiert, `reverse=(seite=="OBEN")` ⇒ `pos == 0` = äußerste Wand |
+| Danach | Z. 2518 `if dist < 0.0:` → Z. 2519 `if _lebt(e, k): return None` (unverändert!) |
+
+### Hook 1b — M6-Blocker (`_blockiert_durch_aussenkante`, Z. 2428)
+
+| | |
+|---|---|
+| Datei/Zeile | Z. 2447–2449 (OBEN) und Z. 2452–2454 (UNTEN) |
+| Wirkung | unmittelbar nach `if b <= sweep_px: continue` (OBEN) bzw. `if b >= sweep_px: continue` (UNTEN): `if hook.wand_hat_geliefert(e, k, sweep_px): continue  # kein Blocker` |
+| Lokale Verträge | `e: _SEEdgeH`; `b = e.basis_bei(k)`; `sweep_px: float`; `kd: _SEEdgeH` (Kandidat); `basis_k = kd.basis_bei(k)` |
+| Warum nötig | K67: `basis ≈ 69.9687 > sweep 69.899` ⇒ `b <= sweep_px` ist **False** ⇒ K67 wird `aussen` und blockiert K73 (dist 0.4192 % ≤ `max_seed_distanz_pct` 0.75) |
+
+### Hook 2 — TP-Ziel / Regel (B) (`_se_trades`, Z. 2346)
+
+| | |
+|---|---|
+| Datei/Zeile | Z. 2612 `gegen_basis = geg.basis_bei(k)`; Ziel wird Z. 2635 `tp2 = gegen_basis` |
+| Wirkung | `_pz = hook.phasen_ziel(k, richtung)`; `if _pz is not None: gegen_basis = _pz` |
+| Lokale Verträge | `richtung: "SHORT"\|"LONG"`; `basis = kd.basis_bei(k)`; `gegen_basis: float`; nachgelagerte Invarianten Z. 2614/2617/2622/2625 (`tp2 < poc < entry < sl` bzw. gespiegelt) ⇒ zu nahe/ferne Ziele erzeugen `stats["kein_raum"]` |
+| Fallback | `None` ⇒ Makro-Gegenkante (heutiges Verhalten) |
+
+### Hook 3 — Phasen-Scope / Initialisierung
+
+| | |
+|---|---|
+| Datei/Zeile | `_se_scan` Z. 2185 `box_end_bar = int(np.searchsorted(ts_arr, np.datetime64("2026-08-19")))`; `_se_trades` Z. 2549 `for k in range(2, box_end - 3)` |
+| Verträge | `ts_arr: datetime64[ns]` (Berlin-Wanduhr-encoded); `box_end_bar == 640`; Bar-Indizes der Engine sind **1:1 identisch** zur v0.4-UTC-Projektion (verifiziert) |
+| Wirkung | `hook.ist_im_regime(k)` steuert 1a und 1b gemeinsam |
+
+### `_SEEdgeH` (Z. 2079–2134, `@dataclass(slots=True)`)
+
+Felder: `kid, seite, basis, geburts_bar, wicks: List[Tuple[int, float]],
+status, letzter_bar, schlaf_windows, letzter_signal_bar, ist_prim_anker,
+erster_pivot_bar, promoviert_ab_bar, letzter_sweep_bar, cluster_hoch,
+cluster_tief`.
+Methoden: `basis_bei(k)` (Q13-Freeze nur für promovierte Primär-Anker),
+`touch_conf(k)` (`b + 2 <= k`), `letzter_touch_conf(k)`, `ist_aktiv_bei(k)`.
+**Keine dynamischen Attribute möglich (slots).**
+
+---
+
+## 3. Kriterium „Wand hat geliefert"
+
+```python
+# M (Mentor-Vorgabe, robust):
+def wand_hat_geliefert(e, k, sweep_px) -> bool:
+    basis = e.basis_bei(k)
+    return abs(sweep_px - basis) <= basis * touch_band_pct / 100.0   # 0.12 %
+
+# W (Referenz, exakt):
+def wand_hat_geliefert(e, k, sweep_px) -> bool:
+    return any(b == k and abs(px - sweep_px) < 1e-9 for b, px in e.wicks)
+```
+
+- M ist **streng breiter** als W: sie stellt jede Wand frei, deren Basis
+  innerhalb 0,12 % des Sweep-Extremums liegt — nicht nur die, deren Docht
+  den Sweep gebildet hat. Fail-open-Risiko.
+- Für K73@980/@1020 liefern M und W **identische R** (+2.4119 / +3.0093,
+  Summe **+5.4212 R**).
+- Einziger gemessener Unterschied (Scope 640): K16@715 (−1.0000) →
+  K16@716 (−0.4525), Δ **+0.5475 R** im Park.
+
+---
+
+## 4. Phasen-Scope (Hook 3)
+
+v0.4-Baseline (frozen), Bar-Indizes = Engine-Indizes:
+
+| P | start–end | U_final (Decke) | L_final (Boden) | Decke-Kante | Boden-Kante |
+|---|---|---|---|---|---|
+| P6 | 620–673 | 65.490 | 62.649 | | |
+| P7 | 715–792 | 67.201 | 65.604 | | |
+| P8 | 802–840 | 68.320 | 67.897 | | |
+| **P9** | **848–1020** | 69.9140 | **68.3700** | K67 (Upper1) | K77 (Lower2) |
+| P10 | 1030–1075 | 68.2200 | 67.5440 | K84 | K82 (Lower3) |
+| P11 | 1082–1134 | 69.3435 | 68.5250 | K78 | K86 |
+| P12 | 1171–1272 | 69.5550 | 67.6355 | K73 (Upper2) | K82 |
+
+**Lücken ohne Phasenzuordnung:** 641–847, 1021–1029, 1076–1081,
+1135–1170, 1273–Ende.
+
+Gemessen: **PHASE-Scope ≡ Scope 848** (identische Trade-Menge). Der
+Unterschied zwischen Scope 640 und PHASE liegt ausschließlich im
+Transition-Park (640–847): K16@716 (+0.5475 R) fällt weg.
+
+---
+
+## 5. Ergebnis-Komposition je Scope (Kriterium M)
+
+| Scope | Park 640–847 | Rest > 847 (Zielbereich) | H2 gesamt |
+|---|---|---|---|
+| 640 | 5 / +3.0283 R | 2 / **+5.4212 R** | 7 / +8.4496 R |
+| 848 | 5 / +2.4809 R | 2 / **+5.4212 R** | 7 / +7.9021 R |
+| PHASE | 5 / +2.4809 R | 2 / **+5.4212 R** | 7 / +7.9021 R |
+
+**Zielband des Mentors [+5,28 … +5,42 R] wird exakt getroffen: +5.4212 R**
+(K73@980 `STUFE_2_KERZE_2` entry 69.4910 / sl 69.9490 / tp2 68.3700 /
+R +2.4119; K73@1020 `STUFE_1_IN_BAR` entry 69.5780 / sl 69.9740 /
+tp2 68.3700 / R +3.0093; beide `GEWONNEN/TP1`, poc 68.4027).
+
+Nebenwirkungen V0 → V4 (Stats): `blocker` 23→14, `kein_raum` 1→7,
+`quartil_blockiert` 56→57, `v_s` 14→15, `zyklus_blockiert` 36→16.
+
+---
+
+## 6. Überarbeiteter Datenvertrag (ersetzt den Entwurf aus der Handoff)
+
+```python
+from dataclasses import dataclass
+from typing import Optional, Literal, Tuple
+
+Richtung = Literal["SHORT", "LONG"]
+
+
+@dataclass(frozen=True, slots=True)
+class PhasenKante:
+    """Eine v0.4-Phase als Regime-Einheit (Bar-Indizes = Engine-Indizes)."""
+    phasen_id: str            # "P9" ... "P12"
+    start_bar: int            # inklusiv
+    end_bar: int              # inklusiv  (behebt Schwaeche (a) der Handoff)
+    decke: float              # U_final  -> LONG-Ziel
+    boden: float              # L_final  -> SHORT-Ziel
+    decke_kid: Optional[int] = None
+    boden_kid: Optional[int] = None
+
+
+class PhasenRegimeAdapter:
+    """Read-only Adapter. Wird per Hook in die Engine injiziert."""
+
+    def __init__(self, phasen: Tuple[PhasenKante, ...],
+                 touch_band_pct: float = 0.12,
+                 luecken_modus: Literal["FAIL_CLOSED", "FAIL_OPEN"] = "FAIL_CLOSED"
+                 ) -> None: ...
+
+    # --- Hook 3: Scope ------------------------------------------------
+    def phase_bei(self, k: int) -> Optional[PhasenKante]:
+        """Bar->Phase-Mapping; None in Luecken (behebt Schwaeche (b))."""
+
+    def ist_im_regime(self, k: int) -> bool:
+        """True gdw. k in einer Phase liegt."""
+
+    # --- Hook 1: Regel (A) --------------------------------------------
+    def wand_hat_geliefert(self, e, k: int, sweep_px: float) -> bool:
+        """Praedikat! Muss an ZWEI Stellen ausgewertet werden:
+          1a) _kandidat Z.2515  -> Pool-Filter
+          1b) _blockiert_durch_aussenkante Z.2448/2453 -> kein M6-Blocker
+        """
+
+    # --- Hook 2: Regel (B) --------------------------------------------
+    def phasen_ziel(self, k: int, richtung: Richtung) -> Optional[float]:
+        """SHORT -> boden, LONG -> decke; None ausserhalb des Regimes."""
+```
+
+### Behobene Schwächen des Handoff-Entwurfs
+
+| Handoff-Entwurf | Problem | Lösung |
+|---|---|---|
+| `ist_in_phase(k): return k >= phase_start_bar` | kein Phasen-Ende | `start_bar`/`end_bar` + `phase_bei(k)` |
+| kein Bar→Phase-Mapping | Lücken unbestimmt | `phase_bei(k) -> Optional[PhasenKante]` + `luecken_modus` |
+| `hook_regel_a_freigabe(...) -> bool` | suggeriert 1 Aufrufstelle | Prädikat `wand_hat_geliefert(...)`, 2 dokumentierte Anwendungsstellen |
+| kein Rückgabetyp für Ziel | implizit | `phasen_ziel(...) -> Optional[float]` |
+
+---
+
+## 7. Offene Entscheidungsfragen (Mentor)
+
+1. **Kriterium normativ: M (0,12 %-Band) oder W (exakter Docht)?**
+   Beide liefern den Benchmark (+5.4212 R). M ist breiter (fail-open) und
+   verändert bei Scope 640 den Park-Trade K16 (+0.5475 R).
+2. **Transition-Park 640–847: gehört er zum Regime?**
+   PHASE/848 ⇒ Park unverändert (5 / +2.4809 R); 640 ⇒ K16@716 (+0.5475 R).
+   Das Zielband +5.4212 R ist in beiden Fällen identisch.
+3. **Lücken 1021–1029, 1076–1081, 1135–1170: fail-closed (Hook inaktiv)
+   oder fail-open (vorige Phase fortschreiben)?**
+4. **Hook 2 bei `None`: Fallback auf Makro-Gegenkante (wie V4) oder Trade
+   blockieren?** (Blockieren erhöht `kein_raum`.)
+5. **Modul-Ort:** `src/phasen_regime_adapter.py` (Produktiv) oder
+   `scripts/`? Injektion bleibt vorerst AST/Monkeypatch in `test/`.
+6. **Mehrfach-Freistellung:** M kann mehrere Wände gleichzeitig freistellen.
+   Gewollt oder auf die sweep-bildende Wand begrenzen?
+7. **Kanten-Kids im Vertrag:** `decke_kid`/`boden_kid` (K67/K77 für P9)
+   mitführen oder nur Preise? (Mentor nannte K73 für P12-Decke.)
+
+---
+
+# Addendum v0.2 — Read-Only-Sichtung (Mentor-Audit 2, 2026-09-09)
+
+Kein Lauf, kein Compile, kein Test. Nur `Read`, `Get-Content`, `Select-String`,
+`certutil -hashfile`, `Get-ChildItem`, `git ls-files`.
+
+## 8. Normative Entscheidungen (fixiert, Mentor)
+
+| # | Entscheidung | Auswirkung auf den Vertrag |
+|---|---|---|
+| 1 | Kriterium **M** (Touch-Band 0,12 %) | `sweep_im_band` bleibt; Benchmark-R unverändert +5.4212 |
+| 2 | Start **Bar 848 / P9** | `start_scope_bar = 848`; Park 640–847 unberührt (5 / +2.4809 R) |
+| 3 | **Striktes Fail-Closed** in Lücken | `aktive_phase_bei() -> None`; **kein** Fortschreiben |
+| 4 | **Blockade** bei fehlender Gegenkante, **kein** Makro-Fallback | Hook 2 braucht **Tri-State** (s. 9.3) |
+| 5 | Zielort `src/phasen_regime_adapter.py` | **Pfad existiert nicht** (s. 9.1) |
+| 6 | Freistellung **nur für die sweep-bildende Wand** | Tie-Break-Regel nötig (s. 9.4) |
+| 7 | Feste Kanten-`kid` im Vertrag | Typ-Konflikt `int` vs `str` (s. 9.2) |
+
+## 9. Blockernde Befunde (rein lesend verifiziert)
+
+### 9.1 Zielpfad `src/` existiert nicht
+`Get-ChildItem -Directory` im Root: `.idea .ipynb_checkpoints .ipython .venv
+algos backtest_lab data docs js Notebooks reports scripts signal_lab test
+__marimo__` — **kein `src/`**.
+Pakete mit `__init__.py`: `backtest_lab/`, `signal_lab/`.
+Ohne `__init__.py`: `algos/`, `scripts/` (15 Module, u. a.
+`phasen_volumen_profil.py` = v0.4-Baseline, `market_segmentation.py`).
+⇒ Entscheidung #5 ist mit der Repo-Struktur nicht kompatibel; Zielort muss
+neu bestimmt werden (neu anlegen vs. `backtest_lab/` vs. `scripts/`).
+
+### 9.2 `kid`-Typ: Engine `int` vs. Vertrag `str`
+`_SEEdgeH.kid: int` (Z. 2087); `_SESetup.kid` ebenfalls `int`
+(`tmp_hook_semantik_check_out.txt`: `K67`, `K73`, `K16`).
+Der Mentor-Vertrag deklariert `PhasenKanteInfo.kid: str`.
+⇒ Entweder Vertrag auf `int` stellen oder eine Mapping-Schicht
+(`"K67" -> 67`) einführen. Empfehlung: **`int`** (keine Konvertierung,
+keine Fehlerquelle).
+
+### 9.3 Hook 2 braucht einen dritten Zustand
+Entscheidung #4 („Blockade ohne Makro-Fallback") ist mit
+`phasen_ziel(...) -> Optional[float]` **nicht** abbildbar, weil `None`
+bereits „außerhalb des Regimes ⇒ Makro-Gegenkante" bedeutet.
+Erforderlich ist ein diskriminierter Rückgabetyp, z. B.
+
+```python
+class ZielQuelle(Enum):
+    MAKRO = auto()        # k < start_scope_bar  -> Engine unverändert
+    PHASE = auto()        # k in Segment          -> Segmentziel
+    BLOCKIERT = auto()    # k >= start_scope_bar, Luecke -> kein Trade
+```
+
+Messung: im August-Fenster liegt **kein** Trade in den Lücken
+(1021–1029, 1076–1081, 1135–1170) ⇒ die Blockade ist für den Benchmark
+**inert** (V0-H2-Trades: 639, 650, 679, 715, 760, 853). Sie ändert aber
+den Vertrag und muss daher **vor** dem Modulentwurf fixiert sein.
+
+### 9.4 Tie-Break bei M (Entscheidung #6)
+Pool bei Bar 980 (`test/tmp_audit_kandidat_trace_out.txt` Z. 41):
+`[(K67, -0.0996), (K73, +0.3193), (K76, +0.5394), (K75, +0.6828), (K78, +0.868)]`.
+Bei Bar 1020 (Z. 84): `[(K67, -0.039), (K73, +0.3552), (K76, +0.5753)]`.
+⇒ Im Benchmark liegt **genau eine** Kante im 0,12-%-Band (K67).
+Strukturell ist das nicht garantiert: liegen zwei Basen < 0,24 % auseinander,
+stellt M **beide** frei (Over-Trading-Gefahr laut Mentor-Audit).
+⇒ Spez-Ergänzung: freigestellt wird nur die Kante mit
+`min |sweep_px - basis_bei(k)|` **innerhalb** des Bandes.
+Die Prädikat-Signatur bleibt per Kante: `wand_hat_geliefert(e, k, sweep_px)`.
+
+### 9.5 Statische `basis_preis` vs. kausale Engine-Basis
+K67 hat **keine** statische Basis: `basis_bei(980) = 69.9687`,
+`basis_bei(1020) = 69.9513` (Trace Z. 5 und 48). `PhasenKanteInfo.basis_preis`
+als eingefrorener Skalar wäre also semantisch falsch, sobald die Engine die
+kausale Mittel-Basis fortschreibt.
+⇒ `basis_preis` nur als **Provenienz-/Anzeigewert** deklarieren; die
+Hook-Prüfung muss `e.basis_bei(k)` (Engine-Wahrheit) verwenden.
+`touch_bars: Tuple[int, ...]` wird von keinem Hook benötigt
+(Engine hält `wicks`) ⇒ optional, rein dokumentarisch.
+
+### 9.6 Kein Provenienz-Kanal für Regime-Trades
+`_SESetup` besitzt `grund1`, aber **kein** `grund2`; die Ausgabe
+(`stats_kanten_engine_replay.txt`) kennt nur `resultat`/`grund1`.
+Eine Markierung „Regime-Trade" würde eine Feld-Erweiterung in der Engine
+erfordern ⇒ **Widerspruch zu „Engine unangetastet"**.
+⇒ v0.1: **keine** Tagging-Anforderung.
+
+## 10. Baseline-Integrität (verifiziert)
+
+| Datei | Bytes | Zeilen | SHA256 |
+|---|---|---|---|
+| `test/tmp_kanten_engine_replay.py` | 191.814 | 4.500 | `3ba15c723958161ffc…5255cb006` |
+| `docs/artefakte/aug_p11/kanten_engine_replay_v40r.py.snapshot` | 191.814 | 4.500 | `3ba15c723958161ffc…5255cb006` |
+
+**Byte-identisch** (certutil SHA256). ⇒ Die in Abschnitt 2 genannten
+Zeilennummern sind gegen die gesperrte Baseline gültig; jede Änderung an der
+Engine würde den Audit-Anker brechen.
+
+## 11. Technische Injektions-Invariante
+
+Die Hook-Stellen sind **verschachtelte Closures** innerhalb von `_se_trades`
+(`_blockiert_durch_aussenkante` Z. 2428, `_kandidat` Z. 2471) — sie sind
+**nicht** modul-level und damit **nicht** per Attribut-Monkeypatch von außen
+ersetzbar. Die Bindung des Adapters erfolgt daher ausschließlich über
+Namens-Injektion in den `exec`-Namespace der gepatchten `_se_trades`
+(nachgewiesen in `tmp_hook_semantik_check.py`: `engine._in_scope = …`,
+`engine._wand_erreicht = …`, `engine._phasen_ziel = …`).
+⇒ Ein „Adapter-Registry"-Muster ist in v0.1 nicht implementierbar, ohne die
+Engine zu ändern.
+
+---
+
+# Addendum v0.3 — Arretierung 1–6 + Q1-Gate (Mentor-Audit 3, 2026-09-09)
+
+Weiterhin read-only: kein Lauf, kein Compile, kein Test, keine Datei-Erstellung.
+
+## 12. Arretierte Entscheidungen
+
+| # | Entscheidung | Wirkung |
+|---|---|---|
+| 1 | `boden.kid=77` → **Fail-Loud** (`ValueError`) | stummer `Optional`-Pfad verworfen |
+| 2 | `ziel_preis_long = 69.9140` (Spiegel U_final) | August-inert (nur 2 SHORT in P9) |
+| 3 | Freigabe **nur** bei `dist < 0` | Q1-Setups (`dist >= 0`) unberührt |
+| 4 | `provenienz_basis(K67) = 69.9140` | rein dokumentarisch |
+| 5 | `boden.provenienz_basis` **und** `ziel_preis_short` bleiben | Struktur vs. Execution |
+| 6 | Datei-Erstellung freigegeben | Schritt 2/3 |
+
+## 13. Beweis: das `dist < 0`-Gate ist benchmark-inert
+
+- **A:** `dist(K67)@980 = −0.0996 %`, `@1020 = −0.0390 %` ⇒ Gate erfüllt
+  (`tmp_audit_kandidat_trace_out.txt` Z. 5/48).
+- **B:** Bei `dist >= 0` ist die Kante erreicht (M6 `continue`) bzw. `pos0`
+  handelbar (Q1) ⇒ Gate stellt dort **V0** wieder her.
+- **C:** In P9 (848–1020) existiert **kein** V0-Trade (V0-H2: 639, 650, 679,
+  715, 760, 853) ⇒ „Rückfall auf V0" kann in P9 nichts erzeugen.
+- **D:** In M6 bleiben nach `b <= sweep_px → continue` (OBEN) bzw.
+  `b >= sweep_px → continue` (UNTEN) nur Kanten mit `dist < 0` ⇒ Gate in
+  Hook 1b **tautologisch**.
+
+⇒ Soll = V5: H2 7 / **+7.9021 R**, Benchmark **+5.4212 R**,
+H1 bit-identisch 8 / **+38.964262 R**.
+
+## 14. Kritische Klarstellung zur Implementierung
+
+„Nur im `dist < 0`-Zweig" = **Prädikat-Gate**, **nicht** Verschiebung des
+Aufrufs als `continue` in den `dist<0`-Zweig. Letzteres ist Variante **V1**
+und gemessen **inert** (H2 5 / +2.4809 R, kein K73-Trade), weil M6 K73
+weiterhin sperrt. Zwingend bleibt: **Pool-Filter (1a) + `continue` in M6 (1b)**.
+
+## 15. Korrekturen an der Mentor-Signatur
+
+1. **Kein Default `ist_dist_negativ=True`** — ein vergessenes Argument würde
+   den permissiven Pfad stillschweigend aktivieren (Widerspruch zu Fail-Loud).
+2. **Vorzeichen intern ableiten** (empfohlen): `dist_pct` aus `sweep_px` und
+   `basis_k`; Bedingung exakt `dist_pct >= 0.0 → continue` (strikt `< 0.0`
+   wie Z. 2518; `dist == 0.0` ist der Durchstich-Zweig).
+   Grund: 1a (`_dist(e)`) und 1b (rohe `b` vs. `sweep_px`) berechnen `dist`
+   unterschiedlich — ein externer Flag wäre eine neue Fehlerklasse.
+3. **Gate-Kante = `seite_kid`** (genau eine pro Aufruf, Entscheidung #6),
+   identisch in 1a und 1b.
+
+## 16. Fail-Loud-Init (`verifiziere_gegen_scan(scan) -> None`)
+
+| Prüfung | Verhalten |
+|---|---|
+| `decke.kid` existiert | `ValueError` |
+| `decke.seite == "OBEN"` | `ValueError` |
+| `boden.kid` existiert | `ValueError` |
+| `boden.seite == "UNTEN"` | `ValueError` |
+| `|basis − provenienz_basis| / provenienz_basis × 100 > 1.0 %` | `ValueError` |
+
+K67-Probe: `69.9687` vs. `69.9140` = **0,0783 %** ⇒ passiert.
+
+## 17. Sollwerte Schritt 3
+
+| Test | Sollwert |
+|---|---|
+| 1 Fail-Loud | läuft ohne Exception; manipuliertes `kid` → `ValueError` |
+| 2 H1 | 8 Trades / **+38.964262 R**, per-Trade-R bit-identisch |
+| 3 H2 | 7 / **+7.9021 R**; K73@980 +2.4119, K73@1020 +3.0093, Summe **+5.4212**; Park: K1@639 −1.0000, K3@650 −1.0000, K45@679 +6.4809, K16@715 −1.0000, K51@760 −1.0000; **K59@853 fehlt** |
+| 3b BLOCKIERT | `hook_2_ziel(1025,"SHORT").modus is BLOCKIERT`; Aufrufstelle `stats["kein_raum"] += 1` |
+
+---
+
+# Addendum v0.4 — Umsetzung + Verifikation (2026-09-09)
+
+Startsignal erteilt; Schritt 2 und 3 ausgeführt.
+
+## 18. Artefakte
+
+| Datei | Zeilen | Bytes | Format |
+|---|---|---|---|
+| `backtest_lab/phasen_regime_adapter.py` | 281 | 11.218 | LF, kein BOM |
+| `test/tmp_test_phasen_regime_adapter.py` (gitignored) | 246 | 9.785 | LF, kein BOM |
+
+Engine unverändert: `test/tmp_kanten_engine_replay.py` SHA256
+`3ba15c723958161f…5255cb006` (nach der Ausführung erneut geprüft).
+
+## 19. Abweichungen vom Mentor-Vertrag (3 Korrekturen, implementiert)
+
+1. **`verifiziere_gegen_scan`-Signatur.** Der Vertrag
+   (`Sequence[Mapping[str, object]]`) wäre an `scan["edges"]` gescheitert:
+   `_SEEdgeH` ist `@dataclass(slots=True)` ohne `__getitem__`/`__iter__`,
+   `"kid" in e` wirft `TypeError`. Neu: `Sequence[Tuple[int, str, float]]`
+   (`kid, seite, basis_bei(ref_bar)`) — flache Tupel, Adapter bleibt
+   Engine-frei. Basis-Abweichung gegen `provenienz_basis` wird geprüft
+   (Toleranz `provenienz_toleranz_pct = 1.0`).
+2. **`segmente`-Default.** `()` würde jede Regime-Anfrage still auf
+   `BLOCKIERT` setzen. Default ist `(P9,)`.
+3. **Eine Auswertung pro (Bar, Richtung).** `_freigabe_kid` wird einmal
+   berechnet und von Hook 1a und 1b **geteilt** (statt zwei unabhängiger
+   Aufrufe) ⇒ Desynchronisation ausgeschlossen, O(1) statt O(n) pro
+   Blocker-Iteration.
+
+## 20. Verifikationsergebnis (`tmp_test_phasen_regime_adapter_out.txt`)
+
+**Test 1 — Fail-Loud: OK.**
+
+| Kante | seite | basis_bei(980) | provenienz | Abweichung |
+|---|---|---|---|---|
+| K67 | OBEN | 69.9687 | 69.9140 | 0,0783 % |
+| **K77** | **UNTEN** | **68.3920** | 68.3700 | **0,0322 %** |
+
+⇒ **`boden.kid = 77` ist damit empirisch bestätigt** (Existenz, Seite UNTEN,
+Basis im Band) — der in v0.2 als „unverifiziert" markierte Wert ist gültig.
+Negativproben (unbekannte kid, falsche Seite) werfen `ValueError`. ✅
+
+**Test 2 — H1-Regression: OK.**
+
+| Lauf | Trades | R |
+|---|---|---|
+| V0 (Original) | 8 | +38.964262 |
+| V1 (Adapter) | 8 | **+38.964262** |
+
+**Per-Trade-R bit-identisch** (Toleranz 1e-12). ✅
+
+**Test 3 — H2-Benchmark: OK.** 7 Trades / **+7.9021 R**
+
+| sig | Zeit | kid | stufe | entry | sl | tp2 | R |
+|---|---|---|---|---|---|---|---|
+| 639 | 18.08. 23:45 | 1 | STUFE_1_IN_BAR | 63.5340 | 63.2980 | 66.4590 | −1.0000 |
+| 650 | 19.08. 03:30 | 3 | STUFE_3_KERZE_3 | 63.0110 | 62.6710 | 66.4590 | −1.0000 |
+| 679 | 19.08. 10:45 | 45 | STUFE_2_KERZE_2 | 63.1810 | 62.7920 | 66.4590 | +6.4809 |
+| 715 | 19.08. 19:45 | 16 | STUFE_1_IN_BAR | 65.8820 | 65.9550 | 62.5625 | −1.0000 |
+| 760 | 20.08. 08:00 | 51 | STUFE_2_KERZE_2 | 66.9900 | 67.2370 | 62.5625 | −1.0000 |
+| **980** | 24.08. 17:00 | **73** | STUFE_2_KERZE_2 | 69.4910 | 69.9490 | **68.3700** | **+2.4119** |
+| **1020** | 25.08. 04:00 | **73** | STUFE_1_IN_BAR | 69.5780 | 69.9740 | **68.3700** | **+3.0093** |
+
+K73@980 +2.4119 ✅ · K73@1020 +3.0093 ✅ · **Summe +5.4212 R** ✅ ·
+K59@853 entfällt ✅ · Park-Trades unverändert (K16@715, nicht 716 — Scope
+848 hält den Park in MAKRO) ✅
+
+**Test 3b — Tri-State: OK.** bar 640 → MAKRO · bar 900 → PHASE (68.37) ·
+bar 1025 → BLOCKIERT · bar 1150 → BLOCKIERT ✅
+
+**Stats-Diff V0 → V1:** `kein_raum` 1→11 · `quartil_blockiert` 56→57 ·
+`v_s` 14→15 · `zyklus_blockiert` 36→27 · `blocker` 23→23 (unverändert, weil
+`_kandidat` bei Bar 980/1020 in V0 vor dem M6-Gate abbrach).
+
+## 21. Status
+
+Schritt 2 und 3 abgeschlossen. Keine Engine-Änderung, keine Regression in H1.
+`backtest_lab/phasen_regime_adapter.py` ist **untracked** (Commit offen);
+`test/` bleibt gitignored.

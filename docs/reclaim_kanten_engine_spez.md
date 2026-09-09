@@ -899,7 +899,8 @@ Close 66.311 — level-definierender Test, **kein** Reclaim):
 - **Bar 229** (11:15) H **66.776**, C 66.471 (noch über der Decke) → Reclaim
   erst in **Bar 230** (C 66.419). Überdehnung +0,478 % über Seed 107.
 - **Bar 242** (14:30) H **66.663**, L 65.598 (F1-Doppel-Pivot), C 66.480;
-  **Bar 243** bildet das zweite Top (H 66.523), **Bar 244** bricht mit
+  **Bar 243** bildet das zweite Top (H **66.528**), **Bar 244** (H **66.662**,
+  nur +0.001 USD unter dem Sweep-Extrem 66.663) bricht mit
   C 66.090 zurück = **M15-Doppeltop-Fakeout über 3 Kerzen** (Distribution über
   30–45 min).
 

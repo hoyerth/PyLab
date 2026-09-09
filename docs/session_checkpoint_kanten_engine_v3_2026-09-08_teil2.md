@@ -92,7 +92,11 @@ außen→innen, In-Band-Schatten-Regel, keine Zwischen-Seed-Promotion.
    Wand erst ab Bar 110. **Q26 offen** (definierenden Docht als 1. Touch zählen?).
 4. Valide Reclaims 12./17./18.08. → 12.08. (229→231) und 17.08. (529→531)
    feuern jetzt; 18.08. (564) ist **erkannt**, aber F2-gesperrt (529er offen
-   bis 639, TP1 erst 614) → hypothetisch +1.49R. **Q21 offen**.
+   bis 639, TP1 erst 614). **KORREKTUR 2026-09-09:** Der frühere
+   Hypothesenwert „+1.49R / Entry 65.618" war falsch — `open[568]` gehört zur
+   Stufe-1-Execution. Korrekt ist die Stufe-3-Kette Sweep 564 → 565 → 566 →
+   **Entry `open[567] = 65.988`** (SL 66.586, TP2 = K1 kausal 63.4745) →
+   **≈ +3.1 … +3.3 R**. **Q21 inzwischen arretiert (retest_zyklus_bars = 24).**
 
 ## 6. Offene Arretierungen (Wiederaufnahme)
 

@@ -1666,6 +1666,18 @@ sondern: **Untergrenze `v >= 7`** (Abwehr von Rausch-Setups) und
 institutionelle Standardzeit). Teil 3 wird insoweit praezisiert: 12 ist
 **institutionell motiviert**, nicht datenoptimal.
 
+**9a. Zaehler-Praezisierung (Nachtrag Teil 5, reine Faktentreue).**
+
+Nach der `_p7`-Scharfschaltung sind die Ablehnungs-Kategorien **nicht**
+deckungsgleich mit dem Pre-Patch-Lauf: `zyklus_blockiert = 2` (nicht 3)
+und `stacking_blockiert = 3` im AUG-Lauf. Ursache: Bar 244 (K20) war
+pre-Patch zyklus-gesperrt (die Zyklus-Uhr stand auf Bar 242); post-Patch
+wird **Bar 242 vom Stacking-Gate geblockt** und setzt die Kanten-Uhr nicht
+mehr zurueck (Abschnitt 8, Punkt 2 / B23-5), daher laeuft Bar 244 durch und
+wird selbst vom Gate gefangen. **Kategorie-Wechsel bei identisch
+eliminiertem Trade.** Im Voll-Lauf (n = 1288): `stacking_blockiert = 4`
+(zusaetzlich Bar 865, K62).
+
 **10. Kennzahlen-Neufassung (ungeschminkt, Revisionssicherheit).**
 
 | Stand | Gate | BOX | POST | GESAMT |
@@ -1763,6 +1775,285 @@ class ArretierungsStatusV4:
 3. Neue Kennzahlen-Basis n=4/n=9 → Gate-Messung auf S1/S2 nachholen.
 4. `--engine se|alt`-Schalter (Alt-C als Referenz isolieren).
 
+### Nachtrag 2026-09-09 (Teil 5) — R21-Kantenbereinigung & Tombstone: Arretierung
+
+> **Status: ARRETIERT (Mentor-Freigabe 2026-09-09, Fragen 1–3).**
+> Dieser Nachtrag ergaenzt §7.2 um die **Bereinigungsregel R21**
+> (Singleton-Verfall mit Tombstone-Sperre). Er **hebt nichts auf**: alle
+> Arretierungen der Teile 1–4 bleiben in Kraft. Neu arretiert werden:
+> `ruhezeit_roher_touch_bars = 192`, `tombstone_band_pct = 0.30`
+> (eigenstaendig), Sperrdauer **unbegrenzt**, Loeschung **kausal sofort bei
+> Bar k**. Die vier Revival-Kanten K1/K31/K51/K54 werden als Audit-Referenz
+> **„Market-Memory"** festgeschrieben.
+
+**1. Anlass und Gegenstand.**
+
+Der Kanten-Bestand in AUG waechst auf **93 Kanten** (65 gekeimte edges mit
+>= 2 Touches + 28 Seeds), von denen **78,5 %** nie als aeusserste Begrenzung
+wirken. Forensische Grundlage (alle read-only, `test/`): `tmp_kanten_aufraeumen.txt`
+(Inventar), `tmp_faenger.txt` (Kontakt-Verteilung), `tmp_loeschregeln*.txt`
+(Regel-Vorstufen), `tmp_tombstone.txt` (Wiedergeburten), `tmp_deletion_attribution.txt`
+(Einzel-Attribution), `tmp_r18_timeout.txt` und `tmp_r21_final.txt`
+(Grenzkarte/Arretierung).
+
+**2. Regeldefinition R21 (strikt kausal bis Bar k).**
+
+Eine Linie wird geloescht, wenn ALLE fuenf Bedingungen erfuellt sind:
+
+- (a) Alter seit `erster_pivot_bar` >= `wall_live_bars` (96);
+- (b) `ist_prim_anker == False`;
+- (c) `touch_conf(k) < 2` (bestaetigte Dochte mit `b + 2 <= k`);
+- (d) `k - letzter_roher_touch >= 192`, mit
+  `letzter_roher_touch = max(b for b, _ in wicks if b <= k)`;
+- (e) die Linie war **nie** eine lebende Aussenlinie
+  (`war_jemals_aussen`-Set ueber `kid`, kausal akkumuliert).
+
+Die Loeschung erfolgt **in-place** in `cluster[seite]` bei Bar k (vor
+`_se_trades`); im selben Schritt wird ein **Tombstone** `(k, seite, basis)`
+gesetzt. Neugeburten werden gesperrt, wenn `|px - basis| / basis * 100 <= 0,30`
+und dieselbe Seite.
+
+**3. Messprotokoll (read-only, kein Engine-Eingriff).**
+
+Frischer `_se_scan("AUG", ...)` je Variante (der Scan mutiert
+`letzter_sweep_bar`, `cluster_hoch/tief`, `letzter_signal_bar`; geteilte Scans
+verfaelschen das Ergebnis). Regel-Wirkung durch **In-Memory-Patch** der
+Modulkopie; die Engine-Datei blieb unveraendert (186.660 B, CRLF, kein BOM).
+Die Trade-Signatur wird ueber `(bar, richtung, entry_bar, R)` verglichen —
+**nicht** ueber `kid` (die Loeschung verschiebt die kid-Nummerierung; ein
+kid-basierter Vergleich lieferte in einem Vorlauf falsche Loeschzeitpunkte).
+
+**4. Befund 1 — 78,5 % der Kanten sind nie die aeusserste Linie.**
+
+Geprueft in drei Semantiken: O1 `_existiert` (bestaetigter Pivot),
+O2 `_gegenkante`-Pool (Primaer-Anker ab Promotion ODER `touch_conf >= 2`),
+O3 `_kandidat`-Pool (O2 + Alter >= `min_wall_alter_bars`). Ergebnis:
+**73 von 93 (78,5 %) nie aeusserste**. Nur **20 Kanten** waren jemals
+aeusserste: 0, 1, 2, 3, 5, 6, 8, 10, 12, 15, 16, 20, 43, 51, 54, 61, 62, 64,
+68, 70.
+
+**5. Befund 2 — 72,4 % aller Docht-Kontakte sind strategisch irrelevant.**
+
+330 Docht-Kontakte gesamt: **91 (27,6 %)** an aeussersten, **239 (72,4 %)**
+an nie-aeussersten Kanten. **47 Kanten** mit >= 2 Touches sind reine
+Docht-Faenger (213 Dochte); Spitzenreiter K17 (13), K13 (10), K24/K69 (8).
+
+**Institutionelle Konsequenz:** Reine Touch-Counts repraesentieren **keinen**
+Edge — 72,4 % der Kontakte prallen an strategisch irrelevanten Kanten ab.
+Geometrische Pivot-Kanten muessen begrifflich von institutionellen
+Aussen-Liquiditaetspools getrennt bleiben; die „Touch-Qualitaet" als
+Reifekriterium ist empirisch entlarvt.
+
+**6. Befund 3 — „Aussenheit" ist transient.**
+
+Dieselbe Linie kann innen sein und spaeter aussen werden (und umgekehrt). Eine
+Regel „loesche alle nie-aeussersten" ist daher **nicht** kausal stabil: R9
+(96 Bars nicht-aeusserste, 134 Loeschungen) zerstoert die Signatur
+(2 Trades / −2,00 R). Der Schutz (e) ist deshalb unverzichtbar.
+
+**7. Gescheiterte Regel-Vorstufen (R1–R17, Auswahl).**
+
+| Regel | Umfang | Trades | Netto-R | Folgekanten | Urteil |
+|---|---|---|---|---|---|
+| R1 nie-outer+nie-genutzt | 53 | 9 | +23,02 | **30** | Signatur ok, Wiedergeburten |
+| R2 nie-outer | 73 | 7 | +8,13 | 49 | zerstört |
+| R3 nie `_kandidat` | 62 | 10 | +22,00 | 38 | Signatur abweichend |
+| R4 nie kandidat/gegen/blocker | 60 | 9 | +23,02 | 36 | Wiedergeburten |
+| R5 <= 1 Touch & kein Entry | 27 | 9 | +23,02 | **0** | zu wenig, kein Verfall |
+| R6 nie kandidat+gegen | 61 | 9 | +23,02 | 37 | Wiedergeburten |
+| R7 nur Aussenkanten materialisieren | — | 6 | +8,16 | — | zerstört |
+| R8 Singleton-Timeout 96 | 51 | 8 | +17,77 | 10 | Revival-Schaden |
+| R9 96 Bars nicht-aeusserste | 134 | 2 | −2,00 | 11 | zerstört |
+| R11 < 3 Touches Timeout | 97 | 7 | +18,77 | 16 | Revival-Schaden |
+| R12 Geburt an Range-Extrem | 274 | 3 | −3,00 | 0 | Kern zerstoert |
+| R13 Geburt im aeusseren Quartil | 191 | 8 | +9,05 | 3 | zerstört |
+| R15 ersetzt+dormant 96 | 76 | 7 | +17,28 | 12 | Revival-Schaden |
+| R17 wie R15, 192 Bars | 46 | 8 | +24,02 | 4 | Revival-Schaden |
+
+Zwei wiederkehrende Schaeden: **Wiedergeburten** (verwaiste Dochte erzeugen
+identische Folgekanten) und **Revivals** (alte Linien werden nach > 100 Bars
+reaktiviert und konsumiert).
+
+**8. Befund 4 — Wiedergeburten sind der Folgekanten-Mechanismus (Tombstone-Beleg).**
+
+R18 (dieselbe Regel ohne Tombstone, T = 96) loescht 40 Kanten, liefert
+9 Trades / **+15,28 R** und **8 Folgekanten**. Jede dieser 8 Folgekanten liegt
+in einem geloeschten Preisband:
+
+| Folgekante | Tombstone-Treffer (<= 0,30 %) |
+|---|---|
+| UNTEN 209 / 65,049 | 177 / 65,009 |
+| OBEN 376 / 64,708 | 224 / 64,552 · 271 / 64,738 |
+| UNTEN 398 / 63,485 | 103 / 63,464 |
+| UNTEN 479 / 65,414 | 200 / 65,400 · 351 / 65,494 · 387 / 65,293 |
+| UNTEN 707 / 64,824 | 177 / 65,009 · 426 / 64,823 · 688 / 64,818 |
+| OBEN 1001 / 68,699 | 938 / 68,673 |
+| UNTEN 1124 / 69,084 | 982 / 69,043 |
+| UNTEN 1234 / 68,233 | 924 / 68,037 · 1212 / 68,183 |
+
+Mit Tombstone (±0,30 %): **0 Folgekanten**. Die Sperre ist damit kein Zusatz,
+sondern **Bedingung der Regel**.
+
+**9. Befund 5 — Revival-Kanten K1/K31/K51/K54 (Market-Memory, Audit-Referenz).**
+
+Einzel-Attribution aller 40 R18-Loeschungen (deletion-at-birth, je Kante
+einzeln): **33 harmlos, 4 schaedlich**. Schaedlich sind ausschliesslich Kanten,
+die **nach** der Loeschung wieder Kontakt finden und danach konsumiert werden:
+
+| Kante | Seite | Pivot | Touches | Außenlinie | Nutzung | Revival-Wirkung |
+|---|---|---|---|---|---|---|
+| K1 | UNTEN | 7 | 3 | ja | `_kandidat` + `_gegenkante` + Entry | Entry 529 verschoben |
+| K31 | OBEN | 237 | 5 | nein | `_kandidat` + Entry | Entry 679 (+6,48 R) |
+| K51 | UNTEN | 657 | 2 | ja | `_gegenkante` + Blocker | Exit 760 verschoben |
+| K54 | OBEN | 736 | 2 | ja | `_kandidat` + Entry | Exit 760 verschoben |
+
+**Institutionelle Lesart:** Liquiditaetspools werden nicht nach 24 Stunden
+vergessen. Dass diese vier Linien nach > 100 Bars wieder angelaufen und
+konsumiert wurden, belegt: **keine voreilige Loeschung ohne echten Verfall.**
+Die vier Kanten sind als feste Audit-Referenz Teil dieser Spezifikation.
+
+**10. Timeout-Grenzkarte (Tombstone ±0,30 %, AUG komplett, n = 1288).**
+
+| T (Bars) | geloescht | Kanten | Trades | Netto-R | Signatur | Folgekanten |
+|---|---|---|---|---|---|---|
+| 96 | 26 | 55 | 8 | +16,28 | ABWEICHEND | 0 |
+| 112 | 24 | 58 | 8 | +16,54 | ABWEICHEND | 0 |
+| 128 | 21 | 62 | 8 | +16,54 | ABWEICHEND | 0 |
+| **144** | 19 | 67 | 9 | +23,02 | IDENTISCH | 0 |
+| **152** | 19 | 67 | 9 | +23,02 | IDENTISCH | 0 |
+| **160** | **20** | 67 | 9 | +23,02 | IDENTISCH | 0 |
+| **176** | 18 | 70 | 9 | +23,02 | IDENTISCH | 0 |
+| **192** | **17** | 73 | 9 | +23,02 | IDENTISCH | 0 |
+| 256 | 12 | 80 | 9 | +23,02 | IDENTISCH | 0 |
+
+Ohne Tombstone steigen die Folgekanten (T = 160: 5, T = 192: 4, T = 256: 1) —
+der Beleg aus Abschnitt 8.
+
+**11. Arretierung A — `ruhezeit_roher_touch_bars = 192` (Frage 1).**
+
+Das **Mengen-Optimum** liegt bei T = 160 (20 geloescht). Es wird **verworfen**:
+es liegt nur **16 Bars** ueber der Identitaets-Unterkante T = 144 und damit in
+der Naehe der Revival-Zonen. Arretiert wird **T = 192 = 48 Stunden = 2 volle
+Handelstage** — eine institutionelle Zeitkonstante, die **tief im stabilen
+Plateau** liegt (Identitaet ab 144, konstant bis 256). Der Verzicht auf drei
+zusaetzlich loeschbare Kanten ist der Preis fuer Robustheit; die Kennzahl
+bleibt mit **+23,02 R** identisch. **Merksatz:** kein Datenoptimum an der
+Abbruchkante.
+
+**12. Arretierung B — `tombstone_band_pct = 0.30` eigenstaendig, Sperre unbegrenzt (Frage 2).**
+
+Band-Sensitivitaet bei T = 192: 0,20 % → 19 geloescht / 15 gesperrt / 0 Folge;
+**0,30 % → 17 / 17 / 0**; 0,40 % → 17 / 17 / 0. Bei T = 96 liefert 0,20 % noch
+**1 Rest-Folgekante**, 0,30 % bereits 0. Arretiert wird deshalb **±0,30 %** als
+**kleinster Wert mit 0 Folgekanten** (= reale Docht-Rauschbreite der
+Cluster-Bildung). Eine Kopplung an `max_seed_distanz_pct` (0,75 %) wird
+ausdruecklich **verworfen**: 0,75 % bei Silber (~0,50 USD) erstickt legitime
+Neuentwicklungen. Die Sperre gilt **unbegrenzt**: ein Niveau, an dem sich ein
+Singleton nachweislich erschoepft hat, darf in derselben Marktphase nicht durch
+einen zufaelligen Einzeldocht wiederauferstehen.
+
+**Technischer Vorbehalt:** Die Sperrliste ist monoton wachsend und
+pfadabhaengig (AUG: 30 Eintraege). Bedingung (e) `WAR_AUSSEN` bleibt als
+Zweitnetz **zwingend** erhalten — ein Tombstone allein darf eine legitime
+Neuentwicklung nicht dauerhaft ersticken.
+
+**13. Arretierung C — Loeschung kausal sofort bei Bar k (Frage 3).**
+
+Keine Sonderregel nach `box_end_bar`. Eine Engine, die live anders rechnet als
+im Backtest, ist unbrauchbar. R21 prueft ausschliesslich Vergangenheitswissen
+bis Bar k; der Vergleich Original vs. R21 ist damit ein echter
+Kausalitaetsnachweis.
+
+**14. Kennzahlen (ungeschminkt, Revisionssicherheit).**
+
+| Stand | Kanten | Trades | Netto-R | BOX | POST |
+|---|---|---|---|---|---|
+| Original (Teil 4, arretiert) | 93 | 9 | +23,02 | n=4 / +19,99 | n=5 / +3,03 |
+| **R21 arretiert (T = 192)** | **73** | **9** | **+23,02** | n=4 / +19,99 | n=5 / +3,03 |
+| R18 ohne Tombstone (T = 96) | 66 | 9 | +15,28 | — | — |
+
+R21 ist **signaturneutral**: identische Trades, identische R-Summe,
+**0 Folgekanten**. Die Bereinigung betrifft ausschliesslich nie-aeusserste,
+nie-konsumierte Singletons. Die Low-n-Eskalation aus Teil 4 (Abschnitt 11)
+gilt unveraendert.
+
+**15. Grenze der Aussage (kein 80-%-Versprechen).**
+
+R21 entfernt **21,5 %** (T = 160) bzw. **18,3 %** (T = 192) des Bestands —
+**nicht** 80 %. Die verbleibenden nie-aeussersten Kanten sind **nicht
+risikofrei loeschbar**: R4/R6 (60/61 Kanten) erhalten die Signatur exakt,
+erzeugen aber 36/37 Folgekanten; R2 (73) zerstoert die Signatur. Ursache sind
+die Transienz der Aussenrolle (Abschnitt 6) und die Wiedergeburts-Mechanik
+(Abschnitt 8).
+
+**16. Datenvertrag (arretiert, Korrekturen 1–4 eingearbeitet).**
+
+```python
+@dataclass(frozen=True, slots=True)
+class R21LoeschKonfiguration:
+    wall_live_bars: int = 96
+    ruhezeit_roher_touch_bars: int = 192      # institutioneller Standard (48 h)
+    min_touch_conf: int = 2                   # darunter gilt als Singleton
+    tombstone_band_pct: float = 0.30          # eigenstaendig, +/-0,30 %
+    erlaube_loeschung_fuer_prim_anker: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class TombstoneEintrag:
+    basis_preis: float
+    band_pct: float = 0.30
+    erzeugt_bar: int = 0
+
+    def blockiert_preis(self, preis: float) -> bool:
+        halbe_breite: float = self.basis_preis * (self.band_pct / 100.0)
+        return (self.basis_preis - halbe_breite
+                <= preis
+                <= self.basis_preis + halbe_breite)
+
+
+def pruefe_r21_kausal(kid: int, erster_pivot_bar: int,
+                      wicks: List[Tuple[int, float]],
+                      ist_prim_anker: bool, aktueller_bar: int,
+                      war_jemals_aussen_ids: Set[int],
+                      cfg: R21LoeschKonfiguration) -> bool:
+    """Strikt kausal, ohne Zukunfts-Leak (5 Bedingungen)."""
+    if ist_prim_anker or (kid in war_jemals_aussen_ids):
+        return False
+    if (aktueller_bar - erster_pivot_bar) < cfg.wall_live_bars:
+        return False
+    if sum(1 for b, _ in wicks
+           if (b + 2) <= aktueller_bar) >= cfg.min_touch_conf:
+        return False
+    bisherige: List[int] = [b for b, _ in wicks if b <= aktueller_bar]
+    if not bisherige:
+        return False
+    return (aktueller_bar - max(bisherige)) >= cfg.ruhezeit_roher_touch_bars
+```
+
+Verbindliche Praezisierungen (Korrekturen 1–4):
+
+1. `letzter_roher_touch` ist ein **Bar-k-Derivat**, kein Objektfeld — der
+   `_SEEdgeH` ist ein `@dataclass(slots=True)`.
+2. `touch_conf` zaehlt **bestaetigte** Dochte (`b + 2 <= k`), nicht
+   `len(wicks)`.
+3. `war_jemals_aussen` ist ein **externes `Set[int]`** ueber `kid` — dynamische
+   Attribute sind im `slots`-Dataclass unmoeglich (real aufgetretener
+   `AttributeError`).
+4. Loeschung **in-place** im Scan bei Bar k; Tombstone-Eintrag **im selben
+   Schritt**.
+
+**17. Wirkung auf §8.4 & Folgearbeiten.**
+
+§8.4 wird ergaenzt: `r21_loeschung_aktiv = True`,
+`ruhezeit_roher_touch_bars = 192`, `tombstone_band_pct = 0.30`,
+`tombstone_sperre = unbegrenzt`, `erlaube_loeschung_fuer_prim_anker = False`.
+Die Gate-Semantik (§8.2) und der S1/S2-Vorbehalt (Teil 4, Abschnitt 15) bleiben
+unveraendert. Folgearbeiten (nicht Teil dieses Commits): (1) Patch `_p8`
+(R21 + Tombstone im Scan), (2) Routing-Generalisierung S1/S2, (3) Kennzahlen-
+Basis n=4/n=9 → Gate-Messung auf S1/S2 nachholen.
+
+---
+
 ---
 
 ## 8. Gate & Schritt-0-Replay (verbindlich)
@@ -1843,7 +2134,11 @@ Da V3-Kanten **zeitlos** über den 2-Body-Bruch gesteuert werden, entfällt das
   **12** (AUG-arbeitswert unter S1/S2-Vorbehalt; Plateau `[3; 15]` ist
   **gate-frei** und seit §7.2 Teil 4 **aufgehoben** — Untergrenze `v >= 7`),
   **§7.2 Teil 4:** `stacking_gate_aktiv = True`, `max_offene_positionen_je_kante = 1`,
-  `quartil_distanz_pct` 25,0, `max_seed_distanz_pct` 0,75 — 1:1 der
+  `quartil_distanz_pct` 25,0, `max_seed_distanz_pct` 0,75,
+  **§7.2 Teil 5:** `r21_loeschung_aktiv = True`,
+  `ruhezeit_roher_touch_bars = 192`, `tombstone_band_pct = 0.30`,
+  `tombstone_sperre = unbegrenzt`, `erlaube_loeschung_fuer_prim_anker = False`
+  — 1:1 der
   Harness-Default `StraightEdgeHarnessKonfiguration`). Keine
   `max_tage`-Sensitivitätsmatrix für C.
 - **Bestehenskriterium:** identisch zu §8.2 — `PF ≥ 1,30` UND `Summe R > 0` auf

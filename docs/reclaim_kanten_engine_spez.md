@@ -2557,6 +2557,152 @@ B23-3/4/5, R21 + Tombstone (Teil 5), `retest_zyklus_bars = 12`.
 
 ---
 
+### Nachtrag 2026-09-09 (Teil 8) - Entry-Ausfuehrung & SL-Verankerung: Audit ohne Regeländerung
+
+> **Status: AUDIT - keine Arretierung, keine Regeländerung, kein Code-Eingriff.**
+> Anlass: Anwender-Auftrag "wir hatten in 0.4 eine spezielle Entry-Logik - bitte
+> pruefen, ob es uns hier auch hilft; **nicht speziell diesen Entry, sondern fuer
+> ALLE Entries**". Geprueft wurden (a) die v0.4-Entry-Logik, (b) saemtliche
+> kausalen Fill-Mechaniken, (c) der offene E3-Nebenbefund zur SL/TP-Seitenlage.
+> Quellen (read-only): `test/tmp_h1_entry_ausfuehrung3.py`,
+> `test/tmp_h1_sl_seitenlage.py` (+ `_out.txt`), `docs/Archiv/reclaim_signal_loop_design.md`,
+> `docs/Archiv/reclaim_v04_mentor_vorlage.md`, `docs/setup_c_experiment.md`,
+> `docs/makro_swings_experiment.md` §8.20. Referenz-Regime aller Messungen:
+> §7.2 Teil 7 (**n = 14 / +40,45 R / +12,768 USD**), Regime-Anker per `assert`
+> in jedem Lauf verifiziert. Engine `test/tmp_kanten_engine_replay.py`
+> unveraendert (191.339 B, SHA256 `b838ae830d684061`).
+
+**1. Befund A - v0.4 besitzt KEINE eigene Entry-Ausfuehrung.**
+
+Die Entry-Ausfuehrung ist in v0.4 **byte-identisch zur Baseline-DNA** und damit
+zur V3: `open[k+1]` (`in_bar`) bzw. `open[k+2]` (`next_bar`). Belegkette:
+
+| Quelle | Befund |
+|---|---|
+| `git show 7337bfc:scripts/tmp_phasen_volumen_profil.py` (Erstcommit) | `e_bar, e_preis, reclaim = k + 1, float(op[k + 1]), "in_bar"` / `k + 2, float(op[k + 2]), "next_bar"` - von Beginn an identisch zu V3 |
+| `scripts/phasen_volumen_profil.py` Z. 1169/1174/1223/1227 (frozen v0.4.0) | unveraendert dieselben zwei Zweige |
+| `docs/Archiv/reclaim_signal_loop_design.md` §1 | "Nicht in diesem Dokument: Aenderungen an ... Exits (`_aufloesen`), SL/TP, Cooldown, CRV-Schwelle, POC-Filter - alle unveraendert (Baseline-DNA)" |
+| `docs/setup_c_experiment.md` F6 | "Einstieg = `open[k+1]`. **Keine** Limit-Order am Band." (auch der entry-fokussierteste Arm nutzt Market-Open) |
+
+**Was v0.4 tatsaechlich aenderte** (arretiert 03.09.) betrifft ausschliesslich die
+**Kanten-Auswahl/Gates**, nie die Fill-Mechanik:
+
+- **D1-mid Kanten-Kapselung + Ueberrannt-Filter** (`macro_persistence.py` Z. 62/394;
+  `OVERRUN_TOL = 0.075 = 0.5 x PENETRATION_TOL`).
+- **D2-asym Cooldown-Entkopplung** (`last_bar_t1`/`last_bar_t2`; Tier 1 sperrt
+  Tier 2, nie umgekehrt).
+- E3-Fallback (v0.2), E5-Seiten-Konsistenz (v0.3), B3 `st.side`-SSoT + A3-Bounds-Guard (v0.4.x).
+
+**Uebertragbarkeit auf V3: keine.** V3 kennt kein Tier-1/2-Modell (keine
+Verdraengung ⇒ Kapselung gegenstandslos), keinen Bar-Cooldown (stattdessen
+F3-Frische + B2-Entry-Zyklus), und das POC-Seiten-Gate existiert bereits als
+`sl > entry > poc > tp2` (Z. 2623/2627). **Es gibt keine unuebertragene
+v0.4-Entry-Mechanik.**
+
+**2. Befund B - Fill-Mechanik fuer ALLE 14 Entries: kein USD-Edge.**
+
+Getauscht wurde ausschliesslich der Fill; Signal-Erzeugung, SL, TP1/POC und TP2
+blieben bit-identisch. Limit liegt **non-expansiv an der Kanten-Basis**. Die
+USD-Spalte ist die risikoneutrale Gegenprobe (fixes Risiko-Budget: 1 USD je
+1 USD Stop-Distanz).
+
+| Variante | n | Summe R | dR | Summe USD | dUSD |
+|---|---|---|---|---|---|
+| **IST** (arretiert: `open[entry_bar]`) | 14 | **+40,45** | - | **+12,768** | - |
+| SC (Entry am Signal-Close) | 14 | +41,12 | +0,68 | +12,837 | **+0,069** |
+| ZK (Limit Plan-Bar, sonst Close) | 14 | +50,26 | +9,81 | +12,411 | -0,358 |
+| L1 / L2 / L3 / L5 / L8 (Limit N Bars + Market-Fallback) | 14 | +50,22 / +49,56 / **+52,24** / +51,44 / +49,98 | +9,8 ... +11,8 | +12,404 / +12,382 / **+12,929** / +12,758 / +12,390 | -0,365 / -0,387 / **+0,160** / -0,011 / -0,379 |
+| F1 / F3 (Limit, sonst Trade entfaellt) | 10 / 12 | +47,33 / +46,08 | +6,9 / +5,6 | +9,216 / +9,026 | **-3,553 / -3,742** |
+
+**Befund:** Der R-Zuwachs von bis zu +11,8 R ist **Risiko-Kompression**, kein
+Marktvorteil. Belege:
+
+1. **Risiko-Hebel statt Preis-Hebel.** Bar 529: Risk 0,264 → 0,129 bei gleichem
+   Kursziel ⇒ R +8,39 → +18,22. Bar 564: 0,146 → 0,121 ⇒ +15,93 → +19,42.
+2. **USD-Effekt ist Rauschen.** Delta ±0,4 USD auf 12,768 USD Basis (±3 %) und
+   **nicht monoton** in N (nur L3 positiv, L1/L2/L5/L8 negativ) ⇒ kein
+   systematischer Vorteil, sondern Kurven-Fitting.
+3. **Der einzige Verlust-Trade** ist Bar 398: der L3-Fallback fuellt 0,597 USD
+   ueber der Basis (Risk 0,328 → 0,781 ⇒ -0,453 USD).
+4. **Limit mit Verfall kostet Geld** (F1 -3,553 USD, F3 -3,742 USD): die
+   verworfenen Trades (Bar 242 STUFE_3, Bar 398 STUFE_1) sind Netto-Gewinner.
+5. **SC (Signal-Close)** ist mit +0,069 USD **praktisch neutral** - die
+   gewaehlte 1-Bar-Verzoegerung ist also kein Kostenfaktor; der in Teil 4
+   arretierte 1-Bar-Aufschub bleibt bestaetigt.
+
+**Offengelegte Lookahead-Falle (verworfen, dokumentiert):** Ein erster Entwurf mit
+"Limit ab **Reclaim-Bar**" wies **+49,24 R / +1,545 USD** aus. Da
+`entry_bar = reclaim_bar + 1` gilt, ist das ein **Same-Bar-Fill** = Lookahead.
+Die Variante wurde entfernt (`test/tmp_h1_entry_ausfuehrung2.py`, nur
+dokumentarisch; **maszgeblich ist `..._ausfuehrung3.py`**).
+
+**Projekt-Kontext (bestaetigt):** `docs/makro_swings_experiment.md` §8.20 - alle
+Einstiegs-Signaturen wurden bereits systematisch getestet und als **netto
+-60,38 R bis -61,96 R** arretiert (sie vernichten T54 +14,05 R, T188/T189
++13,31 R). Befund B ist damit **regelkonform** zum bestehenden Negativ-Befund.
+
+**3. Befund C - E3-Nebenbefund "SL/TP-Seitenlage" aufgeloest: kein Bug.**
+
+Der in der Vorsession notierte Verdacht ("SL 66,713 > Entry 66,092 > TP 63,676
+wirkt invertiert") ist **geometrisch korrekt**: SHORT verlangt `sl > entry >
+poc > tp2` (Stop **ueber** dem Entry, Ziel darunter), LONG spiegelbildlich.
+Pruefung ueber alle 14 Trades: **0 Geometrie-Verletzungen**; in **14/14** Faellen
+liegt der SL jenseits der Einstiegs-Basis (`sl > basis` bei SHORT / `sl < basis`
+bei LONG) - also **hinter** der Wand, wie strukturell vorgesehen. Der
+Nebenbefund ist damit **geschlossen**.
+
+**4. Befund D - SL-Verankerung: arretierter Wert ist nicht kritisierbar, aber
+auch nicht verbesserbar.**
+
+| Variante | n | Summe R | dR | Summe USD | dUSD |
+|---|---|---|---|---|---|
+| **IST** (Cluster-Extremum `k..reclaim_bar` + 0,05) | 14 | **+40,45** | - | **+12,768** | - |
+| SWEEP (nur Sweep-Docht `high[k]`/`low[k]` + 0,05) | 14 | +40,45 | **+0,00** | +12,768 | **+0,000** |
+| KANTE (`basis` + 0,05) | 14 | +4,60 | -35,84 | +3,256 | -9,512 |
+| BUF_0,02 (Puffer 0,02) | 14 | +47,55 | +7,10 | +12,978 | +0,210 |
+| BUF_0,10 (Puffer 0,10) | 14 | +32,47 | -7,98 | +12,418 | -0,350 |
+| BUF_0,20 (Puffer 0,20) | 14 | +30,21 | -10,24 | +15,058 | +2,289 |
+
+- **SWEEP ≡ IST (bit-identisch, 14/14):** Cluster-Extremum und Sweep-Docht fallen
+  bei allen 14 Trades zusammen - der Puffer-0,05-Ansatz ist **strukturell
+  stabil**, kein Einzelfall-Artefakt.
+- **KANTE ist fatal (-35,84 R / -9,512 USD):** ein SL knapp hinter der Kante wird
+  von der normalen Reclaim-Atmung geraeumt (Bar 229/529/564/679: -1,00 R).
+- **Puffer-Sensitivitaet ist nicht monoton** (0,02 besser, 0,10/0,20 schlechter;
+  USD bei 0,20 sogar hoeher) ⇒ **kein Plateau**, kein belastbarer Hebel, und
+  ohne S1/S2-Messung (Routing-Blocker, §7.2 Teil 7 Abschnitt 14) ohnehin
+  nicht arretierbar.
+
+**5. Konsequenz (Audit-Ergebnis).**
+
+1. **Entry-Ausfuehrung bleibt unveraendert** (`open[k+1]`/`open[k+2]`).
+2. **SL-Verankerung bleibt unveraendert** (Cluster-Extremum ± 0,05 USD).
+3. **Keine Regel-, Parameter- oder Code-Aenderung** aus Teil 8.
+4. Offen (separate Entscheidung des Anwenders, **nicht** Teil dieses Audits):
+   eine **Max-Entry-Distanz-Kappe** (neuer Filter, kein v0.4-Erbe) sowie die
+   S1/S2-Messung nach Behebung des Routing-Blockers.
+
+**6. Revisionssicherheit.**
+
+| Dokument | Aussage | Status |
+|---|---|---|
+| §7.2 Teil 7 (Abschnitt 11/12) | n = 14 / +40,45 R / +12,768 USD | **unveraendert gueltig** |
+| §7.1 B (Z. 446-447) | Entry = `open[k+1]` (in_bar) / `open[k+2]` (next_bar) | **bestaetigt** (kein Limit) |
+| §7.1 B (Z. 462-465) | SL = Sweep-Extremum + 0,05 USD Puffer | **bestaetigt** (Cluster-Extremum = Sweep-Extremum in 14/14) |
+| §4.1 F6 (Setup C) | "Keine Limit-Order am Band" | **bestaetigt** |
+| `docs/makro_swings_experiment.md` §8.20 | Einstiegs-Signaturen netto -60 R | **bestaetigt** |
+
+Erhalten bleiben alle Arretierungen aus Teil 7 (B2-Entry-Referenz, Gate-Aus,
+Band-Entkopplung, R21/Tombstone, `touch_band_pct = 0,12`, M2/M6, Q29, B23-3/4/5).
+
+**7. Folgearbeiten (nicht Teil dieses Commits).**
+
+1. Patch `_p9` (unveraendert offen, siehe Teil 7 Abschnitt 17).
+2. Routing-Generalisierung S1/S2, dann gemeinsame Messung B2 + Gate-Aus.
+3. Entscheidung des Anwenders zur Max-Entry-Distanz-Kappe (nur falls gewuenscht).
+
+---
+
 ---
 
 ---

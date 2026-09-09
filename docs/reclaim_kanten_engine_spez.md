@@ -2709,6 +2709,170 @@ Band-Entkopplung, R21/Tombstone, `touch_band_pct = 0,12`, M2/M6, Q29, B23-3/4/5)
 
 ---
 
+### Nachtrag 2026-09-09 (Teil 9) - Scharfschaltung `_p9` & Box-/Voll-Lauf-Kennzahlen: Praezisierung
+
+> **Status: ARRETIERUNG WIRKSAM - `_p9` ist scharf geschaltet (Mentor-Freigabe F1-F3).**
+> Der Patch wurde am 2026-09-09 auf `test/tmp_kanten_engine_replay.py` angewendet:
+> **7 Anker**, kein S1/S2-Routing, kein CLI-Schalter. Dieser Nachtrag dokumentiert
+> (a) die Scharfschaltung, (b) die Messung pre/post, (c) die **Praezisierung der
+> Kennzahl-Basis**: `n = 14 / +40,45 R` ist ein **Voll-Lauf-Wert**
+> (`box_end_bar = n = 1288`); der **offizielle Modus-C-Lauf**
+> (`box_end_bar = 644`, Box < 19.08) liefert `n = 9 / +37,96 R`.
+> **Keine Regelwirkung der Box-Grenze** (Reporting-/Diagnose-Grenze, §7.2 Teil 5
+> Abschnitt "keine Sonderregel nach `box_end_bar`").
+
+**1. Gegenstand und Freigabe (F1-F3).**
+
+| Punkt | Inhalt | Status |
+|---|---|---|
+| **F1** | Freigabe der Scharfschaltung unter Vorbehalt F2; Backup Pflicht | **erteilt** |
+| **F2** | **Strikt nur die 7 Anker** aus Teil 7; kein S1/S2-Routing, kein CLI-Schalter | **eingehalten** |
+| **F3** | Nach `--apply` sofort offizieller Lauf + TXT/PNG auf denselben Revisionsstand | **erledigt** |
+
+**2. Patch `_p9`: Integritaet, 7 Anker, Diff.**
+
+| Stand | Bytes | CRLF | SHA256 (16) |
+|---|---|---|---|
+| `pre_p9` (= Teil 7/8, arretiert) | 191.339 | 4.492 | `b838ae830d684061` |
+| `post_p9` (scharf) | 191.194 | 4.489 | `d31f93473f56a2d0` |
+
+Backup: `test/tmp_kanten_engine_replay_pre_p9.py` (191.339 B, byte-identisch zu `pre_p9`).
+`py_compile`: **OK**. Diff Backup ↔ scharf: **62 Zeilen, exakt die 7 Anker, keine Fremdaenderung.**
+
+| Anker | Ort | vorher | nachher |
+|---|---|---|---|
+| **KONFIG** | `StraightEdgeHarnessKonfiguration` | `retest_zyklus_bars: int = 12` | + 3 Felder: `retest_zyklus_referenz: str = "ENTRY"`, `stacking_gate_aktiv: bool = False`, `sweep_mindestdurchstich_pct: float = 0.0` |
+| **BAND_O** | `_reclaim_stufe` OBEN | `band < dist_o` | `cfg.sweep_mindestdurchstich_pct < dist_o` |
+| **BAND_U** | `_reclaim_stufe` UNTEN | `band < dist_u` | `cfg.sweep_mindestdurchstich_pct < dist_u` |
+| **INBAND** | `_kandidat` Kaskade | `dist <= cfg.touch_band_pct` | `dist <= cfg.sweep_mindestdurchstich_pct` |
+| **SEEDPOOL** | `_kandidat` Seed-Pool | `cfg.touch_band_pct < d <= max` | `cfg.sweep_mindestdurchstich_pct < d <= max` |
+| **ZYCLUS** | `_se_trades` Zyklus-Uhr | `k - kd.letzter_sweep_bar < v` | `entry_bar - _vor_zeit.entry_bar < v` |
+| **STACK_START** | `_se_trades` Stacking-Gate | 12-Zeilen-Block inkl. `continue` | **ersatzlos entfernt** (3-Zeilen-Kommentar) |
+
+Die 3 neuen Config-Felder sind **default-neutral** (`"ENTRY"`, `False`, `0.0`):
+Der scharfe Zustand ist der **neue Default**, es gibt **keinen Schalter**
+(F2). Das Gate-Aus ist durch den **12-Bar-Entry-Mindestabstand (B2)** ersetzt;
+der Entry-Dedup B23-3 (`getradete_entry_bars`) bleibt als Sicherheitsgurt.
+
+**3. Messung `pre_p9` vs. `post_p9` (AUG, je Variante frischer `_se_scan`).**
+
+`test/tmp_p9_gegenueberstellung.py` (`_se_scan` mutiert ⇒ je Messung neuer Scan).
+
+| Modus | Stand | n | Summe R | dR | Stacking | Zyklus |
+|---|---|---|---|---|---|---|
+| **Box-Lauf** (`box_end_bar = 644`) | `pre_p9` | 4 | +19,99 | - | 3 | 2 |
+| **Box-Lauf** (`box_end_bar = 644`) | **`post_p9`** | **9** | **+37,96** | **+17,97** | **0** | 12 |
+| **Voll-Lauf** (`box_end_bar = n = 1288`) | `pre_p9` | 9 | +23,02 | - | 4 | 11 |
+| **Voll-Lauf** (`box_end_bar = n = 1288`) | **`post_p9`** | **14** | **+40,45** | **+17,43** | **0** | 36 |
+
+**Deckungsgleich mit Teil 7:** Voll-`pre` = 9 / +23,02 (Abschnitt 7, V0),
+Voll-`post` = 14 / +40,45 (Abschnitt 7, V0-Ziel); Box-`pre` = 4 / +19,99
+(Teil 4, Abschnitt 10). Der **Zielwert-Gate** (`P9ScharfschaltungsSoll`)
+ist im Voll-Lauf **erreicht** (14 / +40,45 / Stacking 0).
+
+**4. Praezisierung: die Kennzahl-Basis `n = 14 / +40,45 R` ist ein Voll-Lauf-Wert.**
+
+Teil 7 fuehrt die Kennzahl als **AUG Voll-Lauf (n = 1288)** (Teil 7, Abschnitt 6/9;
+Z. "AUG Voll-Lauf, n=1288") und setzt dort explizit
+`scan["box_end_bar"] = n = 1288`. Der **offizielle Modus-C-Lauf** (§8.4,
+`--fenster AUG --modus C`) nutzt dagegen die Box-Grenze `box_end_bar = 644`
+(Box < 19.08) und weist **9 Trades / +37,96 R / Stacking 0** aus.
+
+Die Differenz sind **5 Trades ausserhalb der Box** (Bar >= 644):
+
+| Bar | Richtung | K | Entry | R |
+|---|---|---|---|---|
+| 650 | LONG | 3 | 653 | -1,00 |
+| 679 | LONG | 45 | 681 | **+6,48** |
+| 715 | SHORT | 16 | 716 | -1,00 |
+| 760 | SHORT | 51 | 762 | -1,00 |
+| 853 | SHORT | 59 | 855 | -1,00 |
+| **Summe** | | | | **+2,49** (Rundung) |
+
+`37,96 + 2,49 = 40,45 R` — die beiden Kennzahlen sind **konsistent**, nicht
+widerspruechlich. **Ursache der Verifikations-Diskrepanz:** Die Pruef-Harnesses
+(`test/tmp_p8_verify.py`, `test/tmp_h1_entry_ausfuehrung3.py`) setzen
+`sc["box_end_bar"] = sc["n"]` und messen damit den **Voll-Lauf** (in
+`tmp_p8_verify.py` dokumentiert als "Voll-Lauf (box_end_bar = n)"). Die
+Reproduktion mit `test/tmp_p9_boxend_diag.py` (frische Scans) ergibt fuer den
+Box-Lauf exakt **9 / +37,96 / Zyklus 12** — deckungsgleich mit dem offiziellen
+Lauf.
+
+**Keine Regelwirkung.** Die Box-Grenze ist eine **Reporting-/Diagnose-Grenze**,
+keine Handelsregel (Teil 5: "keine Sonderregel nach `box_end_bar`; eine Engine,
+die live anders rechnet als im Backtest, ist unzulaessig"). Die Live-Semantik
+ist durch `_p9` **unveraendert** bis auf die drei arretierten Freiheitsgrade.
+
+**5. Offizieller Lauf (F3) - Artefakte auf demselben Revisionsstand.**
+
+`.venv\Scripts\python.exe test\tmp_kanten_engine_replay.py --fenster AUG --modus C`
+
+| Artefakt | vorher | nachher |
+|---|---|---|
+| `test/tmp_v3_straight_edge_harness_AUG.txt` | 10.558 B / `41d79fe79e07b7d4` | 12.860 B / `76a8f327864086f0` |
+| `test/kanten_engine_trades_AUG_mC.png` | 550.423 B / `56f4ded44d0a706e` | 558.753 B / `3d350c0a131dd0ec` |
+
+Report-Kopf: `Gekeimte SE-Kanten: 59 (OBEN 32/UNTEN 27) | >= 3 Touches: 47 |
+Seeds offen: 14`; Regel-2-Trades **9**; `Ablehnungen: kein_Gegner=0 F3=0
+Blocker=5 Zyklus=12 Quartil=25 kein_Raum=1 **Stacking=0** R21=17`;
+`Promovierte Primaer-Anker: 5`.
+
+**6. Datenvertrag `P9ScharfschaltungsSoll` (Zielwert-Gate).**
+
+```python
+@dataclass(frozen=True, slots=True)
+class P9ScharfschaltungsSoll:
+    retest_zyklus_referenz: str = "ENTRY"
+    retest_zyklus_bars: int = 12
+    stacking_gate_aktiv: bool = False
+    sweep_mindestdurchstich_pct: float = 0.0
+    soll_trades_gesamt: int = 14          # Voll-Lauf
+    soll_netto_r_gesamt: float = 40.45    # Voll-Lauf
+    soll_stacking_sperren: int = 0
+    anker_anzahl: int = 7
+    status: str = "BEREIT_FUER_APPLY"
+```
+
+Das Gate prueft **vor** dem Schreiben: `len(tr) == 14`, `round(sum(r), 2) == 40.45`,
+`stacking_blockiert == 0` — sonst kein Write (Rueckgabecode 3). Ergebnis:
+**ERREICHT**.
+
+**7. Revisionssicherheit.**
+
+| Dokument | Aussage | Status |
+|---|---|---|
+| §7.2 Teil 7 (Abschnitt 4) | 4 Stellen `band` -> `0.0` (Band entkoppelt) | **umgesetzt** (Code) |
+| §7.2 Teil 7 (Abschnitt 6) | Stacking-Gate ersatzlos entfernt | **umgesetzt** (Code) |
+| §7.2 Teil 7 (Abschnitt 13) | `stacking_gate_aktiv = False`, `retest_zyklus_referenz = "ENTRY"`, `sweep_mindestdurchstich_pct = 0.0` | **umgesetzt** (Code) |
+| §7.2 Teil 7 (Abschnitt 17.1) | "Patch `_p9` offen" | **erledigt** |
+| §7.2 Teil 8 (Abschnitt 7.1) | "Patch `_p9` unveraendert offen" | **erledigt** |
+| Kennzahl-Basis | `n = 14 / +40,45 R` | **praezisiert**: Voll-Lauf; Box-Lauf = 9 / +37,96 R |
+| §7.1 B / §7.2 Teil 4 | B2-Zyklus, Gate-Revision | **unveraendert gueltig** |
+
+Erhalten bleiben: `touch_band_pct = 0,12` (nur Rollen (i)/(ii)/(ii')),
+`retest_zyklus_bars = 12` (Plateau [12; 14]), R21 + Tombstone (Teil 5),
+M2/M6, Q29, B23-3/4/5, Entry `open[k+1]`/`open[k+2]`, SL Cluster-Extremum
++/- 0,05 USD (Teil 8).
+
+**8. Offene Anwender-Entscheidungen (nicht Teil dieses Commits).**
+
+1. **Referenz-Kennzahl:** `n = 14 / +40,45 R` (Voll-Lauf) oder `n = 9 /
+   +37,96 R` (offizieller Box-Lauf)? Beide Werte sind ab jetzt in dieser Spez
+   gefuehrt; die Arretierung aus Teil 7 nennt den Voll-Lauf.
+2. **Routing-Generalisierung S1/S2** (weiterhin Blocker, Teil 7 Abschnitt 14):
+   danach gemeinsame Messung B2 + Gate-Aus auf S1/S2.
+3. **Kopfzeile** der Engine nennt weiter `arretiert a771e04` (historischer
+   Commit-Verweis, rein kosmetisch; **kein** Logik-Eingriff, F2).
+4. **Max-Entry-Distanz-Kappe** (Teil 8, Abschnitt 5.4), nur falls gewuenscht.
+
+**9. Folgearbeiten (nicht Teil dieses Commits).**
+
+1. S1/S2-Messung nach Behebung des Routing-Blockers.
+2. Entscheidung 8.1 (Referenz-Kennzahl) durch den Anwender.
+3. Pfad C (H2) nach Abschluss H1/K20.
+
+---
+
 ## 8. Gate & Schritt-0-Replay (verbindlich)
 
 ### 8.1 Replay-Harness (`test/tmp_kanten_engine_replay.py`, Schritt 0)

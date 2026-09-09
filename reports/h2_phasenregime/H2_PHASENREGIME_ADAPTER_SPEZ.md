@@ -509,3 +509,166 @@ bar 1025 → BLOCKIERT · bar 1150 → BLOCKIERT ✅
 Schritt 2 und 3 abgeschlossen. Keine Engine-Änderung, keine Regression in H1.
 `backtest_lab/phasen_regime_adapter.py` ist **untracked** (Commit offen);
 `test/` bleibt gitignored.
+
+---
+
+# Addendum v0.5 — Commit + P12-Trockenübung (2026-09-09)
+
+## 22. Commit
+
+`cd0e1b3` — *feat(backtest_lab): H2-Phasen-Regime-Adapter v0.1 (P9,
+Tri-State, Fail-Loud)*. Enthält `backtest_lab/phasen_regime_adapter.py` (281
+Zeilen) und diese Spez (511 Zeilen). `test/` bleibt gitignored;
+`reports/setup_c/` unverändert untracked.
+
+## 23. P12-Trockenübung (`test/tmp_dryrun_p12.py`, read-only)
+
+### A) Kanten-Identität (Ref-Bar 1259)
+
+| kid | seite | geb | erster_pivot | basis_bei(1259) | touch_conf | aktiv@1259 |
+|---|---|---|---|---|---|---|
+| 67 | OBEN | 881 | 873 | 69.9458 | 5 | True |
+| **73** | **OBEN** | 928 | 909 | **69.6714** | 5 | True |
+| 77 | UNTEN | 991 | 934 | 68.3597 | 6 | **False** |
+| **82** | **UNTEN** | 1056 | 1031 | **67.5273** | 3 | True |
+
+### B) Fail-Loud P9+P12: **OK** (K73 0,167 % / K82 0,160 % zu Provenienz)
+
+### C) V0-Trades in P12: **0** · Tri-State: 1170 BLOCKIERT, 1171–1272 PHASE,
+1273 BLOCKIERT ✅
+
+### D) Sweep-im-Band der P12-Grenzkanten (0,12 %): **4 Treffer**
+
+| bar | Zeit | Richtung | Kante | basis | sweep | dist | Art |
+|---|---|---|---|---|---|---|---|
+| 1211 | 27.08. 05:45 | SHORT | K73 | 69.6865 | 69.6110 | −0,1083 % | Docht-Defizit |
+| 1259 | 27.08. 17:45 | LONG | K82 | 67.5273 | 67.6000 | −0,1076 % | Docht-Defizit |
+| 1271 | 27.08. 20:45 | SHORT | K73 | 69.6714 | 69.5910 | −0,1154 % | Docht-Defizit |
+| 1272 | 27.08. 21:00 | SHORT | K73 | 69.6714 | 69.7140 | +0,0611 % | Durchstich (Q1) |
+
+### E) Adapter-Lauf (P9+P12)
+
+- **H1 bit-identisch** 8 / +38.964262 R ✅
+- **P12: V0 0 Trades → V1 0 Trades** — P12 ist im August **inert**
+- H2 V1 = **+7.9021 R** = identisch zum P9-only-Lauf (P12-Beitrag = 0)
+
+### F/G) Warum kein P12-Trade entsteht
+
+| bar | Richtung | Freigabe | Kandidat danach | Sperre |
+|---|---|---|---|---|
+| 1211 | SHORT | K73 | K76 (dist +0,149 %) | **M6: K67** (69.9458, +0,6308 %) |
+| 1271 | SHORT | K73 | K76 (dist +0,109 %) | **M6: K67** (69.9458, +0,6194 %) |
+| 1272 | SHORT | – (dist>0) | K73 (dist +0,061 %) | **M6: K67** (69.9458, +0,3938 %) |
+| 1259 | LONG | K82 | K62 (dist +0,196 %) | **Q29 Quartil** (67.600 Mitte der Range) |
+
+### Zentraler Befund: invertierte Freigabe-Wirkung in P12
+
+In **P9** war die freigestellte Wand (K67) der *äußere Blocker*; die
+Handelswand war die Innenlinie K73. In **P12** ist die freigestellte Wand
+(K73) die **Phasen-Decke selbst** ⇒ ihre Freigabe entfernt sie aus dem Pool
+und promoviert die Innenlinie K76. Die Außenwand K67 bleibt als M6-Blocker
+bestehen — und weil K67 **nicht** die P12-Grenzkante ist, greift
+Entscheidung #6: **keine Freigabe für K67 in P12.** Das ist der gewollte
+institutionelle Selbstschutz, nicht ein Fehler.
+
+### Konsequenz für v0.2
+
+1. `ziel_preis_short = 67.6355` ist als **Provenienz-Norm** (v0.4 `L_final`)
+   gesetzt, aber **empirisch unbelegt**: kein August-Trade konsumiert das
+   Ziel. Die Trockenübung validiert **Existenz und Orientierung** der Kanten,
+   **nicht** den Zielwert.
+2. P12 kann ohne jede Benchmark-Wirkung in `segmente` aufgenommen werden
+   (H1/H2 bit-identisch) — es ist dann eine **dokumentarische** Reserve.
+3. Stats-Diff V0 → V1 (P9+P12): `blocker` 23→25 · `quartil_blockiert` 56→58 ·
+   `kein_raum` 1→11 · `zyklus_blockiert` 36→27 · `v_s` 14→15.
+
+### Offene Frage an den Mentor
+
+Soll P12 als **inertes** Segment in `segmente` aufgenommen werden
+(Sicherheit: fail-closed, 0 Benchmark-Wirkung, aber „tote" Konfiguration),
+oder bleibt es bis zum Nachweis eines handelbaren P12-Fensters in einem
+**separaten** Segment-Katalog (z. B. `P12_RESERVE`) außerhalb der aktiven
+Default-Liste?
+
+---
+
+# Addendum v0.6 — Konsolidierung (Mentor-Audit 4, 2026-09-09)
+
+## 24. Entscheidungen
+
+### 24.1 `P12_RESERVE` — bestätigt, aber mit Bindungsbedingung
+
+Die Reserve-Strategie ist bestätigt: `P12_RESERVE` wird definiert,
+`segmente` bleibt standardmäßig `(P9,)`. **Zusatzbedingung gegen toten Code:**
+Eine Modul-Konstante, die kein Produktionspfad liest, ist per Definition
+totes Kapital — genau das, was die Reserve-Strategie verhindern soll. Sie ist
+nur dann zulässig, wenn sie **verifiziert** wird. Vorgeschlagene Form:
+
+```python
+AKTIVE_DEFAULT_SEGMENTE: Tuple[PhasenSegmentEintrag, ...] = (P9,)
+
+P12_RESERVE: PhasenSegmentEintrag = PhasenSegmentEintrag(
+    phasen_id="P12", start_bar=1171, end_bar=1272,
+    decke=PhasenKanteInfo(kid=73, provenienz_basis=69.5550),
+    boden=PhasenKanteInfo(kid=82, provenienz_basis=67.6355),
+    ziel_preis_short=67.6355, ziel_preis_long=69.5550,
+)
+
+RESERVE_SEGMENTE: Tuple[PhasenSegmentEintrag, ...] = (P12_RESERVE,)
+
+# im Adapter:
+segmente: Tuple[PhasenSegmentEintrag, ...] = AKTIVE_DEFAULT_SEGMENTE
+```
+
+Bindung: Der Test prüft `PhasenRegimeAdapter(segmente=RESERVE_SEGMENTE)` mit
+`verifiziere_gegen_scan` (Fail-Loud P12). Damit ist die Konstante
+**ausgeführt**, nicht nur deklariert. Status: **Entwurf, nicht angewendet**
+(Phase: kein Feature-Code).
+
+### 24.2 Commit-Strategie
+
+Dieser Commit enthält **ausschließlich die Spezifikation** (Dokumentation).
+Die Moduländerung (24.1) folgt als eigener Commit nach explizitem
+Implementierungs-Go. Vorteil: Die P12-Befundlage ist revisionssicher
+arretiert, bevor Code sie referenziert.
+
+### 24.3 Transition-Zone 640–847 — Exploration hiermit abgeschlossen
+
+**Die H2-Adapter-Exploration ist mit v0.1 abgeschlossen.** Die
+Transition-Zone wird **nicht** als Fortsetzung angehängt, sondern als
+eigenes, **baseline-veränderndes** Entscheidungsfeld geführt. Begründung:
+
+1. **Sie ist Teil der arretierten Baseline.** Lauf B (+40.445143 R) enthält
+   5 Park-Trades (K1@639, K3@650, K45@679, K16@715, K51@760) mit
+   **+2.4809 R**. Eine Fail-Closed-Behandlung würde diese 5 Trades und
+   damit die Referenz verändern — das ist keine Adapter-Erweiterung.
+2. **Sie läuft heute unter MAKRO.** Beweis aus dem Adapter-Lauf: die
+   Park-Trades tragen `tp2 = 66.4590` (K1/K3/K45) bzw. `62.5625`
+   (K16/K51) — Makro-Gegenkanten, **nicht** Phasenziele. Der Adapter lässt
+   sie unangetastet (`start_scope_bar = 848`).
+3. **Die Stichprobe trägt keine Regime-Aussage.** 5 Trades, davon
+   **1 Ausreißer** (K45@679 +6.4809 R) und 4 × −1.0000 R. Ohne diesen
+   Ausreißer wäre der Park −4.0000 R. Darauf lässt sich kein Regime bauen.
+4. **Kein v0.4-Segment deckt 641–847 ab** (Lücke zwischen P8-Ende 840 und
+   P9-Start 848). Eine Zuweisung wäre eine neue Struktur-Entscheidung, keine
+   Adapter-Frage.
+
+**Fragenkatalog für das spätere, getrennte Vorgehen:**
+
+| # | Frage | Wirkung |
+|---|---|---|
+| T1 | Soll 641–847 ein eigenes Regime („Settlement/Transition") erhalten? | verändert Lauf B |
+| T2 | Falls ja: welche Kanten sind Decke/Boden? (Kandidaten: K20 66.4590, K42 62.5625) | neue Fail-Loud-Prüfung |
+| T3 | Falls nein: bleibt MAKRO dauerhaft — und ist das dokumentiert? | reine Dokumentation |
+| T4 | Ist der Ausreißer K45@679 (+6.4809 R) reproduzierbar oder Zufall? | Statistik, nicht Adapter |
+| T5 | Ändert `start_scope_bar = 848` die Lauf-B-Referenz? (Messung: **nein**) | bereits belegt |
+
+## 25. Stand nach Konsolidierung
+
+| Gegenstand | Status |
+|---|---|
+| P9 (848–1020, K67/K77, Ziel 68.3700) | **aktiv, verifiziert** (+5.4212 R) |
+| P12 (1171–1272, K73/K82, Ziel 67.6355) | **Reserve**, strukturell validiert, empirisch inert |
+| H1-Baseline | bit-identisch 8 / +38.964262 R |
+| Engine | unverändert (SHA256 `3ba15c72…`) |
+| Transition-Zone 640–847 | **offen**, separat, baseline-verändernd |

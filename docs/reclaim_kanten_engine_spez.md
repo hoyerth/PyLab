@@ -2874,6 +2874,128 @@ M2/M6, Q29, B23-3/4/5, Entry `open[k+1]`/`open[k+2]`, SL Cluster-Extremum
 
 ---
 
+### Nachtrag 2026-09-09 (Teil 10) - Wanduhr-Achse (Patch `_p11`) & Lookahead-Widerlegung Bar 564
+
+> **Status: 1 BUG BEHOBEN (Anzeige) + 1 VORWURF WIDERLEGT (Kausalitaet).**
+> Anwender-Sichtpruefung: (1) "Datumsangaben auf der X-Skala sind nicht korrekt
+> und verschoben"; (2) "der Reentry am 18.8. 3:15 wird mit +15,9 R ausgewiesen
+> - ist die TP-Kante zum Reentry-Zeitpunkt ueberhaupt bekannt? Lookahead?"
+> Beide Punkte sind aufgeklaert; Punkt 2 ist **kein** Lookahead.
+
+**1. Befund 1 - X-Achse um -2 h verschoben (echter Bug, behoben).**
+
+`_lade_fenster` projizierte die **Berlin-encoded MT5-Epochs** per
+`time AT TIME ZONE 'UTC'` auf UTC (Mentor-Invariante der Datenschicht, korrekt)
+und **verwendete dieselbe UTC-Projektion als Anzeige**. Dadurch trug jedes
+Achsen-Label eine um -2 h verschobene Uhrzeit, und Bars nach Mitternacht
+kippten auf den **Vortag**:
+
+| Bar | Rohzeit (DB) | alte Anzeige (UTC) | neue Anzeige (Berlin) |
+|---|---|---|---|
+| 229 | 12.08. 13:15+02:00 | 12.08. **11:15** | 12.08. **13:15** |
+| 564 | 18.08. 05:00+02:00 | 18.08. **03:00** | 18.08. **05:00** |
+| 644 | 19.08. 02:00+02:00 | 19.08. 00:00 | 19.08. **02:00** |
+| 1287 | 28.08. 00:45+02:00 | 27.08. **22:45** (Vortag!) | 28.08. **00:45** |
+
+Die alten Labels matchten zufaellig die Spez-Uhrzeiten, weil **die Spez
+dieselbe UTC-Projektion nutzt** (z. B. §7.2 Teil 7: "Bar 229 (11:15)",
+Teil 9: "Bar 564 = 03:00"). Die Spez-Zeiten sind damit als **UTC-Projektion**
+zu lesen; die Berlin-Wanduhr liegt 2 h darueber.
+
+**Fix (Patch `_p11`, rein kosmetisch):** `SELECT time AT TIME ZONE
+'Europe/Berlin' AS ts`. Die **WHERE-Grenzen bleiben UTC-formuliert**, damit
+der **Zeilensatz byte-identisch** bleibt.
+
+| Stand | Bytes | CRLF | SHA256 (16) |
+|---|---|---|---|
+| `pre_p11` | 191.520 | 4.500 | `2eab08d24bc4135e` |
+| `post_p11` | 191.814 | 4.500 | `3ba15c723958161f` |
+
+Verifikation: Bars 1288 = 1288, OHLC identisch, **Modus A/B/C bit-identisch**
+(A 19/+13,39 | B 5/+4,97 | C 66/-6,41), Voll-Lauf 14/+40,45 R, Stacking 0.
+
+**Nebenbefund (box_end_bar):** Die Box-Grenze wandert von **644 auf 640**.
+`644` entspricht **19.08. 02:00 Berlin** - die Box lief also 2 h ueber
+Mitternacht hinaus. `640` = **19.08. 00:00** ist die korrekte Wanduhr-Grenze.
+Folge fuer den **offiziellen Box-Lauf**: **9 → 8 Trades / +37,96 → +38,96 R**
+(der Trade Bar 650, Entry 653, -1,00 R entfaellt; er lag bei UTC-Lesart
+innerhalb, bei Wanduhr-Lesart ausserhalb der Box). Der **Voll-Lauf
+(arretierte Kennzahl 14/+40,45 R) bleibt unveraendert**. Das ist ein
+**Reporting-/Populations-Effekt der Box-Grenze**, keine Regelwirkung
+(§7.2 Teil 5: "keine Sonderregel nach `box_end_bar`").
+
+**2. Befund 2 - Bar 564 (+15,93 R) ist KEIN Lookahead.**
+
+Der Verdacht: TP2 = 63,474 ist die Basis der UNTEN-Kante K1, die zum
+Reentry-Zeitpunkt (18.08.) noch unbekannt sein koennte.
+
+| Frage | Befund |
+|---|---|
+| Wann entstand K1? | `erster_pivot_bar = 7` (10.08.), `geburts_bar = 398` (16.08.) - **vor** Bar 564 |
+| Wurde K1 kausal bestaetigt? | `erster_pivot_bar + 2 = 9 <= 565` -> **ja** |
+| Warum war K1 waehlbar? | `touch_conf(564) = 2` (Pivot-Gate, wicks Bar 7 + 398) |
+| Ist `_gegenkante` kausal? | `pool` filtert `e.erster_pivot_bar + 2 <= k + 1` - **kein** Zugriff auf spaetere Pivots |
+| Ist die Basis eingefroren? | K1 ist **kein** Primaer-Anker -> `basis_bei(k) = Mittel der Dochte mit b+2 <= k` (kausal) |
+
+**Goldstandard-Beweis (Praefix-Trunkation):** Fuer **alle 14 Trades** wurde
+der Scan ausschliesslich auf den bis zum Entry-Bar verfuegbaren Daten neu
+aufgebaut. Ergebnis: **Entry, SL, TP1 und TP2 in 14/14 Faellen bit-identisch**
+(`test/tmp_lookahead_beweis.py`). Die Trade-Konstruktion ist damit
+**nachweislich kausal**.
+
+**R-Zerlegung Bar 564** (zwei unabhaengige Haelften, P8-Semantik):
+
+| Groesse | Wert |
+|---|---|
+| Entry 66,434 / SL 66,580 / Risk | 0,146 USD |
+| Haelfte 1 (25 %) | TP1 64,743 @ Bar 582 -> **r1 = +11,58** |
+| Haelfte 2 (75 %) | TP2 63,474 @ Bar 639 -> **r2 = +20,27** |
+| `r_mult` | 0,5 x 11,58 + 0,5 x 20,27 = **+15,93 R** |
+
+> **Wichtig:** Der Default `tp1_anteil_pct = 50` (nicht 25) gilt fuer den
+> **V3-Harness**; `ANTEIL_TP1 = 25` ist der **Modus-A/B-Baseline-Wert**.
+> Die arretierte Kennzahl nutzt den 50/50-Split. Der hohe R-Wert stammt aus
+> dem **kleinen Risiko (0,146 USD)** bei vollem Durchlauf bis TP2 - nicht aus
+> einem zu weit entfernten Ziel.
+
+**3. Trailing? - Nein.**
+
+`_c_loese_trade` ist ein exakter Port der Baseline-`_aufloesen`-Semantik
+(P8): **zwei unabhaengige Haelften** (je 50 %), SL/TP1/TP2 **fest ab Entry**,
+**kein Nachzug, kein Trailing, kein Breakeven**. Offene Haelften laufen bis
+Fensterende (`close[-1]`, Grund ENDE). Bestaetigt durch Code-Scan
+(`trail`/`nachzug`/`breakeven` = 0 Treffer im Logikpfad) und die
+Docstring-Invariante (Z. 61-64).
+
+**4. Konsequenz.**
+
+1. **Anzeige korrigiert** (Berlin-Wanduhr); Datenlayer und Logik unveraendert.
+2. **Kennzahl-Basis unveraendert:** Voll-Lauf **14 / +40,45 R**.
+3. **Offizieller Box-Lauf neu: 8 / +38,96 R** (Box-Grenze 640 statt 644).
+4. **Kein Lookahead, kein Trailing** - beide Vorwuerfe widerlegt (14/14 kausal).
+5. Alle Sichtpruefungs-PNGs neu erzeugt (Achse + Box-Grenze).
+
+**5. Revisionssicherheit.**
+
+| Dokument | Aussage | Status |
+|---|---|---|
+| `reclaim_snapshot_spez.md` §7 | `ts` = UTC-Projektion, tz-naiv | **Datenlayer bestaetigt**; Anzeige nun Wanduhr |
+| §7.2 Teil 7 (Abschnitt 2) | "Bar 229 (11:15)" | **UTC-Projektion** = 13:15 Berlin |
+| §7.2 Teil 9 (Abschnitt 4) | "Bar 564 = 03:00" | **UTC-Projektion** = 05:00 Berlin |
+| §7.2 Teil 9 (Abschnitt 4) | Box-Lauf 9 / +37,96 R | **korrigiert: 8 / +38,96 R** (Box 640) |
+| §7.2 Teil 9 (Abschnitt 3) | Voll-Lauf 14 / +40,45 R | **unveraendert gueltig** |
+| §7.1 B / §7.2 Teil 4/7 | B2-Zyklus, Gate-Aus | **unveraendert gueltig** |
+| §8.4 | Sichtpruefungs-Konvention | **gilt** (Legende oben links, Statistik mittig) |
+
+**6. Folgearbeiten.**
+
+1. Spez-Uhrzeiten aller Nachtraege auf **Wanduhr** umstellen (oder als
+   UTC-Projektion kennzeichnen) - reine Dokumentationsarbeit.
+2. S1/S2-Messung nach Behebung des Routing-Blockers.
+3. Entscheidung des Anwenders zur Referenz-Kennzahl (Box vs. Voll).
+
+---
+
 ## 8. Gate & Schritt-0-Replay (verbindlich)
 
 ### 8.1 Replay-Harness (`test/tmp_kanten_engine_replay.py`, Schritt 0)

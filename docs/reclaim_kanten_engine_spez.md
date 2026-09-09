@@ -1245,6 +1245,104 @@ def blockiert_durch_aussenkante(richtung: SignalRichtung, k: int,
 
 ---
 
+### Nachtrag 2026-09-09 (Teil 2) — Institutionelle Re-Test-Sequenz 229 → 242/244
+
+> **Status:** Mentor-Freigabe 2026-09-09: **Bar 245 wird als eigenstaendiger
+> zweiter Trade an K20 zugelassen** (Regelpraezisierung). Die Absenkung
+> `retest_zyklus_bars` 24 → 12 ist **nicht arretiert**, sondern als
+> **Parameter-Reihentest** vorgemerkt (Pruefhypothese). Kein Code-Eingriff vor
+> Abschluss der Parameterreihe auf S1/S2.
+
+**1. Die Sequenz (M15-Rohdaten, Wanduhr, verifiziert):**
+
+| Bar | Zeit (12.08.) | O | H | L | C | Ereignis |
+|---|---|---|---|---|---|---|
+| 229 | 11:15 | 66,509 | **66,776** | 66,462 | 66,471 | 1. Sweep ueber K20 (66,459); Close noch > Basis |
+| 230 | 11:30 | 66,470 | 66,510 | 66,410 | **66,419** | Reclaim (Stufe 2) → Entry `open[231]` |
+| 231 | 11:45 | **66,424** | 66,472 | 66,319 | 66,394 | Einstieg; SL 66,826 (= 66,776 + 0,05) |
+| 232–241 | — | — | — | — | — | Rueckgang, **ohne** TP1/POC 63,676 zu erreichen |
+| 242 | 14:30 | 66,425 | **66,663** | **65,598** | 66,480 | 2. Sweep (+0,307 %); tiefstes Low des Zwischenlaufs |
+| 243 | 14:45 | 66,483 | 66,528 | 66,146 | 66,523 | Non-Expansion (66,528 ≤ 66,663 + 0,01) |
+| 244 | 15:00 | 66,525 | 66,662 | 66,053 | **66,090** | **Reclaim-Close 0,369 USD unter der Basis** |
+| 245 | 15:15 | **66,092** | 66,251 | 65,783 | 65,902 | Einstieg (freigegeben) |
+
+**2. Warum Bar 245 ein eigenstaendiges Setup ist (kein Duplikat):**
+
+- Der Abstand betraegt **13 Bars = 3 h 15 min** — der Markt hat die Decke nach
+  einem vollstaendigen Zwischenzyklus erneut getestet.
+- Der erste Reclaim (Bar 230) schloss nur **0,040 USD** unter der Basis
+  (66,419) — kaum Rueckeroberung. Der zweite (Bar 244) schloss **0,369 USD**
+  unter der Basis (66,090) — deutlich ueberzeugender. Die zweite Ausloesung ist
+  damit der aussagekraeftigere Test der Decke.
+- **Entscheidend:** TP1/POC 63,676 wurde erst in **Bar 386** erreicht. Bei
+  Bar 245 lief die 229er-Position also **noch im Vollrisiko** — die
+  De-Risk-Bedingung der frueheren F2/Q11-Regel war **nicht** erfuellt. Die
+  M0-Zyklus-Sperre (24) blockiert folglich ein Setup, das nach der
+  De-Risk-Semantik zulaessig gewesen waere.
+
+**3. Kennzahlen des freigegebenen Trades (read-only gemessen):**
+
+| | Trade 229 | Trade 245 |
+|---|---|---|
+| Kante | K20 (66,459) | K20 (66,459) |
+| Entry | `open[231]` = 66,424 | `open[245]` = 66,092 |
+| SL (Cluster-Extrem + 0,05) | 66,826 (Extrem 66,776) | 66,713 (Extrem 66,663) |
+| Risiko | 0,402 USD | 0,621 USD |
+| TP1 / TP2 | 63,676 / 63,605 | 63,676 / 63,605 (identisch) |
+| Ergebnis | +6,92 R | **+3,95 R** |
+
+Hinweis zum Risiko-Unterschied: Der SL folgt dem jeweiligen Sweep-Cluster
+(66,776 vs. 66,663, Q6/Q10), der Entry liegt 0,332 USD tiefer — daraus
+resultiert der um 54 % groessere Risikoabstand. Die Gegenkante ist in beiden
+Faellen identisch.
+
+**4. Parameter-Reihentest (vorgemerkt, NICHT arretiert):**
+
+Read-only gemessen (AUG, Modus C, je Variante frischer Scan — der Scan mutiert
+`letzter_sweep_bar`, ein geteilter Scan verfaelscht das Ergebnis):
+
+| `retest_zyklus_bars` | Trades | Summe R | Zyklus-Sperren | K20-Trades |
+|---|---|---|---|---|
+| **24 (Status quo)** | 5 | +23,13 | 4 | [231] |
+| 20 | 5 | +23,13 | 4 | [231] |
+| 16 | 5 | +23,13 | 4 | [231] |
+| **12 (Pruefhypothese)** | 6 | **+27,08** | 3 | [231, **245**] |
+| 8 | 6 | +27,08 | 3 | [231, 245] |
+| 4 | 6 | +27,08 | 3 | [231, 245] |
+| 0 | 7 | +26,08 | 0 | [231, 245] |
+
+- Die Schwelle zwischen „245 gesperrt" und „245 frei" liegt bei **12 Bars**
+  (242 − 229 = 13).
+- Bei `0` entsteht zusaetzlich ein **toxischer Trade** (Sweep 531 → Entry 533
+  an K31, −1,00 R, nur 2 Bars nach dem 529er-Sweep) → die Sperre darf **nicht
+  ersatzlos entfallen**.
+- **Curve-Fitting-Warnung:** Diese Zahlen sind auf AUG gemessen. Eine
+  Arretierung von 12 allein auf AUG-Basis waere Optimierung auf ein einzelnes
+  Fenster. Der Reihentest (12/16/20/24) ist **auf S1 und S2** zu wiederholen;
+  erst danach Entscheidung.
+- Zu pruefen bleibt, ob die M0-Sperre besser durch die **De-Risk-Semantik**
+  (F2/Q11: Re-Trigger nur ohne offene Position ODER nach TP1) ersetzt wird —
+  sie bildet den institutionellen Sachverhalt genauer ab als ein starrer
+  Bar-Zaehler.
+
+**Datenvertrag (vorgemerkt):**
+
+```python
+from dataclasses import dataclass, field
+from typing import List
+
+
+@dataclass(frozen=True, slots=True)
+class RetestParameterReihe:
+    kandidaten_zyklus_bars: List[int] = field(
+        default_factory=lambda: [12, 16, 20, 24])
+    standard_zyklus_bars: int = 24        # Status quo (arretiert)
+    test_zyklus_bars: int = 12            # Freigabe-Kandidat fuer Bar 245
+    erlaube_parallele_exposition: bool = True
+```
+
+---
+
 ## 8. Gate & Schritt-0-Replay (verbindlich)
 
 ### 8.1 Replay-Harness (`test/tmp_kanten_engine_replay.py`, Schritt 0)

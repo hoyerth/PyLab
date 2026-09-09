@@ -2052,6 +2052,190 @@ unveraendert. Folgearbeiten (nicht Teil dieses Commits): (1) Patch `_p8`
 (R21 + Tombstone im Scan), (2) Routing-Generalisierung S1/S2, (3) Kennzahlen-
 Basis n=4/n=9 → Gate-Messung auf S1/S2 nachholen.
 
+### Nachtrag 2026-09-09 (Teil 6) - Range-Extrem-Kanten & Band-Durchstich-Kopplung: Audit-Befunde ohne Regeländerung
+
+> **Status: AUDIT (read-only, keine Arretierungsaenderung).**
+> Dieser Nachtrag dokumentiert drei Anwender-Befunde zum `_p8`-Lauf
+> (R21 + Tombstone). Ergebnis: **kein Code-Eingriff, keine Parameteraenderung.**
+> Alle Arretierungen der Teile 1-5 bleiben unveraendert in Kraft. Neu
+> festgeschrieben werden ausschliesslich **Befunde** (kid-Renumberierung,
+> Band-Durchstich-Kopplung, Range-Extrem-Kante).
+
+**1. Anlass und Gegenstand.**
+
+Drei Befunde aus dem manuellen Nachvollziehen des `_p8`-Laufs:
+
+1. K31 habe sich bei Bar 529 "dazwischengeschoben", obwohl K20 aktiv ist.
+2. Es solle "3-4 Reclaim-Trades auf K20" geben.
+3. K70 (= p8-K67) habe mehrere Touches, aber keinen Reclaim (nur Abpraller).
+
+Grundlage (alle read-only, `test/`): `tmp_forensik_k20.py` (kid-Mapping),
+`tmp_wurzelanalyse.py` (Bar-529-Kaskade), `tmp_band_entkopplung.py` (V1/V2/V3),
+`tmp_band_entkopplung2.py` (V4-Sweep ueber die Schwelle),
+`tmp_band_konflikt.py` (Selbstwiderspruch), `tmp_ueberstand_richtig.py`
+(vorzeichenrichtige Systemik), `tmp_kopplung_beweis.py` (Kopplungs-Beweis,
+Spiegelkanten), `tmp_k67_struktur.py` (K67-Struktur).
+
+**2. Befund 1+2 (Bar 529): Die Erinnerung bezog sich auf die kid-Nummern.**
+
+Trade-Signaturen `pre_p8` vs. `_p8` sind **identisch**: 9 Trades / +23,02 R.
+Bar 529 SHORT war **in beiden Laeufen K31** (Basis 66.327, +8,41 R). R21 hat
+**nichts** am Handel geaendert, sondern **20 Kanten geloescht/gesperrt** und
+damit **42 verbleibende Kanten umnummeriert**:
+
+| Signatur (Seite/Pivot/Preis) | pre_p8 | _p8 | Bemerkung |
+|---|---|---|---|
+| UNTEN 643 / 63.156 | K48 | K45 | **der +6,48-R-Trade (Bar 679)** |
+| OBEN 736 / 67.076 | K54 | K51 | Trade Bar 760 (-1,00 R) |
+| OBEN 805 / 68.972 | K62 | K59 | Trade Bar 853 (-1,00 R) |
+| OBEN 873 / 69.975 | K70 | K67 | Ihr "K70" |
+| UNTEN 657 / 62.577 | K51 | K48 | TP2-Kante (siehe Abschnitt 10) |
+
+Geloescht/gesperrt wurden u. a. pre-K18, K19, K22, K27, K30, K32, K35, K37,
+K39, K40, K41, K44, K47, K53, K59, K60, K61, K72, K73, K77 (20 Stueck).
+**Konsequenz fuer die Praxis: Kantenvergleiche niemals ueber `kid`, sondern
+ueber `(seite, pivot_bar, preis)` oder `(bar, richtung, entry_bar, R)`.**
+
+**3. Befund 1+2 (Bar 529): Die Kaskade und die 0,0011-Prozentpunkt-Marge.**
+
+`sweep_px = high[529] = 66.538`. Kaskade von aussen nach innen:
+
+| Kante | Basis bei 529 | dist | existiert | touch_conf | etabliert | Anker |
+|---|---|---|---|---|---|---|
+| p8-K20 | 66.459 | **+0,119 %** | ja | 1 | ja | **ja** (pivot 107, promo_ab 229) |
+| p8-K31 | 66.327 | +0,318 % | ja | 3 | ja | nein (pivot 237) |
+
+K20 liegt mit **0,119 %** unter `touch_band_pct = 0,12 %` und wird deshalb vom
+**In-Band-Vorrang** (`_kandidat`: `dist <= touch_band_pct -> continue`)
+uebersprungen. Die Kaskade faellt nach innen auf K31 (V-S = 3) - **regelkonform.**
+Die Entscheidungsmarge betraegt **0,0011 Prozentpunkte ~ 0,0008 USD**.
+Die vermuteten "3-4 Trades auf K20" sind **einer** (Bar 229); Bar 242/244 sind
+Stacking-Sperren (korrekt), Bar 245 ist kein Setup.
+
+**4. Befund 3 (K67 = Ihr "K70"): strukturell untradebar, nicht nur knapp.**
+
+`basis = 69.946`, pivot 873, Geburt 881, 5 Dochte:
+
+| Docht-Bar | Preis | basis_bei | Ueberstand |
+|---|---|---|---|
+| 873 | 69.975 | 69.946 | +0,0417 % |
+| 881 | 70.000 | 69.975 | +0,0357 % |
+| 904 | 69.931 | 69.987 | -0,0807 % |
+| 980 | 69.899 | 69.969 | -0,0996 % |
+| 1020 | 69.924 | 69.951 | -0,0390 % |
+
+Schwellen: 0,12 % -> **70.030**; 0,60 % -> **70.365**. Der **hoechste je
+erreichte Kurs ueber der kausalen Basis ist +0,0417 %** (Bar 873). Der Kurs hat
+70.030 **nie** erreicht (Range-Top AUG = 70.000). Die drei einzigen
+Ueberstands-Bars (873/881/882) liegen im **Alter 0/8/9** und sind zusaetzlich
+durch `min_wall_alter_bars = 24` gesperrt. **Kein Entkopplungsparameter kann
+das heilen, ohne die Kantendefinition selbst zu veraendern.**
+
+**5. Der Regel-Konflikt: `touch_band_pct` in drei Rollen.**
+
+| # | Rolle | Ort | Arretiert |
+|---|---|---|---|
+| (i) | Cluster-Band / Kanten-Definition | `_ist_im_band`, `_se_scan` | 0,12 % |
+| (ii) | In-Band-Vorrang (Kaskade) | `_kandidat` | 0,12 % |
+| (ii') | Seed-Pool-Aufnahme | `_kandidat` | 0,12 % |
+| (iii) | Sweep-Mindestdurchstich | `_reclaim_stufe` | 0,12 % |
+
+**6. Entkopplungs-Messung (AUG Voll-Lauf, n=1288).**
+
+| Variante | Aenderung | Trades | Netto-R | Signatur = V0 |
+|---|---|---|---|---|
+| V0 | arretiert | 9 | **+23,02** | Referenz |
+| V1 | nur (iii) auf 0,05 % | 9 | +23,02 | **ja (wirkungslos)** |
+| V2 | nur (ii) Anker-Vorrang | 8 | +14,61 | nein (**-8,41 R**) |
+| V3 | V1+V2 | 9 | +23,00 | nein (K31 -> K20) |
+| V4 | (ii)+(ii')+(iii) auf 0,02 % | 12 | +21,12 | nein |
+| V4 | (ii)+(ii')+(iii) auf 0,05 % | 11 | +21,52 | nein |
+| V4 | (ii)+(ii')+(iii) auf 0,08 % | 11 | +21,52 | nein |
+| V4 | (ii)+(ii')+(iii) auf 0,10 % | 11 | +21,52 | nein |
+
+V1 ist **wirkungslos**, weil (iii) nie erreicht wird - (ii)/(ii') sperren vorher.
+**Jede** wirksame Entkopplung verschlechtert das Ergebnis. K67 wird in **keiner**
+Variante gehandelt. V2 verliert Bar 529 (-8,41 R), V3 verschiebt ihn nur von
+K31 auf K20 (-0,02 R) - reine kid-Semantik.
+
+**7. Der Selbstwiderspruch (der eigentliche Fund).**
+
+Entkoppelt man (ii)+(ii')+(iii) auf 0,05 %, entstehen Trades, deren Sweep-Bar
+**ein eigener akzeptierter Docht derselben Kante** ist:
+
+| Trade | Sweep-Bar = eigener Docht? | dist | R |
+|---|---|---|---|
+| bar 492 SHORT K16 | **ja** (wick 65.940) | +0,1017 % | -0,48 |
+| bar 529 SHORT K20 | **ja** (wick 66.538) | +0,1189 % | +8,39 |
+| bar 531 SHORT K31 | nein | +0,2241 % | -1,00 |
+
+Dieselbe Bar waere gleichzeitig **Cluster-Mitglied** (<= 0,12 %) und
+**"Sweep jenseits des Bands"** (> 0,05 %). Das ist nur ueber Basis-Drift
+moeglich und semantisch widerspruechlich: die Kante wuerde gegen ihren eigenen
+akzeptierten Docht faden. Im arretierten Modus ist das ausgeschlossen, weil
+Band = Durchstich = 0,12 %.
+
+**8. Systemik, vorzeichenrichtig: 70/73 (Korrektur einer abs()-Tabelle).**
+
+Eine erste Zaehlung mit `abs(px - basis)` ergab "73/73" - das ist das
+**Cluster-Kriterium**, nicht der Sweep. Vorzeichenrichtig (`hi - basis` bzw.
+`basis - lo`) gilt:
+
+- **70 von 73** Kanten haben einen max. Ueberstand **> 0,12 %** (bis +10,83 %).
+- Nur **3** Kanten liegen darunter: **K48** (+0,0463 %), **K67** (+0,0417 %),
+  **K85** (+0,0000 %) - und deren Maxima liegen **auf eigenen Dochten**.
+- Diese drei sind **Range-Extrem-Kanten** (K48 = AUG-Boden 62.548,
+  K67 = AUG-Top 70.000, K85 = Einzeldocht).
+
+**9. Kopplungs-Beweis: `sweep_min >= touch_band_pct` ist signaturidentisch.**
+
+| sweep_min | Trades | Netto-R | Signatur = V0 |
+|---|---|---|---|
+| 0,12 % | 9 | +23,02 | **ja** |
+| 0,15 % | 9 | +23,02 | **ja** |
+| 0,30 % | 7 | +24,65 | nein |
+| 0,60 % | 0 | +0,00 | nein |
+
+Fuer `sweep_min` im Intervall `[0,12; 0,15]` aendert die Entkopplung **nichts**.
+Erst **oberhalb** des Bands wird sie wirksam - und zwar als **Verschaerfung**
+(0,30 % -> 7 Trades). Es gibt **keinen** Wert, der das Band lockert und dabei
+das arretierte Ergebnis erhaelt.
+
+**10. Spiegelbild: K48 wird als TP2 genutzt, K67 nie.**
+
+| Kante | Seite | Basis | Range-Extrem | als Einstieg | als TP2 |
+|---|---|---|---|---|---|
+| K67 | OBEN | 69.946 | AUG-Top 70.000 | **nie** | **nie** |
+| K48 | UNTEN | 62.562 | AUG-Boden 62.548 | **nie** | **3x** (Bars 716/760/853) |
+| K85 | UNTEN | 67.420 | Einzeldocht | nie | nie |
+
+Die Range-Extrem-Kanten wirken korrekt als **Kursziel (TP2)** bzw. neutral -
+sie sind **Begrenzungskanten**, keine Reclaim-Fade-Kanten. Ein Trade *an* K67
+waere ein Fade der absoluten Range-Obergrenze - genau die Klasse von Trade,
+die das Band verhindert. **Das Verhalten ist beabsichtigt, nicht fehlerhaft.**
+
+**11. Ergebnis: keine Regeländerung.**
+
+- `sweep_min_pct` wird **nicht** eingefuehrt (Abschnitte 6/9).
+- Anker-Vorrang in-band wird **nicht** eingefuehrt (Abschnitt 6, -8,41 R).
+- `touch_band_pct = 0,12` bleibt **dreifach gekoppelt** arretiert.
+- K67/K70 ist **regelkonform** untradebar (Abschnitte 4/10).
+
+**12. Datenvertrag & Reproduktion.**
+
+`_se_scan` mutiert beim Lesen (`letzter_sweep_bar`, `cluster_hoch/tief`,
+`letzter_signal_bar`) - **je Variante ein frischer Scan**.
+`_reclaim_stufe`, `_finde_kante`, `_promo_erlaubt` sind Modul-Funktionen
+(4-Space), `_kandidat`/`_gegenkante`/`_lebt` sind **nested** in `_se_trades`
+(8-Space) - Patch-Anker entsprechend.
+
+**13. Wirkung auf §8.4 & Folgearbeiten.**
+
+**Keine.** §8.4 bleibt unveraendert (keine neue Arretierung, keine geaenderte
+Konfiguration). Offen bleiben die Folgearbeiten aus Teil 5 (Routing-
+Generalisierung S1/S2, Gate-Messung) sowie die R22-Messung
+(Trendrichtungs-Filter am Signal, noch nicht beauftragt).
+
 ---
 
 ---

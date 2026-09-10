@@ -7,9 +7,9 @@ bewertet im H2-Bereich weiter mit der Makro-Gegenkante. Dieses Modul liefert
 die Regime-Logik fuer den H2-Bereich als reine Wertedomaene - ohne Import der
 Engine und ohne Seiteneffekte auf den Harness.
 
-Drei Hooks (Anbindung erfolgt per Namens-Injektion in den RAM-Patch, weil
-``_kandidat`` und ``_blockiert_durch_aussenkante`` Closures in ``_se_trades``
-sind und nicht per Monkeypatch ersetzt werden koennen):
+Vier Hooks (Anbindung erfolgt per Namens-Injektion, weil ``_kandidat`` und
+``_blockiert_durch_aussenkante`` Closures in ``_se_trades`` sind und nicht per
+Monkeypatch ersetzt werden koennen):
 
 * ``hook_1_freigabe_kid``  Freigabe der sweep-bildenden Wand. Wird an ZWEI
   Stellen konsumiert: Hook 1a (Pool-Filter in ``_kandidat``) und Hook 1b
@@ -19,10 +19,21 @@ sind und nicht per Monkeypatch ersetzt werden koennen):
   BLOCKIERT); ersetzt die binaere ``None``-Weiche.
 * ``aktive_phase_bei``     Scope-Aufloesung Bar -> Segment, strikt fail-closed
   in den Phasen-Luecken.
+* ``hook_3_boden_reclaim`` (v0.20) Autorisiert EINEN zusaetzlichen LONG, wenn
+  der Markt den deklarierten Phasenboden durchsticht (``lo[k] < literal``) und
+  per ``close`` zurueckholt (``cl[k] > literal``) und die Bodenkante kausal
+  ``>= 3`` Touches bestaetigt. Rueckgabe ist ein ``BodenReclaimSpec`` mit
+  LITERAL-Anker (Anker-Invariante §69.9) - niemals ``basis_bei(k)``.
+  Inert ohne ``boden_deklariert_literal`` (Default ``None``).
 
 Invarianten (nicht verhandelbar):
 
-1. Die Engine-Datei wird NICHT veraendert.
+1. Die Engine-Datei ist bis v0.19 unveraendert geblieben. Ab v0.20 wird sie
+   AUSSCHLIESSLICH um den guard-geschuetzten Konsum von ``hook_3_boden_reclaim``
+   erweitert (duck-typisierter ``globals().get("_hook")``-Guard; inert ohne
+   gebundenen Adapter). Jede weitere Aenderung an der Engine bleibt unzulaessig.
+   Der historische SHA ``3ba15c72…5255cb006`` gilt fuer v0.13-v0.19; die
+   Revision mit Hook-3-Konsum wird mit EIGENEM SHA neu arretiert.
 2. Die Band-Pruefung nutzt IMMER die kausale Basis ``basis_bei(k)``; der
    statische ``provenienz_basis``-Wert ist reine Dokumentation/Audit.
 3. Regime-Gueltigkeit wird am SIGNAL-Bar ``k`` geprueft, nicht am Entry-Bar
@@ -111,6 +122,9 @@ class PhasenSegmentEintrag:
         touch_band_pct: Band um die kausale Basis in Prozent (Mentor: 0.12).
         provenienz_toleranz_pct: Zulaessige Abweichung der kausalen Basis vom
             Provenienz-Niveau bei der Fail-Loud-Pruefung.
+        boden_deklariert_literal: Deklarierter Phasenboden als LITERAL (v0.20,
+            Regel G4). ``None`` (Default) = keine Wirkung - die Bestandssegmente
+            (P9, P9_DIRECT_69_87, P12_RESERVE) bleiben unveraendert inert.
     """
 
     phasen_id: str
@@ -122,6 +136,7 @@ class PhasenSegmentEintrag:
     ziel_preis_long: float
     touch_band_pct: float = 0.12
     provenienz_toleranz_pct: float = 1.0
+    boden_deklariert_literal: Optional[float] = None
 
     def deckt_bar_ab(self, bar_idx: int) -> bool:
         """Prueft, ob ``bar_idx`` im Fenster [start_bar, end_bar] liegt.
@@ -146,6 +161,30 @@ class Hook2Ergebnis:
 
     modus: Hook2ZielModus
     ziel_preis: Optional[float] = None
+
+
+@dataclass(frozen=True, slots=True)
+class BodenReclaimSpec:
+    """Autorisierung eines Phasenboden-Reclaims (Hook 3, v0.20).
+
+    Der Adapter autorisiert, die Engine exekutiert. Bewusst nur vier Felder -
+    alles weitere (Entry, SL, POC, R) loest die Engine aus ``cfg`` und ``seg``
+    auf; es gibt KEINE zweite Wahrheit.
+
+    Args:
+        phasen_id: Segment, das die Autorisierung erteilt (z. B. ``"P9"``).
+        boden_kid: Kanten-ID des deklarierten Bodens (P9: 77).
+        deklarierter_boden_literal: LITERALES Bodenniveau (P9: 68.4000) -
+            NICHT ``basis_bei(k)`` (Anker-Invariante §69.9).
+        tp2: Segment-Decke in der Kaskade
+            ``niveau_override`` -> ``ziel_preis`` -> ``provenienz_basis``
+            (P9: 69.8700 statt des Provenienz-Werts 69.9140).
+    """
+
+    phasen_id: str
+    boden_kid: int
+    deklarierter_boden_literal: float
+    tp2: float
 
 
 # --- P9 (v0.1, verifiziert: +5.4212 R) -------------------------------------
@@ -305,6 +344,38 @@ class PhasenRegimeAdapter:
                         f"Niveau-Override K{kante.kid} ({seg.phasen_id}): "
                         f"Segmentfenster ist leer.")
 
+    def verifiziere_boden_literale(self) -> None:
+        """Fail-Loud-Pruefung aller deklarierten Phasenboden-Literale (v0.20).
+
+        Analog zu :meth:`verifiziere_niveau_overrides`. Erzwingt: Literal
+        gesetzt ⇒ endlich, positiv, STRIKT unter dem Provenienz-Niveau der
+        Segmentdecke und das Segmentfenster nicht leer. Die Plausibilisierung
+        erfolgt NICHT ueber ``basis_bei`` - der Nachweis "Literal stammt nie
+        aus ``basis_bei``" ist strukturell (Code-Inspektion, §69.9).
+
+        Raises:
+            ValueError: Literal nicht endlich/positiv, nicht unter der
+                Provenienz-Decke oder Segmentfenster leer.
+        """
+        for seg in self.segmente:
+            lit = seg.boden_deklariert_literal
+            if lit is None:
+                continue
+            lv = float(lit)
+            if not math.isfinite(lv) or lv <= 0.0:
+                raise ValueError(
+                    f"Boden-Literal ({seg.phasen_id}): {lv} ist nicht "
+                    f"endlich/positiv.")
+            if not (lv < seg.decke.provenienz_basis):
+                raise ValueError(
+                    f"Boden-Literal ({seg.phasen_id}): {lv:.4f} liegt nicht "
+                    f"unter der Provenienz-Decke "
+                    f"{seg.decke.provenienz_basis:.4f}.")
+            if seg.start_bar > seg.end_bar:
+                raise ValueError(
+                    f"Boden-Literal ({seg.phasen_id}): Segmentfenster ist "
+                    f"leer.")
+
     def angewandte_basis(self, bar_idx: int, kid: int,
                          basis_engine: float) -> float:
         """Wirksame Basis einer Kante: Override (phasen-lokal) sonst Engine.
@@ -440,6 +511,40 @@ class PhasenRegimeAdapter:
                 else seg.ziel_preis_long)
         return Hook2Ergebnis(Hook2ZielModus.PHASE, ziel)
 
+    def hook_3_boden_reclaim(self, bar_idx: int
+                             ) -> Optional[BodenReclaimSpec]:
+        """Autorisiert den Phasenboden-Reclaim am Bar ``k`` (Hook 3, v0.20).
+
+        Reine Wertedomaene: Der Adapter prueft AUSSCHLIESSLICH die
+        Segment-/Literal-Zustaendigkeit. Die Marktbedingungen
+        (``lo[k] < literal < cl[k]``, ``touch_conf(boden, k) >= 3``) und die
+        Exekution liegen in der Engine.
+
+        Args:
+            bar_idx: Signal-Bar ``k`` der Engine.
+
+        Returns:
+            ``BodenReclaimSpec``, falls ``bar_idx`` in einem Segment mit
+            deklariertem Boden liegt; sonst ``None`` (inert).
+        """
+        seg = self.aktive_phase_bei(bar_idx)
+        if seg is None:
+            return None
+        literal = seg.boden_deklariert_literal
+        if literal is None:
+            return None
+        # TP2 ueber den Override: 69.8700 (nicht hook_2_ziel = 69.9140).
+        # Latenter Bestand: in P9 wurde nie ein LONG gehandelt, daher blieb
+        # die Diskrepanz bis v0.20 unsichtbar.
+        tp2 = self.angewandte_basis(bar_idx, seg.decke.kid,
+                                    seg.ziel_preis_long)
+        return BodenReclaimSpec(
+            phasen_id=seg.phasen_id,
+            boden_kid=seg.boden.kid,
+            deklarierter_boden_literal=float(literal),
+            tp2=float(tp2),
+        )
+
 
 DEFAULT_ADAPTER: PhasenRegimeAdapter = PhasenRegimeAdapter()
 
@@ -450,3 +555,33 @@ DEFAULT_ADAPTER: PhasenRegimeAdapter = PhasenRegimeAdapter()
 ADAPTER_V014: PhasenRegimeAdapter = PhasenRegimeAdapter(
     segmente=AKTIVE_SEGMENTE_V014)
 ADAPTER_V014.verifiziere_niveau_overrides()
+
+
+# --- v0.20: P9_BODEN_RECLAIM (generische Phasenboden-Regel G4) -------------
+# Anwender-Freigabe 2026-09-10 (F-1 .. F-6). Deklarierter Phasenboden ist das
+# LITERAL 68.4000 (Anker-Invariante §69.9; NICHT basis_bei(1002) = 68.3427).
+# Die Decke traegt den v0.14-Override 69.87, damit TP2 = 69.8700 lautet.
+# Der Adapter AUTORISIERT nur; die Exekution liegt in der Engine (Route A).
+# KEIN Default: P9 / P9_DIRECT_69_87 / DEFAULT_ADAPTER / ADAPTER_V014 bleiben
+# unveraendert (Feld = None, null Wirkung - Baseline byte-identisch).
+P9_BODEN_LITERAL: float = 68.4000
+P9_BODEN_RECLAIM: PhasenSegmentEintrag = PhasenSegmentEintrag(
+    phasen_id="P9",
+    start_bar=848,
+    end_bar=1020,                       # LOAD-BEARING: Signal-Bar 1020
+    decke=PhasenKanteInfo(kid=67, provenienz_basis=69.9140,
+                          niveau_override=K67_OVERRIDE_69_87),
+    boden=PhasenKanteInfo(kid=77, provenienz_basis=68.3700),
+    ziel_preis_short=68.3700,
+    ziel_preis_long=69.9140,
+    boden_deklariert_literal=P9_BODEN_LITERAL,
+)
+
+# Selektionsliste der v0.15-G4-Variante (explizit, NICHT Default).
+AKTIVE_SEGMENTE_V015: Tuple[PhasenSegmentEintrag, ...] = (P9_BODEN_RECLAIM,)
+
+# Fail-Loud beim Aufbau - analog ``ADAPTER_V014`` (v0.20, F-4).
+ADAPTER_V015: PhasenRegimeAdapter = PhasenRegimeAdapter(
+    segmente=AKTIVE_SEGMENTE_V015)
+ADAPTER_V015.verifiziere_niveau_overrides()
+ADAPTER_V015.verifiziere_boden_literale()

@@ -3106,3 +3106,240 @@ v0.18-Arretierung · Aktivierung der Regel G4 im Produktivpfad (§68.6 ist
 **Planung**, nicht Freigabe) · Ausweitung auf `P12_RESERVE` ·
 jede Änderung an `poc_start`, `quartil_distanz_pct` oder am
 `Europe/Berlin`-/`box_end_bar`-Interlock.
+---
+
+# Addendum v0.20 — Invariante-1-Präzisierung, Errata zu §68.6 und native G4-Integration (Route A) (2026-09-10)
+
+**Auftrag.** Überführung der generischen Phasenboden-Regel **G4** (§69.8) aus
+der Planung (§68.6) in den Produktivpfad: Adapter erweitert, Engine um den
+guard-geschützten Hook-3-Konsum erweitert, Renderer um den persistenten Modus
+`V015`. **Wirkung:** Code- und Dokumentations-Addendum. Die arretierten
+Bildsätze V01 und V014 bleiben **byte-unverändert** (nachgewiesen, §70.6).
+
+| Übergabe | Gegenstand | Status |
+|---|---|---|
+| Adapter | `backtest_lab/phasen_regime_adapter.py` | **erweitert**, `0f3f8765…` |
+| Engine | `test/tmp_kanten_engine_replay.py` | **erweitert**, `ea2f72a8…` (gitignored) |
+| Renderer | `test/tmp_png_aug_sichttest.py` | **erweitert**, `c730b287…` (gitignored) |
+| Bildsätze | V01 (5) + V014 (5) | **byte-identisch** (Regressionsschutz) |
+| Bildsatz | V015 (5) | **neu, native Engine-Rechnung** |
+| Regelbestand | §54 + §66 + §67 + §68 + §69 + **§70** | erweitert |
+
+## 70.0 Geltung und Abgrenzung
+
+1. **append-only.** §54 (v0.13), §66 (v0.16), §67 (v0.17), §68 (v0.18) und
+   §69 (v0.19) bleiben als Zitat unverändert bestehen.
+2. **Einlösung.** §70 löst die Vormerkung des §68.6 ein. Der dort als
+   „**nicht** freigegeben" geführte Integrationsplan ist damit ausgeführt.
+3. **Route A.** Die Exekution liegt **engine-nativ** — nicht in einem
+   Renderer-AST-Patch. Der Adapter **autorisiert**, die Engine **exekutiert**.
+4. **Inertheit by default.** `P9`, `P9_DIRECT_69_87`, `DEFAULT_ADAPTER` und
+   `ADAPTER_V014` bleiben unverändert; der neue Modus ist ausschließlich über
+   `P9_BODEN_RECLAIM` / `AKTIVE_SEGMENTE_V015` / `ADAPTER_V015` erreichbar.
+
+## 70.1 Errata zu §68.6 (redaktionell — der Code ist maßgeblich)
+
+| # | §68.6-Stelle | Fehler | Korrektur |
+|---|---|---|---|
+| **E-1** | P7: „Post-Loop, **vor** `stats["v_s"] = len(setups)` (Z. 2676)" | Off-by-one | `stats["v_s"]` steht in **Z. 2677**; Z. 2676 ist `stats["promotionen"] = …`. Der Einschub ist **zwischen** beiden zulässig. |
+| **E-2** | P1: „**als letztes Feld** (alle vorhergehenden haben Defaults)" | Begründung sachlich falsch | **7 von 9** Feldern sind defaultlos. Korrekte Begründung: **alle** `PhasenSegmentEintrag`-Instanzen (Produktiv und Test) sind **Keyword**-Konstruktionen; kein `fields()`/`asdict()`-Reflexionszugriff im Repo. Die Handlung (Feld am Ende) bleibt richtig. |
+| **E-3** | P3: „`hook_3_boden_reclaim(self, bar_idx)`" | Vertrag unvollständig | Der Hook autorisiert **fensterbasiert** (`start_bar <= k <= end_bar` → `BodenReclaimSpec`). Die **Marktbedingungen** `lo[k] < literal < cl[k]` und `touch_conf(boden, k) >= 3` prüft die **Engine**. |
+| **E-4** | P7/P13: „neuer SHA = neue Arretierung" | unpräzise | `test/` ist **gitignored** (`.gitignore:63`). Die Arretierung ist **urkundlich** (SHA256 im Dokument + Protokoll), nicht git-objektbasiert. |
+
+## 70.2 Präzisierung Invariante 1 (Adapter-Docstring)
+
+> **Invariante 1 (v0.20).** Die Engine-Datei ist bis v0.19 unverändert
+> geblieben. Ab v0.20 wird sie **ausschließlich** um den duck-typisierten,
+> guard-geschützten Konsum von `hook_3_boden_reclaim` erweitert
+> (`globals().get("_hook")`; **zweistufig inert**). Jede weitere Änderung an
+> der Engine bleibt unzulässig. Der historische SHA
+> `3ba15c723958161fffc28a106a5758bd3e27a6152f0e0235969594a5255cb006` gilt für
+> **v0.13–v0.19**.
+
+**Zweistufige Inertheit (bindend).** Stufe (a): keine gebundene
+`hook_3_boden_reclaim` → Block übersprungen. Stufe (b):
+`boden_deklariert_literal is None` → Segment übersprungen. Nur so bleiben der
+V0-Referenzlauf (`ORIG`, ohne `_hook`) und alle Bestandsadapter auf Baseline.
+
+## 70.3 Adapter v0.20
+
+| Kennzahl | Wert |
+|---|---|
+| SHA256 | `0f3f8765b1682910a7332b2bcb6f30f79fb56afaec180bdca674693d3ec2b01b` |
+| Umfang | 25.783 B (Vorstand 19.496 B, `+139 / −4` Zeilen) |
+| Vorstand | `50bd47c68d4ff543f3d4314d9c771f1d39425119e1d8ac63049c0d9afd9b4eda` |
+
+**Neu:**
+1. Feld `boden_deklariert_literal: Optional[float] = None` auf
+   `PhasenSegmentEintrag` (**letztes Feld**, kollisionsfrei).
+2. `BodenReclaimSpec` (`frozen=True, slots=True`) — **vier** Felder:
+   `phasen_id`, `boden_kid`, `deklarierter_boden_literal`, `tp2`.
+3. `hook_3_boden_reclaim(bar_idx: int) -> Optional[BodenReclaimSpec]`.
+   TP2 über `angewandte_basis(bar_idx, seg.decke.kid, seg.ziel_preis_long)`
+   → **69.8700** (nicht `hook_2_ziel` = 69.9140).
+4. `verifiziere_boden_literale()` — fail-loud: endlich, `> 0`, **strikt unter**
+   `seg.decke.provenienz_basis`, Fenster nicht leer.
+5. `P9_BODEN_LITERAL = 68.4000`, `P9_BODEN_RECLAIM`, `AKTIVE_SEGMENTE_V015`,
+   `ADAPTER_V015` (mit erzwungenem `verifiziere_niveau_overrides()` **und**
+   `verifiziere_boden_literale()`).
+
+**Fenstervertrag (E-3).** `hook_3_boden_reclaim` liefert für jedes `k` in
+`[848, 1020]` einen Spec; `847`, `1021`, `0`, `1287` → `None`.
+
+## 70.4 Engine v0.20 (Route A)
+
+| Kennzahl | Wert |
+|---|---|
+| SHA256 neu | `ea2f72a8de81d632909da72d79b158b0760e6dfc05c6c9047559a4fbf7d437a5` |
+| Umfang | 196.012 B (Vorstand 191.814 B, `+4.198 B`) |
+| SHA256 historisch | `3ba15c72…5255cb006` (gültig v0.13–v0.19) |
+| Zeilenenden | CRLF (4.572), stilgerecht erhalten |
+
+**Einschubstelle.** Post-Loop, unmittelbar nach `setups.append(setup)` und
+**vor** `stats["promotionen"]` / `stats["v_s"]` (Z. 2677, Erratum E-1). Der
+G4-Trade zählt dadurch in `v_s` (**17 → 18**).
+
+| # | Regelbestandteil | Umsetzung |
+|---|---|---|
+| 1 | Zugang | `globals().get("_hook")` + `getattr(..., "hook_3_boden_reclaim", None)` |
+| 2 | Fenster | `for _seg_g4 in _hk.segmente:` → `range(start_bar, end_bar + 1)` |
+| 3 | Bedingung (1)+(2) | `lo[k] < literal < cl[k]` |
+| 4 | Autorisierung | `_spec_g4 = _bspec_g4(k)`; `None` → `continue` |
+| 5 | Bedingung (3) | `touch_conf(boden_kid, k) >= cfg.min_touches_handelbar` (3) |
+| 6 | Dedup | `getradete_entry_bars` (Z. 2380) wiederverwendet |
+| 7 | Entry | `entry_bar = k + 1`, `entry = open[entry_bar]` |
+| 8 | SL | `min(lo[k:k+2]) − cfg.sl_buffer_usd` (**nicht** `lo[k:reclaim+1]`) |
+| 9 | POC | regel-lokal, Anker = **Phasenstart** (848), Band `[literal, tp2]` |
+| 10 | Auflösung | `_c_loese_trade(..., tp1=poc, tp2=spec.tp2, cfg.tp1_anteil_pct)` |
+| 11 | `reclaim_bar` | `= entry_bar` (Stufe-1-In-Bar; byte-reproduzierend zu §68.5) |
+| 12 | Binding | `ist_prim_anker=False`; **kein** neuer `stats`-Key |
+
+**Kein Markt-Skalar über die Grenze.** Der Adapter bleibt engine- und
+marktdatenfrei; die Engine liest das Literal aus dem **Spec**, nicht aus dem
+Segment (Assert `|spec.literal − seg.literal| < 1e-12`).
+
+## 70.5 Renderer-Modus `V015` (persistent)
+
+| Kennzahl | Wert |
+|---|---|
+| SHA256 | `c730b2875cc4695b139f5d49e5179306f19d160cf9b862822e16f9c005b6a632` |
+| Umfang | 73.845 B (Vorstand 68.813 B, `+5.032 B`), 21 Patch-Anker (`count == 1`) |
+| Vorstand | `e88ec58d79232eff1d0634a938ec67fd627b500643775f707365e97a5014521d` |
+
+* `AdapterMode = Literal["V01", "V014", "V015"]`; CLI **`--mode V015`**.
+* Neues Feld **`g4_aktiv: bool`** (konsistent zu `k67_override_aktiv`); in V01
+  und V014 explizit `False` → Bestandsverhalten unverändert.
+* `KONFIGURATION_V015` mit Praefix `aug_sichttest_v015_` (**Übernahme**, §70.7).
+* G4-Kennzeichnung: Ring (`ms 17.5`, `mfc="none"`, `C_CHG`) + Text
+  `G4 RECLAIM` am **engine-berechneten** Trade; Legendeneintrag in `LEG_MODUS`.
+* **Panel 02 führt `LEG_MODUS` nicht** (Z. 1086) und enthält keinen G4-Trade
+  (`entry_bar = 1003`) → H1-Byte-Invariante **strukturell** gesichert.
+
+## 70.6 4-Stufen-Nachweis (ausgeführt 2026-09-10)
+
+| Stufe | Prüfung | Ergebnis |
+|---|---|---|
+| **1** | `py_compile` Adapter + Engine + Renderer | **OK** |
+| **2** | Standalone-Inertheit | 14 → **14** (`ADAPTER_V014`) → **15** (`ADAPTER_V015`); G4 `+3.629016 R` |
+| **3** | Renderer V01 / V014 | **10 / 10 PNG byte-identisch** |
+| **4** | Renderer nativ `--mode V015` | **18 Trades / +64.879080 R**; H1 bit-fest |
+
+**G4-Treffer (regel-konform, unverändert §69.8):**
+
+```
+K77@1002  LONG  entry_bar 1003  entry 68.5070  SL 68.2580
+          POC 68.9513 (Anker 848)  TP2 69.8700  risk 0.2490
+          -> +3.629016 R  GEWONNEN  (TP1 exit 1011 / TP2 exit 1020)
+```
+
+**Additivität.** `NEU = [(903,67), (980,67), (981,73), (1002,77), (1020,67)]`,
+`REFERENZ = [(980,73), (1020,73)]` unverändert; H1 `8 / +38.964262 R`
+**bit-fest**.
+
+## 70.7 Satz V015 und Ablösung des Stagings
+
+**Der native Lauf löst das §68.5-Staging ab.** Das Staging-Skript
+(`test/tmp_png_aug_sichttest_v015_g4.py`, `2c9ec39c…`) bleibt als **historisches
+Einweg-Artefakt** archiviert; es führte den Trade **extern injiziert** ein.
+Ab v0.20 rechnet die **kanonische Engine** nativ.
+
+| # | Datei | Bytes | SHA256 |
+|---|---|---|---|
+| 1 | `aug_sichttest_v015_01_gesamt.png` | 2.104.231 | `1b219fca0f927cf3bc1888b10ea90e9b846bef81bae76aa7a3c3d5f6992221ff` |
+| 2 | `aug_sichttest_v015_02_h1_box.png` | 899.249 | `d9f35876442593c529083f194ab50cc37e7691a65794dfe6456a311c1b7cbb04` |
+| 3 | `aug_sichttest_v015_03_h2_phasen.png` | 1.752.577 | `93600b60312e4a3ef37466322ec2ceee1ed1833769b30aba69684c886edc519f` |
+| 4 | `aug_sichttest_v015_04_p9_regime.png` | 1.228.012 | `ffb6fc70e293875aefe3acdfae585fd564df07cfa117afea69a2d706f77f7670` |
+| 5 | `aug_sichttest_v015_05_kantenkarte.png` | 2.113.754 | `b1e744cd1b40fff642db83f70d884d843991ce33a073075da0cb3964fa4b18ac` |
+| P | `tmp_png_aug_sichttest_v015_out.txt` | 5.507 | `b7c4142a1a06f2d4aaafb381acad505ad54d0c6336a15a880e17d7bc08c02835` |
+
+**Abgelöste Staging-Hashes (§68.5, historisch):** `93853367…`, `d9f35876…`,
+`ca361af3…`, `4113ad23…`, `4160d1ae…` — Panel 02 stimmt weiterhin überein
+(`d9f35876…`), die übrigen vier sind **durch die native Rechnung ersetzt**.
+
+**Protokoll-Kopf (nativ):**
+
+```
+AUG-SICHTTEST -- PNG-SATZ (Modus V015, Adapter v0.15 G4)
+  V1_aktiv (V015) : 18 Trades / +64.879080 R  (H1 8/+38.964262 | H2 10/+25.914818)
+  Quartett       : ... | QUARTETT +19.804922 R
+  G4-PHASENBODEN (§69.8): K77@1002 entry 68.5070 sl 68.2580 tp2 69.8700 | R +3.629016 | literaler Boden 68.4000 | LONG
+```
+
+## 70.8 Residuen des §68.5-Stagings — aufgelöst
+
+| # | Residuum (§68.5) | Auflösung v0.20 |
+|---|---|---|
+| 1 | Logzeile `Neu im **V014**-Lauf` | modusabhängig: `Neu im {KONF.mode}-Lauf` |
+| 2 | `Delta V015-v0.1: +18.012733 (Soll +18.012732)` | Soll im Modus V015 auf `18.012732` geführt |
+| 3 | `Quartett … \| Summe +23.433938` (falsche Summe) | **`QUARTETT_R`** eingeführt; drei Stellen getrennt: `QUARTETT +19.804922 R` neben `G4-PHASENBODEN … +3.629016 R` |
+| 4 | `V-S` 17 (Staging) vs. 18 (Produktiv) | entfällt — Einschub **vor** `stats["v_s"]` (Z. 2677) |
+
+## 70.9 Auflagen A-1 … A-4 (unverändert offen)
+
+Die kosmetischen Auflagen aus §68.2 bleiben **zurückgestellt** (Mentor-Vorgabe:
+keine Kosmetik vor der Kernlogik). A-5 ist mit §68.3 abschließend geregelt.
+
+| # | Auflage | Status |
+|---|---|---|
+| A-1 | Tick-Dichte Panel 04 | offen |
+| A-2 | Doppelbelegung Marker `x` | offen (Klasse 2) |
+| A-3 | Überlappung Trade-Annotationsboxen | offen |
+| A-4 | Position `P9 AKTIV` / `P12 RESERVE` | offen |
+
+## 70.10 Integrität und Hygiene
+
+| Prüfung | Ergebnis |
+|---|---|
+| Adapter SHA256 | `0f3f8765…ec2b01b` · 25.783 B |
+| Engine SHA256 | `ea2f72a8…fd437a5` · 196.012 B (gitignored, urkundlich) |
+| Renderer SHA256 | `c730b287…b6a632` · 73.845 B (gitignored, urkundlich) |
+| V01-Bildsatz | 5 / 5 **byte-identisch** zu v0.13 ✅ |
+| V014-Bildsatz | 5 / 5 **byte-identisch** zu v0.17 ✅ |
+| H1-Panel | `d9f35876…` / 899.249 B in **allen drei** Familien ✅ |
+| `box_end_bar = 640` / `Europe/Berlin` (Z. 600) | unberührt (eingefrorene Ausnahme) ✅ |
+| `poc_start`, `quartil_distanz_pct` | unverändert ✅ |
+
+## 70.11 Status (v0.20)
+
+| Kennzahl | Wert | Berührt durch v0.20? |
+|---|---|---|
+| V0 / H1 | 14 / 8 / +38,964262 R | nein |
+| V1 v0.1 (arretiert) | 15 / +46,866348 R | nein |
+| H2 v0.1 / H2 v0.14 | 7 / +7,902085 R · 9 / +22,285802 R | nein |
+| Gesamt v0.14 | 17 / +61,250064 R | nein |
+| P9-Beitrag v0.14 | +19,804922 R | nein |
+| **V015 (nativ, Route A)** | **18 / +64,879080 R** | **neu: Baseline v0.20** |
+| H1 v0.20 | 8 / +38,964262 R | **bit-fest** |
+| H2 v0.20 | 10 / +25,914818 R | neu |
+| P9-Beitrag v0.20 | +23,433938 R | neu |
+| Regelbestand | §54 + §66 + §67 + §68 + §69 + **§70** | erweitert |
+| Auflagen | A-1 · A-2 · A-3 · A-4 | **offen** |
+
+v0.20 ist ein **Integrations-Addendum**. Es hebt G4 in den Produktivpfad und
+führt mit V015 die **neue Baseline** (18 Trades / +64,879080 R). Die
+v0.1-/v0.14-Benchmarks bleiben als historische Referenz gültig.
+
+**Nicht freigegeben / inert:** Umsetzung der Auflagen A-1 … A-4 ·
+Ausweitung auf `P12_RESERVE` (§69.11) · jede Änderung an `poc_start`,
+`quartil_distanz_pct` oder am `Europe/Berlin`-/`box_end_bar`-Interlock ·
+weitere Engine-Eingriffe über den Hook-3-Konsum hinaus.

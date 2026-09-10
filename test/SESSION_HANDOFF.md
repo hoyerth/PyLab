@@ -485,3 +485,143 @@ byte-identisch zu v0.17 — in der v0.20-Statistikzeile `_p9z` wurde die
 `a055b243…` (1.695.409 B, gültig v0.17–v0.19) ist ab v0.20 überholt; aktuell
 `f8505d124c3dddf3…` (1.694.382 B). V01 und V015 sind davon **nicht** betroffen
 (je 5/5 byte-identisch). Nicht neu arretiert.
+
+---
+
+## Einbrand 2026-09-10 — Engine-Generation V017 (Addendum v0.22 / §72)
+
+### Was passiert ist
+
+Die Kanten-Knick-Forensik hat gezeigt: die kausale Kantenlinie ist die
+**institutionelle Liquiditätsgrenze**, nicht der Mittelwert der Dochte. Die
+Engine wurde daher auf **Regel F** umgestellt und eingebrannt.
+
+**Die gesamte Änderung ist EIN Hunk** (+3/−1) in `_SEEdgeH.basis_bei` (Z. 2118):
+
+```diff
+-        return float(np.mean(px)) if px else self.basis
++        if px:
++            return float(min(px) if self.seite == "OBEN" else max(px))
++        return float(self.wicks[0][1])
+```
+
+Der dritte Teil heilt zugleich den **M6-Look-ahead** (`k = erster_pivot_bar + 1`
+fiel auf das End-Mittel = Zukunft zurück). Die Heilung ist **handelsneutral**,
+korrigiert aber einen journalierten Wert kausal: M6-Blocker Bar 658 meldet
+`K48 62.562` → **`62.577`** (erster bekannter Docht).
+
+### Sollwerte V017
+
+| Kennzahl | V016 | **V017** |
+|---|---|---|
+| V0 / R0 | 14 / +40,445143 | **14 / +42,450970** |
+| V1_basis / R_B | 15 / +46,866348 | **14 / +47,815697** |
+| **V1_aktiv / R1** | 18 / +64,879080 | **17 / +65,835576** |
+| **H1** | 8 / +38,964262 | **7 / +39,919584** |
+| H2 | +25,914818 | **+25,915992** |
+| P9-Regimebeitrag | +23,433938 | **+23,435111** |
+| Delta (R1 − R_B) | +18,012732 | **+18,019879** |
+| Quartett-R | +19,804922 | **+19,806095** |
+| G4 `K77@1002` | +3,629016 | **+3,629016** (bit-identisch) |
+| Niveauwechsel sichtbar | 205 | **66** |
+| Linien mit Netto-Preiswechsel | 54 | **41** |
+| Sperr-Marker Q29 / M6 | 57 / 23 | **69 / 24** |
+| lebende Kanten | 59 + 14 = 73 | **59 + 14 = 73** |
+
+**H1-Entries V017:** 231, 245, 399, 491, 510, 531, 565.
+Entfallen gegenüber V016: `K8@383` (−0,401786), `K16@492` (−0,482566),
+`K8@620` (−1,000000); neu: `K16@490`, `K16@509`. Die fünf gemeinsamen Trades
+wandern im R mit den Kantenpreisen.
+
+**H2-Quartett:** K67@903 +4,119775 · K67@980 +9,987676 · K73@981 +2,695488 ·
+K67@1020 +3,003157 = **+19,806095** (K67-Anteil +17,110608).
+
+### P-1 · P-2 · P-3 (Renderer-Beschlüsse)
+
+| # | Umsetzung |
+|---|---|
+| P-1 | `--probe-praefix` **ERSETZT** das Präfix (`PRAEFIX = PROBE_PRAEFIX or KONF.ausgabe_praefix`), 5 PNG-Stellen + Protokollpfad |
+| P-2 | Engine-Kennung und Niveauwechsel-Zeile strikt `if _V17:` gegatet — **vorher ungated** und damit Eingriff ins V016-Protokoll; nach der Gatelung wieder `2969723c…` / 5.520 B |
+| P-3 | Neues Feld `netto_preiswechsel_baseline`; Wortlaut: `Linien mit Netto-Preiswechsel: 41 (Baseline 54) \| Niveauwechsel gesamt: 66 (Baseline 205)` |
+
+`--mode`-Default bleibt **V014**; V017 nur explizit.
+
+### Artefakte und Arretierung
+
+| Artefakt | SHA256 | Bytes |
+|---|---|---|
+| `test/tmp_kanten_engine_replay.py` (**neu**) | `4a3567659990586cb507f51e10575bdc9b64d82745523034c206b188e19f7298` | 196.083 |
+| `test/_tmp_backup_engine_pre_v017.py` (Vorgänger) | `ea2f72a8de81d632909da72d79b158b0760e6dfc05c6c9047559a4fbf7d437a5` | 196.012 |
+| `test/tmp_png_aug_sichttest.py` (**neu**) | `3d6a4788788375576ce37e4658598d4d0b7cbf8b44bb48e087d3185cef656c1e` | 92.915 |
+| `test/_tmp_backup_renderer_pre_v017.py` (Vorgänger) | `ca0db364f6955c29c103e10e16935428115cc47c8a937c86df2d6431791cd3e3` | 79.314 |
+| `backtest_lab/phasen_regime_adapter.py` (unverändert) | `0f3f8765b1682910a7332b2bcb6f30f79fb56afaec180bdca674693d3ec2b01b` | 25.783 |
+| `reports/h2_phasenregime/H2_PHASENREGIME_ADAPTER_SPEZ.md` (§72, getrackt) | `73cd8924980cf1a394106f3ed257185958b856be401a134054c32f3ab4486a33` | 196.078 |
+
+> Die Spez-Hash ist **Blob- und Worktree-Hash zugleich** (beide `73cd8924…`,
+> LF, 3.951 Zeilen) und damit unabhängig von `core.autocrlf=true`. Vorsicht
+> bleibt geboten: nur `docs/artefakte/aug_p11/**` ist in `.gitattributes` per
+> `-text` geschützt — für die Spez liegt der Anker im **Blob**, der Worktree
+> könnte bei einem frischen Checkout CRLF erhalten.
+
+**Produktionssatz V017** (`aug_sichttest_v017_01..05.png`)
+
+| Panel | SHA256 | Bytes |
+|---|---|---|
+| `01_gesamt` | `550091f5359df47b7868e13bd1f1b734cb0c17e2e3109b30e53bd9aedf43010e` | 2.071.320 |
+| `02_h1_box` | `42427164f88f9e93513d724eb7822b46d711c3ce990e5592f5bd220dd7250a2b` | 874.523 |
+| `03_h2_phasen` | `85926341eb86c84d60a9e2e6edebce489e2198a5c498b6aecf13b4c6898612dd` | 1.717.237 |
+| `04_p9_regime` | `b53095565c4d4fdd7b758d40b469ac3fa085a0e80188d9807d69c54171738842` | 1.195.065 |
+| `05_kantenkarte` | `91c8dd6164f4410b1b9009728e9ff8a0b2ca74f26718123018df90602892b5f1` | 2.069.665 |
+| Protokoll `tmp_png_aug_sichttest_v017_out.txt` | `866308081f94f2311337547ba32e1968f72ec4bef13b021658ca35e3889b4750` | 5.044 |
+
+**Zero-Trust-Probesatz** (prä-Einbrand, Kandidaten-Engine): `probe_v017_01..05.png`
+(`8aa8d690…` / `42427164…` / `6a74f186…` / `d4b85aa5…` / `6777deeb…`) und
+Protokoll `_tmp_probe_v017_out.txt` `996ef9ab…` / 4.960 B. Nur Panel 01/03/04/05
+differieren zum Produktionssatz — sie nennen den **Engine-Dateinamen**;
+Panel 02 ist in beiden Sätzen bit-identisch (`42427164…`).
+
+### Errata
+
+- **E-13 (neu): Altsatz-Garantie geöffnet.** `K73@1020` existiert in V017 schon
+  im v0.1-Referenzlauf nicht mehr → `REFERENZ` schrumpft auf `(980, 73)`.
+- **E-14 (neu): V01-Protokoll ist historisch.** `test/tmp_png_aug_sichttest_out.txt`
+  (9.784 B) ist ein **Konsolen-Mitschnitt in UTF-16 LE** mit dem Wortlaut der
+  v0.1-Ära. Kein Reproduktionsartefakt; die V01-**PNGs** sind 5/5 bit-identisch.
+- **E-12 bleibt**: V014 Panel 03 (`f8505d12…` / 1.694.382 B) — per A/B-Test
+  belegt, dass P-1…P-3 das **nicht** verursacht haben.
+
+### Generationsbindung — Fail-Loud und Rückweg (WICHTIG)
+
+Nach dem Einbrand tragen V01 … V016 **nicht mehr** mit der ausgelieferten
+Engine. Das ist gewollt und fail-loud, **nicht** still:
+
+```text
+python test/tmp_png_aug_sichttest.py --mode V016
+AssertionError: (14, 42.450969915773506)      # Z. 639, erster Assert, keine PNG
+```
+
+Rückweg (erprobt, 5/5 PNG je Modus byte-identisch):
+
+```text
+python test/tmp_png_aug_sichttest.py --mode V016 ^
+    --engine test/_tmp_backup_engine_pre_v017.py
+```
+
+`--engine` akzeptiert ausschließlich Pfade innerhalb `test/`.
+
+### Verifikation (gezielt, keine Regressionstests)
+
+`py_compile` OK · Assert-Parität 5/5 Modi OK · V015 und V016 Satz **und**
+Protokoll byte-identisch (`b7c4142a…` / `2969723c…`) · V01 5/5 PNG identisch ·
+A/B-Neutralität P-1…P-3 belegt · Rückweg V01/V016 belegt · G4 bit-identisch ·
+73 Kanten-IDs stabil · M6-Heilung isoliert (A/B/C) · H1 V016↔V017 direkt
+verglichen.
+
+### Offen
+
+1. **`test/` ist gitignored** (`.gitignore:63`): nur **diese Datei** ist
+   getrackt; Engine, Renderer, Backups, PNG und Protokolle sind untracked →
+   Arretierung **urkundlich über SHA256**, **kein** `git add -f`.
+2. `SWEEP_MARKER_P02` weiterhin deklariert, nicht referenziert (§71.7).
+3. E-12 nicht neu arretiert.
+4. **Nächster Auftrag:** H2-Marktanalyse (Phase P10 ab Bar 1021) — unverändert.

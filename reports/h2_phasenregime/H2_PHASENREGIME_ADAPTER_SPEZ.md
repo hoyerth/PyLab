@@ -1581,3 +1581,210 @@ v0.13 ist ein **Regelwerk-Addendum**: Es friert die Darstellungsnorm (§54) und
 alle anwendersetigen Standards (§55) ein. Code der Engine und des Adapters
 bleibt unangetastet; ``test/tmp_png_aug_sichttest.py`` ist ein read-only
 Renderer und liegt gitignored in `test/`.
+
+---
+
+## Vermerk zur Einordnung (Anwender-Auftrag 2026-09-10)
+
+**Auftragsgegenstand:** Der Anwender hat ein Addendum „K67-Direktauslösung an
+Resistance 69.87" mit den Abschnittsnummern §54/§55 unter dem Titel „v0.13"
+beauftragt. Beim Einsortieren wurden zwei Konflikte festgestellt und — nach
+dem Protokoll **„erst verifizieren, dann schreiben"** (§52.0) — bereinigt:
+
+1. **Versions- und Nummern-Kollision.** „v0.13" ist **bereits vergeben**
+   (§§54–56: Darstellungsregeln FIX + Konsolidat der Standards, Commit
+   `cd4e15a`). Dieses Addendum läuft deshalb als **v0.14**; die beauftragten
+   Abschnitte §54/§55 werden als **§57/§58** geführt, damit Anker und
+   Querverweise eindeutig bleiben. Der beauftragte Wortlaut ist in §57/§58
+   jeweils als Zitat mitgeführt.
+2. **Sechs Zahlenkorrekturen.** Die im Entwurf genannten Werte wurden
+   read-only gegen die Engine geprüft. Abweichungen bei Close, Entry, SL und R
+   (Ursache: `sl_buffer_usd = 0.05` statt 0,01; `entry = open[entry_bar]`).
+   Übersicht in §57.3; die Entwurfswerte bleiben dort als Zitat erhalten.
+
+**Status:** rein dokumentarisch. **Kein Code implementiert** — Adapter und
+Engine sind byte-unverändert (SHA256 `3ba15c72…5255cb006`). Alle Zahlen
+stammen aus einer **read-only In-Memory-Simulation**
+(`test/_tmp_k67_direkt.py`); die Engine-Datei wurde nicht angefasst.
+
+---
+
+## 57. Falsifikation des K73-Umwegs & K67-Direkt-Reclaim
+
+> **Beauftragter Wortlaut (Entwurf):** „Die bisherige Hilfskonstruktion (Hook 1:
+> Freistellung von K67, damit K73 handelt) basierte auf einer Verzerrung der
+> K67-Basis durch np.mean (69.9687)."
+
+### 57.1 Ausgangsbefund — die `np.mean`-Drift (bestätigt)
+
+K67 ist OBEN, **kein** Primär-Anker; `basis_bei(k)` ist das laufende Mittel der
+bestätigten Dochte (`pivot_bar + 2 <= k`). Dochtmenge (5 Wicks):
+
+| Bar | Broker/UTC | Bar-Zeit (+02:00) | Dochtpreis |
+|---|---|---|---|
+| 873 | 21.08. 05:45 | 21.08. 07:45 | 69,975 |
+| 881 | 21.08. 07:45 | 21.08. 09:45 | 70,000 |
+| 904 | 21.08. 13:30 | 21.08. 15:30 | 69,931 |
+| 980 | 24.08. 15:00 | 24.08. 17:00 | 69,899 |
+| 1020 | 25.08. 02:00 | 25.08. 04:00 | 69,924 |
+
+```
+basis_bei(980)  = (69,975 + 70,000 + 69,931) / 3              = 69,9687
+basis_bei(1020) = (69,975 + 70,000 + 69,931 + 69,899) / 4     = 69,9513
+```
+
+| Bar | High | `basis_bei(k)` | dist |
+|---|---|---|---|
+| 980 | 69,899 | 69,9687 | **−0,0996 %** |
+| 1020 | 69,924 | 69,9513 | **−0,0390 %** |
+
+Beide Sweeps liegen damit im Docht-Defizit (`dist < 0`) — der Befund des
+Entwurfs ist **reproduziert**. Konsequenz im Ist-Zustand: `_kandidat` liefert
+an beiden Bars als handelnde Linie **K73** (K67 wird von Hook 1 freigestellt,
+damit K73 handeln kann).
+
+### 57.2 Verankerung an 69.87 — Hypothese (mechanisch bestätigt)
+
+**Provenienz-Vermerk:** `69,87` ist ein **manuell gesetzter institutioneller
+Wert des Anwenders**. Er ist **nicht** aus der Engine ableitbar (kein Wick, kein
+`e.basis`, kein `basis_bei`) und wird hier ausschließlich als externe Vorgabe
+behandelt — analog der Norm-Behandlung in §37.4.
+
+| Bar | Broker/UTC | Bar-Zeit (+02:00) | H | C | dist(69,87) | `cl ≤ 69,87` | Stufe |
+|---|---|---|---|---|---|---|---|
+| 980 | 24.08. 15:00 | 24.08. 17:00 | 69,8990 | **69,8100** | **+0,0415 %** | ja | **(1, `STUFE_1_IN_BAR`)** |
+| 1020 | 25.08. 02:00 | 25.08. 04:00 | 69,9240 | **69,5770** | **+0,0773 %** | ja | **(1, `STUFE_1_IN_BAR`)** |
+
+**Bestätigt wird damit:** beide Bars durchstechen das Niveau
+(+0,0415 % / +0,0773 %), schließen in-bar unter dem Niveau, und beide liefern
+mechanisch **STUFE_1_IN_BAR** (`_reclaim_stufe` Z. 2018–2034). Die
+Kontrollwerte des Entwurfs für dist und Stufe sind **exakt korrekt**.
+
+### 57.3 Richtigstellung des Entwurfs (read-only verifiziert)
+
+| Position | Entwurfswortlaut | **Verifizierter Wert** | Ursache der Abweichung |
+|---|---|---|---|
+| Bar 980 Close | 69,670 | **69,8100** | Zahl nicht aus der Engine |
+| Bar 980 Entry | „Bar 981 Open (69,670)" | **69,8070** = `op[981]` | `entry = open[entry_bar]` (Z. 2634) |
+| Bar 980 SL | 69,909 | **69,9490** = 69,8990 + 0,05 | `sl_buffer_usd = 0.05`, nicht 0,01 |
+| Bar 980 R | +4,89 R | **+9,9877 R** | folgt aus Entry/SL/TP2 |
+| Bar 1020 Close | 69,720 | **69,5770** | Zahl nicht aus der Engine |
+| Bar 1020 Entry | „Bar 1021 Open (69,720)" | **69,5780** = `op[1021]` | `entry = open[entry_bar]` |
+| Bar 1020 SL | 69,934 | **69,9740** = 69,9240 + 0,05 | `sl_buffer_usd = 0.05` |
+| Bar 1020 R | +9,91 R | **+3,0032 R** | folgt aus Entry/SL/TP2 |
+| P9-Ertrag | „~ +14,80 R" | **+19,8049 R** (Δ = +14,3837 R) | Level vs. Delta verwechselt |
+
+**R-Nachrechnung (Engine-Formel):**
+
+| Bar | Entry | SL | TP2 | risk | reward | reward/risk | Engine-R |
+|---|---|---|---|---|---|---|---|
+| 980 (K67) | 69,8070 | 69,9490 | 68,3700 | 0,1420 | 1,4370 | 10,1197 | **+9,9877** |
+| 1020 (K67) | 69,5780 | 69,9740 | 68,3700 | 0,3960 | 1,2080 | 3,0505 | **+3,0032** |
+
+### 57.4 Mechanisches Gesamtergebnis (Override P9-lokal, In-Memory)
+
+| Kennzahl | Referenz (ohne Override) | **mit K67 = 69,87** | Δ |
+|---|---|---|---|
+| V1 gesamt | 15 / +46,866348 R | **17 / +61,250064 R** | **+14,383717 R** |
+| H1 (`entry_bar < 640`) | 8 / +38,964262 R | **8 / +38,964262 R** | **0** (bit-identisch) |
+| H2 (`entry_bar ≥ 640`) | 7 / +7,902085 R | **9 / +22,285802 R** | +14,383717 R |
+| P9-Fenster (848–1020) | +5,4212 R | **+19,8049 R** | +14,3837 R |
+| Sperren: blocker / quartil / zyklus | 23 / 57 / 27 | **23 / 57 / 28** | zyklus +1 |
+
+**P9-Trade-Setze mit Override:**
+
+| Bar | Kante | Stufe | Entry-Bar | Entry | SL | TP2 | R |
+|---|---|---|---|---|---|---|---|
+| 903 | K67 | `STUFE_2_KERZE_2` | 905 | 69,6700 | 69,9810 | 68,3700 | **+4,1198** |
+| 980 | **K67** | `STUFE_1_IN_BAR` | 981 | 69,8070 | 69,9490 | 68,3700 | **+9,9877** |
+| 981 | K73 | `STUFE_1_IN_BAR` | 982 | 69,4910 | 69,9010 | 68,3700 | **+2,6943** |
+| 1020 | **K67** | `STUFE_1_IN_BAR` | 1021 | 69,5780 | 69,9740 | 68,3700 | **+3,0032** |
+
+### 57.5 Nebenfolgen (nicht im Entwurf enthalten — bitte prüfen)
+
+1. **Es ist kein reiner Tausch der beiden Bars.** Zusätzlich entstehen
+   **K67@903** (`+4,1198 R`, Entry-Bar 905) und **K73@981** (`+2,6943 R`,
+   Entry-Bar 982); die bisherigen **K73@980** und **K73@1020** entfallen. Der
+   P9-Zuwachs (+14,3837 R) verteilt sich also auf vier Trades, nicht auf zwei.
+2. **Der K73-Umweg ist nicht vollständig falsifiziert.** Mit Override liefert
+   K73 an Bar 981 weiterhin einen Treffer ⇒ K67 tritt als *zusätzlicher*
+   Direktauslöser auf, ersetzt den K73-Pfad aber nicht vollständig.
+3. **Hook 1 wird in dieser Konstruktion gegenstandslos.** Hook 1 verlangt
+   `dist < 0`; mit `basis_bei(K67) = 69,87` gilt an beiden Bars `dist > 0`
+   ⇒ `hook_1_freigabe_kid` liefert `None`. Die Freistellung erzeugt dann
+   keine Wirkung mehr.
+4. **Provenienz von 69,87 offen.** Der Wert ist engine-fremd (anwender-set).
+   Eine Arretierung müsste ihn als Phase-Override in den Adapter aufnehmen
+   (§58), nicht in die Kante selbst.
+
+---
+
+## 58. Entkopplung von der Core-Engine
+
+> **Beauftragter Wortlaut (Entwurf):** „Um die H1-Baseline (+38.964262 R)
+> unberührt zu lassen, wird basis_bei in der Core-Engine nicht global
+> verändert. Die Verankerung 69.87 wird ausschließlich als phasen-lokaler
+> Adapter-Override für P9/H2 modelliert."
+
+### 58.1 Bestätigung der Unberührtheit (verifiziert)
+
+Die Entkopplung ist mechanisch **nachweisbar**: Der Override wurde in der
+Simulation auf `P9.start_bar ≤ k ≤ P9.end_bar` (848–1020) begrenzt, also
+**oberhalb** der H1-Box (`entry_bar < 640`). Ergebnis:
+
+```
+H1 (entry_bar < 640): 8 Trades / +38.964262 R   (bit-identisch zur Referenz)
+```
+
+Der H1-Wert ist **auf 6 Dezimalstellen identisch**; `box_end_bar = 640` und die
+`_p11`-Projektion bleiben damit unberührt (§36.2/§36.3, S3).
+
+### 58.2 Gegenprobe (Inertheit der Override-Maschinerie)
+
+Mit deaktiviertem Override reproduziert der Lauf die arretierte Referenz
+**exakt**: `15 / +46.866348 R`, H1 `8 / +38.964262 R`, H2 `7 / +7.902085 R`,
+P9 `+5.4212 R`, K73-Trades `[(980, +2.4119), (1020, +3.0093)]`, K67-Trades
+`[]`. ⇒ Werkzeug ist beweisbar nebenwirkungsfrei.
+
+### 58.3 Umsetzungsrahmen (Vorschlag, **nicht** implementiert)
+
+| Punkt | Vorgabe |
+|---|---|
+| Ort | `backtest_lab/phasen_regime_adapter.py`, Segment `P9` (bzw. Folge-Modul) |
+| Form | Phasen-lokaler Niveau-Override je Kante (z. B. `niveau_override` in `PhasenKanteInfo`), **kein** Eingriff in `_SEEdgeH.basis_bei` der Engine |
+| Scope | `P9.start_bar .. P9.end_bar`; außerhalb unverändert (MAKRO/H1 unberührt) |
+| Provenienz | `69,87` als anwender-gesetzter Wert dokumentieren (engine-fremd) |
+| Regelkonformität | Hook 1 bleibt unangetastet; bei `dist > 0` greift regulär `Q1` (Wand handelt) |
+| Fail-Loud | `verifiziere_gegen_scan` bleibt aktiv; Override ist **kein** Provenienz-Ersatz (§37.4 / Option (b)) |
+
+**Offene Entscheidungsfragen (Textblock, keine Auswahl):**
+
+1. Ist die Arretierung als **zusätzlicher Phasen-Override** (Vorschlag §58.3)
+   oder als **neue Kante** mit eigenem `kid` zu modellieren?
+2. Soll `69,87` als `niveau_override` im Adapter verankert und damit
+   fail-loud geprüft werden, oder bleibt es ein Kommentar-/Auditwert
+   (Option (b), §37.4)?
+3. Sollen die zwei Nebenfolge-Trades **K67@903** und **K73@981** mitarretiert
+   werden, oder ist nur das Bar-980/1020-Paar Gegenstand der Freigabe?
+4. Bleibt die H2-Referenz `+7,902085 R` als Vergleichsanker stehen, obwohl der
+   Override sie auf `+22,285802 R` hebt?
+
+---
+
+## 59. Status (v0.14)
+
+| Kennzahl | Wert | Berührt durch v0.14? |
+|---|---|---|
+| V0 / H1 | 14 / 8 / +38,964262 R | nein |
+| V1 (P9, arretiert) | 15 / +46,866348 R | nein |
+| H2 V1 (arretiert) | 7 / +7,902085 R | nein |
+| Engine SHA256 | `3ba15c72…5255cb006` | nein |
+| Adapter | unverändert (kein Override implementiert) | nein |
+| Simulationsbefund K67 = 69,87 | 17 / +61,250064 R (Δ +14,383717) | **nur dokumentiert** |
+
+v0.14 ist ein **Befund-Addendum**: Es dokumentiert die Falsifikation des
+`np.mean`-Basisfehlers für K67, bestätigt die mechanische Direktauslösung an
+69,87, korrigiert sechs Entwurfswerte (§57.3) und legt den Umsetzungsrahmen
+der Entkopplung offen (§58) — **ohne** Engine-, Adapter- oder
+Darstellungsänderung.
+

@@ -411,3 +411,77 @@ Frische-Kanten-Regel (dort tabu; im Speicher wertvoll).
   ANTEIL_TP1) auf kausalem Code nachvalidieren – NUR auf Arbeitskopie.
 - Setup A (Counter-Trend-Reversal) weiterhin spaeter; Setup C (--moves=1)
   mit Trailing optional testen.
+
+---
+
+## Wiederaufnahme 2026-09-10 — v0.20 Baseline und H2-Vorbereitung
+
+> **Präfix.** Der Kopf dieses Dokuments erklärt es zum 02.09.2026 für
+> eingefroren. Dieser Abschnitt ist **append-only**; die Historie oben bleibt
+> unverändert (Beschluss E7 / Option b).
+
+### Stand (nach Commit `7b9963f`)
+
+| Gegenstand | Wert |
+|---|---|
+| Addendum | v0.20 / §70 in `reports/h2_phasenregime/H2_PHASENREGIME_ADAPTER_SPEZ.md` (`da396a1a…`, 164.207 B) |
+| Adapter | `backtest_lab/phasen_regime_adapter.py` `0f3f8765…` (25.783 B) |
+| Engine | `test/tmp_kanten_engine_replay.py` `ea2f72a8…` (196.012 B, gitignored → urkundlich) |
+| Renderer (vor Auflagen) | `test/tmp_png_aug_sichttest.py` `c730b287…` (73.845 B) |
+| Baseline v0.20 | **V015 = 18 Trades / +64,879080 R** (H1 8/+38,964262 bit-fest · H2 10/+25,914818) |
+| G4-Treffer | K77@1002 · entry 68.5070 · SL 68.2580 · POC 68.9513 (Anker 848) · TP2 69.8700 → **+3,629016 R** |
+| H1-Anker | `d9f35876…` / 899.249 B in V01, V014 **und** V015 |
+
+### Nächster Auftrag — H2-Marktanalyse (Phase P10 ab Bar 1021)
+
+Marktanalyse der H2-Expansion vor der Auflagenkosmetik. Die offenen Auflagen
+A-1 … A-4 sind Chart-Hygiene und blockieren die Analyse nicht.
+
+### Auflagen A-1 … A-4 — Beschlüsse E1 … E11 (Grundlage §71)
+
+| # | Beschluss |
+|---|---|
+| E1 | Rotes Sweep-Kreuz (§32) → Diamond `d`; violettes Q29-`x` (§54.2 R7) bleibt. |
+| E2 | **Panel-02-Ausnahme analog A-5**: `LEG_BASIS` + `SWEEP_MARKER_P02="x"` eingefroren → H1-Anker intakt. |
+| E3 | V01/V014 bleiben **bit-identisch**; alle Korrekturen nur bei `KONF.auflagen_aktiv`. |
+| E4 | Panel 04: 8 Ticks `range(850, 1050, 25)`; C04-7 wird für V016 neu gefasst. |
+| E5 | A-3-Offsets: `(1020,67) → (0,-18)`, `(980,67) → (0,22)`; Bars < 640 im Default. |
+| E6 | A-4: Zonenlabel `y=0.92` (Axes, `get_xaxis_transform`); P04-Text `(0.82, 0.94)` transAxes. |
+| E7 | Dieser Append-Abschnitt. |
+| E8 | Neuer Satz **V016** mit eigenem Präfix `aug_sichttest_v016_`; v015 bleibt arretiert. |
+| E9 | A-3-Restkollision (Override-Boxen, G4-Label): erst Sichtprüfung, dann nachjustieren. |
+| E10 | `Luecke BLOCKIERT` bleibt auf dem Bestandsplatz. |
+| E11 | Auflagen-Gate ist das **neue Feld** `auflagen_aktiv` (nicht `g4_aktiv`) — sonst wäre V015 nicht mehr reproduzierbar. |
+
+### Offen nach diesem Schritt
+
+Addendum **v0.21 / §71** (Renderer-Auflagen, Präfix-Schnitt v015/v016,
+Erratum E-5 zur Altsatz-Garantie). Sichtprüfung des V016-Satzes durch den
+Anwender; A-3-Nachjustierung erst danach.
+
+### V016-Arretierung und Auflagenabschluss (2026-09-10)
+
+Sichtprüfung durch Anwender erfolgreich abgeschlossen (VOTUM: OK).
+
+| Artefakt | SHA256 | Bytes |
+|---|---|---|
+| `test/tmp_png_aug_sichttest.py` | `ca0db364f6955c29c103e10e16935428115cc47c8a937c86df2d6431791cd3e3` | 79.314 B |
+| `test/aug_sichttest_v016_01_gesamt.png` | `1ac695a40ed0241f0db135e6c1dd8f303b32a17ab4c42d6b5193ed7abf25ac10` | 2.117.515 B |
+| `test/aug_sichttest_v016_02_h1_box.png` | `d9f35876442593c529083f194ab50cc37e7691a65794dfe6456a311c1b7cbb04` | 899.249 B |
+| `test/aug_sichttest_v016_03_h2_phasen.png` | `81cae5e376cd9d7dd76597b3a941c3d1bd2358fadb258eb734dca85f7df11b72` | 1.760.655 B |
+| `test/aug_sichttest_v016_04_p9_regime.png` | `b18e2a55d83368d0436a2fa00357ce3aa69a93ee8326641dfbd555828a6edccc` | 1.210.084 B |
+| `test/aug_sichttest_v016_05_kantenkarte.png` | `00d56362423941f9d794d837313052d24d8a94fcd517b9b529de0dc7cb299b9f` | 2.122.100 B |
+| `test/tmp_png_aug_sichttest_v016_out.txt` | `2969723c6abb9b8f97512a84d15ff3e95fecb91398cdc72b4195c98b113578d7` | 5.520 B |
+
+H1-Regressionsanker `d9f35876…` (899.249 B) über alle 4 Generationen (V01, V014, V015, V016) byte-identisch verifiziert.
+
+**Benchmark V016:** 18 Trades / +64,879080 R (H1 8 / +38,964262 · H2 10 / +25,914818).
+Auflagen A-1 … A-4 sind damit abgeschlossen; Beschlüsse E1 … E11 und die Errata
+E-5 / E-11 / E-12 sind in Addendum **v0.21 / §71** der Adapter-Spez dokumentiert.
+
+**Wichtig (Erratum E-12):** V014 Panel 03 ist seit v0.20 **nicht mehr**
+byte-identisch zu v0.17 — in der v0.20-Statistikzeile `_p9z` wurde die
+`QUARTETT_R`-Trennung nicht auf den G4-Modus gegatet. Historischer Hash
+`a055b243…` (1.695.409 B, gültig v0.17–v0.19) ist ab v0.20 überholt; aktuell
+`f8505d124c3dddf3…` (1.694.382 B). V01 und V015 sind davon **nicht** betroffen
+(je 5/5 byte-identisch). Nicht neu arretiert.

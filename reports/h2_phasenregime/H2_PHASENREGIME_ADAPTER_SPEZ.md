@@ -3343,3 +3343,177 @@ v0.1-/v0.14-Benchmarks bleiben als historische Referenz gültig.
 Ausweitung auf `P12_RESERVE` (§69.11) · jede Änderung an `poc_start`,
 `quartil_distanz_pct` oder am `Europe/Berlin`-/`box_end_bar`-Interlock ·
 weitere Engine-Eingriffe über den Hook-3-Konsum hinaus.
+
+---
+
+# Addendum v0.21 — Auflagenbereinigung A-1..A-4, V016-Arretierung und Errata (2026-09-10)
+
+**Auftrag.** Finale Bereinigung der Auflagen A-1 bis A-4 aus der V014-Abnahme
+im Renderer, Trennung der Lebenszyklen ueber den Praefix `v016` und das neue
+Feld `auflagen_aktiv`, Konservierung der Panel-02-Invarianz sowie
+Dokumentation des V014-P03-Befunds.
+
+| Uebergabe | Gegenstand | Status |
+|---|---|---|
+| Renderer | `test/tmp_png_aug_sichttest.py` | **erweitert**, `ca0db364…` (gitignored) |
+| Bildsatz | V016 (5 PNG + Protokoll) | **neu, sichtgeprueft (Votum OK)** |
+| Altsaetze | V01, V014, V015 | **modus-gated konserviert** (siehe E-5 / E-12) |
+| Handoff | `test/SESSION_HANDOFF.md` | **append** (Wiederaufnahme + V016-Arretierung) |
+| Regelbestand | §54 + §66 + §67 + §68 + §69 + §70 + **§71** | erweitert |
+
+## 71.0 Geltung und Abgrenzung
+
+1. **append-only.** §54, §66, §67, §68, §69 und §70 bleiben als Zitat bestehen.
+2. **Drei Lebenszyklen.** `V015` bleibt der arretierte Nachweis der **reinen**
+   G4-Mechanik (§70.7). `V016` ist der auflagenbereinigte Produktionssatz.
+   `V01`/`V014` bleiben als historische Benchmarks gueltig.
+3. **Neuer Diskriminator.** Die Auflagen wirken ausschliesslich bei
+   `KONF.auflagen_aktiv is True` (**nicht** bei `KONF.g4_aktiv`). Ohne diese
+   Trennung waere `--mode V015` nach dem Patch nicht mehr reproduzierbar
+   gewesen — Erratum **E-11** (Blocker, vor der Ausfuehrung erkannt).
+
+## 71.1 Auflagenbereinigung (V016)
+
+| Auflage | Pruefpunkt | Umsetzung in V016 |
+|---|---|---|
+| **A-1** | C04-7 | X-Achse Panel 04: **8 Ticks im 25er-Raster** (`range(850, 1050, 25)`). Signatur `time_axis(..., ticks: Union[int, Sequence[int]])` rueckwaertskompatibel — ein `int` liefert unveraendert `np.linspace`. |
+| **A-2** | A11 / §11 | Der **rote** Sweep-Sperren-Marker wandert auf den Diamond (`"d"`; `ms=7.5` in P01/P05, `ms=8.5` in P03/P04). Der **violette** Q29-Marker bleibt `"x"` (§54.2 R7). |
+| **A-3** | C01-8 | Entzerrung des K67-Clusters ueber die Offset-Tabelle `ANNOT_OFFSET`: `(1020, 67): (0, -18)`, `(980, 67): (0, 22)`. Bars `< 640` verbleiben in der Bestandsformel. |
+| **A-4** | C03-1 | Zonenlabels (`P9 AKTIV` / `P12 RESERVE`) via Axes-Fraction `y = 0.92` (`get_xaxis_transform`). Der P04-Text `P9 AKTIV 848-1020` wird nach `(0.82, 0.94)` (`transAxes`) entzerrt. |
+
+**Neufassung des Pruefpunkts C04-7.** Der V014-Bogen fuehrt C04-7 als „12 Ticks
+ueber 820..1045". Fuer den V016-Satz ist er zu lesen als: **8 Ticks im
+25er-Raster (850, 875, …, 1025) mit Bar-Zeit-Labels.** Die uebrigen
+C04-Pruefpunkte bleiben unveraendert gueltig.
+
+**Bewusst unveraendert.** `Luecke BLOCKIERT` (Panel 04) bleibt auf seinem
+Bestandsplatz (Beschluss E10); das `G4 RECLAIM`-Label und die
+Override-Annotationsboxen bleiben im Default (Beschluss E9, Nachjustierung
+erst nach Sichturteil).
+
+## 71.2 Panel-02-Invarianz (H1-Anker)
+
+Zur Wahrung des kryptografischen H1-Regressionsankers
+(`d9f35876442593c529083f194ab50cc37e7691a65794dfe6456a311c1b7cbb04`,
+899.249 B) gilt fuer **Panel 02** eine dokumentierte Ausnahme — analog zur
+Ausnahme A-5 aus §66.5. Der Handlungstraeger ist die **unveraenderte** Liste
+`LEG_BASIS`; ein zusaetzliches Symbol `LEG_BASIS_P02` wurde **nicht**
+eingefuehrt:
+
+* Panel 02 ruft weiterhin `legend(ax1, LEG_BASIS)` auf (Z. 1270) und zeichnet
+  den roten Marker mit dem **Literal** `"x"` und `ms=8` (Z. 1249).
+* `LEG_BASIS` selbst wurde **nicht** angetastet. Der bereinigte
+  Sweep-Legendeneintrag entsteht ausschliesslich in der neuen Hilfsfunktion
+  `_leg_basis_sweep()`, die nur Panels 01, 03 und 05 verwenden.
+* Folge: der Anker ist in **V01, V014, V015 und V016** byte-identisch.
+
+## 71.3 Errata
+
+**E-5 (Praezisierung der Altsatz-Garantie, §68.6).** §68.6 fuehrt A-1 … A-4 als
+hash-relevant und haelt fest, „die Hashes in Teil 0.1 bleiben davon
+unberuehrt". Praezise gilt: alle vier Auflagen sind **modus-gated** auf
+`auflagen_aktiv`. `V01` bleibt daher **5/5 byte-identisch**; der arretierte
+`V015`-Satz (§70.7) bleibt **5/5 byte-identisch**. `V014` bleibt es fuer
+P01/P02/P04/P05 — **nicht** fuer P03 (siehe E-12).
+
+**E-11 (Auflagen-Diskriminator, Blocker).** Ein Gate auf `KONF.g4_aktiv` haette
+`V015` mitveraendert und die in §70.7 arretierten Hashes entwertet. Deshalb
+wurde das eigene Feld `auflagen_aktiv` eingefuehrt:
+`V01 False · V014 False · V015 False · V016 True`.
+
+**E-12 (V014 Panel 03 — ueberholt §70.6 Stufe 3 und §70.10).** Die in v0.20
+eingefuehrte Trennung von `QUARTETT_R` (+19,804922 R) und `P9_BEITRAG`
+(+23,433938 R) in der Statistikzeile `_p9z` wurde **innerhalb** des Zweigs
+`if KONF.k67_override_aktiv:` und damit **nicht** auf den G4-Modus gegatet.
+Sie veraenderte daher **unbeabsichtigt** auch `V014` Panel 03. Die Aussage
+„V014 5/5 byte-identisch" ist damit fuer **P03 unzutreffend**.
+
+| Rendererstand | V014 P03 | Bytes |
+|---|---|---|
+| vor dem v015-Patch (`e88ec58d…`) | `a055b243463460e8…` | 1.695.409 |
+| ab v0.20 (`c730b287…`, `ca0db364…`) | `f8505d124c3dddf3…` | 1.694.382 |
+
+`a055b243…` ist damit gueltig fuer **v0.17–v0.19** und ab **v0.20 ueberholt**.
+Der aktuelle Stand reproduziert ihn nicht mehr; ein Wiederherstellen waere
+eine eigene Neu-Arretierung und ist **nicht** erfolgt. Die uebrigen vier
+V014-Panels sind unveraendert.
+
+## 71.4 Ausfuehrungsbefunde (Lehren aus der Gegenprobe)
+
+Die 3-fach-Gegenprobe (V01/V014/V015 gegen den Vorstand `c730b287…`) hat zwei
+Fehler im ersten Patchlauf gefangen, die reine Code-Inspektion **nicht**
+gezeigt haette:
+
+| # | Befund | Ursache | Behebung |
+|---|---|---|---|
+| **B-1** | `V016` Panel 02 wurde `899.798 B` statt `899.249 B` — H1-Anker gebrochen | Der Patch ersetzte den Sweep-Eintrag **in `LEG_BASIS` selbst** | `LEG_BASIS` unangetastet; bereinigter Eintrag nur in `_leg_basis_sweep()` (E2 / §71.2) |
+| **B-2** | `V01`/`V014` P03/P04 veraendert | `ms=8` der Panels 03/04 wurde auf `SWEEP_MARKER_MS` (7.0) abgebildet | eigene Konstante `SWEEP_MARKER_MS_GROSS` (8.0; V016: 8.5) |
+
+**Lehre.** Panel-lokale Marker-Groessen brauchen eigene Konstanten, und die
+H1-Ausnahme muss die eingefrorene Liste **unberuehrt** lassen. Beides ist
+durch die Gegenprobe belegt, nicht durch Theorie.
+
+**Neutralitaetsnachweis.** Vorstand `c730b287…` und gepatchter Stand
+`ca0db364…` erzeugen in V01, V014 und V015 **15/15 byte-identische** PNGs
+(5 Panels × 3 Modi). Der V015-Satz (§70.7) bleibt damit vollstaendig gueltig.
+
+## 71.5 V016-Artefakte und Benchmark-Arretierung
+
+Sichtpruefung durch den Anwender am 2026-09-10 abgeschlossen — **Votum OK**.
+
+**Benchmark V016:** **18 Trades / +64,879080 R**
+(H1 8 / +38,964262 R · H2 10 / +25,914818 R · P9-Beitrag +23,433938 R ·
+Quartett +19,804922 R · G4 K77@1002 +3,629016 R).
+
+| # | Datei | Bytes | SHA256 |
+|---|---|---|---|
+| 1 | `test/aug_sichttest_v016_01_gesamt.png` | 2.117.515 | `1ac695a40ed0241f0db135e6c1dd8f303b32a17ab4c42d6b5193ed7abf25ac10` |
+| 2 | `test/aug_sichttest_v016_02_h1_box.png` | 899.249 | `d9f35876442593c529083f194ab50cc37e7691a65794dfe6456a311c1b7cbb04` |
+| 3 | `test/aug_sichttest_v016_03_h2_phasen.png` | 1.760.655 | `81cae5e376cd9d7dd76597b3a941c3d1bd2358fadb258eb734dca85f7df11b72` |
+| 4 | `test/aug_sichttest_v016_04_p9_regime.png` | 1.210.084 | `b18e2a55d83368d0436a2fa00357ce3aa69a93ee8326641dfbd555828a6edccc` |
+| 5 | `test/aug_sichttest_v016_05_kantenkarte.png` | 2.122.100 | `00d56362423941f9d794d837313052d24d8a94fcd517b9b529de0dc7cb299b9f` |
+| P | `test/tmp_png_aug_sichttest_v016_out.txt` | 5.520 | `2969723c6abb9b8f97512a84d15ff3e95fecb91398cdc72b4195c98b113578d7` |
+
+**Renderer:** `test/tmp_png_aug_sichttest.py` =
+`ca0db364f6955c29c103e10e16935428115cc47c8a937c86df2d6431791cd3e3`,
+79.314 B (Vorstand `c730b287…`, 73.845 B; 28 wirksame Patches, davon `A-16`
+als bewusster No-op).
+
+**Unberuehrt:** Adapter `0f3f8765…`, Engine `ea2f72a8…`. Die Auflagen sind
+rein rendererseitig.
+
+## 71.6 Integritaet
+
+| Pruefung | Ergebnis |
+|---|---|
+| H1-Anker `d9f35876…` / 899.249 B | **in V01, V014, V015 und V016** ✅ |
+| V01-Bildsatz vs. `c730b287…` | **5/5 identisch** ✅ |
+| V014-Bildsatz vs. `c730b287…` | **5/5 identisch** (P03-Historie siehe E-12) ✅ |
+| V015-Bildsatz vs. §70.7 | **5/5 identisch** ✅ |
+| `py_compile` Renderer | OK ✅ |
+| Engine / Adapter | unveraendert ✅ |
+
+## 71.7 Status und offene Punkte
+
+| Kennzahl | Wert |
+|---|---|
+| V0 / H1 | 14 / 8 / +38,964262 R (unveraendert) |
+| V015 (arretiert, §70.7) | 18 / +64,879080 R |
+| **V016 (sichtgeprueft)** | **18 / +64,879080 R** |
+| Regelbestand | §54 + §66 + §67 + §68 + §69 + §70 + **§71** |
+| Auflagen A-1 … A-4 | **abgeschlossen** (V016) |
+
+**Offen:**
+
+1. **`SWEEP_MARKER_P02`** ist als Konstante deklariert, wird aber **nicht
+   referenziert** (Panel 02 zeichnet das Literal `"x"`). Bewusst nicht
+   entfernt, um den sichtgeprueften Renderer-Stand `ca0db364…` nicht zu
+   entwerten; Bereinigung erst mit der naechsten Renderer-Revision.
+2. **A-2 in Panel 02** bleibt als dokumentierte Ausnahme bestehen (Anker
+   hat Vorrang, §66.5-Entscheid / §71.2).
+3. **A-3-Nachjustierung** (E9): ob die beiden Offsets die Kollision mit den
+   Override-Boxen und dem `G4 RECLAIM`-Label vollstaendig loesen, entscheidet
+   das Sichturteil; bis dahin bleibt es beim deklarierten Umfang.
+4. **E-12** ist dokumentiert, aber der V014-P03-Hash **nicht** neu arretiert.
+
+**Naechster Auftrag:** H2-Marktanalyse (Phase P10 ab Bar 1021).

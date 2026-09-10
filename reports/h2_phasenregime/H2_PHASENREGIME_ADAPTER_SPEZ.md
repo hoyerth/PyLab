@@ -1230,3 +1230,203 @@ Engine oder des Adapters angefasst.
 Nächster Schritt (E3): **Gesamttabelle §37 auf die Dreispalten-Matrix
 nachziehen** (Bar-Index als Key; Broker/UTC als Leitwährung; Berlin nur als
 Altzitat), danach Abschluss der P12-Teil-Exploration.
+
+---
+
+## 50. Richtigstellung der Zeitbasis (v0.9 §36.1 teilweise revidiert)
+
+**Anlass.** Der PNG-Sichttest zeigte eine um **−2 h** verschobene X-Achse.
+Ursache war die in v0.10 §43/§44 gewählte Option (ii) `AXIS_TZ_OFFSET_H = -2`;
+sie setzte „Referenz-CSV" mit „Broker-Wanduhr" gleich. Die read-only
+Bodenprobe (`test/_tmp_zeitbasis_probe.py`, ausschließlich `SELECT`)
+widerlegt diese Gleichsetzung.
+
+### 50.1 Bodenprobe (verifiziert, `data/market_data.duckdb`, SILVER M15)
+
+```
+typeof(time)                = TIMESTAMP WITH TIME ZONE
+current_setting('TimeZone') = Europe/Budapest        -- Anzeige +02:00
+Reihen im Extraktionsfenster (10.08.-29.08.) = 1380
+```
+
+| Quelle | Bar 980 | Bar 1211 | Bar 1259 | Rolle |
+|---|---|---|---|---|
+| DB-Spalte `time` (Session **+02:00**) | 24.08. **17:00** | 27.08. **05:45** | 27.08. **17:45** | **Bar-Zeit = Leitwährung** |
+| Engine-SQL Z. 600 (`AT TIME ZONE 'Europe/Berlin'`) → `d["ts"]` | identisch | identisch | identisch | Anzeige-/Label-Pfad |
+| `time AT TIME ZONE 'UTC'` | 24.08. 15:00 | 27.08. 03:45 | 27.08. 15:45 | UTC-Projektion |
+| Referenz-CSV (`test/archiv/silver_m15_ohlc_2026-08-10_2026-08-28.csv`) | 24.08. 15:00 | 27.08. 03:45 | 27.08. 15:45 | **künstlicher UTC-Export (−2 h)** |
+
+Da DuckDB-Session (`Europe/Budapest`) und `Europe/Berlin` im August-Fenster
+**denselben** UTC-Offset (+2 h) tragen, ist `d["ts"]` **identisch mit der
+DB-Anzeige** — der Berlin-Patch (§36.3) ist im August also rechnerisch neutral.
+
+CSV-Befund: 1.289 Dateizeilen = 1 Header + **1.288 Datenzeilen ⇒ Bars
+0..1287**; **Dateizeile = Bar-Index + 2** (Stichproben 982/1213/1261 =
+Bar 980/1211/1259; letzte Zeile = Bar 1287, 27.08. 22:45 UTC). Die CSV ist
+**kein eigener Zeitstandard**, sondern ein Export der UTC-Projektion; die
+DB liefert im selben Fenster 1.380 Reihen (bis 29.08.).
+
+### 50.2 Beschluss (prominent)
+
+1. **Leitwährung ist die Wanduhr-Bar-Zeit** (DB-Anzeige = `d["ts"]`, +02:00).
+   Die in §36.1 als „Broker / CSV (`AT TIME ZONE 'UTC'`)" geführte Zeile
+   (03:45 / 15:45) ist die **UTC-Projektion** — sie bleibt Extraktions- und
+   Schutzbasis (§50.3), ist aber **nicht** die Leitwährung.
+2. **v0.10 §43/§44 ist aufgehoben:** `AXIS_TZ_OFFSET_H = 0`. Die Achse läuft
+   **ohne Offset** auf der Bar-Zeit; `d["ts"]` wird nativ gezeichnet und
+   etikettiert.
+3. **Nomenklatur (nur Klarstellung, keine Zahl geändert):** In §§36.3/§37
+   trägt die Spalte **„Broker/UTC"** die UTC-Projektion (CSV-Ebene,
+   SQL-Filtergrenzen), die Spalte **„Berlin (+2 h, …)"** die native Wanduhr
+   (= Leitwährung). Die Altzitat-Kennzeichnung bleibt gültig, weil sie sich
+   auf die **Herkunft der Labels** in v0.5–v0.8 bezieht. Tabellen der Addenda
+   ab v0.12 führen daher `Bar | Broker/UTC | Bar-Zeit (+02:00)`.
+4. **Unberührt:** §36.2 (`box_end_bar = 640`-Interlock, `_p11` byte-fixiert)
+   und §36.3 (SHA256 `3ba15c72…`). Die Filtergrenzen des Extraktions-SQL
+   bleiben UTC-formuliert.
+
+### 50.3 Grundsatz (K4, Wortlaut für `Agents.md`)
+
+> DB-Extraktion nutzt `AT TIME ZONE 'UTC'` zum Wanduhr-Schutz; Visualisierung,
+> Achsen-Labels und Bar-Zuordnung nutzen **nativ die Wanduhr-Bar-Zeit**
+> (`time`). Der **Bar-Index** bleibt Primärschlüssel.
+
+---
+
+## 51. Darstellungsnorm des Sichttests (ab v0.12 verbindlich)
+
+Aus dem Nutzer-Feedback (8 Punkte) abgeleitet, gültig für
+`test/tmp_png_aug_sichttest.py`:
+
+| # | Regel | Umsetzung |
+|---|---|---|
+| 1 | **Candlesticks überall** — `draw_candles(..., "candle")` in Panel 01 und 05 | erledigt |
+| 2 | **X-Achse = Bar-Zeit ohne Offset** (§50) | erledigt |
+| 3 | **Trade-Kreise immer farbig gefüllt** (`mfc=col`): H1 klein/dünn, H2 groß/dick | erledigt |
+| 4 | **Kausale Kantenlinien** — je Bar `basis_bei(k)` (Treppe) statt statischer Provenienz `e.basis` | offen (J2) |
+| 5 | **Sperr-Marker** ✕ = Q29-Sperre, ▲ = M6-Sperre, am sperrenden Bar | offen (J3/J4) |
+| 6 | **Titel** `Bars 0..1287` | offen |
+
+Farbige Kreise sind **nicht** optional: ein weißer Marker (`mfc="none"`)
+erzeugte das Fehlbild „Kreis ohne Füllung" und täuschte einen eigenen Fehler
+vor (Feedback-Punkt 1 und 3 hatten dieselbe Ursache).
+
+### 51.1 Beleg zur kausalen Linie (Regel 4)
+
+| Kante | statisch `e.basis` | `basis_bei(980)` | `basis_bei(1020)` |
+|---|---|---|---|
+| K73 | 69,6785 | **69,6765** | **69,6765** |
+
+Der statische Wert ist die **Provenienz-Wurzel**, nicht der zu Bar 980/1020
+gültige Pegel (Δ = 0,0020). Das erklärt die optisch „falsche" Lage der
+Einstiegspunkte 24./25.08.
+
+---
+
+## 52. Kaskaden-Trace und Schlaf-Fenster-Erstfilter (J5)
+
+### 52.0 Methodik (verbindlich für die Lesart aller Zahlen unten)
+
+`_se_trades` läuft **ausschließlich in der Box**: `for k in range(2, box_end
+- 3)` mit `box_end = 640` (Docstring Z. 2359 „Nur in der Box"). Aussagen über
+Bars ≥ 640 stammen daher aus einem **rein speicherinternen** Trace
+(`scan["box_end_bar"] = 1288` im `dict`; read-only, **keine Datei** angefasst),
+der **14 Setups** liefert — deckungsgleich mit der arretierten
+Lauf-B-Referenz (14 / +40.445143 R). Die Gate-Listen sind engine-eigen
+(`stats["blocker_liste"]`, `stats["quartil_liste"]`, `stats["zyklus_liste"]`,
+Z. 2559/2568/2601).
+
+**Gate-Reihenfolge im Kaskadencode (statisch, Z. 2492–2607):**
+
+| Position | Gate | Zeile |
+|---|---|---|
+| 1 | `_existiert` (**Schlaf-Filter**) | 2492 (Pool) / 2506 (Seed) |
+| 2 | M6 `_blockiert_durch_aussenkante` | 2556 |
+| 3 | Q29 `_im_aussenquartil` | 2566 |
+| 4 | `_reclaim_stufe` (Stufe 0 ⇒ keine Reife) | 2575 |
+| 5 | 12-Bar-Zyklus | 2597 |
+
+⇒ Der Schlaf-Filter greift **vor** M6, Q29 und Zyklik: eine schlafende Kante
+ist gar nicht im Kandidatenraum.
+
+### 52.1 Belegzeilen (read-only, `test/_tmp_beleg_schlaf.py`)
+
+Mechanik: Z. 2269–2277 — zwei konsekutive Körper jenseits der **laufenden**
+Basis (`max(O,C) < e.basis` bei `UNTEN`) ⇒ `SCHLAFEND` +
+`schlaf_windows.append((k, None))`; Reaktivierung Z. 2202–2206
+(`schlaf_windows[-1] = (start, bar + 2)`).
+
+**K82 (UNTEN, `e.basis` final = 67,5455, `schlaf_windows = [(1074, 1174)]`)**
+
+| Bar | Broker/UTC | Bar-Zeit (+02:00) | O | H | L | C | `max(O,C)` vs `basis_bei(k)` |
+|---|---|---|---|---|---|---|---|
+| 1073 | 25.08. 15:15 | 25.08. 17:15 | 67,4970 | 67,7430 | 67,4620 | 67,4700 | 67,4970 < 67,5440 → **AUSSEN** |
+| 1074 | 25.08. 15:30 | 25.08. 17:30 | 67,4740 | 67,8020 | 67,4550 | 67,5330 | 67,5330 < 67,5440 → **AUSSEN** |
+
+Reaktivierung: Fensterende **1174** = Touch-Bar **1172** + 2 (Wick 67,494 ✔);
+Zustand `ist_aktiv_bei(1172) = False`, `ist_aktiv_bei(1174) = True`.
+
+**K79 (UNTEN, `e.basis` final = 68,6260, `schlaf_windows = [(999, 1140), (1149, None)]`)**
+
+| Bar | Broker/UTC | Bar-Zeit (+02:00) | O | H | L | C | `max(O,C)` vs `basis_bei(k)` |
+|---|---|---|---|---|---|---|---|
+| 998 | 24.08. 19:30 | 24.08. 21:30 | 68,5020 | 68,5720 | 68,4110 | 68,4700 | 68,5020 < 68,6296 → **AUSSEN** |
+| 999 | 24.08. 19:45 | 24.08. 21:45 | 68,4730 | 68,4880 | 68,3180 | 68,4660 | 68,4730 < 68,6296 → **AUSSEN** |
+| 1148 | 26.08. 11:00 | 26.08. 13:00 | 68,6180 | 68,6760 | 68,5260 | 68,5450 | 68,6180 < 68,6260 → **AUSSEN** |
+| 1149 | 26.08. 11:15 | 26.08. 13:15 | 68,5460 | 68,5500 | 68,4360 | 68,4560 | 68,5460 < 68,6260 → **AUSSEN** |
+
+Reaktivierung: Fensterende **1140** = Touch-Bar **1138** + 2 (Wick 68,608 ✔);
+der zweite Bruch 1148/1149 öffnet `(1149, None)` (seither durchgehend
+schlafend).
+
+### 52.2 Richtigstellungen (prominent)
+
+**K79 (Feedback-Punkt 4).** Der fehlende K79-LONG ist **nicht** Q29-bedingt,
+sondern Folge des Schlaf-Fensters `(999, 1140)`. Beleg: K79 erscheint in der
+Q29-Liste **ausschließlich außerhalb** des Fensters (Bars 991/992/997 sowie
+1145/1146), innerhalb des Fensters **nie** — die Kante wird von `_existiert`
+(Z. 2492/2506) vor jeder Pool-/Q29-/M6-Prüfung entfernt.
+
+**K77 (Feedback-Punkt 5).** K77-LONG ist **Q29-gesperrt** (Bars 1002, 1029),
+**nicht** durch die 12-Bar-Zyklik.
+
+| Erstes Gate | Bars 1002–1030 |
+|---|---|
+| `BLOCKER_M6` | **0** |
+| `QUARTIL_Q29` | **4** — 1002 K77, 1028 K60, 1029 K77, 1030 K60 |
+| `ZYKLUS_12BAR` | **0** |
+
+Q29-Rohwerte (Formel Z. 2419–2426, Grenze 25 %): K79 @991/992/997 =
+**77,83 / 79,68 / 78,10 %**; K77 @1002/1029 = **77,29 / 72,97 %**. Alle
+gesperrt. (Kontrollwert: Bar 1259 ⇒ 67,79 % — deckungsgleich mit §38.2.)
+
+**K82 am 26.08. (Feedback-Punkt 7).** Bar 1172 liegt **im** Fenster
+`(1074, 1174)` (noch `SCHLAFEND`, §52.1) und erreicht zusätzlich Q29 mit
+**66,37 %** — doppelt gesperrt.
+
+**Bar 1272 (K73 SHORT, Feedback-Punkt 8).** Die Engine-Liste weist genau
+**einen** Eintrag aus: `BLOCKER_M6(K73 SHORT)`. Damit ist §47.4 engine-nativ
+bestätigt: 1272 scheitert allein an **M6**, weder an Q29 noch an der
+12-Bar-Zyklik.
+
+**K73/K76 ohne SHORT.** `dist < 0` bei lebender Wand ⇒ `return None`
+(Z. 2519–2520), **ohne** Log-Eintrag; deshalb erscheinen die Bars
+1211/1259/1271 in **keiner** der drei Sperrlisten.
+
+---
+
+## 53. Status
+
+| Kennzahl | Wert | Berührt durch v0.12? |
+|---|---|---|
+| V0 / H1 / V1 / H2 V1 | 14 / 8 / 15 / 7 (R unverändert) | nein |
+| Trace-Setups (`box_end_bar = 1288`, nur im Speicher) | 14 (= Lauf B) | nein |
+| P12-Trades (V0 / V1) | 0 / 0 | nein |
+| Engine SHA256 | `3ba15c72…5255cb006` | nein |
+| `P12_RESERVE` in `AKTIVE_DEFAULT_SEGMENTE` | nicht enthalten | nein |
+
+Addendum v0.12 ist dokumentarisch **plus** Freigabe der Darstellungsnorm
+(§51). Keine Datei der Engine oder des Adapters angefasst; alle Bodenproben
+(`test/_tmp_zeitbasis_probe.py`, `test/_tmp_beleg_schlaf.py`,
+`test/_tmp_gate_trace_j5.py`) sind **read-only** und werden nach Gebrauch
+entfernt (§39-Hygiene).

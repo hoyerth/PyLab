@@ -803,3 +803,210 @@ $env:PYTHONIOENCODING="utf-8"; .venv\Scripts\python.exe test\tmp_png_aug_sichtte
 ```
 
 Kein Engine-Eingriff, keine Adapter-Änderung, keine Baseline-Veränderung.
+
+---
+
+# Addendum v0.9 — Zeitschichten-Korrektur, Audit-Richtigstellung & Artefakt-Hygiene (2026-09-10)
+
+**Freigaben:** Z1–Z5 (Mentor, 2026-09-10). **Wirkung:** Dokumentation und
+Artefakt-Hygiene. Keine Regeländerung, kein Engine-Eingriff, keine
+Baseline-Veränderung.
+
+---
+
+## 36. Verbindliche Zeitkonvention (bindend für alle Beteiligten)
+
+1. **Broker-OHLC-Zeit ist die einzige Zeitbasis.** Sie wird aus
+   `data/market_data.duckdb` bzw. der Referenz-CSV über `time AT TIME ZONE
+   'UTC'` erzeugt (Wanduhr-Garantie, `Agents.md`).
+2. **Der Bar-Index ist der Primärschlüssel** jeder Aussage. Zeitstempel sind
+   nachrangig.
+3. **Tabellenpflicht (drei Spalten):** `Bar | Broker/UTC | Berlin (+2 h, nur
+   Altzitate)`.
+
+### 36.1 Drei Zeitschichten — Ursache der Desynchronisation
+
+| Schicht | Bar 1211 | Bar 1259 | Verwendung |
+|---|---|---|---|
+| **Broker / CSV** (`AT TIME ZONE 'UTC'`) | 27.08. **03:45** | 27.08. **15:45** | Rohdaten, ab v0.9 Leitwährung |
+| **Engine-Anzeige** (`Europe/Berlin`) | 27.08. **05:45** | 27.08. **17:45** | `_p11`, Tabellen v0.5, PNG-Achsen |
+| **Bar-Index** | **1211** | **1259** | alle Gates, `basis_bei(k)` |
+
+Die frühere Tabellenzuordnung paarte **Broker-Zeitstempel mit Bar-Indizes aus
+Berlin-Kontext-Tabellen** → 8 Bars (2 h) Versatz. Alle daraus abgeleiteten
+Dichtigkeitsurteile (u. a. „Docht 69,49 gehört zu K76") sind damit ungültig.
+
+### 36.2 Arretierte Box-Grenze: `box_end_bar = 640` (Z1)
+
+`640` bleibt als **logische Partitionsgrenze der H1-Baseline eingefroren** —
+**nicht** 644. Die Broker/UTC-Konvention gilt für alle **Zeit- und
+Datumsangaben**, **nicht** für die Bar-Zählung der Baseline.
+
+> **Interlock (kritisch):** `640` entsteht heute aus
+> `np.searchsorted(ts_arr, "2026-08-19")` über die **Berlin-projizierte**
+> Spalte (L600 → L2185). Unter Broker-Projektion liefe dieselbe Zeile auf
+> **644**:
+
+| Projektion | `box_end_bar` | Lauf A / H1 | H2 (V0) |
+|---|---|---|---|
+| Berlin (heutiger Stand, `_p11`) | **640** | 8 / **+38.964262** | 6 / +1.480880 |
+| Broker/UTC | 644 | 9 / +37.964262 | 5 / +2.480880 |
+
+**Gesamt-R ist in beiden Fällen invariant** (V0 14 / +40.445143 · V1 15 /
++46.866348) — es verschiebt sich ausschließlich die Partition (der Trade mit
+`entry_bar = 640`, `K1@639`, −1.0000 R rutscht bei 644 nach H1).
+
+Daraus folgt zwingend: **Zeile 600 musss Berlin bleiben (Z2) UND `640` bleibt
+die logische Grenze.** Wer je die Projektion umstellt, muss `box_end_bar` hart
+auf `640` setzen — sonst kippt die arretierte H1-Baseline. Diese Kopplung ist
+in `Agents.md` als eingefrorene Ausnahme hinterlegt (§40).
+
+### 36.3 `_p11`-Patch bleibt byte-identisch (Z2)
+
+| Artefakt | SHA256 |
+|---|---|
+| `test/tmp_kanten_engine_replay.py` | `3ba15c723958161fffc28a106a5758bd3e27a6152f0e0235969594a5255cb006` |
+| `docs/artefakte/aug_p11/kanten_engine_replay_v40r.py.snapshot` | identisch (byte-gleich) |
+
+**Kein Revert.** Die Berlin-Projektion ist ab v0.9 eine **historische
+Anzeige-Abweichung**: Sie berührt keine Zahl der Baseline (Zeilensatz
+byte-identisch), nur Labels. Ein Revert würde die Signatur brechen und den
+Audit-Trail entwerten. Konsequenz: Zeitangaben in Altdokumenten
+(`CHECKPOINT_2026-09-09.md`, Addenda v0.5–v0.8, `docs/`) sind **+2 h** zu
+lesen (siehe §36.1).
+
+---
+
+## 37. Richtigstellung der Kanten-Identitäten
+
+### 37.1 K82-Touchmenge (Mean-Beweis, exakt)
+
+```
+basis_bei(1259) = (67,535 + 67,553 + 67,494) / 3 = 67,52733  ==  Engine 67,5273
+```
+
+| Bar | Broker/UTC | Low | Rolle |
+|---|---|---|---|
+| 1031 | 25.08. 04:45 | 67,535 | Wick (erster Pivot) |
+| 1056 | 25.08. 11:00 | 67,553 | Wick |
+| 1172 | 26.08. 17:00 | 67,494 | Wick |
+| 1075 | 25.08. 15:45 | 67,420 | Sweep **unter** dem Band |
+| 1259 | 27.08. 15:45 | 67,600 | **Sweep im Band** (−0,1076 %) |
+
+Ergebnis: **drei** bestätigte Touches (Typ B erreicht), geschlossene
+Mittelbasis 67,52733. „67,60" ist ein **Dochtextremum**, kein Kantenniveau.
+
+### 37.2 K74 = R21-Tombstone → „69,62" ist gestrichen
+
+| Feld | Wert |
+|---|---|
+| Kante | K74 OBEN, `basis = 69,613`, `pivot_bar = 912` (21.08. 21:00) |
+| Status | **gelöscht durch R21 bei Bar 1104** (`R21: geloescht 17 / Tombstones 17`) |
+| Konsequenz | In P12 (1171–1272) **existiert diese Linie nicht**; „69,62" wird als Level **gestrichen** |
+
+### 37.3 K73-Touchlage (dreispaltig, normiert)
+
+| Bar | Broker/UTC | Berlin | `basis_bei` | dist | Urteil |
+|---|---|---|---|---|---|
+| 1211 | 27.08. 03:45 | 27.08. 05:45 | 69,6865 | **−0,1083 %** | **im 0,12-%-Band → K73-Touch** (Docht-Defizit, Hook greift) |
+| 1271 | 27.08. 18:45 | 27.08. 20:45 | 69,6714 | **−0,1154 %** | im Band → K73-Touch |
+| 1272 | 27.08. 19:00 | 27.08. 21:00 | 69,6714 | **+0,0611 %** | Durchstich (Q1) |
+| 1203 | 27.08. 01:45 | 27.08. 03:45 | – | – | H = 68,987 → **kein** K73-Touch |
+| 1264 | 27.08. 17:00 | 27.08. 19:00 | – | – | H = 68,746 → **kein** K73-Touch |
+
+`touch_conf(1259) = 5`. Die frühere Zuordnung „Docht 69,49 gehört zur
+Innenkante K76" ist gegenstandslos: **K76 liegt bei 69,507 (Bar 1211) /
+69,515 (Bar 1271)**, der reale Docht ist **69,611**. Es gibt bei Bar 1211
+**keinen** Dochtpreis 69,49.
+
+### 37.4 Nomenklatur-Register (verbindlich)
+
+| Kante | Seite | Provenienz-Basis | `basis_bei(1259)` | kausal @1211 | Status |
+|---|---|---|---|---|---|
+| K67 | OBEN | 69,9140 | 69,9458 | – | M6-Außenwand |
+| K73 | OBEN | 69,5550 | **69,6714** | 69,6865 | P12-Decke |
+| K76 | OBEN | – | – | **69,507** | Innenlinie |
+| K82 | UNTEN | 67,6355 | **67,5273** | – | P12-Boden |
+| ~~K74~~ | OBEN | ~~69,613~~ | – | – | **R21-eliminiert (Bar 1104)** |
+
+---
+
+## 38. Bestätigte Arretierungen
+
+### 38.1 Entscheidung #6 — M6 bleibt in P12
+
+K67 wird in P12 **nicht** freigegeben. K76-Shorts unter einer unberührten
+Außenwand (`basis 69,9458`, dist 0,63 %) sind verboten; der Anstieg auf 69,714
+(Bar 1272) ändert daran nichts — er ist ein Durchstich **innerhalb** der
+unveränderten Wanddistanz. P12 bleibt `P12_RESERVE`, operativ inert.
+**Keine Änderung an `_blockiert_durch_aussenkante`.**
+
+### 38.2 Q29 bleibt global — kein phasen-lokales Quartil
+
+Rohwerte bei Bar 1259 (`ex_hi/ex_lo = hi[:1260]`):
+
+```
+ex_hi = 70,000 (Bar 881)   ex_lo = 62,548 (Bar 673)   Spanne = 7,452
+dist(LONG, 67,600) = (67,600 − 62,548) / 7,452 × 100 = 67,79 %   Grenze 25 %
+```
+
+Die drei SHORT-Treffer passieren das Gate ohnehin (1211: 5,22 % · 1271:
+5,49 % · 1272: 3,84 %) — Q29 ist dort **nicht** der Blocker, sondern M6.
+Eine Umstellung auf die Phasenspanne wäre eine Kopplung des globalen Filters
+an die Segmentdefinition und würde genau **einen** Trade erzwingen → als
+Overfitting verworfen. **Keine Änderung an `_im_aussenquartil`.**
+
+---
+
+## 39. Artefakt-Hygiene (Z5)
+
+| Artefakt | Maßnahme | Begründung |
+|---|---|---|
+| `test/stats_kanten_engine_replay.txt` | **verschoben → `test/trash/`** | Modus-A-Altlast **pre_p11** (Box „Geburt < 18.08., bar 552"), **byte-identisch** zu `test/trash/tmp_backup_gegenprobe_stats.txt` (SHA256 `e0bc32221f26afd09a76c824b0a5846289f0254df3b8f41c9d5724dae78ca59a`), 629.469 B — **nicht** als aktueller Baseline-Report zitierbar |
+| `test/tmp_dryrun_p12_out.txt` | **gekennzeichnet, nicht verändert** | Zeiten in Berlin (+2 h) — Beweismittel bleibt unangetastet |
+| `test/tmp_hook_semantik_check_out.txt` | **gekennzeichnet, nicht verändert** | ebd. |
+| `test/kanten_liste_AUG_mC.txt` | **gekennzeichnet, nicht verändert** | `ts`-Spalte Berlin (+2 h) |
+| PNG-Achsen (`aug_sichttest_*.png`, `kanten_engine_*.png`) | **gekennzeichnet, nicht verändert** | x-Labels Berlin (+2 h) |
+
+**Stale Referenz durch den Umzug:** §17 dieser Spez verweist auf den Dateinamen
+`stats_kanten_engine_replay.txt` — der Verweis ist historisch zu lesen, die
+Datei liegt jetzt unter `test/trash/`. Vollständige Liste:
+`reports/aufraeumung/AUFRAEUMUNG_STALE_REFS.md`.
+
+Der laufende `REPORT_TXT`-Schreibpfad der Engine
+(`test/tmp_kanten_engine_replay.py`, L108) bleibt **unverändert**; ein
+etwaiger künftiger Lauf legt die Datei wieder am alten Ort an.
+
+---
+
+## 40. Invariante in `Agents.md` (Z3)
+
+Neu verankert unter „# Diverse" als **Zeitbasis-Garantie**:
+
+1. **Broker-OHLC-Zeit ist die einzige Zeitbasis** (`time AT TIME ZONE 'UTC'`);
+   keine automatische Zeitzonen-Projektion in Auswertungs- oder Display-Logik.
+2. **Bar-Index ist der Primärschlüssel**; Tabellen führen
+   `Bar | Broker/UTC | Berlin (+2 h, nur Altzitate)`.
+3. **Eingefrorene Ausnahme (nicht anfassen):** `Europe/Berlin`-Projektion in
+   `test/tmp_kanten_engine_replay.py` Z. 600 und die daraus abgeleitete
+   arretierte Grenze `box_end_bar = 640` sind byte-fixiert
+   (SHA256 `3ba15c72…`) und **aneinander gekoppelt** — eine Umstellung der
+   Projektion verschiebt die Grenze auf 644 und kippt die H1-Partition
+   (8/+38.964262 → 9/+37.964262). Änderung nur nach ausdrücklicher manueller
+   Freigabe und mit Neu-Arretierung.
+
+---
+
+## 41. Status
+
+| Kennzahl | Wert | Berührt durch v0.9? |
+|---|---|---|
+| V0 gesamt | 14 / +40.445143 R | nein |
+| H1 (Grenze 640) | 8 / +38.964262 R | nein |
+| V1 gesamt | 15 / +46.866348 R | nein |
+| H2 V1 (P9) | 7 / +7.9021 R | nein |
+| Regime-Summe K73 | +5.4212 R | nein |
+| Engine SHA256 | `3ba15c72…5255cb006` | nein (unverändert) |
+
+Addendum v0.9 rein dokumentarisch: kein Code ausgeführt, keine Datei der
+Engine oder des Adapters angefasst.

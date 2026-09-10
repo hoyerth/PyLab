@@ -46,4 +46,9 @@
 # Diverse
 **Wanduhr-Garantie (Invariante):**
 - MT5-Epochs sind Berlin-Wanduhr-encoded. SQL-Extraktionen (Heatmap, DOW, Hour, Date) nutzen strikt `bar_time AT TIME ZONE 'UTC'`, um eine fehlerhafte automatische Umrechnung durch DuckDB in Lokalzeiten zu unterbinden.
+
+**Zeitbasis-Garantie (Invariante, bindend für beide KI-Sessions):**
+- **Broker-OHLC-Zeit ist die einzige Zeitbasis.** Jede Zeit-/Datumsangabe in Doku, Tabellen, Reports und Labels basiert auf `time AT TIME ZONE 'UTC'` aus der DB bzw. der Referenz-CSV. **Keine** automatische Zeitzonen-Projektion in Auswertungs- oder Display-Logik einführen (historisches Negativbeispiel: `Europe/Berlin`-Projektion, Patch `_p11`, +2 h).
+- **Der Bar-Index ist der Primärschlüssel** jeder Aussage; Zeitstempel sind nachrangig. Tabellen führen drei Spalten: `Bar | Broker/UTC | Berlin (+2 h, nur Altzitate)`.
+- **Eingefrorene Ausnahme (NICHT anfassen):** In `test/tmp_kanten_engine_replay.py` sind die `Europe/Berlin`-Projektion (Z. 600) und die daraus abgeleitete arretierte Box-Grenze `box_end_bar = 640` **byte-fixiert** (SHA256 `3ba15c72…5255cb006`) und **aneinander gekoppelt**: Eine Umstellung der Projektion auf `UTC` verschiebt die Grenze auf **644** und kippt die arretierte H1-Partition (8/+38.964262 R → 9/+37.964262 R). Änderungen an dieser Zeile **nur** nach ausdrücklicher manueller Freigabe des Anwenders und mit Neu-Arretierung.
 meter_schema` / `default_params` muss **direkt auf Klassenebene unter dem Header-Docstring am Dateianfang** platziert werden, damit Eingaben und Defaults wie in PineScript sofort manuell anpassbar sind.

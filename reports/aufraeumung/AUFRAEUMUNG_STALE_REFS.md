@@ -72,6 +72,25 @@ bewusst historisch stehen (Docs werden laut Arbeitsregel ignoriert).
 
 ---
 
+## Nachtrag (2026-09-10, nach Addendum v0.9, Entscheidung Z5)
+
+Ein weiteres Artefakt wurde **nach** der großen Verschiebeaktion umgesetzt
+(`reports/h2_phasenregime/H2_PHASENREGIME_ADAPTER_SPEZ.md`, Addendum v0.9 §39):
+
+| genannter Pfad | tatsaechlich jetzt | genannt in |
+|---|---|---|
+| `test/stats_kanten_engine_replay.txt` | `test/trash/stats_kanten_engine_replay.txt` | `reports\h2_phasenregime\H2_PHASENREGIME_ADAPTER_SPEZ.md` (§17/Zeile 330), `docs\session_checkpoint_kanten_engine_v3_2026-09-06.md` |
+
+**Grund:** Modus-A-Altlast **pre_p11** (Box „Geburt < 18.08., bar 552"), 629.469 B,
+**byte-identisch** zu `test/trash/tmp_backup_gegenprobe_stats.txt`
+(SHA256 `e0bc32221f26afd09a76c824b0a5846289f0254df3b8f41c9d5724dae78ca59a`) -
+nicht als aktueller Baseline-Report zitierbar. Kennzeichnung und
+Nicht-Veränderung der Berlin-Zeit-Beweismittel (`tmp_dryrun_p12_out.txt`,
+`tmp_hook_semantik_check_out.txt`, `kanten_liste_AUG_mC.txt`, PNG-Achsen)
+sind im Addendum v0.9 §39 dokumentiert.
+
+---
+
 ## F3 - ausgeführte Korrekturen (nur unter `/reports`)
 
 Die folgenden 6 Stellen in `reports/` wurden am 2026-09-10 korrigiert. Es wurde

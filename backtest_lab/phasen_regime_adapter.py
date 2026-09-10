@@ -53,6 +53,7 @@ Provenienz: ``reports/h2_phasenregime/H2_PHASENREGIME_ADAPTER_SPEZ.md``
 """
 from dataclasses import dataclass
 from enum import Enum
+import math
 from typing import Optional, Sequence, Tuple
 
 
@@ -75,11 +76,23 @@ class PhasenKanteInfo:
             ausschliesslich ``basis_bei(k)``.
         touch_bars: Bestaetigte Docht-Bars. Dokumentarisch; von keinem Hook
             konsumiert (die Engine haelt ``_SEEdgeH.wicks``).
+        niveau_override: Phasen-lokaler Niveau-Override (v0.14, Anwender-
+            Entscheidung 2026-09-10). Ist der Wert gesetzt, gilt fuer diese
+            Kante INNERHALB ihres Segments genau dieser Preis statt der
+            kausalen Engine-Basis. Ausserhalb des Segments und fuer alle
+            anderen Kanten bleibt die Engine unveraendert (die Core-Engine
+            wird NICHT gepatcht, Z. 600/`box_end_bar = 640` unberuehrt).
+            ``None`` (Default) = keine Wirkung, Bestandsverhalten v0.1.
     """
 
     kid: int
     provenienz_basis: float
     touch_bars: Tuple[int, ...] = ()
+    niveau_override: Optional[float] = None
+
+    def hat_override(self) -> bool:
+        """True gdw. fuer diese Kante ein Phasen-Override gesetzt ist."""
+        return self.niveau_override is not None
 
 
 @dataclass(frozen=True, slots=True)
@@ -147,7 +160,40 @@ P9: PhasenSegmentEintrag = PhasenSegmentEintrag(
 )
 
 # Aktive, empirisch verifizierte Standard-Segmente (einziger Default).
+# ARRETIERT: v0.1-Baseline (K73-Umweg), H2 = +7.902085 R. NICHT veraendern.
 AKTIVE_DEFAULT_SEGMENTE: Tuple[PhasenSegmentEintrag, ...] = (P9,)
+
+# --- v0.14: P9 mit phasen-lokalem K67-Niveau-Override (Anwender-Freigabe) --
+# Entscheidung des Anwenders (2026-09-10, Fragen 1-3):
+#   * KEINE neue Kanten-ID - K67 bleibt die Decke; nur ihr Niveau wird fuer
+#     P9 auf 69.87 ueberschrieben.
+#   * FAIL-LOUD: der Override greift strikt nur bei phase == "P9" und wird
+#     ueber ``verifiziere_niveau_overrides`` erzwungen.
+#   * MITARRETIERT: das vollstaendige Quartett (903, 980, 981, 1020) gehoert
+#     ins Verifikationsprotokoll - kein Cherry-Picking.
+# H2-Benchmark v0.14 = +22.285802 R (Referenz v0.1 = +7.902085 R, Frage 4).
+K67_OVERRIDE_69_87: float = 69.87
+P9_DIRECT_69_87: PhasenSegmentEintrag = PhasenSegmentEintrag(
+    phasen_id="P9",
+    start_bar=848,
+    end_bar=1020,                       # LOAD-BEARING: Signal-Bar 1020
+    decke=PhasenKanteInfo(kid=67, provenienz_basis=69.9140,
+                          niveau_override=K67_OVERRIDE_69_87),
+    boden=PhasenKanteInfo(kid=77, provenienz_basis=68.3700),
+    ziel_preis_short=68.3700,
+    ziel_preis_long=69.9140,
+)
+
+# Selektionsliste der v0.14-Variante (explizit, NICHT Default).
+AKTIVE_SEGMENTE_V014: Tuple[PhasenSegmentEintrag, ...] = (P9_DIRECT_69_87,)
+
+# Benchmark-Register (Frage 4: beide Werte ausweisen, keiner verdraengt den
+# anderen). Werte read-only aus der Engine reproduziert.
+BASELINE_V01_H2_R: float = 7.902085          # Adapter v0.1 (K73-Umweg)
+BENCHMARK_V014_H2_R: float = 22.285802       # v0.14 Phasen-Override
+BENCHMARK_V014_GESAMT_R: float = 61.250064   # v0.14 gesamt (17 Trades)
+BENCHMARK_V014_DELTA_R: float = 14.383717    # Zuwachs gegenueber v0.1
+QUARTETT_V014_BARS: Tuple[int, ...] = (903, 980, 981, 1020)
 
 # --- P12 (Reserve: strukturell geprueft, operativ inert) -------------------
 # August-Fenster: 0 Trades. Freigabe der Decke K73 promoviert die Innenlinie
@@ -198,6 +244,85 @@ class PhasenRegimeAdapter:
             if seg.deckt_bar_ab(bar_idx):
                 return seg
         return None
+
+    def niveau_override_bei(self, bar_idx: int, kid: int) -> Optional[float]:
+        """Phasen-lokaler Niveau-Override fuer die Kante ``kid`` bei Bar ``k``.
+
+        Strikt phasengebunden (Frage 1/2): Der Override wird **nur** geliefert,
+        wenn ``bar_idx`` im Fenster des eigenen Segments liegt UND ``kid`` die
+        Decke/Boden-Kante dieses Segments ist. Ausserhalb - sowie fuer alle
+        Kanten ohne ``niveau_override`` - gilt die unveraenderte Engine-Basis.
+
+        Args:
+            bar_idx: Signal-Bar ``k`` der Engine.
+            kid: Kanten-ID des Harness.
+
+        Returns:
+            Override-Preis als float oder None (kein Override / falsche Phase).
+        """
+        seg = self.aktive_phase_bei(bar_idx)
+        if seg is None:
+            return None
+        for kante in (seg.decke, seg.boden):
+            if kante.kid == int(kid) and kante.hat_override():
+                return float(kante.niveau_override)  # type: ignore[arg-type]
+        return None
+
+    def verifiziere_niveau_overrides(self) -> None:
+        """Fail-Loud-Pruefung aller Phasen-Niveau-Overrides (Frage 2).
+
+        Erzwingt: Override gesetzt ⇒ endlich, positiv und innerhalb der
+        Provenienz-Toleranz des Segments. Ein Override ohne Phasenbindung oder
+        mit unplausiblem Niveau wird hart abgelehnt.
+
+        Raises:
+            ValueError: Override nicht endlich/positiv, Kante nicht Teil des
+                Segments oder Abweichung vom Provenienz-Niveau zu gross.
+        """
+        for seg in self.segmente:
+            for kante in (seg.decke, seg.boden):
+                if not kante.hat_override():
+                    continue
+                ov = float(kante.niveau_override)  # type: ignore[arg-type]
+                if not math.isfinite(ov) or ov <= 0.0:
+                    raise ValueError(
+                        f"Niveau-Override K{kante.kid} ({seg.phasen_id}): "
+                        f"{ov} ist nicht endlich/positiv.")
+                if kante.provenienz_basis <= 0.0:
+                    raise ValueError(
+                        f"Niveau-Override K{kante.kid} ({seg.phasen_id}): "
+                        f"provenienz_basis muss > 0 sein.")
+                abw = (abs(ov - kante.provenienz_basis)
+                       / kante.provenienz_basis * 100.0)
+                if abw > seg.provenienz_toleranz_pct:
+                    raise ValueError(
+                        f"Niveau-Override K{kante.kid} ({seg.phasen_id}): "
+                        f"{ov:.4f} weicht {abw:.4f} % vom Provenienz-Niveau "
+                        f"{kante.provenienz_basis:.4f} ab "
+                        f"(Toleranz {seg.provenienz_toleranz_pct:.2f} %).")
+                if seg.start_bar > seg.end_bar:
+                    raise ValueError(
+                        f"Niveau-Override K{kante.kid} ({seg.phasen_id}): "
+                        f"Segmentfenster ist leer.")
+
+    def angewandte_basis(self, bar_idx: int, kid: int,
+                         basis_engine: float) -> float:
+        """Wirksame Basis einer Kante: Override (phasen-lokal) sonst Engine.
+
+        Reine Wertedomaene ohne Engine-Import - fuer die Injektionsschicht
+        gedacht, damit die Core-Engine unveraendert bleibt.
+
+        Args:
+            bar_idx: Signal-Bar ``k``.
+            kid: Kanten-ID.
+            basis_engine: ``basis_bei(k)`` der Engine.
+
+        Returns:
+            Override-Preis, falls fuer (Phase, kid) gesetzt, sonst
+            ``basis_engine`` unveraendert.
+        """
+        ov = self.niveau_override_bei(bar_idx, kid)
+        return float(ov) if ov is not None else float(basis_engine)
 
     def verifiziere_gegen_scan(
         self, kanten: Sequence[Tuple[int, str, float]]
@@ -317,3 +442,11 @@ class PhasenRegimeAdapter:
 
 
 DEFAULT_ADAPTER: PhasenRegimeAdapter = PhasenRegimeAdapter()
+
+# v0.14-Variante: P9 mit K67-Niveau-Override 69.87 (phasen-lokal, fail-loud).
+# Explizit zu waehlen - der Default (``DEFAULT_ADAPTER``) bleibt die
+# arretierte v0.1-Baseline, damit beide Benchmarks nebeneinander bestehen
+# (Frage 4). Fail-Loud wird beim Aufbau erzwungen.
+ADAPTER_V014: PhasenRegimeAdapter = PhasenRegimeAdapter(
+    segmente=AKTIVE_SEGMENTE_V014)
+ADAPTER_V014.verifiziere_niveau_overrides()

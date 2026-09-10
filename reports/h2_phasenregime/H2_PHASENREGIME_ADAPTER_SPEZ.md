@@ -1343,9 +1343,10 @@ Aus dem Nutzer-Feedback (8 Punkte) abgeleitet, gültig für
 | 1 | **Candlesticks überall** — `draw_candles(..., "candle")` in Panel 01 und 05 | erledigt |
 | 2 | **X-Achse = Bar-Zeit ohne Offset** (§50) | erledigt |
 | 3 | **Trade-Kreise immer farbig gefüllt** (`mfc=col`): H1 klein/dünn, H2 groß/dick | erledigt |
-| 4 | **Kausale Kantenlinien** — je Bar `basis_bei(k)` (Treppe) statt statischer Provenienz `e.basis` | offen (J2) |
-| 5 | **Sperr-Marker** ✕ = Q29-Sperre, ▲ = M6-Sperre, am sperrenden Bar | offen (J3/J4) |
-| 6 | **Titel** `Bars 0..1287` | offen |
+| 4 | **Kausale Kantenlinien** — je Bar `basis_bei(k)` (Treppe) statt statischer Provenienz `e.basis` | **erledigt (v0.13)** |
+| 5 | **Sperr-Marker** ✕ = Q29-Sperre, ▲ = M6-Sperre, am sperrenden Bar | **erledigt (v0.13)** |
+| 6 | **Titel** `Bars 0..1287` | **erledigt (v0.13)** |
+| 7 | **Preis am K-Label** + Kennzeichnung des Preiswechsels + Norm-Zitat | **erledigt (v0.13), §54** |
 
 Farbige Kreise sind **nicht** optional: ein weißer Marker (`mfc="none"`)
 erzeugte das Fehlbild „Kreis ohne Füllung" und täuschte einen eigenen Fehler
@@ -1470,3 +1471,113 @@ Addendum v0.12 ist dokumentarisch **plus** Freigabe der Darstellungsnorm
 (`test/_tmp_zeitbasis_probe.py`, `test/_tmp_beleg_schlaf.py`,
 `test/_tmp_gate_trace_j5.py`) sind **read-only** und werden nach Gebrauch
 entfernt (§39-Hygiene).
+
+---
+
+## 54. Darstellungsregeln — FIX (ab v0.13, für **alle** Sichtprüfungs-Grafiken)
+
+**Anweisung des Anwenders (2026-09-10):** „Schreibe den Preis an die Linie bei
+der K-Nennung; und wenn der Preis sich geändert hat — bitte fix in
+Report-Regeln aufnehmen." Nachfolgend das **verbindliche** Regelwerk. Es ist
+zugleich der Docstring-Kopf von `test/tmp_png_aug_sichttest.py`; beide Quellen
+müssen übereinstimmen.
+
+### 54.1 Preisangabe an der Kante (neu, verbindlich)
+
+1. **Jedes Kanten-Label trägt den Preis.** Format `K<kid> <preis>`; Seeds
+   analog `s<kid> <preis>`. Der Preis ist der **kausale** Wert
+   `basis_bei(k)` — **nicht** die statische Provenienz `e.basis`.
+2. **Preiswechsel werden gekennzeichnet.** Ändert sich der kausale Preis
+   entlang der gezeichneten Linie, lautet das Label
+   `K<kid> <v_start> -> <v_ende> *`; Label **fett** und mit Rahmen in
+   `C_CHG` (`#b8860b`). Am **Detailpanel** (04) und an den Grenzkanten (§54.3)
+   wird zusätzlich an jedem Wechselpunkt der neue Preis als Kleintext
+   gesetzt.
+3. **Norm-Zitat (Option (b), §37.4).** Ist für die Kante eine
+   v0.4-Provenienz-Norm hinterlegt und weicht der kausale Wert ab, wird die
+   Norm **angehängt, nicht ersetzt**: `K82 67.535 -> 67.545 * Norm 67.6355`.
+   Norm-Quelle ist ausschließlich der Adapter
+   (`P9.decke/boden`, `P12_RESERVE.decke/boden`) — kein Hardcoding.
+4. **Norm-Vergleichsbar = 1259** (`NORM_REF_BAR`): Der Vergleich läuft auf dem
+   **vollen** Verlauf, nicht auf dem ggf. beschnittenen Zeichenfenster — sonst
+   kippt die Aussage je Panel.
+5. **Pflichtangabe im Statistikblock** (Panel 01): Anzahl der
+   Preiswechsel-Linien (`*`) und Anzahl der normabweichenden Grenzkanten.
+
+**Beleglauf (Referenz-Bar 1259):**
+
+| Kante | kausal `basis_bei(1259)` | Norm (v0.4) | Δ | Label |
+|---|---|---|---|---|
+| K67 | 69,9458 | 69,9140 | +0,0318 | `K67 69.975 -> 69.946 * Norm 69.9140` |
+| K73 | 69,6714 | 69,5550 | +0,1164 | `K73 69.715 -> 69.679 * Norm 69.5550` |
+| K77 | 68,3597 | 68,3700 | −0,0103 | `K77 68.392 -> 68.360 * Norm 68.3700` |
+| K82 | 67,5273 | 67,6355 | −0,1082 | `K82 67.535 -> 67.546 * Norm 67.6355` |
+
+Alle vier Grenzkanten weichen ab ⇒ alle vier Labels tragen die Norm. Über den
+**vollen** Zeitraum wechseln **54 von 59** Kanten den Preis (laufendes Mittel,
+Styling siehe 54.2).
+
+### 54.2 Linienführung, Marker, Achse
+
+6. **Linien sind kausal:** `basis_bei(k)` je Bar (Treppe), maskiert vor
+   `pivot_bar + 2`; promovierte Primär-Anker flach (eingefroren). Die
+   statische `e.basis` wird **nicht mehr** als Linienniveau gezeichnet.
+7. **Sperr-Marker (violett `#8e44ad`):** `x` = Q29-Quartilsperre,
+   `^` = M6-Außenwandsperre; gesetzt am **sperrenden Bar** und am
+   Sperrpreis (Sweep-Extremum). Quelle sind die engine-eigenen Listen
+   `stats["quartil_liste"]` / `stats["blocker_liste"]` (§52.0).
+8. **Alle Panels in Kerzen** (`draw_candles(..., "candle")`).
+9. **X-Achse = Bar-Zeit (Wanduhr) ohne Offset** (`AXIS_TZ_OFFSET_H = 0`, §50);
+   Bar-Index bleibt Primärschlüssel.
+10. **Trade-Kreise immer farbig gefüllt** (`mfc=col`); H1 klein/dünn,
+    H2 groß/dick.
+11. **Titel** führen die Bar-Grenzen als `Bars 0..1287` (`n - 1`).
+
+### 54.3 Layout-Konvention (unverändert)
+
+12. **Statistik mittig** im unteren Panel (Monospace).
+13. **Legende oben links**, zweispaltig.
+14. **Zusatz-Kleintexte an Wechselpunkten** nur an den Grenzkanten
+    (`NORM_KIDS = {67, 73, 77, 82}`) und im Detailpanel; an den übrigen
+    Kanten bleibt es beim Label, um die Übersicht nicht zu überladen.
+
+---
+
+## 55. Konsolidat: vom Anwender gesetzte Standards
+
+Vollständige, verbindliche Liste aller Vorgaben des Anwenders, die dieses
+Dokument und die zugehörigen Artefakte binden. Spalte „Quelle" nennt den
+Fundort; alle Regeln gelten **fortlaufend** und werden nicht zur Disposition
+gestellt.
+
+| # | Standard | Inhalt | Quelle |
+|---|---|---|---|
+| S1 | **Zeitbasis** | DB-Extraktion `AT TIME ZONE 'UTC'` (Wanduhr-Schutz); Visualisierung/Achsen/Labels **nativ Wanduhr-Bar-Zeit** (`time`, `d["ts"]`), Offset 0. Referenz-CSV = **UTC-Export (−2 h)**, kein eigener Standard | §50.2/§50.3, `Agents.md` |
+| S2 | **Bar-Index** | Primärschlüssel jeder Aussage; Tabellen dreispaltig `Bar \| Broker/UTC \| Bar-Zeit (+02:00)` | §36.1, §50.2, `Agents.md` |
+| S3 | **Engine-Integrität** | `test/tmp_kanten_engine_replay.py` SHA256 `3ba15c72…5255cb006` byte-fixiert; `_p11`-Projektion (Z. 600) und `box_end_bar = 640` **aneinander gekoppelt**, Änderung nur mit ausdrücklicher Freigabe + Neu-Arretierung | §36.2/§36.3, `Agents.md` |
+| S4 | **K82-Nomenklatur (Option (b))** | Provenienz-Norm `67,6355` bleibt als historisches Zitat stehen; abgegrenzt von Scan-Basis `67,5455` und kausal `67,5273`; operativ gilt `basis_bei(k)` | §37.4 (Entscheid „Option (b)", 2026-09-10) |
+| S5 | **Darstellung** | §54 in Gänze (Preis am Label, `*` bei Preiswechsel, Norm-Zitat, kausale Linien, violette Sperr-Marker, Kerzen, Offset 0, farbige Kreise, Statistik mittig, Legende oben links, Titel `0..1287`) | §51, §54 |
+| S6 | **Kaskaden-Lesart** | Gate-Reihenfolge `_existiert` (Schlaf) → M6 → Q29 → Reife → 12-Bar; Aussagen über Bars ≥ 640 nur mit ausgewiesenem Trace (§52.0) | §52.0 |
+| S7 | **Testpolitik** | Keine UI-, keine Regressionstests; Logik-/DB-Tests ausschließlich in `test/` (gitignored); Verifikation über `py_compile`, statische Analyse, Code-Inspektion | `Agents.md` §4 |
+| S8 | **Reihenfolge Doku → Lauf** | Dokumentation und Generierungsläufe werden nie vermischt: erst Regeln festschreiben/committen, dann erzeugen | §34, K3 |
+| S9 | **Entscheidungsausgabe** | Keine Auswahlmenüs; Entscheidungsfragen werden als **Textblock** ausgegeben | `Agents.md` §1 |
+| S10 | **Hygiene** | Temporäre Proben read-only, nach Gebrauch gelöscht; Zeitangaben in Altdokumenten sind **+2 h** zu lesen | §39, §36.3 |
+
+---
+
+## 56. Status (v0.13)
+
+| Kennzahl | Wert | Berührt durch v0.13? |
+|---|---|---|
+| V0 / H1 / V1 / H2 V1 | 14 / 8 / 15 / 7 (R unverändert) | nein |
+| Trace-Setups (`box_end_bar = 1288`, nur im Speicher) | 14 (= Lauf B) | nein |
+| P12-Trades (V0 / V1) | 0 / 0 | nein |
+| Engine SHA256 | `3ba15c72…5255cb006` | nein |
+| `P12_RESERVE` in `AKTIVE_DEFAULT_SEGMENTE` | nicht enthalten | nein |
+| Preiswechsel-Linien (Label `*`) | 54 von 59 | neu (Darstellung) |
+| Grenzkanten mit Norm-Abweichung | 4 von 4 (K67, K73, K77, K82) | neu (Darstellung) |
+
+v0.13 ist ein **Regelwerk-Addendum**: Es friert die Darstellungsnorm (§54) und
+alle anwendersetigen Standards (§55) ein. Code der Engine und des Adapters
+bleibt unangetastet; ``test/tmp_png_aug_sichttest.py`` ist ein read-only
+Renderer und liegt gitignored in `test/`.

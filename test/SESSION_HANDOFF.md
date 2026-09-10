@@ -625,3 +625,195 @@ verglichen.
 2. `SWEEP_MARKER_P02` weiterhin deklariert, nicht referenziert (§71.7).
 3. E-12 nicht neu arretiert.
 4. **Nächster Auftrag:** H2-Marktanalyse (Phase P10 ab Bar 1021) — unverändert.
+
+---
+
+## Exploration 2026-09-10 — H2-Reststrecke, Zeitbasis-Forensik, Phasen-Versatz
+
+> **Supersedes:** `### Offen` Punkt 4 („Nächster Auftrag: H2-Marktanalyse") —
+> Exploration **erledigt**, **Entscheidungen offen**. Abschnitt ist
+> **append-only**; nichts oberhalb wurde verändert.
+
+**Invarianten (Worktree clean, HEAD `f181b64`):** Engine
+`4a3567659990586c…` / 196.083 B · Renderer `3d6a478878837557…` / 92.915 B ·
+Adapter `0f3f8765b1682910…` / 25.783 B. **Keine Projektdatei geändert.**
+Alle Nachweise read-only (Wegwerf-Skripte in `test/`, gitignored).
+
+### N1 Grundbefund — letzter Signal-Bar 1020
+
+Produktions-Trace (Instrumentierung des im Renderer erzeugten `patched_src`,
+Original-Namespace; Inertheit 17 / +65,835576 belegt):
+
+| Lauf | Trd | R1 | letzter Signal-Bar |
+|---|---|---|---|
+| V0 ungepatcht | 14 | +42,450970 | K67@1020 |
+| V1_basis (v0.1) | 14 | +47,815697 | K67@1020 |
+| V1_aktiv (V017) | 17 | +65,835576 | K67@1020 |
+
+Nach Bar 1020 existiert **kein Motor-Signal** — Zielzone 1021..1287 durchgehend
+vakuumiert (siehe N4).
+
+### N2 Sperrkette der vier avisierten Trades
+
+| Trade | Bar | Bruchpunkt |
+|---|---|---|
+| K73 Short 26.08. 04:30 | 1122/1123 | `kd=K73` (69,6380, +0,10195 %) → **M6-Blocker K67** 69,8990, Abstand 0,3748 % ≤ 0,75 %; Q29 hätte 3,905 % → Vakuum |
+| K82 Long 25.08. 15:00/15:45 | 1072/1073 | K82 nur 2 Dochte (< `min_touches_handelbar 3`) → Kandidat K62 → **Q29-SPERRE** (65,94/66,29 % vs. 25 %) |
+| K82 Long 26.08. 17:00 | 1172 | K82 im Schlaf-Fenster [1074, 1174); Pool {K48,K3,K17,K63,K60}; K63 V-S≥3, K60 Überdehnung 0,7076 % > 0,60 % → `kd=None` |
+| K82 Long 27.08. 15:45 | 1259 | K82 wach, Basis 67,5530 → dist −0,0696 % < 0 → `_kandidat=None` |
+| K73 3. Docht | 1211 | K73 dist −0,0388 % → None |
+| K73 4. Docht | 1272 | `kd=K73` → M6-Blocker K67 wie #1 |
+
+Schlaf-Mechanik `_se_scan` Z. 2204–2208 / 2266–2279: `_akzeptiere` schließt
+Fenster auf `bar+2`; K82 `[(1074,1174)]`, an Bar 1173 `_existiert`=True, aber
+`_lebt`=False.
+
+**Erratum E-15:** Vorübergabe-Notiz „1172/1259 sind **nicht** Q29-gesperrt"
+ist falsch — der Q29-Log führt nur Bars bis zum Kandidaten. Beide enden schon
+in `_kandidat`, sind aber zusätzlich Q29-gesperrt (66,37 % / 67,79 %).
+
+### N3 Zeitbasis-Befund (Entscheidung offen)
+
+**Symptom:** `d["ts"]` liegt +2 h gegen die Broker-Kerzen (7/7 Marken).
+
+- Spalte `ohlcv_bars.time` = **TIMESTAMP WITH TIME ZONE**; DuckDB-Session-TZ
+  = `Europe/Budapest` (= Berlin).
+- Engine `_lade_fenster` Docstring Z. 592 + Datenvertrag Z. 66–68 verlangen
+  `AT TIME ZONE 'UTC'`; SELECT **Z. 600** nutzt `AT TIME ZONE 'Europe/Berlin'`
+  (zweite Projektion), WHERE Z. 604 f wieder `UTC`.
+- Rohwert K73-Docht `2026-08-26 06:30:00+02:00` → UTC **04:30** = Broker-Kerze;
+  Berlin 06:30 = `d["ts"]`.
+- Renderer Z. 702–711 verankert Berlin (`AXIS_TZ_OFFSET_H=0`); AGENTS.md
+  widerspricht teils und schützt zugleich Z. 600 („Eingefrorene Ausnahme",
+  veralteter SHA `3ba15c72…`, veraltete H1-Zahlen `8/+38.964262` aus V016).
+
+| Bar | Broker/Marke | Motor-ts (=Anzeige) | Docht |
+|---|---|---|---|
+| 1122 | K73 26.08. 04:30 | 06:30 | H 69,7090 |
+| 1211 | K73 27.08. 03:45 | 05:45 | H 69,6110 |
+| 1272 | K73 27.08. 19:00 | 21:00 | H 69,7140 |
+| 1031 | K82 25.08. 04:45 | 06:45 | L 67,5350 |
+| 1056 | K82 25.08. 11:00 | 13:00 | L 67,5530 |
+| 1072/1075 | K82 25.08. 15:00/15:45 | 17:00/17:45 | L 67,4880 / 67,4200 |
+| 1172 | K82 26.08. 17:00 | 19:00 | L 67,4940 |
+| 1259 | K82 27.08. 15:45 | 17:45 | L 67,6000 |
+
+**Fix-Kopplung (gemessen):** Z. 600 → `'UTC'` verschiebt `d["ts"]` um −2 h,
+**Trades/R unverändert (17 / +65,835576)**, aber `box_end_bar` 640 → **644**
+(+4 Bars), H1-Partition 7/+39,919584 → **8/+38,919584**, H2 10/+25,915992 →
+6/+3,531386; Kipphebel = Grenztrade `K1 entry_bar 640, r −1,000000`; Muster
+stimmt mit AGENTS.md (`8→9`), Zahlen = V016-Generation. Zusatz: H1-Schnitt
+lag bisher bei 18.08. 22:00 statt 19.08. 00:00 Wanduhr.
+
+**Erratum:** `docs/reclaim.md` **existiert nicht** (FS und git), wird aber im
+Kopf dieser Datei als „Bootstrap, dort zuerst lesen" geführt.
+
+### N4 Phasen-Versatz im Zielbereich (1021..1287 vs. P9)
+
+| Größe | P9 | Ziel | Δ |
+|---|---|---|---|
+| Oberkante | 70,0000 (@881) | 69,7140 (@1272) | −0,2860 |
+| Unterkante | 68,2880 (@1000) | 67,4200 (@1075) | **−0,8680** |
+| Bandmitte | 69,1440 | 68,5670 | −0,5770 |
+| Bandbreite | 1,7120 | 2,2940 | **+0,5820 (+34 %)** |
+
+Asymmetrisch nach unten. **Kantenzuständigkeit wechselt:** Decke K67 69,8990 →
+**K73** 69,6110 (Provenienz 69,6785); Boden K77 68,4130 → **K82** 67,6000 +
+**K85** 67,4200 (Einzeldocht @1075 = Monatstief = Erstd­ocht). Neue
+Zuständigkeit entsteht aus Erstd­ochten von Extrema → **Regel-Lücke:** ein
+V-Extremum ist Einzeldocht, wird erst bei `pivot_bar+2` bestätigt → am Bar
+1075 leerer Pool, Wendepunkt strukturell 2 Bars zu spät.
+
+**Zigzag 1021..1287:** 69 bestätigte Pivots (38 H/31 L), 1 je 3,9 Bars, 55
+vollständige Schwünge; Median 59 Pips, Max 215, Min 20; ≥0,30 USD 50/55,
+≥0,50 35/55, **≥1,00 USD nur 8/55 (15 %)** → `V3_TP_MINDIST_PCT=1,5 %`
+(≈1,02 USD) kalibriert dieses feine Zigzag **zu grob**.
+
+**Vakuum-Karte (nur P9):** 0..847 MAKRO · 848..1020 PHASE (P9) ·
+**1021..1170 BLOCKIERT** (150 Bars / 37,5 h) · 1171..1272 BLOCKIERT ·
+1273..1287 BLOCKIERT. Mit P12 wird 1171..1272 PHASE. Die 4 größten Schwünge
+≥1,00 USD bleiben immer gesperrt: 1023→1031 (**2,1490**), 1075→1083 (1,4660),
+1116→1122 (1,5260), 1162→1165 (1,0690).
+
+**Motoren-Hebel isoliert** (ohne P12, Zielzone überall 0):
+
+| Variante | Trd | R1 | H1 | H2 |
+|---|---|---|---|---|
+| IST | 17 | +65,835576 | 7/+39,919584 | 10/+25,915992 |
+| V1 M6 nur bei lebender Wand | 18 | +56,960394 | 6/+33,044402 | 12/+23,915992 |
+| **V2 Q29 phasenlokal ab 848** | 18 | +64,835576 | **7/+39,919584 (gratis)** | 11/+24,915992 |
+| V3 Q29 phasenlokal ab 1021 | 17 | +65,835576 | 7/+39,919584 | 10/+25,915992 |
+| V6 V1+V3+Überdehnung 0,80 | 18 | +55,572569 | 6/+33,044402 | 12/+22,528167 |
+| V7 V1+V3+0,80+V-S≥2 | 23 | +65,404492 | 7/+32,580278 | 16/+32,824214 |
+
+**P12-Kombinationen (korrekt angehängt):**
+
+| Variante | Trd | R1 | H1 | H2 | Ziel |
+|---|---|---|---|---|---|
+| IST | 17 | +65,835576 | 7/+39,919584 | 10/+25,915992 | 0 |
+| **K1 + P12 (nur Adapter)** | **17** | **+65,835576 (inert)** | 7/+39,919584 | 10/+25,915992 | 0 |
+| K2 K1+M6 lebend | 21 | +63,096583 | 6/+33,044402 | 15/+30,052181 | 3 |
+| K3 K2+Überdehnung 0,80 | 21 | +61,708758 | 6/+33,044402 | 15/+28,664356 | 3 |
+| K4 K3+Q29 aus | 27 | +57,991740 | 11/+30,327383 | 16/+27,664356 | 3 |
+| K5 K4+V-S≥2 | 31 | **+68,253054** | 11/+30,292650 | 20/+37,960404 | 3 |
+
+Die 3 Zielzonen-Trades (K2..K5 unverändert): `K76@1211 → entry 1214, STUFE_3,
++5,881508` · `K76@1268 → entry 1269, STUFE_1, −1,000000` · `K73@1272 →
+entry 1273, STUFE_1, +1,254682` = **+6,136190 R**.
+
+**H1-Kosten:** M6-Liveness global −6,875182 · Q29 aus global −9,592201 ·
+V-S≥2 global −9,626934 · **Q29 phasenlokal ab 848 = 0,000000** → H1 muss
+nicht geopfert werden, wenn alles segmentgebunden über Route A läuft.
+
+**Harness-Lehre:** `dataclasses.replace(adapter, segmente=(P9,P12))` ersetzte
+das **aktive** `P9_DIRECT_69_87` (Override 69,87) durch override-loses `P9`
+→ exakt v0.1 (14/+47,815697); Trace-Diff: Bar 903 `freigabe None → 67`.
+**Regel: Segmente ANHÄNGEN (`tuple(a.segmente)+(neu,)`), nie neu bauen**;
+Guard `assert seg.decke.hat_override()`.
+
+**Variantenlandkarte:** V-A Segment-Erweiterung P10+P12 (engine-inert, K1;
+ohne endogene Fenstererkennung in S1/S2 unbrauchbar) · V-B M6-Liveness
+segmentgebunden (+6,136190 R, H1-Kosten 0) · **V-C Q29 phasenlokal (H1-gratis,
+H2 −1,000000 — sauberster Kandidat)** · V-D Kantenzuständigkeit endogen (Kern
+für S1/S2) · V-E Range-Neubildung · V-F Ziel segment-relativ · V-G arretieren.
+**Testbarkeits-Zwang:** P12 (1171..1272) ist Handliste für 08/2026 → in S1/S2
+wertlos; eine Phasen-Regel muss den Versatz **endogen** erkennen.
+S1 = 2026-02-05..08-28; S2 = 2025-01-01..12-01.
+
+### N5 Offene Entscheidungsfragen (an Anwender)
+
+**Zeitbasis:**
+1. Z. 600 → `'UTC'` + Neu-Arretierung als **V018** (`box_end 644`, H1
+   `8/+38,919584`, H2 `6/+3,531386`)? Oder Berlin-Anzeige behalten +
+   Drei-Spalten-Konvention `Bar | Broker/Kerzen | Anzeige (+02:00)`?
+2. AGENTS.md entschärfen: „Wanduhr" durch „**Kerzen-Zeit = `time AT TIME ZONE
+   'UTC'`; `Europe/Berlin` = Anzeige-Dublette, nie Rechenbasis**" ersetzen?
+3. `docs/reclaim.md`-Erratum korrigieren?
+4. PNG-Neuproduktion (V017-Bilder tragen +2-h-Labels)?
+
+**Phasen-Versatz:**
+1. Reihenfolge: erst V-C allein (beweist H1-Erhalt) oder direkt
+   V-A+V-B+V-C+V-D?
+2. Topologie: neues Segment (Adapter) oder neue Motoren-Regel (Engine-SHA neu)
+   — oder beides mit klarer Rollentrennung?
+3. Vakuum 1021..1170: bleibt die Abwärtsstrecke (größter Schwung) gesperrt?
+4. Zwei-Bar-Latenz: Ausnahme von `pivot_bar+2` für neue Einzeldocht-Extreme?
+   (berührt H1)
+5. `V3_TP_MINDIST_PCT` segment-relativ oder global lassen?
+6. Zeitbasis vorziehen (eine Arretierung) oder Phasen-Regel zuerst (zwei)?
+
+Weiterhin offen aus V017-Abnahme: Aufräum-Umfang in `test/`; `--mode
+V01..V016` automatisch pinnen oder fail-loud; V01-Protokoll neu als UTF-8
+arretieren (E-14); A-3-Nachjustierung (E9) + Sichtprüfung V017-Satz.
+
+### N6 Read-only-Nachweise (alle `test/`, gitignored, nichts geschrieben)
+
+`_tmp_explo_h2rest.py`/`_out.txt` ·
+`_tmp_explo_prodtrace.py`/`_prodtr_out.txt` (1.408 Z.)/`_prodtr_report.txt`
+(**Kernbeweis**) · `_tmp_explo_schlaf.py` · `_tmp_explo_mikro.py` ·
+`_tmp_explo_whatif.py` · `_tmp_explo_p12.py` · `_tmp_explo_laeufe.py` ·
+`_tmp_explo_trace_1172_1259.py` · `_tmp_zeitbasis_check.py`/`_check2.py` ·
+`_tmp_zeitbasis_kopplung.py` · `_tmp_phasenversatz.py` · `_tmp_vakuum_p12.py` ·
+`_tmp_p12_korrekt.py` · `_tmp_p12_diff.py` · `_tmp_hook_diff.py` ·
+`_tmp_trace_diff.py` + `_tmp_tracediff_ist/p12.txt`. Wegwerf-Engine
+`test/_tmp_engine_v017trace.py` wieder gelöscht.

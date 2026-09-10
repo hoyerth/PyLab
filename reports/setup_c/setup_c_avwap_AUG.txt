@@ -1,0 +1,104 @@
+========================================================================================================================
+SETUP C - AVWAP-PULLBACK-ZWISCHENTEST (test/setup_c/tmp_setup_c_avwap_test.py)
+Fenster: AUG | SILVER M15 | 2026-08-10 .. 2026-08-28 (ende-exkl.) | df-Bars: 1288
+Arm: AVWAP_PULLBACK (Pfad A, AVWAP-Kontakt ab phasen-bruch-inklusivem Anker)
+Config: ema_periode=20  stop_puffer=0.15  sl_pct_ref=0.45  erfordere_trend_regime=True
+Trigger: AVWAP-Kontakt an k, Rejection-Close an k+1 (close>high[k] Long / close<low[k] Short)
+         + kausaler Slope20(k+1); Ausfuehrung open[k+2]; Per-Bar-Re-Arming
+Stop: Struktur-Stop ueber [k,k+1] min/max(low/high) +- stop_puffer, KEIN Cap
+Regime: versiegelte Freeze-Defaults 05.09.2026 (RegimeSchwellen()/Gate()/Metric())
+Management: TREND-only-Gate + F3-Bucket-Suppression (Phase,Dir) + Variante-B-Ratchet 1:1 (mindest_gewinn_r=0.0, notfall=300)
+========================================================================================================================
+
+PHASEN-TABELLE (echte Bruch-Phasen, Anker b = brk_idx):
+   Ph Dir   Regime      brk Kontakte Rej+Slope  SIGNAL   Gate
+    1 up    UNKLAR       66        9         3       3 blockiert
+    2 down  SHAKEOUT    121       30         5       5 blockiert
+    3 up    SHAKEOUT    218       22         4       4 blockiert
+    4 down  SHAKEOUT    380       32         8       8 blockiert
+    5 down  SHAKEOUT    620       17         2       2 blockiert
+    6 up    TREND       715       21         2       2  TREND
+    7 up    TREND       802       18         5       5  TREND
+    8 up    TREND       848       50         8       8  TREND
+    9 down  SHAKEOUT   1030       24         6       6 blockiert
+   10 up    SHAKEOUT   1082       24         4       4 blockiert
+   11 down  SHAKEOUT   1171       25         3       3 blockiert
+
+TREND-Phasen (Gate): 6, 7, 8
+
+Kandidaten (Kontakt-Bars gesamt): 272
+  Status-Verteilung (natuerlich vor Gate): SIGNAL=50  KEINE_REJECTION=219  SLOPE_INVALIDE=3  SL_UEBERSCHRITTEN=0  DATEN_ENDE=0   (Summe: 272)
+SIGNAL gesamt: 50  | davon REGIME_BLOCKIERT: 35  | TREND-Gate vor F3: 15  | F3-supprimiert: 6  | aktiviert/simuliert: 9
+
+STATISTIK REALISIERT (r_f4 = P&L / Struktur-Stop-Abstand):
+  n = 9   sum r_f4 = +0.78R
+  mean =    0.09   median =   -0.51   WR = 44.4%   PF = 1.19
+  bester = +1.85   schlechtester = -1.00   mittl. Haltedauer = 19 Bars
+  LONG : n=  9  sum r_f4 = +0.78
+  Exit-Verteilung (realisiert):
+    INITIAL_SL_INTRABAR: 1
+    TRAILING_SL_INTRABAR: 8
+    CRASH_HORIZONT_CLOSE: 0
+
+========================================================================================================================
+ERFOLGSKRITERIUM (Spezifikation, AUG):
+  Kriterium PF  >= 1.50 : VERFEHLT (PF = 1.19)
+  Kriterium SumR > 0.0  : ERFUELLT (sum r_f4 = +0.78R)
+  Kriterium Ph6/7 Gewinn: ERFUELLT (realisierte Trades n=5, sum r_f4 = +2.75R)
+  GESAMTURTEIL: NULL-BEFUND (§5.6-Arretierung vorgesehen)
+========================================================================================================================
+TRADE-DETAIL (realisiert, chronologisch):
+   Nr  Ph Dir   Kontakt  Rej EntryIdx    Entry     Stop    AVWAP ExitIdx     Exit Hold Grund                   r_f4      kum
+    1   6 up        726  727      728   66.042   65.331   65.781     766   66.862   38 TRAILING_SL_INTRABAR   +1.15    +1.15
+    2   6 up        795  796      797   66.706   66.140   66.575     817   67.752   20 TRAILING_SL_INTRABAR   +1.85    +3.00
+    3   7 up        803  804      805   68.824   67.551   67.897     817   67.752   12 TRAILING_SL_INTRABAR   -0.84    +2.16
+    4   7 up        822  823      824   68.242   67.892   68.176     837   68.062   13 TRAILING_SL_INTRABAR   -0.51    +1.64
+    5   7 up        840  841      842   68.477   67.733   68.169     886   69.296   44 TRAILING_SL_INTRABAR   +1.10    +2.75
+    6   8 up        851  852      853   69.004   68.579   68.802     886   69.296   33 TRAILING_SL_INTRABAR   +0.69    +3.43
+    7   8 up        927  928      929   69.506   68.925   69.341     929   68.925    0 INITIAL_SL_INTRABAR    -1.00    +2.43
+    8   8 up        979  980      981   69.807   68.837   69.187     983   68.856    2 TRAILING_SL_INTRABAR   -0.98    +1.45
+    9   8 up       1015 1016     1017   69.267   68.939   69.118    1026   69.045    9 TRAILING_SL_INTRABAR   -0.68    +0.78
+  F3-SUPPRIMIERT (TREND-Gate):
+  S 1   7 up        830  831      832   68.232   67.939   68.173 (F3-Bucket belegt)
+  S 2   7 up        831  832      833   68.361   68.003   68.173 (F3-Bucket belegt)
+  S 3   8 up        857  858      859   68.986   68.562   68.897 (F3-Bucket belegt)
+  S 4   8 up        858  859      860   69.163   68.562   68.899 (F3-Bucket belegt)
+  S 5   8 up        865  866      867   69.169   68.727   68.924 (F3-Bucket belegt)
+  S 6   8 up        866  867      868   69.319   68.727   68.931 (F3-Bucket belegt)
+  REGIME_BLOCKIERT (Nicht-TREND-Phase, nur Info):
+  B 1   1 up         70   71       72   65.029   64.388   64.653 (Regime=UNKLAR)
+  B 2   1 up         75   76       77   65.011   64.603   64.816 (Regime=UNKLAR)
+  B 3   1 up         76   77       78   65.122   64.652   64.826 (Regime=UNKLAR)
+  B 4   2 down      124  125      126   64.338   65.105   64.778 (Regime=SHAKEOUT)
+  B 5   2 down      161  162      163   64.597   65.122   64.834 (Regime=SHAKEOUT)
+  B 6   2 down      168  169      170   64.756   65.111   64.836 (Regime=SHAKEOUT)
+  B 7   2 down      171  172      173   64.431   64.983   64.829 (Regime=SHAKEOUT)
+  B 8   2 down      189  190      191   64.713   64.979   64.799 (Regime=SHAKEOUT)
+  B 9   3 up        236  237      238   66.328   65.966   66.162 (Regime=SHAKEOUT)
+  B10   3 up        240  241      242   66.425   65.740   66.176 (Regime=SHAKEOUT)
+  B11   3 up        247  248      249   66.232   65.630   66.161 (Regime=SHAKEOUT)
+  B12   3 up        285  286      287   66.190   65.448   65.900 (Regime=SHAKEOUT)
+  B13   4 down      384  385      386   63.692   64.092   63.892 (Regime=SHAKEOUT)
+  B14   4 down      395  396      397   63.813   64.143   63.906 (Regime=SHAKEOUT)
+  B15   4 down      574  575      576   65.199   65.441   65.198 (Regime=SHAKEOUT)
+  B16   4 down      579  580      581   65.085   65.385   65.198 (Regime=SHAKEOUT)
+  B17   4 down      589  590      591   65.165   65.447   65.197 (Regime=SHAKEOUT)
+  B18   4 down      590  591      592   65.012   65.444   65.196 (Regime=SHAKEOUT)
+  B19   4 down      591  592      593   64.964   65.349   65.196 (Regime=SHAKEOUT)
+  B20   4 down      612  613      614   64.847   65.355   65.185 (Regime=SHAKEOUT)
+  B21   5 down      630  631      632   63.808   64.125   63.862 (Regime=SHAKEOUT)
+  B22   5 down      638  639      640   63.534   63.988   63.836 (Regime=SHAKEOUT)
+  B23   9 down     1037 1038     1039   67.773   68.165   67.854 (Regime=SHAKEOUT)
+  B24   9 down     1051 1052     1053   67.813   68.435   68.039 (Regime=SHAKEOUT)
+  B25   9 down     1059 1060     1061   67.931   68.364   68.003 (Regime=SHAKEOUT)
+  B26   9 down     1060 1061     1062   67.881   68.206   68.002 (Regime=SHAKEOUT)
+  B27   9 down     1071 1072     1073   67.497   68.380   67.997 (Regime=SHAKEOUT)
+  B28   9 down     1072 1073     1074   67.474   68.380   67.988 (Regime=SHAKEOUT)
+  B29  10 up       1085 1086     1087   68.712   68.349   68.686 (Regime=SHAKEOUT)
+  B30  10 up       1090 1091     1092   68.868   68.526   68.695 (Regime=SHAKEOUT)
+  B31  10 up       1103 1104     1105   68.838   68.375   68.801 (Regime=SHAKEOUT)
+  B32  10 up       1104 1105     1106   68.890   68.532   68.801 (Regime=SHAKEOUT)
+  B33  11 down     1237 1238     1239   68.381   68.701   68.493 (Regime=SHAKEOUT)
+  B34  11 down     1239 1240     1241   68.364   68.702   68.492 (Regime=SHAKEOUT)
+  B35  11 down     1250 1251     1252   68.266   68.657   68.471 (Regime=SHAKEOUT)
+========================================================================================================================

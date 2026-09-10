@@ -1,0 +1,38 @@
+========================================================================================================================
+SETUP C - REBOUND-ZWISCHENTEST AUG (test/setup_c/tmp_setup_c_rebound_test.py)
+Fenster: AUG | Symbol: SILVER M15 | df-Bars: 1288 | Segmente: 12 | echte F3-Brueche: 11
+Modell: Fade kontraer zum 2-Close-Bruch (up->SHORT / down->LONG) | Einstieg open[brk_idx+2] (KEIN Filter)
+Stop: Bruchkerzen-Extremum +-0.15 gedeckelt auf 1.0x Range (U_final-L_final) | Trailing: EMA(20)-Slope Variante B | mindest_gewinn_r=0.0 | Crash-Sicherung N=300
+========================================================================================================================
+
+STATUS-TRIAGE (je echter Bruch-Phase genau 1 Kandidat):
+  TRADE                 :   11
+  RANGE_DEGENERIERT     :    0
+  SL_UEBERSCHRITTEN     :    0
+  DATEN_ENDE            :    0
+
+========================================================================================================================
+REBOUND-TRADES  |  Crash-Sicherung N = 300  (terminal; kein Zeit-Exit 48/96 - reines Trailing-Modell)
+    REBOUND  (n=11, supprimiert=0, aktiv=11, zensiert=0, gewertet=11)
+  -------------------------------------------------------------------
+  sum r_f4=     1.02  mean r_f4=   0.09  median=   0.09  WR=54.5%  PF=1.42
+  sum r_ref (0.45%-Basis) = 0.77
+  Exit: INITIAL_SL_INTRABAR=1 | ZEIT_EXIT_CLOSE=0 | TRAILING_SL_INTRABAR=10 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 2 Bars
+
+========================================================================================================================
+TRADE-DETAIL (forensisch; phase dir brk entry ts entry stop sl_usd exit_idx exit_grund haltezeit r_f4):
+    Ph Dir    Brk  EIdx          EntryTS    Entry     Stop     SL$  XIdx ExitGrund              Hold     r_f4
+  P  1 down b=   66 e=   68 2026-08-10 17:00:00   64.729   65.013   0.284 x=   71 TRAILING_SL_INTRABAR      3     0.12
+  P  2 up   b=  121 e=  123 2026-08-11 07:45:00   64.702   64.378   0.324 x=  125 TRAILING_SL_INTRABAR      2    -0.18
+  P  3 down b=  218 e=  220 2026-08-12 09:00:00   65.894   66.139   0.245 x=  222 TRAILING_SL_INTRABAR      2    -0.30
+  P  4 up   b=  380 e=  382 2026-08-14 03:30:00   63.968   63.566   0.402 x=  383 TRAILING_SL_INTRABAR      1    -0.58
+  P  5 up   b=  620 e=  622 2026-08-18 17:30:00   63.648   63.357   0.291 x=  625 TRAILING_SL_INTRABAR      3     1.01
+  P  6 down b=  715 e=  717 2026-08-19 18:15:00   65.930   66.195   0.265 x=  720 TRAILING_SL_INTRABAR      3     0.09
+  P  7 down b=  802 e=  804 2026-08-20 17:00:00   68.374   68.548   0.174 x=  804 INITIAL_SL_INTRABAR       0    -1.00
+  P  8 down b=  848 e=  850 2026-08-21 05:30:00   68.710   69.108   0.398 x=  852 TRAILING_SL_INTRABAR      2    -0.39
+  P  9 up   b= 1030 e= 1032 2026-08-25 05:00:00   67.744   67.385   0.359 x= 1037 TRAILING_SL_INTRABAR      5     0.39
+  P 10 down b= 1082 e= 1084 2026-08-25 18:00:00   68.828   69.036   0.208 x= 1086 TRAILING_SL_INTRABAR      2     0.66
+  P 11 up   b= 1171 e= 1173 2026-08-26 17:15:00   67.589   67.344   0.245 x= 1175 TRAILING_SL_INTRABAR      2     1.20
+
+========================================================================================================================

@@ -1,0 +1,44 @@
+========================================================================================================================
+SETUP C - A/B: BASELINE vs. EMA-SLOPE-TRAILING (Variante B, §5.2)
+Fenster: S1 | Symbol: SILVER M15 | Segmente: 139 | F3-Brueche: 138
+Trailing: EMA(20)-Slope | Modus STOP_AUF_EXTREMUM | mindest_gewinn_r=0.0 | Crash-Sicherung N=300 | Suppression=True
+========================================================================================================================
+
+L1 PIPELINE-ANKER (Populationen, SIGNAL & sl_usd>0):
+  F3-Brueche      : 138
+  CONFIRMED       : 138
+  RAW gesamt      : 105  (CLUSTER_A=38, CLUSTER_B=67)
+  RETEST          : 59
+
+========================================================================================================================
+BASELINE RAW-CLUSTER A  |  Horizont N = 48  (Close der Bar entry+48)
+    RAW-CLUSTER-A  (n=38, supprimiert=0, aktiv=38, zensiert=0, gewertet=38)
+  -------------------------------------------------------------------------
+  sum r_f4=    22.81  mean r_f4=   0.60  median=   0.08  WR=50.0%  PF=2.34
+  sum r_ref (0.45%-Basis) = 71.77
+  Exit: INITIAL_SL_INTRABAR=15 | ZEIT_EXIT_CLOSE=23 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 35 Bars
+
+========================================================================================================================
+BASELINE RAW-CLUSTER A  |  Horizont N = 96  (Close der Bar entry+96)
+    RAW-CLUSTER-A  (n=38, supprimiert=0, aktiv=38, zensiert=0, gewertet=38)
+  -------------------------------------------------------------------------
+  sum r_f4=    27.87  mean r_f4=   0.73  median=  -1.00  WR=39.5%  PF=2.36
+  sum r_ref (0.45%-Basis) = 55.17
+  Exit: INITIAL_SL_INTRABAR=20 | ZEIT_EXIT_CLOSE=18 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 60 Bars
+
+========================================================================================================================
+EMA-SLOPE-TRAILING (Variante B) | Zeit-Exit entkoppelt (§5.1) | Crash-Sicherung N=300
+    TRAILING  (n=38, supprimiert=0, aktiv=38, zensiert=0, gewertet=38)
+  --------------------------------------------------------------------
+  sum r_f4=    26.56  mean r_f4=   0.70  median=   0.38  WR=52.6%  PF=3.14
+  sum r_ref (0.45%-Basis) = 64.92
+  Exit: INITIAL_SL_INTRABAR=5 | ZEIT_EXIT_CLOSE=0 | TRAILING_SL_INTRABAR=33 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 25 Bars
+
+========================================================================================================================
+A/B-DELTA (r_f4, Trailing minus Baseline):
+  vs N=48:     +3.74R   (Trailing   +26.56R | Baseline   +22.81R)
+  vs N=96:     -1.31R   (Trailing   +26.56R | Baseline   +27.87R)
+========================================================================================================================

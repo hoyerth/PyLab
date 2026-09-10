@@ -1,0 +1,8 @@
+# setup_c Phase-1-Kern (RAW-A + F4 intrabar + Zeit-Exit) - Fenster: AUG
+# suppression_phasenlokal: True | cluster_a_max_vorlauf: 1 | stop_puffer: 0.15 | sl_pct_ref: 0.45
+# RECHTS_ZENSIERT: r_f4/r_ref = NaN (E2, strikt isoliert)
+horizont	phase	dir	entry_idx	entry_ts	entry_preis	f4_initial_stop	sl_usd	exit_idx	exit_ts	exit_preis	exit_grund	haltezeit_bars	r_f4	r_ref
+48	1	up	66	2026-08-10 16:30:00	64.50300	63.76200	0.74100	114	2026-08-11 05:30:00	65.79000	ZEIT_EXIT_CLOSE	48	1.74	4.43
+48	5	down	620	2026-08-18 17:00:00	64.14600	64.77700	0.63100	668	2026-08-19 06:00:00	62.94700	ZEIT_EXIT_CLOSE	48	1.90	4.15
+96	1	up	66	2026-08-10 16:30:00	64.50300	63.76200	0.74100	162	2026-08-11 17:30:00	64.59800	ZEIT_EXIT_CLOSE	96	0.13	0.33
+96	5	down	620	2026-08-18 17:00:00	64.14600	64.77700	0.63100	702	2026-08-19 14:30:00	64.77700	INITIAL_SL_INTRABAR	82	-1.00	-2.19

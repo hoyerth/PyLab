@@ -1,0 +1,39 @@
+============================================================================================================
+SETUP C RAW-A BASELINE | Fenster AUG | N=48
+Zeitraum: 2026-08-10 .. 2026-08-28  (ende-exklusiv)
+Trades: n=2  gewertet=2  zensiert=0
+Summe R (r_f4): +3.64R   Summe r_ref: +8.59R
+Mean R: 1.82   Median R: 1.82
+Winrate: 100.0%  (2W/0L)
+Profit Faktor: -
+Bester Trade: +1.90R   Schlechtester: +1.74R
+Max Gewinnserie: 2 (Summe +3.64R)
+Max Verlustserie: 0 (Summe +0.00R)
+Max Drawdown (R-Kurve): +0.00R
+Exit: INITIAL_SL_INTRABAR=0 | ZEIT_EXIT_CLOSE=2
+mittl. Haltedauer: 48 Bars
+============================================================================================================
+
+============================================================================================================
+SETUP C RAW-A BASELINE | Fenster AUG | N=96
+Zeitraum: 2026-08-10 .. 2026-08-28  (ende-exklusiv)
+Trades: n=2  gewertet=2  zensiert=0
+Summe R (r_f4): -0.87R   Summe r_ref: -1.86R
+Mean R: -0.44   Median R: -0.44
+Winrate: 50.0%  (1W/1L)
+Profit Faktor: 0.13
+Bester Trade: +0.13R   Schlechtester: -1.00R
+Max Gewinnserie: 1 (Summe +0.13R)
+Max Verlustserie: 1 (Summe -1.00R)
+Max Drawdown (R-Kurve): -1.00R
+Exit: INITIAL_SL_INTRABAR=1 | ZEIT_EXIT_CLOSE=1
+mittl. Haltedauer: 89 Bars
+============================================================================================================
+
+ALLE TRADES (chronologisch je Horizont, inkl. Zeitstempel):
+  N | Phase | Dir  | Entry-TS          |   Entry | Exit-TS           |    Exit | Exit-Grund        |   HD |   r_f4 |  r_ref
+------------------------------------------------------------------------------------------------------------
+ 48 | P1   | up   | 2026-08-10 16:30 |   64.503 | 2026-08-11 05:30 |   65.790 | ZEIT_EXIT_CLOSE    |   48 |   +1.74 |   +4.43
+ 48 | P5   | down | 2026-08-18 17:00 |   64.146 | 2026-08-19 06:00 |   62.947 | ZEIT_EXIT_CLOSE    |   48 |   +1.90 |   +4.15
+ 96 | P1   | up   | 2026-08-10 16:30 |   64.503 | 2026-08-11 17:30 |   64.598 | ZEIT_EXIT_CLOSE    |   96 |   +0.13 |   +0.33
+ 96 | P5   | down | 2026-08-18 17:00 |   64.146 | 2026-08-19 14:30 |   64.777 | INITIAL_SL_INTRABAR |   82 |   -1.00 |   -2.19

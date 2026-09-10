@@ -1,0 +1,39 @@
+========================================================================================================================
+SETUP C - SWING_REVERSAL (Fade) - ISOLIERTER AUDIT (test/setup_c/tmp_setup_c_swing_reversal.py)
+Fenster: S2 | Symbol: SILVER M15 | df-Bars: 21624 | Segmente: 62 | echte F3-Brueche: 61
+Modell: Fade kontraer zum 2-Close-Bruch (up->SHORT / down->LONG) | Sequenz: k_exh Sweep+Docht(>=0.40) -> k_trig Slope-Kipp | strikte Invalidierung (F-A) | Scan ab brk_idx+2, Fenster 24 Bars
+Stop-Kappe: max_sl_kanten_mult=1.00 x Range | stop_puffer=0.15 | slope_schwelle=0.0 | EMA(20)
+Kern: terminaler Zeit-Exit N=48 (ZEIT_EXIT_CLOSE) | Ratchet mindest_gewinn_r=0.0 | r_ref: 0.45%-SL | KEINE Crash-Notbremse (F3)
+========================================================================================================================
+
+STATUS-DIAGNOSE (je echter Bruch-Phase genau 1 Kandidat):
+  SIGNAL                  :    9
+  KEINE_ERSCHOEPFUNG      :   31
+  KEINE_EMA_ABFLACHUNG    :   21
+  SL_UEBERSCHRITTEN       :    0
+  RANGE_DEGENERIERT       :    0
+  DATEN_ENDE              :    0
+
+========================================================================================================================
+SWING-REVERSAL-TRADES  |  Horizont N = 48  (Close der Bar entry+N) | Zeit-Exit entkoppelt (S3)
+    SWING_REVERSAL  (n=9, supprimiert=0, aktiv=9, zensiert=0, gewertet=9)
+  -----------------------------------------------------------------------
+  sum r_f4=     0.93  mean r_f4=   0.10  median=  -0.14  WR=33.3%  PF=1.52
+  sum r_ref (0.45%-Basis) = -0.53
+  Exit: INITIAL_SL_INTRABAR=0 | ZEIT_EXIT_CLOSE=0 | TRAILING_SL_INTRABAR=9 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 10 Bars
+
+========================================================================================================================
+TRADE-DETAIL (forensisch; phase dir entry_idx entry_ts entry stop sl_usd exit_idx exit_grund haltezeit r_f4):
+   Ph Dir   EIdx          EntryTS    Entry     Stop     SL$  XIdx ExitGrund            Hold     r_f4
+    9 down 10813 2025-06-17 19:15:00   37.052   37.365   0.313 10818 TRAILING_SL_INTRABAR    5    -0.12
+   15 up   13725 2025-07-31 17:45:00   36.614   36.430   0.184 13753 TRAILING_SL_INTRABAR   28     0.23
+   27 down 16991 2025-09-19 08:45:00   42.112   42.511   0.399 16994 TRAILING_SL_INTRABAR    3    -0.14
+   35 down 17715 2025-10-01 05:45:00   46.968   47.167   0.199 17716 TRAILING_SL_INTRABAR    1    -0.61
+   45 up   19423 2025-10-27 18:45:00   46.828   45.904   0.924 19428 TRAILING_SL_INTRABAR    5     0.02
+   46 up   19488 2025-10-28 12:00:00   46.217   45.964   0.253 19528 TRAILING_SL_INTRABAR   40     2.46
+   53 up   20701 2025-11-14 17:30:00   51.397   50.327   1.070 20706 TRAILING_SL_INTRABAR    5    -0.20
+   56 down 20964 2025-11-19 14:15:00   51.899   52.360   0.461 20965 TRAILING_SL_INTRABAR    1    -0.31
+   57 up   21132 2025-11-21 10:15:00   49.553   48.859   0.694 21133 TRAILING_SL_INTRABAR    1    -0.39
+
+========================================================================================================================

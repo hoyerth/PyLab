@@ -1,0 +1,49 @@
+========================================================================================================================
+SETUP C - SWING_REVERSAL (Fade) - ISOLIERTER AUDIT (test/setup_c/tmp_setup_c_swing_reversal.py)
+Fenster: S1 | Symbol: SILVER M15 | df-Bars: 13289 | Segmente: 139 | echte F3-Brueche: 138
+Modell: Fade kontraer zum 2-Close-Bruch (up->SHORT / down->LONG) | Sequenz: k_exh Sweep+Docht(>=0.40) -> k_trig Slope-Kipp | strikte Invalidierung (F-A) | Scan ab brk_idx+2, Fenster 24 Bars
+Stop-Kappe: max_sl_kanten_mult=1.00 x Range | stop_puffer=0.15 | slope_schwelle=0.0 | EMA(20)
+Kern: terminaler Zeit-Exit N=48 (ZEIT_EXIT_CLOSE) | Ratchet mindest_gewinn_r=0.0 | r_ref: 0.45%-SL | KEINE Crash-Notbremse (F3)
+========================================================================================================================
+
+STATUS-DIAGNOSE (je echter Bruch-Phase genau 1 Kandidat):
+  SIGNAL                  :   19
+  KEINE_ERSCHOEPFUNG      :   84
+  KEINE_EMA_ABFLACHUNG    :   35
+  SL_UEBERSCHRITTEN       :    0
+  RANGE_DEGENERIERT       :    0
+  DATEN_ENDE              :    0
+
+========================================================================================================================
+SWING-REVERSAL-TRADES  |  Horizont N = 48  (Close der Bar entry+N) | Zeit-Exit entkoppelt (S3)
+    SWING_REVERSAL  (n=19, supprimiert=0, aktiv=19, zensiert=0, gewertet=19)
+  --------------------------------------------------------------------------
+  sum r_f4=    -2.80  mean r_f4=  -0.15  median=  -0.37  WR=15.8%  PF=0.56
+  sum r_ref (0.45%-Basis) = -7.00
+  Exit: INITIAL_SL_INTRABAR=2 | ZEIT_EXIT_CLOSE=0 | TRAILING_SL_INTRABAR=17 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 7 Bars
+
+========================================================================================================================
+TRADE-DETAIL (forensisch; phase dir entry_idx entry_ts entry stop sl_usd exit_idx exit_grund haltezeit r_f4):
+   Ph Dir   EIdx          EntryTS    Entry     Stop     SL$  XIdx ExitGrund            Hold     r_f4
+   11 down   954 2026-02-19 11:00:00   78.579   79.602   1.023   969 TRAILING_SL_INTRABAR   15     0.24
+   23 up    1741 2026-03-04 00:45:00   82.998   82.253   0.745  1742 INITIAL_SL_INTRABAR     1    -1.00
+   29 up    2736 2026-03-18 18:30:00   77.309   75.557   1.752  2737 TRAILING_SL_INTRABAR    1    -0.11
+   32 up    2975 2026-03-23 09:15:00   64.951   63.175   1.776  2980 TRAILING_SL_INTRABAR    5    -0.71
+   40 down  3820 2026-04-06 14:30:00   73.017   73.698   0.681  3840 TRAILING_SL_INTRABAR   20     0.13
+   41 up    3928 2026-04-07 18:30:00   71.622   71.011   0.611  3938 TRAILING_SL_INTRABAR   10    -0.57
+   62 up    5661 2026-05-04 14:45:00   73.935   73.315   0.620  5662 TRAILING_SL_INTRABAR    1    -0.39
+   72 up    6547 2026-05-18 06:15:00   75.565   74.499   1.066  6551 TRAILING_SL_INTRABAR    4    -0.39
+   82 down  7570 2026-06-02 11:30:00   76.351   77.146   0.795  7577 TRAILING_SL_INTRABAR    7    -0.05
+   85 up    7712 2026-06-04 01:00:00   73.131   72.523   0.608  7717 TRAILING_SL_INTRABAR    5    -0.14
+   92 down  8154 2026-06-10 19:30:00   64.635   65.334   0.699  8156 TRAILING_SL_INTRABAR    2    -0.39
+   97 down  8838 2026-06-22 10:15:00   65.950   66.566   0.616  8841 TRAILING_SL_INTRABAR    3    -0.37
+  103 up    9481 2026-07-01 10:00:00   57.678   57.002   0.676  9521 TRAILING_SL_INTRABAR   40     3.18
+  113 up   10507 2026-07-16 17:30:00   56.361   56.170   0.191 10509 INITIAL_SL_INTRABAR     2    -1.00
+  115 down 10651 2026-07-20 07:30:00   56.616   57.499   0.883 10659 TRAILING_SL_INTRABAR    8    -0.01
+  122 up   11155 2026-07-27 18:30:00   58.837   58.166   0.671 11157 TRAILING_SL_INTRABAR    2    -0.38
+  124 down 11703 2026-08-04 17:30:00   59.379   60.145   0.766 11704 TRAILING_SL_INTRABAR    1    -0.39
+  134 down 12818 2026-08-20 20:15:00   67.781   69.122   1.341 12819 TRAILING_SL_INTRABAR    1    -0.19
+  137 down 13105 2026-08-26 00:00:00   68.684   69.360   0.676 13106 TRAILING_SL_INTRABAR    1    -0.26
+
+========================================================================================================================

@@ -1,0 +1,7 @@
+# setup_c Phase-1-Kern (EMA-Slope-Trailing (Variante B)) - Fenster: S2
+# suppression_phasenlokal: True | cluster_a_max_vorlauf: 1 | stop_puffer: 0.15 | sl_pct_ref: 0.45
+# RECHTS_ZENSIERT: r_f4/r_ref = NaN (E2, strikt isoliert)
+horizont	phase	dir	entry_idx	entry_ts	entry_preis	f4_initial_stop	sl_usd	exit_idx	exit_ts	exit_preis	exit_grund	haltezeit_bars	r_f4	r_ref
+300	28	up	17025	2025-09-19 17:15:00	42.71900	42.13225	0.58675	17103	2025-09-22 13:45:00	43.54200	TRAILING_SL_INTRABAR	78	1.40	4.28
+300	39	up	18302	2025-10-09 14:30:00	49.96300	49.40267	0.56033	18317	2025-10-09 18:15:00	50.00900	TRAILING_SL_INTRABAR	15	0.08	0.20
+300	61	up	21601	2025-11-28 15:00:00	54.16200	53.75400	0.40800	21623	2025-11-28 20:30:00	56.35500	RECHTS_ZENSIERT	22	-	-

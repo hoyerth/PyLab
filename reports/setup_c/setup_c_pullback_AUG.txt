@@ -1,0 +1,79 @@
+========================================================================================================================
+SETUP C - PULLBACK-RE-ENTRY-ZWISCHENTEST (test/setup_c/tmp_setup_c_pullback_test.py)
+Fenster: AUG | SILVER M15 | 2026-08-10 .. 2026-08-28 (ende-exkl.) | df-Bars: 1288
+Arm: PULLBACK_REENTRY (prozyklisch, Zone 1 Kante / Zone 2 EMA20)
+Config: ema_periode=20  kanten_retest_band=0.15  stop_puffer=0.15  rejection_lookback_bars=1
+Trigger: Rejection-Close an k+1 (close>high[k] Long / close<low[k] Short)
+         + kausaler Slope20(k+1); Ausfuehrung open[k+2]; Per-Bar-Re-Arming
+Stop: Struktur-Stop ueber [k,k+1] (_stop_f4-Paritaet), Zone-1-Kanten-Floor, KEIN Cap
+Management: F3-Bucket-Suppression (Phase,Dir) + Variante-B-Ratchet 1:1 (mindest_gewinn_r=0.0, notfall=300)
+========================================================================================================================
+
+ECHTER 2-CLOSE-BRUCH-PHASEN (Anker): 11
+Kandidaten (Kontakt-Bars gesamt): 404
+  Status-Verteilung: SIGNAL=87  KEIN_ZONEN_KONTAKT=0  KEINE_REJECTION_BESTAETIGUNG=304  SLOPE_INVALIDE=13  SL_UEBERSCHRITTEN=0  DATEN_ENDE=0   (Summe: 404)
+  Zonen: ZONE_1_KANTE=100  ZONE_2_EMA20=304
+SIGNAL vor F3-Suppression: 87  | F3-supprimiert: 40  | aktiviert/simuliert: 47
+
+STATISTIK REALISIERT (r_f4 = P&L / Struktur-Stop-Abstand):
+  n = 47   sum r_f4 = -7.36R
+  mean =   -0.16   median =   -0.35   WR = 27.7%   PF = 0.61
+  bester = +3.38   schlechtester = -1.00   mittl. Haltedauer = 11 Bars
+  LONG : n= 25  sum r_f4 = -5.88
+  SHORT: n= 22  sum r_f4 = -1.48
+  Exit-Verteilung (realisiert):
+    INITIAL_SL_INTRABAR: 5
+    TRAILING_SL_INTRABAR: 42
+    CRASH_HORIZONT_CLOSE: 0
+
+========================================================================================================================
+TRADE-DETAIL (realisiert, chronologisch):
+   Nr  Ph Dir   Zone           Kontakt  Rej EntryIdx    Entry     Stop ExitIdx     Exit Hold Grund                   r_f4      kum
+    1   1 up    ZONE_2_EMA20       103  104      105   66.018   65.250     111   65.705    6 TRAILING_SL_INTRABAR   -0.41    -0.41
+    2   2 down  ZONE_2_EMA20       148  149      150   64.918   65.444     151   65.065    1 TRAILING_SL_INTRABAR   -0.28    -0.69
+    3   2 down  ZONE_2_EMA20       160  161      162   64.820   65.284     164   64.934    2 TRAILING_SL_INTRABAR   -0.25    -0.93
+    4   2 down  ZONE_2_EMA20       166  167      168   64.898   65.215     184   64.799   16 TRAILING_SL_INTRABAR   +0.31    -0.62
+    5   2 down  ZONE_2_EMA20       189  190      191   64.713   64.979     192   64.767    1 TRAILING_SL_INTRABAR   -0.20    -0.82
+    6   2 down  ZONE_2_EMA20       212  213      214   65.058   65.486     217   65.285    3 TRAILING_SL_INTRABAR   -0.53    -1.35
+    7   3 up    ZONE_2_EMA20       240  241      242   66.425   65.740     242   65.740    0 INITIAL_SL_INTRABAR    -1.00    -2.35
+    8   3 up    ZONE_2_EMA20       247  248      249   66.232   65.630     250   66.020    1 TRAILING_SL_INTRABAR   -0.35    -2.71
+    9   3 up    ZONE_1_KANTE       283  284      285   65.599   65.025     294   65.293    9 TRAILING_SL_INTRABAR   -0.53    -3.24
+   10   3 up    ZONE_1_KANTE       303  304      305   65.534   65.048     307   65.093    2 TRAILING_SL_INTRABAR   -0.91    -4.15
+   11   3 up    ZONE_2_EMA20       324  325      326   64.866   64.439     340   64.737   14 TRAILING_SL_INTRABAR   -0.30    -4.45
+   12   3 up    ZONE_2_EMA20       342  343      344   64.993   64.259     345   64.677    1 TRAILING_SL_INTRABAR   -0.43    -4.88
+   13   3 up    ZONE_2_EMA20       351  352      353   64.842   64.551     354   64.689    1 TRAILING_SL_INTRABAR   -0.53    -5.41
+   14   3 up    ZONE_2_EMA20       371  372      373   64.548   64.238     376   64.525    3 TRAILING_SL_INTRABAR   -0.07    -5.48
+   15   4 down  ZONE_2_EMA20       390  391      392   63.975   64.334     400   64.279    8 TRAILING_SL_INTRABAR   -0.85    -6.33
+   16   4 down  ZONE_2_EMA20       439  440      441   64.900   65.316     461   64.889   20 TRAILING_SL_INTRABAR   +0.03    -6.30
+   17   4 down  ZONE_2_EMA20       501  502      503   65.514   65.837     510   65.833    7 TRAILING_SL_INTRABAR   -0.99    -7.29
+   18   4 down  ZONE_2_EMA20       515  516      517   65.616   65.905     524   65.736    7 TRAILING_SL_INTRABAR   -0.42    -7.70
+   19   4 down  ZONE_2_EMA20       539  540      541   65.872   66.242     558   65.863   17 TRAILING_SL_INTRABAR   +0.02    -7.68
+   20   4 down  ZONE_2_EMA20       566  567      568   65.618   66.574     603   65.131   35 TRAILING_SL_INTRABAR   +0.51    -7.17
+   21   4 down  ZONE_2_EMA20       603  604      605   65.037   65.290     608   65.149    3 TRAILING_SL_INTRABAR   -0.44    -7.61
+   22   4 down  ZONE_2_EMA20       612  613      614   64.847   65.355     680   63.128   66 TRAILING_SL_INTRABAR   +3.38    -4.23
+   23   5 down  ZONE_1_KANTE       624  625      626   63.863   64.348     680   63.128   54 TRAILING_SL_INTRABAR   +1.52    -2.71
+   24   6 up    ZONE_1_KANTE       725  726      727   65.910   65.324     766   66.862   39 TRAILING_SL_INTRABAR   +1.62    -1.09
+   25   6 up    ZONE_2_EMA20       795  796      797   66.706   66.140     817   67.752   20 TRAILING_SL_INTRABAR   +1.85    +0.76
+   26   7 up    ZONE_2_EMA20       840  841      842   68.477   67.733     886   69.296   44 TRAILING_SL_INTRABAR   +1.10    +1.86
+   27   8 up    ZONE_2_EMA20       858  859      860   69.163   68.562     886   69.296   26 TRAILING_SL_INTRABAR   +0.22    +2.08
+   28   8 up    ZONE_2_EMA20       887  888      889   69.580   69.143     892   69.316    3 TRAILING_SL_INTRABAR   -0.60    +1.48
+   29   8 up    ZONE_2_EMA20       892  893      894   69.694   69.142     894   69.142    0 INITIAL_SL_INTRABAR    -1.00    +0.48
+   30   8 up    ZONE_2_EMA20       901  902      903   69.742   69.262     912   69.449    9 TRAILING_SL_INTRABAR   -0.61    -0.13
+   31   8 up    ZONE_2_EMA20       926  927      928   69.339   68.904     929   68.904    1 INITIAL_SL_INTRABAR    -1.00    -1.13
+   32   8 up    ZONE_2_EMA20       951  952      953   69.245   68.502     959   68.848    6 TRAILING_SL_INTRABAR   -0.53    -1.67
+   33   8 up    ZONE_2_EMA20       972  973      974   68.931   68.553     983   68.856    9 TRAILING_SL_INTRABAR   -0.20    -1.86
+   34   8 up    ZONE_2_EMA20       988  989      990   69.204   68.738     990   68.738    0 INITIAL_SL_INTRABAR    -1.00    -2.86
+   35   8 up    ZONE_1_KANTE      1005 1006     1007   68.701   68.169    1026   69.045   19 TRAILING_SL_INTRABAR   +0.65    -2.22
+   36   9 down  ZONE_1_KANTE      1041 1042     1043   67.900   68.520    1045   68.353    2 TRAILING_SL_INTRABAR   -0.73    -2.95
+   37   9 down  ZONE_1_KANTE      1048 1049     1050   68.138   68.594    1065   68.029   15 TRAILING_SL_INTRABAR   +0.24    -2.71
+   38   9 down  ZONE_2_EMA20      1071 1072     1073   67.497   68.380    1078   68.031    5 TRAILING_SL_INTRABAR   -0.60    -3.31
+   39  10 up    ZONE_2_EMA20      1103 1104     1105   68.838   68.375    1111   68.713    6 TRAILING_SL_INTRABAR   -0.27    -3.58
+   40  10 up    ZONE_2_EMA20      1118 1119     1120   69.314   68.263    1131   69.036   11 TRAILING_SL_INTRABAR   -0.26    -3.85
+   41  10 up    ZONE_2_EMA20      1132 1133     1134   69.189   68.818    1135   69.050    1 TRAILING_SL_INTRABAR   -0.37    -4.22
+   42  10 up    ZONE_2_EMA20      1159 1160     1161   68.712   68.278    1164   68.309    3 TRAILING_SL_INTRABAR   -0.93    -5.15
+   43  11 down  ZONE_2_EMA20      1182 1183     1184   67.977   68.283    1186   68.203    2 TRAILING_SL_INTRABAR   -0.74    -5.89
+   44  11 down  ZONE_2_EMA20      1191 1192     1193   68.064   68.394    1196   68.394    3 INITIAL_SL_INTRABAR    -1.00    -6.89
+   45  11 down  ZONE_2_EMA20      1220 1221     1222   68.963   69.258    1225   69.052    3 TRAILING_SL_INTRABAR   -0.30    -7.19
+   46  11 down  ZONE_2_EMA20      1225 1226     1227   68.584   69.254    1250   68.477   23 TRAILING_SL_INTRABAR   +0.16    -7.03
+   47  11 down  ZONE_1_KANTE      1249 1250     1251   68.321   68.657    1262   68.431   11 TRAILING_SL_INTRABAR   -0.33    -7.36
+========================================================================================================================

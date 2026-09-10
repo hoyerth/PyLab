@@ -1,0 +1,8 @@
+# setup_c SWING_REVERSAL (isolierter Audit) - Fenster: AUG
+# Modell: Fade kontraer zum 2-Close-Bruch | Sequenz k_exh(Sweep+Docht) -> k_trig(Slope-Kipp) | strikte Invalidierung (F-A) | terminaler Zeit-Exit N=48 | arm=SWING_REVERSAL
+# RECHTS_ZENSIERT: r_f4/r_ref = NaN (E2, strikt isoliert)
+horizont	phase	dir	entry_idx	entry_ts	entry_preis	f4_initial_stop	sl_usd	exit_idx	exit_ts	exit_preis	exit_grund	haltezeit_bars	r_f4	r_ref
+48	2	up	140	2026-08-11 12:00:00	64.88000	64.55583	0.32417	150	2026-08-11 14:30:00	64.89200	TRAILING_SL_INTRABAR	10	0.04	0.04
+48	3	down	241	2026-08-12 14:15:00	66.10200	66.89720	0.79520	242	2026-08-12 14:30:00	66.50600	TRAILING_SL_INTRABAR	1	-0.51	-1.36
+48	7	down	817	2026-08-20 20:15:00	67.78100	69.12200	1.34100	818	2026-08-20 20:30:00	68.03600	TRAILING_SL_INTRABAR	1	-0.19	-0.84
+48	10	down	1104	2026-08-26 00:00:00	68.68400	69.36000	0.67600	1105	2026-08-26 00:15:00	68.86000	TRAILING_SL_INTRABAR	1	-0.26	-0.57

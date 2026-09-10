@@ -1,0 +1,53 @@
+========================================================================================================================
+SETUP C - GATE-MODUS (Gated-Portfolio, --mit-regime-gate)
+Fenster: S1 | Symbol: SILVER M15 | Segmente: 139 | F3-Brueche: 138
+Portfolio (§2.16-F.1, OOS-abgenommen): TREND -> RAW-A@96 + RAW-B@96 (nur Bruchrichtung) | SHAKEOUT/UNKLAR -> strikt RAW-A@48
+Regime: TREND 52 | SHAKEOUT 77 | UNKLAR 9
+========================================================================================================================
+
+GATED-PORTFOLIO (konsolidiert, Primaer-Sicht):
+    GATED  (n=54, supprimiert=0, aktiv=54, zensiert=0, gewertet=54)
+  -----------------------------------------------------------------
+  sum r_f4=    46.96  mean r_f4=   0.87  median=  -0.49  WR=48.1%  PF=2.74
+  sum r_ref (0.45%-Basis) = 97.76
+  Exit: INITIAL_SL_INTRABAR=26 | ZEIT_EXIT_CLOSE=28 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 46 Bars
+
+BREAKDOWN (Arm/Horizont, forensisch):
+    RAW-A@48  (n=25, supprimiert=0, aktiv=25, zensiert=0, gewertet=25)
+  --------------------------------------------------------------------
+  sum r_f4=    21.04  mean r_f4=   0.84  median=   0.36  WR=52.0%  PF=2.92
+  sum r_ref (0.45%-Basis) = 63.35
+  Exit: INITIAL_SL_INTRABAR=10 | ZEIT_EXIT_CLOSE=15 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 34 Bars
+    RAW-A@96  (n=13, supprimiert=0, aktiv=13, zensiert=0, gewertet=13)
+  --------------------------------------------------------------------
+  sum r_f4=     2.79  mean r_f4=   0.21  median=   0.42  WR=53.8%  PF=1.46
+  sum r_ref (0.45%-Basis) = 11.21
+  Exit: INITIAL_SL_INTRABAR=6 | ZEIT_EXIT_CLOSE=7 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 65 Bars
+    RAW-B@96  (n=16, supprimiert=0, aktiv=16, zensiert=0, gewertet=16)
+  --------------------------------------------------------------------
+  sum r_f4=    23.13  mean r_f4=   1.45  median=  -1.00  WR=37.5%  PF=3.31
+  sum r_ref (0.45%-Basis) = 23.20
+  Exit: INITIAL_SL_INTRABAR=10 | ZEIT_EXIT_CLOSE=6 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 48 Bars
+
+REFERENZ-BASELINES (No-Harm-Nachweis):
+    B48 (RAW-A@48, alle Phasen)  (n=38, supprimiert=0, aktiv=38, zensiert=0, gewertet=38)
+  ---------------------------------------------------------------------------------------
+  sum r_f4=    22.81  mean r_f4=   0.60  median=   0.08  WR=50.0%  PF=2.34
+  sum r_ref (0.45%-Basis) = 71.77
+  Exit: INITIAL_SL_INTRABAR=15 | ZEIT_EXIT_CLOSE=23 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 35 Bars
+    B96 (RAW-A@96, alle Phasen)  (n=38, supprimiert=0, aktiv=38, zensiert=0, gewertet=38)
+  ---------------------------------------------------------------------------------------
+  sum r_f4=    27.87  mean r_f4=   0.73  median=  -1.00  WR=39.5%  PF=2.36
+  sum r_ref (0.45%-Basis) = 55.17
+  Exit: INITIAL_SL_INTRABAR=20 | ZEIT_EXIT_CLOSE=18 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 60 Bars
+
+PRIMAER-DELTA (gated - B48): +24.15R
+HINWEIS (No-Harm-Identitaet): SHAKEOUT/UNKLAR-Phasen tragen
+konstruktionsbedingt Delta = 0.00R (Gate waehlt exakt B48).
+========================================================================================================================

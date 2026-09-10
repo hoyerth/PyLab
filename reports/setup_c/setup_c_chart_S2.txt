@@ -1,0 +1,41 @@
+============================================================================================================
+SETUP C RAW-A BASELINE | Fenster S2 | N=48
+Zeitraum: 2025-01-01 .. 2025-12-01  (ende-exklusiv)
+Trades: n=3  gewertet=2  zensiert=1
+Summe R (r_f4): +0.31R   Summe r_ref: +1.50R
+Mean R: 0.15   Median R: 0.15
+Winrate: 50.0%  (1W/1L)
+Profit Faktor: 1.31
+Bester Trade: +1.31R   Schlechtester: -1.00R
+Max Gewinnserie: 1 (Summe +1.31R)
+Max Verlustserie: 1 (Summe -1.00R)
+Max Drawdown (R-Kurve): -1.00R
+Exit: INITIAL_SL_INTRABAR=1 | ZEIT_EXIT_CLOSE=1
+mittl. Haltedauer: 32 Bars
+============================================================================================================
+
+============================================================================================================
+SETUP C RAW-A BASELINE | Fenster S2 | N=96
+Zeitraum: 2025-01-01 .. 2025-12-01  (ende-exklusiv)
+Trades: n=3  gewertet=2  zensiert=1
+Summe R (r_f4): +0.98R   Summe r_ref: +3.56R
+Mean R: 0.49   Median R: 0.49
+Winrate: 50.0%  (1W/1L)
+Profit Faktor: 1.98
+Bester Trade: +1.98R   Schlechtester: -1.00R
+Max Gewinnserie: 1 (Summe +1.98R)
+Max Verlustserie: 1 (Summe -1.00R)
+Max Drawdown (R-Kurve): -1.00R
+Exit: INITIAL_SL_INTRABAR=1 | ZEIT_EXIT_CLOSE=1
+mittl. Haltedauer: 56 Bars
+============================================================================================================
+
+ALLE TRADES (chronologisch je Horizont, inkl. Zeitstempel):
+  N | Phase | Dir  | Entry-TS          |   Entry | Exit-TS           |    Exit | Exit-Grund        |   HD |   r_f4 |  r_ref
+------------------------------------------------------------------------------------------------------------
+ 48 | P28  | up   | 2025-09-19 17:15 |   42.719 | 2025-09-22 06:15 |   43.487 | ZEIT_EXIT_CLOSE    |   48 |   +1.31 |   +4.00
+ 48 | P39  | up   | 2025-10-09 14:30 |   49.963 | 2025-10-09 18:30 |   49.403 | INITIAL_SL_INTRABAR |   16 |   -1.00 |   -2.49
+ 48 | P61  | up   | 2025-11-28 15:00 |   54.162 | 2025-11-28 20:30 |   56.355 | RECHTS_ZENSIERT    |   22 |       - |       -
+ 96 | P28  | up   | 2025-09-19 17:15 |   42.719 | 2025-09-22 18:15 |   43.882 | ZEIT_EXIT_CLOSE    |   96 |   +1.98 |   +6.05
+ 96 | P39  | up   | 2025-10-09 14:30 |   49.963 | 2025-10-09 18:30 |   49.403 | INITIAL_SL_INTRABAR |   16 |   -1.00 |   -2.49
+ 96 | P61  | up   | 2025-11-28 15:00 |   54.162 | 2025-11-28 20:30 |   56.355 | RECHTS_ZENSIERT    |   22 |       - |       -

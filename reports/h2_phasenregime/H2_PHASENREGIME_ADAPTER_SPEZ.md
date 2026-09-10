@@ -2188,3 +2188,209 @@ v0.16 ist ein **Regel-Amendment**: Es ergänzt §54 um die Darstellung der
 Override-Wirklichkeit (Plateau-Syntax, Grenzlinien, Referenzmarker) und
 bestätigt die Norm-Quelle. §54 bleibt als v0.13-Zitat unverändert bestehen.
 
+---
+
+# Addendum v0.17 — Arretierung des V014-Sichttests (2026-09-10)
+
+**Auftrag.** Freigabe der Punkte P1–P4, E1–E5 und F1–F7 sowie Ausführung von
+Schritt 2 (Renderer-Umbau) und Schritt 3 (Lauf). **Wirkung:**
+Arretierung eines **zweiten**, parallelen Bildsatzes. Der v0.1-Satz bleibt
+byte-unverändert. Engine unberührt.
+
+| Übergabe | Gegenstand | Commit |
+|---|---|---|
+| Regelwerk | §66 Norm-Amendment (v0.16) | **`d677adc`** |
+| Adapter | `ADAPTER_V014` + `niveau_override` | `8487145` |
+| Renderer | `test/tmp_png_aug_sichttest.py` (gitignored) | – |
+| Engine | SHA256 `3ba15c72…5255cb006` | unberührt |
+
+**Entscheide in Kurzform:** P1 ergänzen · P2 `ADAPTER_MODE`-Umschaltung ·
+P3 K67 phasen-lokal 69,8700 mit `*` · P4 Quartett voll + Alttrades blass ·
+E1 Grenzlinien 848/1021 · E2 Plateau-Syntax · E3 eigenes Protokoll ·
+E4 Fail-Loud ohne Abschalter · E5 **verworfen** zugunsten F1.
+
+## 67.1 Renderer-Umbau: ein Vertrag, zwei Instanzen
+
+`test/tmp_png_aug_sichttest.py` ist von einem v0.1-Festverdrahten Renderer auf
+den Konfigurationsvertrag nach §66.5 umgestellt (**1.522 Zeilen / 68.813 B**,
+LF, kein BOM, SHA256 `e88ec58d79232eff…`).
+
+| Element | Umsetzung |
+|---|---|
+| `RendererKonfiguration` | `@dataclass(frozen=True, slots=True)`; **ein** Typ, **zwei** Instanzen |
+| `KONFIGURATION_V01` / `KONFIGURATION_V014` | Sollwerte = arretierter Assert-Katalog (§66.5) |
+| `--mode V01\|V014` | CLI-Umschaltung; **V014 ist Default** |
+| `--probe-praefix`, `--protokoll-nach` | Gegenproben ohne Berührung der arretierten Artefakte |
+| Fail-Loud | keine Option, kein Schalter; Abweichung ⇒ Exit ≠ 0 |
+| Dateinamen | `{PROBE_PRAEFIX or ''}{ausgabe_praefix}{nr}_{rolle}.png` |
+| Protokoll | `_Protokoll`-Tee (stdout + Datei), UTF-8, LF, kein BOM |
+
+**Drei Läufe je Modus:**
+
+| Lauf | Hook | Zweck |
+|---|---|---|
+| `V0` | – (unpatch) | Referenz 14 / +40,445143 R |
+| `V1_basis` | `DEFAULT_ADAPTER` | v0.1-Baseline; liefert die **blassen Referenz-Trades** |
+| `V1_aktiv` | `adapter` (modusabhängig) | der dargestellte Satz |
+
+Die Referenzmenge wird **programmgesteuert** gebildet (`§66.4`) — als
+Schlüsseldifferenz über `(bar, kid)`, nicht als Literal und nicht via
+`set()` (Begründung in §67.7).
+
+## 67.2 Injektionsschicht: der Blocker aus der Renderer-Sichtung
+
+**Befund.** Der v0.1-Renderer band einen **6-Fragment**-Patch. Dieser leitete
+`basis_bei` **nicht** um; ein gesetztes `ADAPTER_V014` hätte **geräuschlos**
+weiter den v0.1-Stand gemalt, während Titel „v0.14" behaupten — ein
+unsichtbares Falschbild.
+
+**Behebung.** Der verifizierte **13-Fragment**-Satz aus
+`test/tmp_test_v014_override.py` wurde wörtlich übernommen; zusätzlich zu den
+v0.1-Fragmenten (`A_KANTEN`, `A_LOOP`, `A_POOL`, `A_M6_OBEN`, `A_M6_UNTEN`,
+`A_TP2`) sind nun `_basis_wirksam` und die sieben Anbindungen
+`A_DIST`, `A_M6_BASIS`, `A_M6_BASIS_K`, `A_M6_RET`, `A_M6_SORT`,
+`A_M6_SORT2`, `A_KBASIS` aktiv. Jedes Fragment wird mit
+`assert src.count(_s) == 1` erzwungen.
+
+**Konsequenz:** Ein Patch-Satz, zwei Modi; umgeschaltet wird ausschließlich
+die gebundene `PhasenRegimeAdapter`-Instanz.
+
+## 67.3 V01-Regressionsnachweis (Bit-Identität, verifiziert)
+
+Der Gegenproben-Lauf (`--mode V01 --probe-praefix probe_v01_`) erzeugte den
+Satz unter Probepräfix; die arretierten Dateien blieben unberührt.
+
+| Datei | Bytes | SHA256 | Gegenprobe |
+|---|---|---|---|
+| `aug_sichttest_01_gesamt.png` | 1.876.828 | `89ec7acd276b8f8e0027990790179e252c17a3e18cb96e403fdd31b9c33b537a` | **IDEM** |
+| `aug_sichttest_02_h1_box.png` | 899.249 | `d9f35876442593c529083f194ab50cc37e7691a65794dfe6456a311c1b7cbb04` | **IDEM** |
+| `aug_sichttest_03_h2_phasen.png` | 1.520.409 | `d131deafdafd37eeeaad72235a4667d981f2ac8070baffedc7873a98b67307ff` | **IDEM** |
+| `aug_sichttest_04_p9_regime.png` | 881.262 | `91a85baecd2b9abd06691b1f54b55b6856c31a259090d053b11e4c3620afbca4` | **IDEM** |
+| `aug_sichttest_05_kantenkarte.png` | 1.905.228 | `0b2b14635cb2c2efc3a3ff0f39fb49afb9760bee3de2657ab3f2473a5cb69444` | **IDEM** |
+
+Alle fünf PNGs sind **SHA256-bit-identisch** (Probepräfix-Dateien anschließend
+gelöscht). Die Byte-Größen stimmen exakt mit §35/§53 überein. ⇒ Der Umbau ist
+**beweiskräftig verhaltensneutral**; P1 ist gewahrt.
+
+**Zusatzbefund.** Das V01-Protokoll `test/tmp_png_aug_sichttest_out.txt`
+(9.784 B, SHA256 `3bd99a781f4921a9…`) wurde durch den V014-Lauf **nicht**
+überschrieben — E3 wirksam.
+
+## 67.4 Artefakte des V014-Satzes
+
+| Datei | Bytes | SHA256 |
+|---|---|---|
+| `aug_sichttest_v014_01_gesamt.png` | 2.049.763 | `25d388e66984a2e3432133fdfaf10901c605cc11ea251bc88d6c9f8383a34117` |
+| `aug_sichttest_v014_02_h1_box.png` | 899.249 | `d9f35876442593c529083f194ab50cc37e7691a65794dfe6456a311c1b7cbb04` |
+| `aug_sichttest_v014_03_h2_phasen.png` | 1.695.409 | `a055b243463460e8b459e5ad244b18e0b45e74a525f253cf358caae1cdd01fc7` |
+| `aug_sichttest_v014_04_p9_regime.png` | 1.151.700 | `1f13a7f7910a62cee10afb64d70acf85f3015a01909ef382bfb299fea981118c` |
+| `aug_sichttest_v014_05_kantenkarte.png` | 2.063.329 | `7b022907af4493663e06600892836d999a1e98dcec7e1731c3f458be4f7fbbd3` |
+
+Protokoll: `test/tmp_png_aug_sichttest_v014_out.txt` — 5.363 B, 83 Zeilen,
+UTF-8, LF, kein BOM, SHA256 `f1c06678a13a244d…`.
+
+**Pixelbeweis für H1:** `aug_sichttest_v014_02_h1_box.png` ist **byte-identisch**
+zu `aug_sichttest_02_h1_box.png` (gleicher SHA256, beide 899.249 B) — die
+H1-Box wird selbst durch einen P9-lokalen Niveau-Override **pixelgenau nicht
+berührt**.
+
+## 67.5 Verifikationsprotokoll (Lauf `EXIT 0`)
+
+| Kennzahl | Soll | Ist |
+|---|---|---|
+| V0 Referenz | 14 / +40,445143 R | **14 / +40,445143 R** ✅ |
+| V1_basis (v0.1) | 15 / +46,866348 R | **15 / +46,866348 R** ✅ |
+| V1_aktiv gesamt | 17 / +61,250064 R | **17 / +61,250064 R** ✅ |
+| H1 | 8 / +38,964262 R | **8 / +38,964262 R** ✅ |
+| H2 | 9 / +22,285802 R | **9 / +22,285802 R** ✅ |
+| P9-Beitrag (Quartett) | +19,804922 R | **+19,804922 R** ✅ |
+| Δ v0.14 − v0.1 | +14,383717 R | **+14,383717 R** ✅ |
+
+**Quartett** (`QUARTETT_V014_BARS = (903, 980, 981, 1020)`):
+
+| Bar | Kante | R | Soll |
+|---|---|---|---|
+| 903 | K67 | +4,1198 | ✅ |
+| 980 | K67 | +9,9877 | ✅ |
+| 981 | K73 | +2,6943 | ✅ |
+| 1020 | K67 | +3,0032 | ✅ |
+
+**Referenzmenge (programmgesteuert):** entfallen `K73@980` (+2,4119),
+`K73@1020` (+3,0093) · neu `K67@903`, `K67@980`, `K73@981`, `K67@1020`
+(Quadrupel-Kontrolle: `(67, 67, 73, 67)` ✅).
+
+**Norm-Katalog unverändert (F1):** 4 von 4 Grenzkanten normabweichend —
+K67 `+0,0318` · K73 `+0,1164` · K77 `−0,0103` · K82 `−0,1082`. Preiswechsel
+**54** Linien (identisch zu §56).
+
+## 67.6 Bestätigte Vorhersage aus §66.2
+
+Die in §66.2 hergeleitete Stufenauflösung ist **eingetroffen**:
+
+```
+WECHSEL K67   69.8700 -> 69.9458  (delta +0.0758, 3 Stufen)
+Plateau-Label K67 (gerendert):
+  K67 69.975 -> 69.870 (P9-Override) -> 69.946 *  Norm 69.9140
+```
+
+| Vorhersage (§66.2) | Beleg |
+|---|---|
+| native Stufen 5 | Protokoll v0.1: `K67 69.9750 -> 69.9458 (5 Stufen)` |
+| wirksame Stufen **3** | Protokoll V014: `69.8700 -> 69.9458 (3 Stufen)` |
+| `v_ende = 69,9458` (**nicht** 69,9513) | Gerendetes Label: `-> 69.946` |
+| Linie ab Bar **875** auf 69,8700 | Kantenmaske `pivot_bar + 2` |
+| Austritt **1021**, Endwert ab 1022 | Grenzlinie 1021 gesetzt |
+
+## 67.7 Zwei dokumentierte Abweichungen vom Wortlaut
+
+1. **Mengendifferenz über Schlüssel statt `set(...)`.** `_SESetup` ist
+   `frozen=True, slots=True` und damit hashbar — ein `set` würde aber
+   **feldgleiche** Zeilen stillschweigend kollabieren. Die Differenz wird
+   daher über `(bar, kid)` gebildet (`§66.4`-Semantik unverändert, Ergebnis
+   wie vorhergesagt). Kein inhaltlicher Unterschied, geringeres Risiko.
+2. **Protokollzeile zunächst ohne Norm-Anhang.** Beim ersten V014-Lauf wurde
+   das Plateau-Label über `_plateau_label` (ohne Norm-Suffix) protokolliert.
+   Korrigiert auf `kanten_label` (gerenderte Fassung inkl.
+   `Norm 69.9140`). Der **Bildinhalt** war davon nicht betroffen; die
+   Protokollzeile ist es jetzt ebenfalls nicht mehr.
+
+## 67.8 Integrität und Hygiene
+
+| Prüfung | Ergebnis |
+|---|---|
+| Engine SHA256 | `3ba15c723958161fffc28a106a5758bd3e27a6152f0e0235969594a5255cb006` **unverändert** ✅ |
+| `box_end_bar = 640` / `_p11` | unberührt (§36.2/§36.3, S3) ✅ |
+| V01-Bildsatz | 5× SHA256-bit-identisch, unverändert ✅ |
+| V01-Protokoll | unverändert (9.784 B) ✅ |
+| Git-Tree | clean; `HEAD == origin/master == d677adc` ✅ |
+| Temporärdateien | Probe-PNGs, Probe-Protokoll, Hash-Skript, Backup nach Gebrauch gelöscht (§39/S10) ✅ |
+
+`test/` bleibt gitignored — Renderer, Protokolle und PNGs sind **nicht**
+versioniert; die Reproduktion erfolgt über die beiden Aufrufe im Docstring.
+Die Arretierung ist damit **dokumentarisch** (diese Spez) und
+**reproduzierbar** (Skript + Zahlen), nicht über Git-Objekte.
+
+## 67.9 Status (v0.17)
+
+| Kennzahl | Wert | Berührt durch v0.17? |
+|---|---|---|
+| V0 / H1 | 14 / 8 / +38,964262 R | nein |
+| V1 v0.1 (arretiert) | 15 / +46,866348 R | nein |
+| H2 v0.1 / H2 v0.14 | 7 / +7,902085 R · 9 / +22,285802 R | nein |
+| Gesamt v0.14 | 17 / +61,250064 R | nein |
+| P9-Beitrag v0.14 | +19,804922 R | nein |
+| Norm-Quelle (§54.1.3 / §66.1) | `P9` + `P12_RESERVE` (4 Grenzkanten) | unverändert |
+| Bildsätze | v0.1 (5 PNG) **+** v0.14 (5 PNG) | **neu: zweiter Satz arretiert** |
+| Engine SHA256 | `3ba15c72…5255cb006` | nein |
+| Regelbestand | §54 (v0.13) + §66 (v0.16) + §67 (v0.17) | erweitert |
+
+v0.17 ist ein **Arretierungs-Addendum**: Es friert den V014-Bildsatz samt
+Byte-Größen und SHA256 ein, weist die Bit-Identität des V01-Satzes als
+Regressionsnachweis aus und protokolliert die bestätigte Vorhersage aus
+§66.2. Engine, Adapterlogik und der arretierte v0.1-Satz bleiben unberührt.
+
+**Offen (nicht Teil dieser Arretierung):** die **visuelle Abnahme** des
+V014-Satzes durch den Anwender (Schritt 4). Sie kann Korrekturen an der
+Darstellung nach sich ziehen; solche Korrekturen wären als
+**v0.18-Amendment** auszuweisen, nicht als stille Änderung an §66/§67.
+

@@ -3517,3 +3517,435 @@ rein rendererseitig.
 4. **E-12** ist dokumentiert, aber der V014-P03-Hash **nicht** neu arretiert.
 
 **Naechster Auftrag:** H2-Marktanalyse (Phase P10 ab Bar 1021).
+
+# Addendum v0.22 — Generationswechsel V017: Kanten-Extremum, M6-Heilung und die Renderer-Beschluesse P-1 … P-3 (2026-09-10)
+
+## 72.0 Geltung und Abgrenzung
+
+Dieses Addendum setzt §71 fort und ist mit §54 (Darstellungsgarantie), §66
+(V014-Override), §67–§69 (Q29 / G4) und §70 (native G4-Integration, Route A)
+kompatibel. Es regelt drei Dinge:
+
+1. den **Einbrand einer neuen Engine-Generation V017** in
+   `test/tmp_kanten_engine_replay.py` — ausgeloest durch die
+   Kanten-Knick-Forensik: die kausale Kantenlinie ist das **Extremum** der
+   bestaetigten Dochte, nicht deren Mittelwert;
+2. die **Heilung des M6-Kausalitaetspfades** im selben Hunk;
+3. die **Renderer-Beschluesse P-1, P-2 und P-3** des Anwenders.
+
+**Nicht** Gegenstand: die H2-Marktanalyse (P10 ab Bar 1021) und eine
+Neu-Arretierung des V014-Panel-03-Hashes (bleibt **E-12**).
+
+## 72.1 Zero-Trust-Ablauf und Einbrand
+
+Der Einbrand erfolgte in drei Stufen. Bis zur ausdruecklichen Freigabe wurde
+die arretierte Engine **nicht** angefasst.
+
+| Stufe | Gegenstand | Ergebnis |
+|---|---|---|
+| 1 | Backups | `_tmp_backup_engine_pre_v017.py` = `ea2f72a8…` / 196.012 B (**byte-identisch** zur arretierten Engine, verifiziert) · `_tmp_backup_renderer_pre_v017.py` = `ca0db364…` / 79.314 B |
+| 2 | Wegwerf-Kandidat | `_tmp_engine_v017cand.py` = `4a356765…` / 196.083 B, erzeugt durch `_tmp_make_v017cand.py` **mit erhaltenem CRLF** |
+| 3 | Probe-Lauf | `--mode V017 --engine test/_tmp_engine_v017cand.py --probe-praefix probe_v017_` → 5 PNG, alle Asserts gruen; Anwender-Sichtpruefung bestaetigt |
+
+Stufe 3 ist der **urkundliche** Vorlauf; der Satz liegt als
+`test/probe_v017_01..05.png` (prae-Einbrand, §72.8) neben dem Produktionssatz.
+Der Uebertrag auf den produktiven Pfad erfolgte als **Byte-Kopie**, nicht als
+Editor-Roundtrip — dadurch ist die CRLF-Struktur der Engine beweisbar erhalten.
+Nach dem Einbrand: `py_compile` OK.
+
+## 72.2 Die Motoraenderung: ein einziger Hunk
+
+Die gesamte Aenderung der Engine-Generation besteht aus **einem**
+zusammenhaengenden Hunk in `_SEEdgeH.basis_bei` (Z. 2118, **+3/−1**):
+
+```diff
+@@ -2115,7 +2115,9 @@
+         if self.ist_prim_anker:
+             return self.basis
+         px = [p for b, p in self.wicks if b + 2 <= k]
+-        return float(np.mean(px)) if px else self.basis
++        if px:
++            return float(min(px) if self.seite == "OBEN" else max(px))
++        return float(self.wicks[0][1])
+```
+
+| Groesse | vorher | nachher |
+|---|---|---|
+| SHA256 | `ea2f72a8de81d632909da72d79b158b0760e6dfc05c6c9047559a4fbf7d437a5` | `4a3567659990586cb507f51e10575bdc9b64d82745523034c206b188e19f7298` |
+| Bytes | 196.012 | 196.083 (**+71**) |
+| Umbrueche | 4.574 (CRLF) | 4.574 (CRLF, unveraendert) |
+
+**Regel F (Kanten-Extremum).** Die kausale Kantenlinie ist die
+**institutionelle Liquiditaetsgrenze**, nicht der Schwerpunkt:
+`OBEN` = **tiefstes** Hoch, `UNTEN` = **hoechstes** Tief der jeweils
+bestaetigten Dochte. Clusterbildung, Kanten-IDs (`kid`), R21-Semantik und
+Tombstones bleiben unberuehrt; **alle 73 Kanten-IDs sind stabil**.
+
+Verworfene Varianten — dokumentiert, damit sie **nicht erneut** geprueft
+werden:
+
+| Variante | Regel | Verdikt |
+|---|---|---|
+| A | Mittel + `_stab`-Patch | **Nulloperation**: `e.basis == basis_bei(mbar)`; Ziele verfehlt |
+| B / G | K73 driftet auf 69,5100 | Ziele verfehlt |
+| C | H1-Trade verloren | verworfen |
+| D / E / H / I | Ziele verfehlt | verworfen |
+| **F** | **Extremum der bestaetigten Dochte** | **einzige Variante, die beide Anwenderzielniveaus trifft** |
+
+Anwenderzielniveaus: **K73 → 69,6110** = tiefstes Touch-Hoch (Bars 1122 /
+1211 / 1272 = 69,7090 / **69,6110** / 69,7140) · **K82 → 67,6000** = hoechstes
+Touch-Tief (Bars 1031 / 1056 / 1172 / 1259 = 67,5350 / 67,5530 / 67,4940 /
+**67,6000**). Die Sichtspanne K73 betraegt nur **0,149 %** (Herleitung allein
+ueber Bars 1072–1226).
+
+## 72.3 M6-Heilung (im selben Hunk)
+
+Der dritte Teil des Hunk (`return float(self.wicks[0][1])`) heilt einen
+**Look-ahead im M6-Aussenwandpfad**: `_existiert()` erlaubt
+`k = erster_pivot_bar + 1`. Dort fiel `basis_bei` bisher auf `self.basis`
+zurueck — das ist das **End-Mittel** der Wick-Liste, also Zukunftsinformation.
+
+**Isolationsnachweis.** Die beiden Teile des Hunk wurden **getrennt** geprueft
+(drei Wegwerf-Engines, `optimize=1`, sonst identischer Aufbau):
+
+| Variante | Regel | Rueckfall |
+|---|---|---|
+| **A** = eingebrannt | Extremum (`min`/`max`) | `self.wicks[0][1]` |
+| **B** = ohne Heilung | Extremum (`min`/`max`) | `self.basis` (alter Pfad) |
+| **C** = Vorgaenger | Mittelwert (`np.mean`) | `self.basis` |
+
+| Vergleich | Trade-Schluessel | R je Trade | Q29-Liste | M6-Anzahl | Niveauwechsel |
+|---|---|---|---|---|---|
+| **A gegen B** (nur Heilung) | identisch | **identisch** | identisch (69) | identisch (24) | identisch (66) |
+| **A gegen C** (Hunk total) | 17 vs 18 | verschieden | **69 vs 57** | **24 vs 23** | **66 vs 205** |
+
+**Ergebnis.** Die Heilung ist **handelsneutral** (kein Trade, kein R-Wert, kein
+Blocker faellt weg oder kommt hinzu) — aber sie ist **nicht wirkungslos**: sie
+korrigiert **einen** journalierten Wert. Genau eine M6-Blocker-Zeile traegt
+einen Preis, der erst durch den Rueckfall entsteht — und dort wird sie
+**kausal**:
+
+```text
+A (geheilt) : bar  658 LONG  K  3 basis=62.967 sweep=62.925 -> BLOCKER-SPERRE (unerreichte Aussenwand K48 62.577)
+B (alt)     : bar  658 LONG  K  3 basis=62.967 sweep=62.925 -> BLOCKER-SPERRE (unerreichte Aussenwand K48 62.562)
+```
+
+`62,577` ist der **erste bekannte** Dochtpreis der Aussenwand K48 und war am
+Bar 658 **tatsaechlich bekannt**; `62,562` war das End-Mittel der Wick-Liste,
+also Zukunftsinformation. Die Heilung macht das Journal damit **kausal**, ohne
+das Handelns zu veraendern. Das Fenster dieses Effekts ist genau der Fall
+„Wick-Liste noch nicht vollstaendig bestaetigt".
+
+**Der zusaetzliche M6-Blocker stammt nicht von der Heilung.** Die Zeile
+`bar 658 LONG K3` existiert in **A und B**, nicht aber in **C** — sie ist eine
+Folge der **Extremum-Regel** (§72.2). M6 zaehlt damit 24 (V017) gegen 23
+(V016).
+
+**Wichtig:** `np.nan` waere an dieser Stelle unzulaessig — NaN-Vergleiche sind
+durchgaengig `False` und wuerden den M6-Blocker **lautlos abschalten**; der
+Renderer maskiert bereits selbst (Z. 719-723). Der Rueckfall liefert deshalb
+den ersten **bekannten** Docht, nicht „nichts".
+
+## 72.4 Renderer-Beschluesse P-1 … P-3
+
+Alle drei wurden im Renderer `test/tmp_png_aug_sichttest.py` umgesetzt; die
+Ergebnisdatei ist **`3d6a4788…` / 92.915 B** (vorher `ca0db364…` / 79.314 B).
+
+| Beschluss | Inhalt | Umsetzung |
+|---|---|---|
+| **P-1** | `--probe-praefix` **ERSETZT** das Ausgabe-Praefix (statt es voranzustellen) | neuer Aufloeser `PRAEFIX = PROBE_PRAEFIX or KONF.ausgabe_praefix`; ebenso `PROTOKOLL_DATEI`; alle 5 PNG-Ausgabestellen und der Protokollpfad umgestellt |
+| **P-2** | Engine-Kennung und Niveauwechsel-Zeile **strikt auf V017 gaten** | beide `log()`-Zeilen in `if _V17:` gekapselt |
+| **P-3** | Nomenklatur trennen (Niveauwechsel **und** Netto-Preiswechsel) | neues Feld `netto_preiswechsel_baseline` (Default 54 = V016-Wert); Wortlaut in Statistikblock **und** Protokoll |
+
+**P-2 war nicht kosmetisch.** Die beiden Kennungszeilen waren zuvor
+**ungated** und hatten das arretierte V016-Protokoll veraendert (5.430 statt
+5.520 B). Nach der Gatelung ist `tmp_png_aug_sichttest_v016_out.txt` wieder
+**byte-identisch** zum Arretierungsstand `2969723c…` / 5.520 B — nachgewiesen
+durch Gegenprobe in §72.9.
+
+**P-3 Wortlaut (verbindlich, gerendert und protokolliert):**
+
+```text
+Linien mit Netto-Preiswechsel: 41 (Baseline 54) | Niveauwechsel gesamt: 66 (Baseline 205)
+```
+
+Der Default `--mode` bleibt **V014**; V017 wird ausschliesslich explizit
+aufgerufen, damit automatisierte Altaufrufe nicht umschalten.
+
+## 72.5 Neuarretierte Sollwerte (V016 → V017)
+
+Weil die Kantenformel im **Motor** liegt, wandert neben `R1` auch der
+ungepatchte Referenzlauf `V0` und die v0.1-Basis `R_B` mit der Generation.
+Die Sollwerte sind Fail-Loud-Asserts in der Konfiguration
+(`KEIN` Abschalter — §66.5 / E4).
+
+| Kennzahl | V016 (arretiert) | **V017 (neu)** |
+|---|---|---|
+| `V0` / `R0` | 14 / +40,445143 | **14 / +42,450970** |
+| `V0` Aufteilung | — | H1 7 / +39,919584 · H2 7 / +2,531386 |
+| `V1_basis` / `R_B` | 15 / +46,866348 | **14 / +47,815697** |
+| `V1_aktiv` / `R1` | 18 / +64,879080 | **17 / +65,835576** |
+| H1 (Trades / R) | 8 / +38,964262 | **7 / +39,919584** |
+| H2 (R) | +25,914818 | **+25,915992** |
+| P9-Regimebeitrag | +23,433938 | **+23,435111** |
+| Delta `R1 − R_B` | +18,012732 | **+18,019879** |
+| Quartett-R | +19,804922 | **+19,806095** |
+| K67-Quartett-Summe | 17,1107 | **17,110608** |
+| G4 `K77@1002` | +3,629016 | **+3,629016** (bit-identisch) |
+| `REFERENZ` | (980,73), (1020,73) | **(980,73)** |
+| `NEU` | 5 Schluessel | **4 Schluessel** |
+| Niveauwechsel (sichtbar) | 205 | **66** |
+| Linien mit Netto-Preiswechsel | 54 | **41** |
+| Sperr-Marker Q29 | 57 | **69** |
+| Sperr-Marker M6 | 23 | **24** |
+| Lebende Kanten | 59 edges + 14 seeds = 73 | **59 + 14 = 73** (unveraendert) |
+
+**Kausale Endniveaus bei Bar 1287** (Provenienz-Basis → kausaler Wert):
+
+| Kante | Seite | Provenienz `e.basis` | kausal `basis_bei(1287)` | Norm v0.4 | Abweichung |
+|---|---|---|---|---|---|
+| K67 | OBEN | 69,9458 | **69,8990** | 69,9140 | −0,0150 |
+| K73 | OBEN | 69,6785 | **69,6110** | 69,5550 | +0,0560 |
+| K77 | UNTEN | 68,3597 | **68,4130** | 68,3700 | +0,0430 |
+| K82 | UNTEN | 67,5455 | **67,6000** | 67,6355 | −0,0825 |
+
+Alle vier Grenzkanten bleiben **Norm-Abweichung** und tragen daher weiterhin
+das Norm-Zitat als **Option (b)** (Norm wird angehaengt, nicht ersetzt).
+
+### 72.5.1 H1-Box V017 (7 Trades / +39,919584 R)
+
+| Kante | Signal-Bar | Entry-Bar | Stufe | Richtung | R |
+|---|---|---|---|---|---|
+| K20 | 229 | 231 | STUFE_2_KERZE_2 | SHORT | +6,889303 |
+| K20 | 242 | 245 | STUFE_3_KERZE_3 | SHORT | +3,925121 |
+| K5 | 398 | 399 | STUFE_1_IN_BAR | LONG | +5,697713 |
+| K16 | 490 | 491 | STUFE_1_IN_BAR | SHORT | −0,475084 |
+| K16 | 509 | 510 | STUFE_1_IN_BAR | SHORT | −0,347446 |
+| K20 | 529 | 531 | STUFE_2_KERZE_2 | SHORT | +8,359943 |
+| K20 | 564 | 565 | STUFE_1_IN_BAR | SHORT | +15,870034 |
+
+**Direktvergleich gegen V016** (V016 gemessen mit `--mode V016 --engine
+test/_tmp_backup_engine_pre_v017.py`, also auf `ea2f72a8…`):
+
+| Kante | Signal-Bar | V016 R | V017 R | Status |
+|---|---|---|---|---|
+| K20 | 229 | +6,924513 | +6,889303 | bleibt, R wandert (tp2 63,6047 → 63,6190) |
+| K20 | 242 | +3,947913 | +3,925121 | bleibt, R wandert |
+| K8 | 383 | −0,401786 | — | **entfaellt** |
+| K5 | 398 | +5,658254 | +5,697713 | bleibt, R wandert |
+| K16 | 492 | −0,482566 | — | **entfaellt** (ersetzt) |
+| K16 | 490 | — | −0,475084 | **neu** |
+| K16 | 509 | — | −0,347446 | **neu** |
+| K20 | 529 | +8,391264 | +8,359943 | bleibt, R wandert |
+| K20 | 564 | +15,926670 | +15,870034 | bleibt, R wandert |
+| K8 | 620 | −1,000000 | — | **entfaellt** |
+| **Summe** | | **8 / +38,964262** | **7 / +39,919584** | +0,955322 R bei einem Trade weniger |
+
+Drei V016-Trades entfallen (`K8@383`, `K16@492`, `K8@620`), zwei kommen hinzu
+(`K16@490`, `K16@509`); die fuenf gemeinsamen Trades behalten Bar und Kante,
+ihr R wandert jedoch mit den Kantenpreisen (`tp2` 63,6047 → 63,6190 bzw.
+63,4745 → 63,4850). **Treiber ist allein §72.2** — die Trades der H1-Box
+werden nicht vom Adapter gesteuert, sondern von den Kanten des Motors.
+
+Der Adapter greift ausschliesslich ab `start_scope_bar` und bleibt damit
+**MAKRO**; H1 wandert dennoch mit, weil die **Kantenformel selbst** im Motor
+liegt (§72.2).
+
+### 72.5.2 H2-Expansion V017 (10 Trades / +25,915992 R)
+
+| Kante | Signal-Bar | Entry-Bar | Richtung | R | Anmerkung |
+|---|---|---|---|---|---|
+| K1 | 639 | 640 | LONG | −1,000000 | |
+| K3 | 650 | 653 | LONG | −1,000000 | |
+| K45 | 679 | 681 | LONG | +6,480880 | |
+| K16 | 714 | 715 | SHORT | −1,000000 | Signal-Bar **714** (V016: 715) |
+| K51 | 760 | 762 | SHORT | −1,000000 | |
+| K67 | 903 | 905 | SHORT | +4,119775 | STUFE_2_KERZE_2, entry 69,6700 |
+| K67 | 980 | 981 | SHORT | +9,987676 | STUFE_1_IN_BAR, entry 69,8070 |
+| K73 | 981 | 982 | SHORT | +2,695488 | STUFE_1_IN_BAR, entry 69,4910 |
+| K77 | 1002 | 1003 | LONG | +3,629016 | **G4-Reclaim** (§69.8) |
+| K67 | 1020 | 1021 | SHORT | +3,003157 | STUFE_1_IN_BAR, entry 69,5780 |
+
+**Quartett-R:** K67@903 +4,119775 · K67@980 +9,987676 · K73@981 +2,695488 ·
+K67@1020 +3,003157 = **+19,806095** (K67-Anteil +17,110608).
+**Transition-Park 640–847:** K1@639, K3@650, K45@679, K16@**714**, K51@760
+= 5 / **+2,480880 R**. G4 `K77@1002` bleibt mit **+3,629016 R bit-identisch**
+zu V016.
+
+## 72.6 Erratum E-13 — die Altsatz-Garantie ist geoeffnet
+
+§68.6 / E-5 sicherten zu, dass die im V014-Lauf **entfallenen** v0.1-Trades
+als Referenzmarker sichtbar bleiben — namentlich `K73@980` **und**
+`K73@1020`. Diese Garantie gilt fuer die **alte** Engine-Generation und ist
+fuer V017 **aufgehoben**:
+
+> **E-13.** In der Generation V017 existiert `K73@1020` **bereits im
+> v0.1-Referenzlauf nicht mehr**. Die Mengendifferenz `V1_basis \ V1_aktiv`
+> schrumpft von zwei auf **einen** Eintrag (`K73@980`, +2,412991 R). Der
+> statische `REFERENZ`-Sollwert ist entsprechend auf `((980, 73),)`
+> reduziert; die Renderer-Asserts sind mitgezogen, es gibt **keinen**
+> stillen Durchlauf.
+
+Ursache ist §72.2: mit der Extremum-Regel wandert das P9-Signal an Bar 980
+von `K73` auf `K67`. Der v0.1-Referenzlauf der neuen Generation liefert
+`K73@980 +2,412991` und `K67@1020 +3,002241`; der Adapter-Lauf daraus
+`K67@980 +9,987676`, `K73@981 +2,695488` und `K67@1020 +3,003157`.
+
+## 72.7 Zaehler: Niveauwechsel und Netto-Preiswechsel
+
+Die beiden Kennzahlen sind **verschieden** und werden ab v0.22 getrennt
+gefuehrt (Beschluss P-3):
+
+| Kennzahl | Definition | V016 | V017 |
+|---|---|---|---|
+| **Niveauwechsel gesamt** | jeder Preiswechsel an **jedem** Bar, an dem die Linie bestaetigt ist (`pivot_bar + 2 <= k`) — exakt die Renderer-Maskierung | 205 | **66** |
+| **Linien mit Netto-Preiswechsel** | Kanten, deren **Label** die Form `v0 -> v1 *` traegt (Startwert ≠ Endwert) | 54 | **41** |
+
+**Korrektur einer frueheren Fehlzahl.** Die im §71-Umfeld notierte Zahl
+„259" war ein **Artefakt eigener Zaehlung**: sie entstand, wenn der Bar
+**vor** der Bestaetigung mitgezaehlt wird (je Linie ein Phantom-Sprung).
+„Niveauwechsel 205 → 66" ist der korrekte, maskierte Wert; er ist als
+**hartes Literal** im Renderer hinterlegt:
+
+```python
+assert NIVEAUWECHSEL == KONF.niveauwechsel_gesamt, (...)
+```
+
+Der kosmetische Text im Bild schuetzt vor keiner Regression — dieser Assert
+schon. In V01 … V016 lauten die Zeilen **wortgleich** wie zuvor.
+
+## 72.8 Artefakte und Arretierung
+
+**Engine (eingebrannt)**
+
+| Datei | SHA256 | Bytes |
+|---|---|---|
+| `test/tmp_kanten_engine_replay.py` | `4a3567659990586cb507f51e10575bdc9b64d82745523034c206b188e19f7298` | 196.083 |
+| `test/_tmp_backup_engine_pre_v017.py` (Vorgaenger) | `ea2f72a8de81d632909da72d79b158b0760e6dfc05c6c9047559a4fbf7d437a5` | 196.012 |
+| `test/_tmp_engine_v017cand.py` (Kandidat, identisch zur Engine) | `4a356765…` | 196.083 |
+| `backtest_lab/phasen_regime_adapter.py` (**unveraendert**) | `0f3f8765b1682910a7332b2bcb6f30f79fb56afaec180bdca674693d3ec2b01b` | 25.783 |
+
+**Renderer**
+
+| Datei | SHA256 | Bytes |
+|---|---|---|
+| `test/tmp_png_aug_sichttest.py` (neu, P-1/P-2/P-3) | `3d6a4788788375576ce37e4658598d4d0b7cbf8b44bb48e087d3185cef656c1e` | 92.915 |
+| `test/_tmp_backup_renderer_pre_v017.py` (Vorgaenger) | `ca0db364f6955c29c103e10e16935428115cc47c8a937c86df2d6431791cd3e3` | 79.314 |
+
+**Produktionssatz V017** (`aug_sichttest_v017_01..05.png`)
+
+| Panel | SHA256 | Bytes |
+|---|---|---|
+| `01_gesamt` | `550091f5359df47b7868e13bd1f1b734cb0c17e2e3109b30e53bd9aedf43010e` | 2.071.320 |
+| `02_h1_box` | `42427164f88f9e93513d724eb7822b46d711c3ce990e5592f5bd220dd7250a2b` | 874.523 |
+| `03_h2_phasen` | `85926341eb86c84d60a9e2e6edebce489e2198a5c498b6aecf13b4c6898612dd` | 1.717.237 |
+| `04_p9_regime` | `b53095565c4d4fdd7b758d40b469ac3fa085a0e80188d9807d69c54171738842` | 1.195.065 |
+| `05_kantenkarte` | `91c8dd6164f4410b1b9009728e9ff8a0b2ca74f26718123018df90602892b5f1` | 2.069.665 |
+| **Protokoll** `test/tmp_png_aug_sichttest_v017_out.txt` | `866308081f94f2311337547ba32e1968f72ec4bef13b021658ca35e3889b4750` | 5.044 |
+
+**Zero-Trust-Probesatz** (prae-Einbrand, Kandidaten-Engine `_tmp_engine_v017cand.py`)
+
+| Panel | SHA256 | Bytes |
+|---|---|---|
+| `probe_v017_01_gesamt.png` | `8aa8d690d321873c542397712f538f9996a1517db456d7ffb88006a76d1e9a46` | 2.071.949 |
+| `probe_v017_02_h1_box.png` | `42427164…` | 874.523 |
+| `probe_v017_03_h2_phasen.png` | `6a74f186c5ebdb455173bb2bbdacfe22f36d9492129b576e5867a7a5ecbbe7eb` | 1.717.672 |
+| `probe_v017_04_p9_regime.png` | `d4b85aa5790314b338aff249c5ec0f8d04295a9fca98c0f4a6e43fced27f8769` | 1.195.768 |
+| `probe_v017_05_kantenkarte.png` | `6777deebc40605cbc1e231ffb95ba1da4175305aeee8dd1d4b37bd442c3a3a5e` | 2.070.112 |
+| Protokoll `test/_tmp_probe_v017_out.txt` | `996ef9aba33099aecd4ee201e6d0f7731aadeb9b6dde66152d57adfdb39ba527` | 4.960 |
+
+**Warum Probe- und Produktionssatz differieren.** Beide laufen mit derselben
+Engine-Bytes; die Panels 01/03/04/05 tragen in der Kopfzeile den **Namen der
+geladenen Engine** (`_tmp_engine_v017cand.py` vs. `tmp_kanten_engine_replay.py`).
+Panel 02 fuehrt keine solche Zeile und ist deshalb in beiden Saetzen
+**bit-identisch** (`42427164…` / 874.523 B).
+
+## 72.9 Integritaet und Neutralitaetsnachweise
+
+Alle Nachweise wurden als **gezielte Einzelpruefungen** gefahren (keine
+Regressionstests); die Gegenproben nutzen `--engine` und `--probe-praefix`.
+
+| # | Pruefung | Ergebnis |
+|---|---|---|
+| 1 | `py_compile` Engine und Renderer | OK |
+| 2 | Assert-Paritaet Renderer-Kopf, 5 Modi | **5/5 OK** (V01 … V016 unveraendert; V017 auf neue Sollwerte) |
+| 3 | **V015** Satz + Protokoll gegen Arretierung (Renderer `3d6a4788…`, Engine `ea2f72a8…`) | **5/5 PNG und Protokoll `b7c4142a…` / 5.507 B byte-identisch** |
+| 4 | **V016** Satz + Protokoll gegen Arretierung (dito) | **5/5 PNG und Protokoll `2969723c…` / 5.520 B byte-identisch** |
+| 5 | **V01** Satz gegen Arretierung (dito) | **5/5 PNG byte-identisch** |
+| 6 | **A/B-Neutralitaet P-1…P-3** (Klon des Vorstands `ca0db364…` mit gepinnter Backup-Engine) | erzeugt fuer V014 dieselben Bytes wie der neue Renderer → **P-1…P-3 sind wirkungsneutral** |
+| 7 | **Rueckweg** V01 / V016 mit `--engine test/_tmp_backup_engine_pre_v017.py` | **5/5 PNG byte-identisch** je Modus; V016-Protokoll ebenfalls byte-identisch |
+| 8 | G4 `K77@1002` gegen V016 | **+3,629016 R bit-identisch** |
+| 9 | Kanten-IDs | **alle 73 stabil** |
+| 10 | Produktionslauf V017 ohne Probe-Optionen | alle Asserts gruen, 5 PNG + Protokoll geschrieben |
+| 11 | **M6-Heilung isoliert** (Varianten A/B/C, §72.3) | handelsneutral (Trades, R, Q29, M6-Zahl, Niveauwechsel gleich); genau **ein** journalierter Wert wird kausal (`K48` 62,562 → 62,577) |
+| 12 | H1-Box V016 gegen V017 direkt verglichen | 3 Trades entfallen, 2 kommen hinzu, 5 wandern im R (§72.5.1) |
+
+**E-14 (V01-Protokoll, historisch — neu).** Die arretierte Datei
+`test/tmp_png_aug_sichttest_out.txt` (9.784 B) ist ein
+**Konsolen-Mitschnitt der v0.1-Aera in UTF-16 LE** (BOM `FF FE`) und traegt
+den **alten Wortlaut** („Adapter v0.1, P9 aktiv", ohne `V1_basis`-Zeile, ohne
+`Override-Info`-Zeile). Sie ist ein **Protokoll der Zeitgeschichte**, kein
+Reproduktionsartefakt: `log.schreibe()` erzeugt UTF-8 ohne BOM. Die
+zugehoerigen **PNGs reproduzieren 5/5 byte-identisch** (Zeile 5). Keine
+Neu-Arretierung, kein Eingriff.
+
+**E-12 bleibt gueltig (V014 Panel 03).** Die Abweichung ist **nicht** durch
+P-1…P-3 entstanden: der Vorstands-Klon `ca0db364…` erzeugt mit gepinnter
+Backup-Engine exakt `f8505d124c3dddf3…` / 1.694.382 B — identisch zum neuen
+Renderer. Der arretierte Wert bleibt `a055b243463460e8…` / 1.695.409 B aus der
+Zeit vor dem v015-Patch. Die uebrigen vier V014-Panels sind byte-identisch.
+Der V014-**Protokoll**text driftete gleichursaechlich (`Summe` → `QUARTETT`,
+`Delta v0.14-v0.1` → `Delta V014-v0.1`).
+
+## 72.10 Generationsbindung der Engine: Fail-Loud und Rueckweg
+
+Der Renderer laedt **eine** Engine-Datei. Nach dem Einbrand traegt sie die
+V017-Formel; die Modi V01 … V016 sind damit **nicht mehr** mit ihr
+reproduzierbar. Das ist **gewollt** und wird **nicht** stillschweigend
+ausgehebelt:
+
+```text
+$ python test/tmp_png_aug_sichttest.py --mode V016
+AssertionError: (14, 42.450969915773506)      # Z. 639, erster Assert
+```
+
+Der erste Fail-Loud-Assert stoppt den Lauf, **bevor** eine einzige PNG
+entsteht — es kann also kein falscher V016-Satz geschrieben werden. Der
+Rueckweg ist explizit und erprobt (§72.9 Zeile 7):
+
+```text
+python test/tmp_png_aug_sichttest.py --mode V016 ^
+    --engine test/_tmp_backup_engine_pre_v017.py
+```
+
+Damit bleiben alle arretierten Saetze V01 … V016 **vollstaendig
+reproduzierbar**; sie sind nur an die Vorgaenger-Engine **gebunden**. Die
+`--engine`-Option akzeptiert ausschliesslich Pfade innerhalb `test/`
+(Schutz gegen versehentliches Ueberschreiben der arretierten Engine).
+
+## 72.11 Status und offene Punkte
+
+| Kennzahl | Wert |
+|---|---|
+| **V017 (eingebrannt)** | **17 Trades / +65,835576 R** |
+| davon H1 | 7 / +39,919584 R |
+| davon H2 | 10 / +25,915992 R |
+| Engine-Generation | `4a356765…` (V017) |
+| Regelbestand | §54 + §66 + §67 + §68 + §69 + §70 + §71 + **§72** |
+| Renderer | `3d6a4788…` (P-1 · P-2 · P-3 umgesetzt) |
+| Errata | E-5 · E-11 · E-12 · **E-13** (Altsatz-Garantie geoeffnet) · **E-14** (V01-Protokoll) |
+
+**Offen:**
+
+1. **`test/` ist gitignored** (`.gitignore:63`). Von den hier genannten
+   Artefakten ist **nur `test/SESSION_HANDOFF.md` getrackt**; Engine,
+   Renderer, Kandidat, Backups, PNG und Protokolle sind **untracked**. Die
+   Arretierung erfolgt daher **urkundlich ueber SHA256** in diesem Dokument
+   und im Handoff — **kein** `git add -f` (Anwenderentscheid).
+2. **`SWEEP_MARKER_P02`** bleibt als deklarierte, nicht referenzierte
+   Konstante stehen (§71.7 Punkt 1); Panel 02 fuehrt das Literal `"x"`.
+3. **E-12** ist dokumentiert, der V014-P03-Hash ist **nicht** neu arretiert.
+4. **Englische Fassung** dieses Addendums existiert nicht und ist nicht
+   vorgesehen.
+
+**Naechster Auftrag:** H2-Marktanalyse (Phase P10 ab Bar 1021) — unveraendert.

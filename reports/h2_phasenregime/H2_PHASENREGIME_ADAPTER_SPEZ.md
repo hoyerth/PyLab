@@ -1788,3 +1788,225 @@ v0.14 ist ein **Befund-Addendum**: Es dokumentiert die Falsifikation des
 der Entkopplung offen (§58) — **ohne** Engine-, Adapter- oder
 Darstellungsänderung.
 
+---
+
+# Addendum v0.15 — Ausführung von v0.14: Phasen-Niveau-Override K67 = 69,87 (2026-09-10)
+
+**Freigaben:** Q1–Q5 (Anwender, 2026-09-10; Antworten auf den Textblock in
+§58.3 / §57.5). **Wirkung:** Adapter-**Erweiterung** (rein additiv) plus
+Arretierung. Engine unberührt. **Status:** umgesetzt und verifiziert.
+
+| Übergabe | Datei / Symbol | Commit |
+|---|---|---|
+| Adapter | `backtest_lab/phasen_regime_adapter.py` (+133 Z., 0 Entf.) | **`8487145`** |
+| Verifikation | `test/tmp_test_v014_override.py` (gitignored) | – |
+| Engine | `test/tmp_kanten_engine_replay.py` — SHA256 `3ba15c72…5255cb006` | unberührt |
+
+Die fünf Fragen aus §58.3 sind beantwortet und **so** umgesetzt:
+
+| # | Frage | Entscheidung des Anwenders | Ausführung |
+|---|---|---|---|
+| Q1 | Override oder neue Kante? | **Phasen-Override im Adapter, keine neue Kanten-ID** | `PhasenKanteInfo.niveau_override` (§60) |
+| Q2 | Fail-Loud binden? | **Ja — FAIL-LOUD, strikt `phase == 'P9'`** | `verifiziere_niveau_overrides()` (§61) |
+| Q3 | Nebenfolge-Trades? | **Quartett (903, 980, 981, 1020) mitarretieren, kein Cherry-Picking** | `QUARTETT_V014_BARS` (§62) |
+| Q4 | Alter H2-Anker? | **BEIDE Werte ausweisen** (keiner verdraengt den anderen) | Benchmark-Register (§63) |
+| Q5 | Historie? | **v0.14 behalten, Historie nicht umbiegen** | §64 |
+
+---
+
+## 60. Q1 — Phasen-Override statt neuer Kante
+
+**Entscheidung.** `69,87` wird **nicht** als neue Harness-Kante (`kid`) und
+**nicht** als Eingriff in `_SEEdgeH.basis_bei` der Engine modelliert, sondern
+als **phasen-lokaler Niveau-Override** an der bestehenden Decke K67 des
+Segments P9. Begründung: Der Wert ist engine-fremd (anwender-gesetzt, §57.2);
+eine neue `kid` würde die Kanten-Identität (§37.4) und die Sperr-Logik (M6)
+verfälschen. K67 bleibt die Decke — nur ihr **Niveau innerhalb P9** ändert
+sich.
+
+**Umsetzung (additiv, Bestandsverhalten v0.1 unverändert Default):**
+
+| Element | Inhalt |
+|---|---|
+| `PhasenKanteInfo.niveau_override: Optional[float] = None` | neues Optional-Feld (Default = keine Wirkung) |
+| `PhasenKanteInfo.hat_override() -> bool` | `True` gdw. Override gesetzt |
+| `K67_OVERRIDE_69_87 = 69.87` | der anwender-gesetzte Wert, als benannte Konstante |
+| `P9_DIRECT_69_87` | Segment P9, `start_bar=848`, `end_bar=1020`, `decke=K67(provenienz 69.9140, override 69.87)`, `boden=K77(68.3700)` |
+| `AKTIVE_SEGMENTE_V014 = (P9_DIRECT_69_87,)` | Selektionsliste der v0.14-Variante |
+| `AKTIVE_DEFAULT_SEGMENTE = (P9,)` | **unverändert arretiert** (v0.1-Baseline) |
+| `PhasenRegimeAdapter.niveau_override_bei(bar, kid)` | liefert den Override **nur** im eigenen Segmentfenster und **nur** für Decke/Boden |
+| `PhasenRegimeAdapter.angewandte_basis(bar, kid, basis_engine)` | Injektionsschicht: `override` sonst `basis_engine` unverändert |
+
+**Kernaussage der Entkopplung (§58.1):** Der Override gilt ausschließlich für
+`848 ≤ k ≤ 1020`. Die H1-Box (`entry_bar < 640`) liegt vollständig darunter
+⇒ `angewandte_basis` liefert dort **immer** die Engine-Basis zurück.
+
+**Auflösung der Nebenfolge §57.5.3:** Mit `basis_bei(K67) = 69,87` gilt an
+den Bars 980/1020 `dist > 0`; Hook 1 (`dist < 0`) liefert dort `None` und wird
+gegenstandslos — bestätigt, keine Fehlfunktion.
+
+**Konfigurationsstand (unverändert):** `sl_buffer_usd = 0.05`,
+`touch_band_pct = 0.12`, `doppeltop_puffer_usd = 0.01`,
+`retest_zyklus_bars = 12`, `entry = open[entry_bar]`.
+
+---
+
+## 61. Q2 — Fail-Loud-Bindung an die Phase
+
+**Entscheidung.** Der Override ist eine **phasen-gebundene** Größe und wird
+nicht still, sondern **hart** geprüft. `verifiziere_niveau_overrides()` wird
+beim Aufbau von `ADAPTER_V014` (Modulimport) erzwungen.
+
+**Phasenbindung (`niveau_override_bei`) — geprüft:**
+
+| Aufruf | Ergebnis | Soll |
+|---|---|---|
+| `(980, 67)` | `69.87` | Override (in P9, K67-Decke) |
+| `(1020, 67)` | `69.87` | Override (Segmentrand, inklusiv) |
+| `(980, 73)` | `None` | fremde Kante → Engine-Basis |
+| `(847, 67)` | `None` | unterhalb P9 |
+| `(1021, 67)` | `None` | oberhalb P9 |
+| `(1100, 67)` | `None` | außerhalb (späteres Fenster) |
+| `(640, 67)` / `(200, 67)` | `None` | H1-Box → unberührt |
+| Boden K77 | ohne Override | `hat_override() == False` |
+| `angewandte_basis(980, 67, 69.9687)` | `69.87` | Override schlägt Engine |
+| `angewandte_basis(1100, 67, 69.9000)` | `69.9000` | Engine durchgereicht |
+
+**Fail-Loud-Kriterien (`verifiziere_niveau_overrides`) — Negativproben
+greifen:**
+
+| Prüfung | Kriterium | Negativprobe | Ergebnis |
+|---|---|---|---|
+| Endlichkeit/Positivität | `isfinite(ov) and ov > 0` | `-1.0` | `ValueError` ✅ |
+| Endlichkeit/Positivität | ebd. | `nan` | `ValueError` ✅ |
+| Provenienz-Toleranz | `|ov − provenienz| / provenienz ≤ 1,00 %` | `75.0` (7,2747 %) | `ValueError` ✅ |
+| Segmentfenster | `start_bar ≤ end_bar` | – | `ValueError` |
+| Positivprobe | `69,87` vs. `69,9140` | – | **0,0629 % → OK** ✅ |
+
+⇒ Ein unplausibler Override kann **nicht** still in Kraft treten. Der
+Strength der Bindung liegt auf der Phasen-Zugehörigkeit, nicht auf einer
+globalen Zahl.
+
+---
+
+## 62. Q3 — Quartett-Protokoll (mitarretiert, kein Cherry-Picking)
+
+**Entscheidung.** Es wird **nicht** das günstige Bar-980/1020-Paar
+herausgegriffen; das vollständige P9-Trade-Set der v0.14-Variante wird als
+**Quartett** arretiert: `QUARTETT_V014_BARS = (903, 980, 981, 1020)`.
+
+| Bar-Index | Bar-Zeit (+02:00) | Kante | Stufe | Entry-Bar | Entry | SL | TP2 | R |
+|---|---|---|---|---|---|---|---|---|
+| **903** | 21.08. 20:45 | **K67** | `STUFE_2_KERZE_2` | 905 | 69,6700 | 69,9810 | 68,3700 | **+4,1198** |
+| **980** | 24.08. 17:00 | **K67** | `STUFE_1_IN_BAR` | 981 | 69,8070 | 69,9490 | 68,3700 | **+9,9877** |
+| **981** | 24.08. 17:15 | K73 | `STUFE_1_IN_BAR` | 982 | 69,4910 | 69,9010 | 68,3700 | **+2,6943** |
+| **1020** | 25.08. 04:00 | **K67** | `STUFE_1_IN_BAR` | 1021 | 69,5780 | 69,9740 | 68,3700 | **+3,0032** |
+
+**Quartett-Summe: +19,804922 R** (= P9-Beitrag v0.14). Kanten-Zuordnung:
+903/980/1020 = K67 (Override), 981 = K73 (Engine-Basis). Stufen:
+980/981/1020 = `STUFE_1_IN_BAR`, 903 = `STUFE_2_KERZE_2`.
+
+**Damit ist §57.5.1 engine-nativ bestätigt:** v0.14 ist **kein** reiner Tausch
+der beiden Bars — es entstehen zwei zusätzliche Trades (K67@903, K73@981),
+und die bisherigen K73@980 / K73@1020 entfallen. Beide neuen Trades werden
+mitgeführt, nicht das Ergebnis „+9,9877 / +3,0032 R" isoliert.
+
+**R-Nachrechnung (Engine-Formel, `reward/risk`, Beitrag §57.3):**
+
+| Bar | risk = SL − Entry | reward = Entry − TP2 | reward/risk | Engine-R |
+|---|---|---|---|---|
+| 980 (K67) | 0,1420 | 1,4370 | 10,1197 | **+9,9877** |
+| 1020 (K67) | 0,3960 | 1,2080 | 3,0505 | **+3,0032** |
+
+---
+
+## 63. Q4 — Beide Benchmarks, keiner verdraengt den anderen
+
+**Entscheidung.** Die arretierte v0.1-H2-Referenz **bleibt** als
+Vergleichsanker stehen; die v0.14-Variante wird **daneben** geführt. Beide
+Werte sind im Adapter als read-only Register abgelegt und werden in der
+Verifikation gegeneinander geprüft.
+
+**Benchmark-Register (`backtest_lab/phasen_regime_adapter.py`):**
+
+| Konstante | Wert | Rolle |
+|---|---|---|
+| `BASELINE_V01_H2_R` | **7.902085** | v0.1-Baseline (K73-Umweg, arretiert) |
+| `BENCHMARK_V014_H2_R` | **22.285802** | v0.14 (Phasen-Override) |
+| `BENCHMARK_V014_GESAMT_R` | **61.250064** | v0.14 gesamt (17 Trades) |
+| `BENCHMARK_V014_DELTA_R` | **14.383717** | Zuwachs gegenüber v0.1 |
+| `QUARTETT_V014_BARS` | `(903, 980, 981, 1020)` | Arretierung (§62) |
+
+**Konsistenzprobe (im Lauf erzwungen):** `BENCHMARK_V014_H2_R − BASELINE_V01_H2_R
+= BENCHMARK_V014_DELTA_R` → `22,285802 − 7,902085 = 14,383717` ✅.
+
+**Verifikationsergebnis (Engine-Lauf, In-Memory-Injektion, Engine byte-unberührt):**
+
+| Kennzahl | Soll | Ist |
+|---|---|---|
+| V0-Referenz | 14 / +40,445143 R | **14 / +40,445143 R** ✅ |
+| v0.1-Baseline über Injektion (bit-identisch) | 15 / +46,866348 R | **15 / +46,866348 R** ✅ |
+| H1 (Override-Lauf) | 8 / +38,964262 R | **8 / +38,964262 R** ✅ |
+| H2 v0.1 | 7 / +7,902085 R | **7 / +7,902085 R** ✅ |
+| H2 v0.14 | 9 / +22,285802 R | **9 / +22,285802 R** ✅ |
+| Gesamt v0.14 | 17 / +61,250064 R | **17 / +61,250064 R** ✅ |
+| Δ | +14,383717 R | **+14,383717 R** ✅ |
+| H2-Zusatztrades | +2 (9 vs. 7) | **9 vs. 7** ✅ |
+
+**Gegenprobe v0.1 (Override-Maschinerie inert, §58.2):** mit deaktiviertem
+Override reproduziert der Lauf die Referenz **exakt** — H1 8 / +38,964262,
+H2 7 / +7,902085, gesamt 15 / +46,866348. ⇒ Das Werkzeug ist beweisbar
+nebenwirkungsfrei.
+
+---
+
+## 64. Q5 — v0.14-Arretierung, Historie unverändert
+
+**Entscheidung.** Die Arretierung erfolgt durch **Hinzufügen** der
+v0.14-Variante, nicht durch Überschreiben. `DEFAULT_ADAPTER` bleibt die
+arretierte v0.1-Baseline (`segmente = (P9,)`); die v0.14-Variante ist
+**explizit zu wählen**:
+
+```python
+DEFAULT_ADAPTER = PhasenRegimeAdapter()                     # unverändert
+ADAPTER_V014    = PhasenRegimeAdapter(segmente=AKTIVE_SEGMENTE_V014)
+ADAPTER_V014.verifiziere_niveau_overrides()                 # erzwungen beim Import
+```
+
+**Ausgeschlossen:** Der `np.mean`-Basisfehler (§57.1) wird **nicht** durch
+eine Änderung von `_SEEdgeH.basis_bei` korrigiert. Die Core-Engine bleibt
+byte-identisch (S3) — die Korrektur lebt ausschließlich als
+Injektionsschicht (§60). Ebenso unverändert: `box_end_bar = 640` und die
+`_p11`-Projektion (§36.2/§36.3).
+
+**Unberührt / nicht umgebogen:**
+
+| Gegenstand | Status |
+|---|---|
+| v0.14-Addendum §§57–59 | **bewahrt** (Befund-Stand, keine Umschreibung) |
+| P12 / `P12_RESERVE` | Reserve, operativ inert (§48.2) |
+| Darstellungsnorm §§54/55 | gültig; PNG-Neuerzeugung mit K67@69,87-Linie separat |
+| Hook 1 (`dist < 0`) | unverändert; greift in P9 mit Override nicht mehr (§60) |
+
+---
+
+## 65. Status (v0.15)
+
+| Kennzahl | Wert | Berührt durch v0.15? |
+|---|---|---|
+| V0 / H1 | 14 / 8 / **+38,964262 R** | nein (bit-identisch) |
+| V1 (P9, v0.1 arretiert) | 15 / **+46,866348 R** | nein |
+| H2 v0.1 (arretiert) | 7 / **+7,902085 R** | nein |
+| H2 v0.14 (neu) | 9 / **+22,285802 R** | **ja (neu arretiert)** |
+| Gesamt v0.14 (neu) | 17 / **+61,250064 R** | **ja (neu arretiert)** |
+| Δ v0.14 − v0.1 | **+14,383717 R** | **ja (neu arretiert)** |
+| P9-Beitrag v0.14 (Quartett) | **+19,804922 R** | **ja (neu arretiert)** |
+| `DEFAULT_ADAPTER.segmente` | `(P9,)` (unverändert) | nein |
+| `ADAPTER_V014.segmente` | `(P9_DIRECT_69_87,)` | **ja (neu)** |
+| Engine SHA256 | `3ba15c72…5255cb006` | **nein (unberührt)** |
+
+v0.15 ist ein **Umsetzungs-Addendum**: Es dokumentiert die additive
+Adapter-Erweiterung (Phasen-Niveau-Override K67 = 69,87, fail-loud, strikt an
+P9 gebunden), das mitarretierte Quartett und die Nebeneinanderführung **beider**
+Benchmarks — bei byte-unveränderter Engine und unangetasteter H1-Baseline.
+

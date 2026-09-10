@@ -1010,3 +1010,67 @@ Neu verankert unter „# Diverse" als **Zeitbasis-Garantie**:
 
 Addendum v0.9 rein dokumentarisch: kein Code ausgeführt, keine Datei der
 Engine oder des Adapters angefasst.
+
+---
+
+# Addendum v0.10 — Ausführung der Beschlüsse Q1–Q4 (2026-09-10)
+
+**Freigaben:** Q1–Q4 (Anwender, 2026-09-10). **Wirkung:** eine rein
+**lesende Label-Anpassung** in einem gitignored Hilfsskript. Keine
+Regeländerung, kein Engine-Eingriff, keine Baseline-Veränderung, keine
+PNG-Neugenerierung.
+
+## 42. Ausgeführte Beschlüsse
+
+| # | Beschluss | Ausführung | Artefakt berührt |
+|---|---|---|---|
+| Q1 | `CHECKPOINT_2026-09-09.md` bleibt historisch | **keine Änderung** | – |
+| Q2 | PNG-Achsen → Option (ii): Label-Logik deklarativ auf Broker/UTC | **umgesetzt** (s. 43) | `test/tmp_png_aug_sichttest.py` |
+| Q3 | `docs/reclaim_kanten_engine_spez.md` §7.2 Teil 10 unberührt | **keine Änderung** (Verweis trägt §36.3) | – |
+| Q4 | Push des Standes `1c9db3e` | **ausgeführt** (`origin/master == 1c9db3e`, 0/0, clean) | – |
+
+## 43. Q2 — Zeitachsen-Label des Sichttest-Skripts
+
+**Prämisse (belegt):** `d["ts"]` stammt aus der Engine-SQL
+`SELECT time AT TIME ZONE 'Europe/Berlin' AS ts` (Z. 600, eingefrorene
+`_p11`-Ausnahme) ⇒ Berlin (+2 h). Im Skript wurde `ts` **ausschließlich** im
+Label-Pfad verwendet (`to_datetime` → `time_axis`-Ticks); **kein** Einfluss auf
+Trade-Logik, Asserts oder Engine.
+
+| Stelle | vorher | nachher |
+|---|---|---|
+| Modul-Docstring (Konventionen) | 2 Punkte | + Zeitachsen-Konvention (Broker/UTC, Verweis v0.9 §36) |
+| Zeitbasis-Block (bei `d = scan["d"]`) | `ts = pd.to_datetime(d["ts"])` | `AXIS_TZ_OFFSET_H = -2`<br>`ts = pd.to_datetime(d["ts"]) + pd.Timedelta(hours=AXIS_TZ_OFFSET_H)` |
+| `time_axis()` | – | Docstring + `ax.set_xlabel(...)` mit Text `Zeitachse BROKER/UTC (Bar-Index primaer) \| Engine-Konvention Europe/Berlin (+2 h), v0.9 §36` |
+
+`d["ts"]` selbst wird **nicht** mutiert (neue lokale Series). Der Offset ist als
+benannte Konstante deklariert und nicht hardcodiert im Label-Ausdruck.
+
+## 44. Verifikation (lesend, ohne Skript-Ausführung)
+
+| Prüfung | Soll | Ist |
+|---|---|---|
+| `py_compile` | fehlerfrei | **OK** ✅ |
+| Offset-Probe Bar 1211 | Berlin 05:45 → Achse **03:45** (Broker) | **27.08 03:45** ✅ |
+| Offset-Probe Bar 1259 | Berlin 17:45 → Achse **15:45** (Broker) | **27.08 15:45** ✅ |
+| `ts`-Nutzung | nur Label-Pfad | nur Z. 164 / Z. 256 ✅ |
+| Encoding | LF, kein BOM | 714 Zeilen, CRLF 0, BOM False ✅ |
+| PNG 01–05 Bytes | 1.657.807 / 652.507 / 1.168.856 / 698.274 / 1.626.925 | **identisch** (nicht regeneriert) ✅ |
+| Engine SHA256 | `3ba15c72…5255cb006` | unberührt ✅ |
+
+**Keine Neugenerierung:** Die 5 PNGs behalten ihre arretierten Bytegrößen aus
+v0.8/Checkpoint. Die Label-Korrektur greift erst bei einem künftigen,
+manuell angestoßenen Lauf.
+
+## 45. Status
+
+| Kennzahl | Wert | Berührt? |
+|---|---|---|
+| V0 gesamt / H1 / V1 / H2 | 14 / 8 / 15 / 7 (R unverändert) | nein |
+| Engine SHA256 | `3ba15c72…5255cb006` | nein |
+| Sichttest-PNGs (5) | byte-identisch zu v0.8 | nein |
+| `test/tmp_png_aug_sichttest.py` | 714 Z. / 33.037 B (gitignored) | Q2 (Labels) |
+
+Offen für die nächste Sitzung: **Wiederaufnahme der H2/2-Analyse
+(K73-Decke / K82-Boden) auf der dreispaltigen Matrix** (`Bar | Broker/UTC |
+Berlin (+2 h, nur Altzitate)`), Basis §37.

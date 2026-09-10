@@ -2010,3 +2010,181 @@ Adapter-Erweiterung (Phasen-Niveau-Override K67 = 69,87, fail-loud, strikt an
 P9 gebunden), das mitarretierte Quartett und die Nebeneinanderführung **beider**
 Benchmarks — bei byte-unveränderter Engine und unangetasteter H1-Baseline.
 
+---
+
+# Addendum v0.16 — Norm-Amendment: Darstellung der V014-Override-Wirklichkeit (2026-09-10)
+
+**Anlass.** Der Anwender hat nach der Renderer-Sichtung die Punkte F1, F3, F4
+und F5 entschieden. Drei davon sind **Regeländerungen** an der
+Darstellungsnorm §54 und werden hier ausgewiesen.
+
+**Regelhaltung (Option (b), §37.4 — bindend auch für dieses Dokument).** Die
+v0.13-Fassung §54 bleibt **wortgetreu stehen** und wird als Zitat behandelt.
+Alle Erweiterungen werden **angehängt, nicht ersetzt**; §54 wird **nicht** in
+seiner v0.13-Substanz überschrieben. Der Docstring-Kopf von
+`test/tmp_png_aug_sichttest.py` spiegelt ab v0.16 **§54 plus §66**.
+
+## 66.0 Änderungsübersicht
+
+| Punkt | Gegenstand | Art | Betroffene §54-Stelle |
+|---|---|---|---|
+| F1 | Norm-Quelle bleibt deklarierter Gesamtbestand | **Klarstellung** (keine Änderung der Norm) | §54.1.3 |
+| F3 | Override-Zone per Grenzlinien, nicht per Fläche | **Ergänzung** (neu Regel 15) | §54.2 |
+| F4 | Blasse Referenz-Trades im V014-Modus | **Ausnahme** | §54.2 Regel 10 |
+| F5 | Plateau-Syntax für Override-Linien | **Erweiterung** | §54.1 Regeln 1/2 |
+| F7 | Renderer-Konfigurationsvertrag, zwei Instanzen | Ergänzung (Artefakt) | §54.3 |
+| E4 | Fail-Loud ohne Abschalter | **Klarstellung** | §54 i.V.m. §16/§61 |
+
+## 66.1 Norm-Quelle bleibt der deklarierte Gesamtbestand (F1)
+
+**Entscheidung.** §54.1.3 gilt **unverändert wörtlich**: „Norm-Quelle ist
+ausschließlich der Adapter (`P9.decke/boden`, `P12_RESERVE.decke/boden`) —
+kein Hardcoding."
+
+Der geprüfte Gegenvorschlag „nur aktive Segmente" wurde **verworfen**, weil er
+vier arretierte Aussagen gebrochen hätte:
+
+| Gebrochen | Soll | Mit „nur aktiv" |
+|---|---|---|
+| §54.1 Beleglauf | 4 Grenzkanten (K67, K73, K77, K82) | nur 2 (K67, K77) |
+| §54.1.3 Wortlaut | `P9` **+** `P12_RESERVE` | nur `P9` |
+| §55 S5 | verweist auf §54 „in Gänze" | Divergenz Docstring ↔ Spez |
+| §56 Status | „4 von 4" normabweichend | „2 von 2" |
+
+Zusätzlich wäre die **Byte-Identität des arretierten V01-Satzes** (§30/§35)
+nicht mehr haltbar gewesen (P1 verbietet Eingriffe in den v0.1-Bildsatz).
+
+**Entlastender Nebenbefund (verifiziert).** `_basis_von(kid)` liest die
+**Engine**-Basis bei `NORM_REF_BAR = 1259`. Bar 1259 liegt **außerhalb** P9
+⇒ die K67-Normaussage (`69,9458 vs. 69,9140`, Δ `+0,0318`, ABWEICHUNG) ist
+vom P9-Override **unberührt**. Die P9-Lokalität der Übersteuerung ist im
+Norm-Statement damit korrekt abgebildet — es bedarf **keiner** Änderung.
+
+## 66.2 Plateau-Syntax für Override-Linien (Erweiterung §54.1.1/§54.1.2)
+
+**§54.1 Regel 1** wird für Kanten mit `niveau_override` ergänzt:
+
+> Liegt für eine Kante ein phasen-lokaler Niveau-Override vor, lautet das
+> Label **`K<kid> <native_start> -> <override> (<phase>-Override) ->
+> <native_ende> *`**, gefolgt vom Norm-Zitat nach §54.1.3.
+
+`native_start` ist der **verdrängte** native Wert am ersten gezeichneten Bar
+(= `basis_bei` unmittelbar vor bzw. bei Override-Beginn), `native_ende` der
+kausale Endwert nach Verlassen des Override-Fensters.
+
+**§54.1 Regel 2** wird ergänzt: Bei Override-Linien ist der `*`-Marker
+**verpflichtend** (fett, Rahmen `C_CHG`), auch wenn nur zwei
+Preiswechsel-Stufen vorliegen — Unterscheidungsmerkmal „Übersteuerung" statt
+„natürlicher Preiswechsel".
+
+**Beleglauf K67 (Auflösung in Einzelbars, verifiziert gegen
+`test/tmp_png_aug_sichttest_out.txt`):**
+
+| Bar | native `basis_bei(k)` | wirksam (V014) | Quelle |
+|---|---|---|---|
+| 875 | 69,9750 | **69,8700** | Override (erster bestätigter Wick = 873) |
+| 883 | 69,9875 | **69,8700** | Override |
+| 906 | 69,9687 | **69,8700** | Override |
+| 982 | 69,9513 | **69,8700** | Override |
+| 1021 | 69,9513 | 69,9513 | nativ (Wick 1020 noch unbestätigt: 1022 > 1021) |
+| 1022 | 69,9458 | **69,9458** | nativ, alle 5 Wicks |
+
+⇒ native Stufen **5** (Protokollzeile `K67 69.9750 -> 69.9458 (delta -0.0292,
+5 Stufen)`) · wirksame Stufen **3** (875 / 1021 / 1022) · `v_ende = 69,9458`
+(**nicht** 69,9513).
+
+**Resultierendes Label:**
+
+```
+K67 69.975 -> 69.870 (P9-Override) -> 69.946 *  Norm 69.9140
+```
+
+Die Linie wird ab Bar **875** starr auf `69.8700` geführt (Kantenmaske
+`pivot_bar + 2`), verlässt das Regime geometrisch bei **1021** und nimmt auf
+**1022** ihren nativen Endwert an.
+
+## 66.3 Override-Zonen: Grenzlinien statt Fläche (Erweiterung §54.2; neu Regel 15)
+
+**§54.2 wird um Regel 15 ergänzt:**
+
+> **Override-Zonen werden durch vertikale Grenzlinien markiert, nicht durch
+> eine überlagernde Fläche.** Je Override-Segment werden zwei gestrichelte
+> Vertikalen an `start_bar` und `end_bar + 1` in `C_CHG` mit Kleintext
+> gesetzt (`Override <phase> <preis> ab Bar <start>` / `… bis Bar <end>`).
+> Ein `axvspan` in `C_CHG` ist unzulässig, weil es mit der Regime-Zone
+> (`C_REGIME`, §54.2) und dem Label-Rahmen farblich kollidiert.
+
+Begründung (F3): Der Eintritt ist **nicht** als Linienknick zeichenbar — K67
+existiert erst ab Bar 875 (`pivot_bar + 2`), während das Regime institutionell
+ab Bar 848 gilt. Die Grenzlinien trennen daher sauber **Regime-Gültigkeit**
+(848) von **Kanten-Existenz** (875) und **Austritt** (1021). In Panels, die
+Bar 848 nicht enthalten (H1-Box, Panel 02), entfallen die Grenzlinien.
+
+**Geltung:** nur bei `k67_override_aktiv = True` (Modus V014). Im Modus V01
+wird weder Linie noch Kleintext erzeugt.
+
+## 66.4 Referenz-Trades im V014-Modus (Ausnahme zu §54.2 Regel 10)
+
+**§54.2 Regel 10** („Trade-Kreise sind **immer** farbig gefüllt (`mfc=col`)")
+erhält eine **deklarierte Ausnahme**:
+
+> Im Modus V014 werden die im V014-Lauf **entfallenen** V01-Trades
+> (Mengendifferenz `V1_basis \ V1_aktiv`) als **Referenzmarker** gezeichnet:
+> gestrichelt, `mfc="none"`, Randfarbe grau, `alpha ≈ 0.45`. Sie sind damit
+> von handelnden Trades unterscheidbar und **nicht** als Positionen lesbar.
+> Die Regel „handelnde Trades sind farbig gefüllt (`mfc=col`)" bleibt für alle
+> Trades beider Läufe unangetastet; die Ausnahme betrifft ausschließlich
+> entfallene Referenzmarker.
+
+**Begründung (F4/P4).** Der Sichtprüfer muss den Eingriff unmittelbar sehen:
+„innerer Trade eliminiert, durch überlegenen Direkt-Sweep ersetzt". Erwartete
+Menge (programmgesteuert, **kein** Hardcoding): `K73@980`, `K73@1020`;
+Gegenstück im Aktiv-Lauf: `K67@903`, `K67@980`, `K73@981`, `K67@1020`.
+
+## 66.5 Renderer-Konfiguration und Fail-Loud (F7, E4)
+
+**F7 — ein Vertrag, zwei Instanzen.** Die Konfiguration wird als **eine**
+`@dataclass(frozen=True, slots=True)` `RendererKonfiguration` geführt mit den
+Instanzen `KONFIGURATION_V01` und `KONFIGURATION_V014`
+(`AdapterMode = Literal["V01", "V014"]`). Die Feldwerte sind der arretierte
+Assert-Katalog:
+
+| Feld | V01 | V014 |
+|---|---|---|
+| `ausgabe_praefix` | `aug_sichttest_` | `aug_sichttest_v014_` |
+| `protokoll_datei` | `test/tmp_png_aug_sichttest_out.txt` | `test/tmp_png_aug_sichttest_v014_out.txt` |
+| `ziel_trades_gesamt` | 15 | 17 |
+| `ziel_r_gesamt` | 46,866348 | 61,250064 |
+| `ziel_r_h1` | 38,964262 | 38,964262 |
+| `ziel_r_h2` | 7,902085 | 22,285802 |
+| `ziel_p9_beitrag` | 5,4212 | 19,804922 |
+| `k67_override_aktiv` | False | True |
+| `niveau_override_wert` | None | 69,8700 |
+| `alt_trades_einblenden` | False | True |
+| `quartett_bars` | `()` | `(903, 980, 981, 1020)` |
+
+**E4 — Fail-Loud ist nicht optional.** Das im Entwurf vorgesehene Feld
+`fail_loud_asserts_aktiv` wird **ersatzlos gestrichen**. Es gibt keinen
+Schalter „Asserts aus"; §16 (Fail-Loud-Init) und §61 (Fail-Loud-Override)
+sind erzwungen. Bei Abweichung endet der Lauf mit Exit-Code ≠ 0.
+
+**Protokolltrennung (E3).** Der V014-Lauf schreibt in
+`test/tmp_png_aug_sichttest_v014_out.txt`. Das v0.1-Protokoll
+`test/tmp_png_aug_sichttest_out.txt` ist **versiegeltes** Referenzartefakt und
+wird **nicht** überschrieben.
+
+## 66.6 Status (v0.16)
+
+| Kennzahl | Wert | Berührt durch v0.16? |
+|---|---|---|
+| V0 / H1 | 14 / 8 / +38,964262 R | nein |
+| V1 v0.1 (arretiert) | 15 / +46,866348 R | nein |
+| H2 v0.1 / H2 v0.14 | 7 / +7,902085 R · 9 / +22,285802 R | nein |
+| Norm-Quelle (§54.1.3) | `P9` + `P12_RESERVE` (4 Grenzkanten) | **bestätigt, unverändert** |
+| Engine SHA256 | `3ba15c72…5255cb006` | nein |
+| Regelbestand | §54 (v0.13) **+** §66 (v0.16) | **erweitert** |
+
+v0.16 ist ein **Regel-Amendment**: Es ergänzt §54 um die Darstellung der
+Override-Wirklichkeit (Plateau-Syntax, Grenzlinien, Referenzmarker) und
+bestätigt die Norm-Quelle. §54 bleibt als v0.13-Zitat unverändert bestehen.
+

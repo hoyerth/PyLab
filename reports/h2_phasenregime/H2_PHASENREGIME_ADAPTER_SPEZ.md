@@ -938,8 +938,48 @@ Referenz-Bars des Registers (Dreispalten-Pflicht, `Agents.md`):
 | K67 | OBEN | 69,9140 | 69,9458 | – | M6-Außenwand |
 | K73 | OBEN | 69,5550 | **69,6714** | 69,6865 | P12-Decke |
 | K76 | OBEN | – | – | **69,507** | Innenlinie |
-| K82 | UNTEN | 67,6355 | **67,5273** | – | P12-Boden |
+| K82 | UNTEN | 67,6355 ¹ | **67,5273** | – | P12-Boden |
 | ~~K74~~ | OBEN | ~~69,613~~ | – | – | **R21-eliminiert (Bar 1104)** |
+
+**¹ K82 — drei Werte, drei Rollen (Entscheidung: Option (b), revisionssicher).**
+
+`67,6355` bleibt als **historische v0.4-Provenienz-Norm** stehen und wird
+**nicht** ersetzt — Altdokumente (v0.4–v0.8, `docs/`) behalten damit ihre
+Gültigkeit. Es ist **nicht** die reale Kante am P12-Boden. Abgrenzung:
+
+| Wert | Rolle | Herleitung | Zeilen |
+|---|---|---|---|
+| **67,6355** | **v0.4-Provenienz-Norm** (historisch) | Altzitat; keine Rekonstruktion aus der heutigen Scan-Rechnung. Als Kante **nicht** handelbar — die Engine führt sie nicht. | – |
+| **67,5455** | **finale Scan-Basis** (`e.basis`) | Mittel **aller vier** bestätigten Wicks: `(67,535 + 67,553 + 67,494 + 67,600) / 4 = 67,5455` | Bars 1031 / 1056 / 1172 / 1259 |
+| **67,5273** | **kausale Basis** `basis_bei(1259)` | Mittel der **ersten drei** Wicks (§37.1 Mean-Beweis, `pivot_bar + 2 <= 1259`): `(67,535 + 67,553 + 67,494) / 3 = 67,52733` | Bars 1031 / 1056 / 1172 |
+
+**Leseregel:** Provenienz-Norm (Spalte „Provenienz-Basis") ist der
+**dokumentarische** Bezugspunkt, `basis_bei(k)` der **operative**. Wo beide
+auseinanderfallen (K82: Δ = 0,1082), gilt für jede Handels- und
+Darstellungsaussage **`basis_bei(k)`**; die Norm bleibt als Herkunftsvermerk
+zitiert. Die Abgrenzung ist damit eindeutig und ohne Verfälschung der
+Altdokumente.
+
+**Verankerung im Code (Option (b) ist dort bereits gelebte Praxis):**
+
+| Stelle | Aussage |
+|---|---|
+| `backtest_lab/phasen_regime_adapter.py` Z. 26–27 (Invariante 2) | „Die Band-Pruefung nutzt IMMER die kausale Basis `basis_bei(k)`; der statische `provenienz_basis`-Wert ist **reine Dokumentation/Audit**." |
+| ebd. Z. 73–75 (Docstring `PhasenKanteInfo`) | `provenienz_basis` = „Niveau aus der **v0.4-Baseline** (`U_final`/`L_final`) … NUR Dokumentation/Audit." |
+| ebd. Z. 156 (P12-Kommentar) | „Ziel 67.6355 = **v0.4 `L_final`** (Provenienz-Norm, **empirisch noch unbelegt**)." |
+| ebd. Z. 162–163 (`P12_RESERVE`) | `boden=PhasenKanteInfo(kid=82, provenienz_basis=67.6355)`, `ziel_preis_short=67.6355` |
+
+Die Norm ist also **nicht** handelbar und **nicht** die Engine-Kante — sie
+läuft ausschließlich als **Kommentar- und Auditwert** mit. Genau das verlangt
+Option (b).
+
+**Fail-Loud-Probe bleibt grün (1,00-%-Toleranz, Z. 233–248):** Für K82 wird
+in der Reserve-Auditierung `basis_bei(1259) = 67,5273` gegen die Norm
+geprüft: `|67,5273 − 67,6355| / 67,6355 = 0,1600 %` < `1,00 %`
+(mit der finalen Scan-Basis 67,5455 wären es `0,1331 %`). Belegt durch
+`test/tmp_test_phasen_regime_adapter.py` (Test 1b: „K 82: seite=UNTEN
+basis_bei(1259)=67.5273 … -> OK: P12-Reserve auditiert"). Die Abgrenzung
+nach Option (b) bricht die Prüfung **nicht**.
 
 ---
 

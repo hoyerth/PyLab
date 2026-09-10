@@ -2394,3 +2394,428 @@ V014-Satzes durch den Anwender (Schritt 4). Sie kann Korrekturen an der
 Darstellung nach sich ziehen; solche Korrekturen wären als
 **v0.18-Amendment** auszuweisen, nicht als stille Änderung an §66/§67.
 
+
+---
+
+# Addendum v0.19 — Q29-Forensik und generische Phasenboden-Regel G4 (2026-09-10)
+
+**Auftrag.** Erkundung und Dokumentation des Q29-Sperrmechanismus
+(`quartil_distanz_pct`) und der POC-Geometrie am P9-Boden sowie Herleitung einer
+**generischen** Phasenboden-Regel. **Wirkung:** reines **Dokumentations-Addendum**
+— Engine, Adapter und beide arretierten Bildsätze bleiben byte-unverändert. Es
+wird **kein** Produktivpfad geändert.
+
+| Übergabe | Gegenstand | Status |
+|---|---|---|
+| Regelwerk | §69 (dieses Addendum) | **neu** |
+| Engine | `test/tmp_kanten_engine_replay.py` | SHA256 `3ba15c72…5255cb006` **unberührt** |
+| Adapter | `backtest_lab/phasen_regime_adapter.py` | SHA256 `50bd47c6…afd9b4eda` **unberührt** |
+| Belegskripte | `test/_tmp_q29_audit*.py`, `test/_tmp_p9_boden_sichtung.py` | gitignored, **rein lesend** |
+| Bildsätze | v0.1 (5 PNG) **+** v0.14 (5 PNG) | **unberührt** |
+
+**Entscheide in Kurzform:** Q29 wird **nicht** umgebaut · `poc_start = 0` global
+bleibt **tabu** · die Regel wird **generisch** als G4 beschrieben (kein
+Hardcoding auf Bar 1002) · Anker der Bodenregel ist **zwingend Literal** · Zugang
+ausschließlich über `adapter.segmente` (`AKTIVE_DEFAULT_SEGMENTE = (P9,)`) ·
+**v0.18 bleibt für die visuelle Abnahme des V014-Satzes reserviert**.
+
+## 69.0 Geltung und Abgrenzung
+
+1. **append-only.** Dieses Addendum ergänzt; §54 (v0.13), §66 (v0.16) und §67
+   (v0.17) bleiben als Zitat unverändert bestehen.
+2. **Kein Eingriff.** Alle Aussagen beruhen auf **lesenden** Läufen gegen die
+   arretierte Engine und den Adapter; es wurde keine Zeile Produktivlogik
+   angefasst.
+3. **v0.18 ist belegt.** §67.9 reserviert v0.18 ausdrücklich für die visuelle
+   Abnahme des V014-Satzes. Die hier dokumentierte Materie ist davon unabhängig
+   und erscheint deshalb als **v0.19 / §69**.
+4. **Kein Ertragsanspruch.** Die in §69.5/§69.8 genannten Regel-Erträge sind
+   **Papier-Befunde** (rein lesende Rechnung). Sie sind **nicht** Teil einer
+   Baseline und **nicht** Teil des arretierten Ertrags.
+
+## 69.1 Q29-Prädikat: Anatomie und Einseitigkeit
+
+Fundstelle: `backtest_lab/phasen_regime_adapter.py`, **Z. 2411–2426**; die
+Rückgabe steht in **Z. 2426**:
+
+```python
+return distanz <= cfg.quartil_distanz_pct
+```
+
+| Eigenschaft | Befund |
+|---|---|
+| Parameter | `quartil_distanz_pct = 25` |
+| Prädikat | **einseitig** — geprüft wird nur die obere Schranke |
+| Negative Distanz | **erlaubt** (Sweep unterhalb des Bezugsbodens sperrt nicht) |
+| Bezugsrahmen | `ex_lo` / `ex_hi` der laufenden Extremspanne |
+| `ex_lo` | ab Bar **673** arretiert auf **62.5480** |
+| `ex_hi` | ab Bar **881** arretiert auf **70.0000** |
+| `spanne` | **7.4520** (ab 881 konstant) |
+| LONG-Limit | `62.5480 + 0.25 · 7.4520 = 64.4110` |
+| SHORT-Limit | `70.0000 − 0.25 · 7.4520 = 68.1370` |
+
+Die Einseitigkeit ist die **Wurzel** des in §69.5 beschriebenen Artefakts: Ein
+Bar, der den Boden *nach unten* durchsticht, liegt mit **negativer** Distanz auf
+der erlaubten Seite.
+
+## 69.2 Sperrwirkung: Anzahl, Verteilung, Schutzbeitrag
+
+| Größe | Adapterlauf | Rohlauf (V0) |
+|---|---|---|
+| Sperren gesamt | **57** | **56** |
+| davon SHORT | 7 | 7 |
+| davon LONG | 50 | 49 |
+| H1-Sperren | **25** (19 L / 6 S) | – |
+| H2-Sperren | **32** (31 L / 1 S) | – |
+
+**H1-Wirkung (Q29 als Schutz):**
+
+| Trade | R |
+|---|---|
+| K13@310 | −0.361175 |
+| K21@378 | −1.000000 |
+| K25@429 | −1.000000 |
+| **Summe** | **−2.361175** |
+
+⇒ H1 **36.603087** → **38.964262 R**. Q29 rettet in H1 also **+2.361175 R**.
+
+**Gegenprobe (Q29 aus):**
+
+| Bezug | Trades / R | Δ zu 15 / +46.866348 |
+|---|---|---|
+| Adapter | 19 / **+44.044802 R** | **−2.821546** |
+| Roh | 21 / **+35.193931 R** | **−5.251211** |
+
+Die neu hinzukommenden Trades sind **ausnahmslos Verlierer**:
+`K13@310`, `K21@378`, `K25@429`, `K79@991` (−0.460371). **Entfallende** Trades:
+**keine** (in beiden Bezügen). ⇒ Q29 ist **nicht** ertragsneutral, sondern
+**netto ertragsstützend**; ein Abschalten ist **destruktiv** und wurde verworfen.
+
+## 69.3 Schwellen-Sweep und Optionsraum
+
+**Sweep über `quartil_distanz_pct` (Adapterlauf):**
+
+| Schwelle | Trades | R | Sperren |
+|---|---|---|---|
+| 0 | 2 | +5.924513 | 123 |
+| 10 | 9 | +45.092445 | 79 |
+| **25 (IST)** | **15** | **+46.866348** | **57** |
+| 50 | 18 | +44.505172 | 34 |
+| 100 | 19 | +44.044802 | 0 |
+
+Der Ist-Wert **25** liegt am **Optimum** der untersuchten Reihe; sowohl
+Verschärfung als auch Lockerung sind ertragsmindernd.
+
+**Option-B-Arme (phasen-lokaler Bezugsrahmen):**
+
+| Arm | Trades | R |
+|---|---|---|
+| global (IST) | 15 | +46.866348 |
+| Fenster 100 | 19 | +44.044802 |
+| Fenster 250 | 16 | +45.866348 |
+| ab Bar 640 | 17 | +38.024292 |
+| **Phasenfenster** | 16 | **+46.405977** |
+
+Der Phasenfenster-Arm ist der einzige, der sich dem Ist-Wert nähert; der Zusatz
+besteht aus genau **`K79@991` (−0.460371)**. ⇒ Auch die phasen-lokale Variante
+bleibt **unter** dem Ist-Wert. **Verworfen.**
+
+## 69.4 Arme A0–A3: POC-Modell × Q29-Modell
+
+| Arm | POC-Anker | Q29-Modell | Trades | R | H1 | H2 | 991 | 1002 |
+|---|---|---|---|---|---|---|---|---|
+| **A0 (IST)** | 0 | einseitig, global | 15 | **+46.866348** | 8/+38.964262 | 7/+7.902085 | – | – |
+| A1 | 848 | einseitig, global | 13 | +41.445143 | 8/+38.964262 | 5/+2.480880 | – | – |
+| A2 | 0 | zweiseitig, phasen-lokal | 16 | +46.433458 | 8/+38.964262 | 8/+7.469196 | – | – (stattdessen **K79@992 −0.43**) |
+| A3 | 848 | zweiseitig, phasen-lokal | 17 | +43.927022 | 8/+38.964262 | 9/+4.962759 | – | **K77 +3.6785** |
+
+**Befunde:**
+
+1. **Δ A0→A3 = −2.939326 R.** Die kombinierte Modelländerung ist **destruktiv**.
+2. **A1/A3 löschen das P9-Quartett.** Mit `poc_start = 848` entfallen `K73@980`
+   (+2.4119) und `K73@1020` (+3.0093) — das **P9-Fenster wird leer**.
+3. **H1 ist in allen vier Armen bit-identisch** (8 / +38.964262). Kein POC- oder
+   Q29-Modell berührt H1.
+4. **Das zweiseitige Q29 tötet 991 nur scheinbar.** Der Artefakt wandert auf
+   **`K79@992` (−0.43 R)** — die Sperre ist nicht kausal beseitigt, sondern
+   **verschoben**.
+
+⇒ **Konsequenz:** weder `poc_start` global noch das Q29-Prädikat werden
+angefasst. Die Bodenfrage wird **regel-lokal** gelöst (§69.8).
+
+## 69.5 POC-Blockade am Bar 1002 (der wahre Blocker)
+
+Der P9-Boden ist **68.4000** — deklarierter Boden der Kante **K77**, nicht
+„äußerste Wand" (darunter liegen K60 67.9183 und K62 67.7260). Am Bar **1002**
+sind **alle** Vorbedingungen der Bodenregel erfüllt; blockiert wird der Trade
+**allein** von der POC-Ordnung.
+
+| Größe | Wert |
+|---|---|
+| `basis_bei(1002)` | 68.3427 |
+| `sweep` = `lo[1002]` | 68.3080 |
+| `stufe` | 1 (`STUFE_1_IN_BAR`) |
+| `entry_bar` | 1003 |
+| `entry` = `open[1003]` | 68.5070 |
+| `SL` = 68.3080 − 0.05 | **68.2580** |
+| `tp2` | 69.9140 |
+
+Geprüft wird in **Z. 2641** die Ordnung `sl < entry < poc < tp2`:
+
+| `poc_start` | POC | Ordnung `entry > poc` | Ergebnis |
+|---|---|---|---|
+| **0 (IST)** | **68.3820** | **verletzt** | **kein_raum** |
+| 848 | **68.9319** | OK | handelbar |
+| 991 | 68.4605 | verletzt | gesperrt |
+
+Mit eingeschränktem Bereich 68.40–69.87: `0 → 68.4368` (verletzt) ·
+**`848 → 68.9513` (OK)** · `991 → 68.4613` (verletzt).
+
+**Warum der globale POC hier versagt:** `poc_start = 0` zieht die gesamte
+Historie seit Bar 0 in die Bins; das Volumen der tiefen H1-Phase drückt den POC
+**unter** den Entry. Der Anker ist damit **phasenfremd**. Ein Ersatz durch 848
+innerhalb der Regel ist kausal begründet (Phasenstart P9), wäre **global** aber
+eine Baseline-Änderung — deshalb striktes Veto (Entscheid 3).
+
+**Degenerierter Papier-R** bei erzwungener Ordnung (`poc_start = 0`):
+**+2.574197** — die Hälfte 1 (TP1 = POC **unter** Entry) wäre −0.502 R. Dieser
+Wert ist ein **Befund zur Veranschaulichung**, **kein** Ertrag und **kein**
+Regelbestandteil.
+
+## 69.6 Klärung 991 ⇄ 1002 und „57 vs. 56"
+
+**a) 991 ⇄ 1002 koppeln im Ist-Code nicht.** Die Zyklussperre läuft über `kid`
+(Z. 2379 `letzter_trade`, Z. 2596–2607); `K79` (991) und `K77` (1002) sind
+**verschiedene** Kanten. Messung: **Q29 aus** *und* 991 unterdrückt ⇒ **1002
+weiterhin NEIN**. Die Bars **1003–1015 haben keinen Kandidaten**. Eine
+`kid`-Kopplung entsteht erst **unter** einer aktiven K77-Regel (dort Abstand
+11 < `retest_zyklus_bars` 12, siehe C2).
+
+**b) Kandidaten-/Gate-Trace 985–1015 (Q29 aus):**
+
+| Bar | Kante | `stufe` | Gate-Ergebnis |
+|---|---|---|---|
+| 991 | K79 | 2 | Kandidat |
+| 992 | K79 | 1 | **Zyklussperre** (Abstand 0) |
+| 997, 998 | K79 | None | – |
+| **1002** | **K77** | **1** | **`kein_raum` (`L-Ordnung`)** |
+| 1003–1015 | – | None | – |
+
+**c) „57 vs. 56" ist kein Widerspruch.** Am Bar **998**:
+im **Rohlauf** ist `_kandidat = None` (K77 lebt ⇒ Frühausstieg, 56 Sperren);
+im **Adapterlauf** nimmt Hook 1 K77 aus dem Pool, K79 wird Kandidat und Q29
+sperrt (57 Sperren). **Beide Zahlen sind korrekt** — sie stammen aus
+verschiedenen Läufen.
+
+**d) H2-Sperren in P9:** 939, 950, 951, 959, 961, 962, **991**, 992, 997, 998,
+**1002** — davon nur **991** und **1002** handelbare Kandidaten.
+
+## 69.7 Kanten-Knicken: 54 von 73 Linien
+
+**Prämisse bestätigt, mit Präzisierung:** Es gibt **keine Feinjustierungslogik**.
+Das Knicken ist **rohe `np.mean`-Wirkung** an genau **zwei** Stellen:
+`basis_bei` (**Z. 2118**) und `_akzeptiere` (**Z. 2201**).
+
+| Größe | Wert |
+|---|---|
+| Linien gesamt | 73 (59 Edges + 14 Seeds) |
+| geknickt | **54 (≈ 74 %)** |
+| \|Δ\| minimal | 0.0007 (K9) |
+| \|Δ\| Median | ≈ 0.024 |
+| \|Δ\| maximal | **0.0758 (K67: 69.8700 → 69.9458)** |
+| Stufen | bis 13 (K17), 12 (K16, K12) |
+
+Das einzige **Einfrieren** ist der Primär-Anker (Z. 2115–2118): Er wird bei der
+Promotion auf `aeus_ref` gesetzt (Z. 2248–2250) — also auf das
+**Promotions**niveau, **nicht** auf das Ursprungsniveau.
+
+Operativ relevant (|Δ| > `sl_buffer_usd` = 0.05): **K67, K80, K61, K78**.
+
+Relevante Drifter:
+
+| Kante | von | nach |
+|---|---|---|
+| K67 | 69.8700 | 69.9458 |
+| K77 | 68.3920 | 68.3597 |
+| K79 | 68.6320 | 68.6260 |
+| K71 | 68.8700 | 68.8912 |
+| K60 | 67.8970 | 67.9081 |
+| K62 | 67.7260 | 67.7328 |
+
+## 69.8 Teil 2 — Generische Phasenboden-Regel G4
+
+**Begriff.** Der *deklarierte Phasenboden* ist der Bodenpreis der **untersten
+deklarierten Bodenkante** des betrachteten Segments (hier P9, K77 → **68.4000**).
+Er ist ein **Literal** (Anker-Invariante, §69.9).
+
+**Regel (kausal, vektorisierbar, je Bar `k` des Segments):**
+
+```
+(1) lo[k]  <  deklarierter_boden_preis
+(2) cl[k]  >  deklarierter_boden_preis
+(3) touch_conf(bodenkante, k)  >=  3        # V-S >= 3, kausal
+(4) deklarierter_boden_preis  ist LITERAL   # kein basis_bei(k)
+```
+
+Bei Erfüllung: `entry_bar = k + 1`, `entry = open[entry_bar]`,
+`SL = min(lo[k:k+2]) − sl_buffer_usd` (0.05), **POC regel-lokal** (Anker =
+**Phasenstart des Segments**), `TP2` = Segment-Override in der Kaskade
+**`niveau_override` → `ziel_preis` → `provenienz_basis`**.
+
+**Variantenhistorie (Papier, lesende Rechnung):**
+
+| Variante | Zusatzbedingung | Treffer | R |
+|---|---|---|---|
+| G0 | roh, ohne Zusatz | 2 | +2.619774 |
+| G1 | + neues Extremtief | 2 | +2.619774 |
+| G2 | + „äußerste Wand" | **0** | – |
+| **G4** | **+ (3) V-S ≥ 3** | **[1002]** | **+3.629016** |
+| G3 (forciert) | Ordnung erzwungen, POC-Anker 0 | 1 | +2.595884 (**Ordnung verletzt**) |
+| G3 (forciert) | Ordnung erzwungen, POC-Anker 848 | 1 | **+3.629016** |
+
+**G0 ist unzulässig (C6).** Der Treffer an Bar **934** benutzt `e.basis` als
+Niveau — das ist **Look-ahead** und damit kein gültiger Kandidat. G1 ändert
+nichts (dasselbe Bar). G2 verlangt fälschlich die „äußerste Wand" und liefert 0
+Treffer, weil K77 **deklarierter** Boden ist, nicht äußerste Wand (C4). Erst die
+kausale Touch-Bestätigung **(3) V-S ≥ 3** isoliert den **einen** handelbaren Bar.
+
+**Der Treffer (regel-konform):**
+
+```
+K77@1002  STUFE_1_IN_BAR  entry_bar 1003  entry 68.5070  SL 68.2580
+          POC 68.9513 (Anker 848)  TP2 69.8700  risk 0.2490
+          -> +3.629016 R  GEWONNEN  (TP1 exit 1011 / TP2 exit 1020)
+```
+
+**Kausalitätsnachweis der Touch-Bestätigung:** `touch_conf(K77)` = 1 bei 991 ·
+2 bei 1000 · **3 bei 1002** — 1002 ist der **erste handelbare** Bar.
+
+**P9-Bodenanatomie (Beleg, CSV `test/archiv/silver_m15_ohlc_2026-08-10_2026-08-28.csv`):**
+
+| Bar | Zeit (UTC) | Low | Rolle |
+|---|---|---|---|
+| 881 | – | 70.0000 | P9-Hoch |
+| 894 | 2026-08-21 16:30 | 68.870 | Setback (K71-Geburt) |
+| 934 | 2026-08-24 03:30 | 68.392 | K77 `piv1`, Wick 1 |
+| 991 | 2026-08-24 17:45 | 68.348 | K77 Keimung, Wick 2 |
+| 997 | 2026-08-24 19:15 | 68.368 | – |
+| 999 | 2026-08-24 19:45 | 68.318 | – |
+| 1000 | 2026-08-24 20:00 | **68.288** | **echtes P9-Tief** |
+| 1001 | 2026-08-24 20:15 | 68.382 | – |
+| **1002** | **2026-08-24 20:30** | **68.308** | **letzter Sweep, Wick 3 (bestätigt bei 1000+2)** |
+
+Ab Bar **1003** kein Rückfall unter 68.40 mehr (Tiefs 68.440 → 68.800).
+P9-Fenster 848–1020: `min(low) = 68.2880 @ 1000`, `max(high) = 70.0000 @ 881`.
+
+## 69.9 Anker-Invariante: Literal vs. `basis_bei(k)`
+
+`deklarierter_boden_preis` muss ein **Literal** sein. Wird stattdessen
+`basis_bei(k)` als Anker eingesetzt, kippt die Regel von einer gezielten
+Bodenprüfung in eine **flächendeckende** Bedingung — der Beleg:
+
+| Anker | Treffer | davon H1 (`< 640`) |
+|---|---|---|
+| **Literal 68.4000** | **2** | **0** ✅ |
+| `basis_bei(k)` | **126** | **122** |
+
+Die lockere `basis_bei(k)`-Variante verteilt Treffer über **P6 9**, **P10 17**,
+**P11 24** — also über Segmente, in denen **kein** deklarierter Bodenbruch
+stattfindet. Der Literal-Anker ist damit die **einzige** Fassung, die
+Additivität (§69.10) erhält. **`basis_bei(k)` als Anker ist verboten.**
+
+## 69.10 Additivitätsnachweis T1–T5
+
+Alle Tests **rein lesend**, gegen den arretierten Stand.
+
+| Test | Umfang | Ergebnis |
+|---|---|---|
+| **T1 P9** | Regel auf P9 | Kandidat **[1002]** → **+3.629016 R** ✅ |
+| **T3 H1** | Regel auf H1 (`bar < 640`) | **0 Treffer** ✅ |
+| **T5** | Regel auf P6/P7/P8/P10/P11 | **0 Treffer** ✅ |
+| **T4 Kollision** | Entry 1003 ∩ V1_basis-Entry-Bars | **leer** ✅ |
+| **T1 P12_RESERVE** | Regel auf P12 | Kandidat **[1259]** → **+2.234280 R** (siehe §69.11) |
+
+V1_basis-Entry-Bars: `{231, 245, 384, 399, 493, 531, 565, 621, 640, 653, 681,
+716, 762, 982, 1021}` — Bar **1003** ist **nicht** enthalten.
+
+Die Additivitätsbedingung **0/0/0/0** (kein Zusatz in H1, P6, P7, P8, P10, P11)
+ist erfüllt. Der einzige Zusatz liegt in **P9** — dem Segment, das ohnehin
+Gegenstand der v0.14-Arbeit ist.
+
+## 69.11 Beobachtung P12_RESERVE (inaktiv im Scope)
+
+Der T1-Lauf wurde **testweise** auch auf **P12** (`P12_RESERVE`, Bars 1171–1272)
+angewandt. Ergebnis: genau **ein** Kandidat.
+
+```
+Bar 1259  lo 67.600  <  67.6355  <  cl 67.929
+          touch_conf(K82) = 3   (K82 piv1 1031, geb 1056)
+          -> +2.234280 R   (regelkonform, NICHT spurious)
+```
+
+**Bewertung:** Der Kandidat ist **regelkonform** und **nicht** Artefakt — er
+liegt aber **außerhalb des freigegebenen Scopes**. Der Zugang der Regel ist
+zwingend an **`adapter.segmente`** gebunden (`AKTIVE_DEFAULT_SEGMENTE = (P9,)`);
+`P12_RESERVE` ist damit **inert**. Die Beobachtung wird **dokumentiert**, aber
+**nicht aktiviert**. Eine Aktivierung wäre ein eigener, ausdrücklich
+freizugebender Schritt.
+
+## 69.12 Korrektur-Register C1–C7
+
+| Nr. | Korrigierte Aussage | Feststellung |
+|---|---|---|
+| **C1** | „991 wird durch `pivot + 2` ausgeschlossen" | Nein — ausschlaggebend ist **V-S ≥ 3** |
+| **C2** | „12-Bar-`kid`-Kopplung K79/K77" | Gilt erst **unter** einer K77-Regel (Abstand 11 < 12), **nicht** im Ist-Code |
+| **C3** | `k77_trade_ertrag_r = 3.6785` | Das ist nur der **A3**-Wert; regel-eigener POC = **3.629016**, globaler POC degeneriert = 2.595884 |
+| **C4** | „68.4000 = äußerste Wand" | Falsch — **deklarierter** Boden (**K77**); K60 (67.9183)/K62 (67.7260) liegen darunter |
+| **C5** | „Baseline gefährdet" | Nur in **A1/A3**; A0/A2 unberührt, H1 in allen Armen bit-identisch |
+| **C6** | „G0-Trade bei Bar 934 ist gültig" | Nein — benutzt `e.basis`, also **Look-ahead**, unzulässig |
+| **C7** | „nächstes Addendum = v0.18" | Falsch — §67.9 reserviert **v0.18** für die visuelle Abnahme; diese Materie ist **v0.19** |
+
+Zusätzlich berichtigt gegenüber dem ersten P9-Arbeitsblock: `touch_2` gehört zu
+**991** (nicht 999) · das Reclaim-Fenster war um **8 Bars** verschoben · das
+P9-Tief ist Bar **1000** (nicht 999) · der SL lautet **68.2580** (nicht 68.2380)
+· „50 Longs" war H1+H2, nicht H1 allein · das Phasenhoch ist **70.0000** (nicht
+69.8700).
+
+## 69.13 Integrität und Hygiene
+
+| Prüfung | Ergebnis |
+|---|---|
+| Engine SHA256 | `3ba15c723958161fffc28a106a5758bd3e27a6152f0e0235969594a5255cb006` **unverändert** ✅ |
+| Adapter SHA256 | `50bd47c68d4ff543f3d4314d9c771f1d39425119e1d8ac63049c0d9afd9b4eda` **unverändert** ✅ |
+| `box_end_bar = 640` / `Europe/Berlin` (Z. 600) | unberührt (eingefrorene Ausnahme) ✅ |
+| `poc_start` | global **0**, unverändert ✅ |
+| `quartil_distanz_pct` | **25**, unverändert ✅ |
+| V01-Bildsatz / V014-Bildsatz | beide **unberührt** ✅ |
+| Produktivcode | **keine** Änderung ✅ |
+| Belegskripte | `test/_tmp_q29_audit*.py`, `test/_tmp_p9_boden_sichtung.py` — gitignored, **rein lesend** ✅ |
+
+## 69.14 Status (v0.19)
+
+| Kennzahl | Wert | Berührt durch v0.19? |
+|---|---|---|
+| V0 / H1 | 14 / 8 / +38.964262 R | nein |
+| V1 v0.1 (arretiert) | 15 / +46.866348 R | nein |
+| H2 v0.1 / H2 v0.14 | 7 / +7.902085 R · 9 / +22.285802 R | nein |
+| Gesamt v0.14 | 17 / +61.250064 R | nein |
+| P9-Beitrag v0.14 | +19.804922 R | nein |
+| `quartil_distanz_pct` / `poc_start` | 25 / 0 | unverändert |
+| Bildsätze | v0.1 (5 PNG) + v0.14 (5 PNG) | unverändert |
+| Engine / Adapter SHA256 | `3ba15c72…5255cb006` / `50bd47c6…afd9b4eda` | unverändert |
+| Regelbestand | §54 (v0.13) + §66 (v0.16) + §67 (v0.17) + **§69 (v0.19)** | erweitert |
+| Regel G4 | **dokumentiert**, nicht aktiviert | **neu** |
+
+v0.19 ist ein **Analyse- und Regel-Addendum**. Es friert **keine** neue Baseline
+ein und ändert **keinen** Produktivpfad. Es liefert (a) die vollständige
+Q29-/POC-Forensik und (b) die generische Phasenboden-Regel **G4** samt
+Anker-Invariante und Additivitätsnachweis. Alle Zusatzerträge sind
+**Papier-Befunde**.
+
+**Offen (unverändert):** die **visuelle Abnahme** des V014-Satzes durch den
+Anwender. Etwaige Korrekturen daraus sind als **v0.18-Amendment** auszuweisen —
+nicht als stille Änderung an §66/§67. §69 bleibt davon unberührt.
+
+**Nicht freigegeben / inert:** Aktivierung der Regel G4 im Produktivpfad ·
+Ausweitung auf `P12_RESERVE` (Beobachtung §69.11) · jede Änderung an
+`poc_start`, `quartil_distanz_pct` oder am `Europe/Berlin`-/`box_end_bar`-Interlock.

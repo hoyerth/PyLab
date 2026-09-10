@@ -885,28 +885,33 @@ lesen (siehe §36.1).
 basis_bei(1259) = (67,535 + 67,553 + 67,494) / 3 = 67,52733  ==  Engine 67,5273
 ```
 
-| Bar | Broker/UTC | Low | Rolle |
-|---|---|---|---|
-| 1031 | 25.08. 04:45 | 67,535 | Wick (erster Pivot) |
-| 1056 | 25.08. 11:00 | 67,553 | Wick |
-| 1172 | 26.08. 17:00 | 67,494 | Wick |
-| 1075 | 25.08. 15:45 | 67,420 | Sweep **unter** dem Band |
-| 1259 | 27.08. 15:45 | 67,600 | **Sweep im Band** (−0,1076 %) |
+| Bar-Index | Broker/UTC | Berlin (+2 h, historisch) | Low | Rolle |
+|---|---|---|---|---|
+| 1031 | 25.08. 04:45 | 25.08. 06:45 | 67,535 | Wick (erster Pivot) |
+| 1056 | 25.08. 11:00 | 25.08. 13:00 | 67,553 | Wick |
+| 1172 | 26.08. 17:00 | 26.08. 19:00 | 67,494 | Wick |
+| 1075 | 25.08. 15:45 | 25.08. 17:45 | 67,420 | Sweep **unter** dem Band |
+| 1259 | 27.08. 15:45 | 27.08. 17:45 | 67,600 | **Sweep im Band** (−0,1076 %) |
 
 Ergebnis: **drei** bestätigte Touches (Typ B erreicht), geschlossene
 Mittelbasis 67,52733. „67,60" ist ein **Dochtextremum**, kein Kantenniveau.
 
 ### 37.2 K74 = R21-Tombstone → „69,62" ist gestrichen
 
+| Bar-Index | Broker/UTC | Berlin (+2 h, historisch) | Ereignis |
+|---|---|---|---|
+| 912 | 21.08. 21:00 | 21.08. 23:00 | K74-Pivot (`basis = 69,613`) |
+| 1104 | 26.08. 00:00 | 26.08. 02:00 | R21-Löschung K74 (Tombstone) |
+
 | Feld | Wert |
 |---|---|
-| Kante | K74 OBEN, `basis = 69,613`, `pivot_bar = 912` (21.08. 21:00) |
+| Kante | K74 OBEN, `basis = 69,613`, `pivot_bar = 912` |
 | Status | **gelöscht durch R21 bei Bar 1104** (`R21: geloescht 17 / Tombstones 17`) |
 | Konsequenz | In P12 (1171–1272) **existiert diese Linie nicht**; „69,62" wird als Level **gestrichen** |
 
 ### 37.3 K73-Touchlage (dreispaltig, normiert)
 
-| Bar | Broker/UTC | Berlin | `basis_bei` | dist | Urteil |
+| Bar-Index | Broker/UTC | Berlin (+2 h, historisch) | `basis_bei` | dist | Urteil |
 |---|---|---|---|---|---|
 | 1211 | 27.08. 03:45 | 27.08. 05:45 | 69,6865 | **−0,1083 %** | **im 0,12-%-Band → K73-Touch** (Docht-Defizit, Hook greift) |
 | 1271 | 27.08. 18:45 | 27.08. 20:45 | 69,6714 | **−0,1154 %** | im Band → K73-Touch |
@@ -920,6 +925,13 @@ Innenkante K76" ist gegenstandslos: **K76 liegt bei 69,507 (Bar 1211) /
 **keinen** Dochtpreis 69,49.
 
 ### 37.4 Nomenklatur-Register (verbindlich)
+
+Referenz-Bars des Registers (Dreispalten-Pflicht, `Agents.md`):
+
+| Bar-Index | Broker/UTC | Berlin (+2 h, historisch) |
+|---|---|---|
+| **1211** | 27.08. 03:45 | 27.08. 05:45 |
+| **1259** | 27.08. 15:45 | 27.08. 17:45 |
 
 | Kante | Seite | Provenienz-Basis | `basis_bei(1259)` | kausal @1211 | Status |
 |---|---|---|---|---|---|
@@ -1074,3 +1086,147 @@ manuell angestoßenen Lauf.
 Offen für die nächste Sitzung: **Wiederaufnahme der H2/2-Analyse
 (K73-Decke / K82-Boden) auf der dreispaltigen Matrix** (`Bar | Broker/UTC |
 Berlin (+2 h, nur Altzitate)`), Basis §37.
+
+---
+
+# Addendum v0.11 — Forensik K73-Decke in P12: strukturelle Inertheit (2026-09-10)
+
+**Freigaben:** E1–E4 (Mentor/Anwender, 2026-09-10). **Wirkung:** ausschliesslich
+Dokumentation. Kein Code ausgefuehrt, kein Engine-Eingriff, keine
+Baseline-Veraenderung, keine Adapter-Aenderung.
+
+## 46. Dreispaltige Sweep-Matrix der K73-Decke (P12)
+
+Referenz: `test/archiv/silver_m15_ohlc_2026-08-10_2026-08-28.csv` (1289 Zeilen =
+Header + 1288 Bars; Dateizeile = Bar-Index + 2). Zeitbasis Broker/UTC (§36),
+Berlin (+2 h) nur als Altzitat. Eichprobe: Bar 980 = 2026-08-24 15:00 UTC
+(+2 h = 17:00, deckt §20/Addendum v0.4).
+
+| Bar-Index | Broker/UTC | Berlin (+2 h, historisch) | Open | High | Low | Close | Vol | K73 `basis_bei` | dist (SHORT) |
+|---|---|---|---|---|---|---|---|---|---|
+| **1211** | 27.08. 03:45 | 27.08. 05:45 | 69,274 | **69,611** | 69,242 | 69,544 | 1958 | 69,6865 | −0,1083 % |
+| **1271** | 27.08. 18:45 | 27.08. 20:45 | 69,407 | **69,591** | 69,373 | 69,569 | 2018 | 69,6714 | −0,1154 % |
+| **1272** | 27.08. 19:00 | 27.08. 21:00 | 69,575 | **69,714** | 69,410 | 69,500 | 1836 | 69,6714 | +0,0611 % |
+
+**Kreuzbestätigungen:** `High(1211) = 69,611` belegt §37.3 („der reale Docht ist
+69,611"; ein Dochtpreis 69,49 existiert nicht) · `Low(1259) = 67,600` belegt
+§37.1 („67,60" ist ein Dochtextremum, kein Kantenniveau).
+
+Datenvertrag (informativ, nicht implementiert): `K73P12AuditBefund`
+(`bar_index, broker_zeit_utc, berlin_zeit_historisch, high_preis,
+kausale_basis_k73, reclaim_stufe_ergebnis, m6_blocker_status,
+institutionelles_urteil`).
+
+## 47. M6 und die Reclaim-Stufen (M6 hypothetisch neutralisiert)
+
+### 47.1 Kausale Auswertungsreihenfolge
+
+`_se_trades` (Z. 2550–2575) wertet strikt sequenziell aus:
+
+1. `_kandidat` — Kaskade (Z. 2471–2531)
+2. `_blockiert_durch_aussenkante` — **M6** (Z. 2428–2462), Aufruf Z. 2556
+3. `_im_aussenquartil` — Q29, Z. 2566
+4. `_reclaim_stufe` — Z. 2020–2048, Aufruf Z. 2575
+
+**M6 liegt VOR der Stufenberechnung.** Ein geblockter Kandidat erreicht die
+Stufe nie — die Stufenanalyse ist daher zwingend hypothetisch.
+
+### 47.2 M6-Messung (Außenwand K67, `basis_bei = 69,9458`)
+
+| Bar-Index | Kandidat nach Kaskade | Kandidat-Basis | M6-Distanz zu K67 | Wirkung |
+|---|---|---|---|---|
+| 1211 | K76 | 69,507 | **+0,6308 %** | BLOCKER (≤ `max_seed_distanz_pct` 0,75) |
+| 1271 | K76 | 69,515 | **+0,6194 %** | BLOCKER |
+| 1272 | **K73** | 69,6714 | **+0,3938 %** | BLOCKER |
+
+### 47.3 Hypothetische Reclaim-Stufe (M6 aus, `_reclaim_stufe` Z. 2020–2048)
+
+Parameter: `touch_band_pct 0,12` · `max_sweep_ueberdehnung_pct 0,60` ·
+`doppeltop_puffer_usd 0,01` · `min_touches_handelbar 3` ·
+`sweep_mindestdurchstich_pct 0,0`.
+
+| Bar-Index | Kandidat | Durchstich `dist_o` | Folgebars | Stufe |
+|---|---|---|---|---|
+| 1211 | K76 @ 69,507 | +0,1496 % | 1212: `C 69,480 ≤ 69,507`, `H 69,599 ≤ 69,621` | **STUFE_2_KERZE_2** |
+| 1271 | K76 @ 69,515 | +0,1100 % | 1272: `C 69,500 ≤ 69,515`, aber `H 69,714 > 69,601` | **Stufe 0 — kein Signal** |
+| 1272 | K73 @ 69,6714 | +0,0611 % | `C 69,500 ≤ 69,6714` (in-bar) | **STUFE_1_IN_BAR** |
+
+### 47.4 Richtigstellung (Faktenlage vs. Formulierung)
+
+Die Kurzform „1272 = Durchstich ohne Halten" ist mit der Engine-Definition
+nicht deckungsgleich: `_reclaim_stufe` liefert an **1272** für K73
+**`STUFE_1_IN_BAR`** (Close 69,500 kehrt in denselben Bar unter die Basis
+69,6714 zurück). Der Trade unterbleibt **allein wegen M6**. Ebenso ist 1211
+nicht „kein Reclaim", sondern hypothetisch **`STUFE_2_KERZE_2`** auf der
+Innenlinie K76. Nur **1271** liefert mechanisch gar kein Signal
+(Non-Expansion verletzt: `H 69,714 > 69,601`).
+
+**Beweisrichtung:** P12 ist nicht deshalb inert, weil Signale fehlen, sondern
+weil **jeder** Kandidat in der Schlagdistanz (≤ 0,75 %) einer **unberührten**
+Außenwand (K67 69,9458) liegt.
+
+## 48. Institutionelles Verdikt: strukturelle Inertheit (E2/E4)
+
+### 48.1 Rolleninversion als architektonische Gesetzmäßigkeit (E4)
+
+| Phase | Sweep-Bars | freigestellte Kante (Hook 1) | Rolle dieser Kante | äußerste Wand (M6) | Wirkung |
+|---|---|---|---|---|---|
+| **P9** | 980 / 1020 | **K67** | äußerste Wand, vom Sweep berührt | K67 ist selbst die freigestellte | Innenlinie K73 handelt → **+5,4212 R** |
+| **P12** | 1211 / 1271 | **K73** | **Phasen-Decke selbst** | K67 **unberührt** | Kandidat unter unberührter Wand → Sperre |
+
+- P9: `dist(K67)@980 = −0,0996 %` (Sweep 69,899 vs. Basis 69,9687) ⇒ die
+  äußerste Wand *hat geliefert* ⇒ Freigabe ⇒ K73 wird handelbar.
+- P12: `dist(K73)@1211 = −0,1083 %`, aber K67 liegt 0,4787 % über dem Sweep
+  ⇒ die freigestellte Kante ist **nicht** die äußerste ⇒ Entscheidung #6:
+  keine Freigabe für K67 ⇒ M6 sperrt.
+
+**Regelaussage (invariant, nicht stichprobenabhängig):** M6 sperrt jeden
+Kandidaten, der innerhalb `max_seed_distanz_pct` (0,75 %) unter einer nicht
+erreichten, existierenden Außenwand derselben Seite liegt. Diese Aussage hängt
+nicht von der Zahl der August-Sweeps ab — sie ist eine Eigenschaft der
+Kanten-Geometrie.
+
+### 48.2 Status P12: STRUKTURELL_INERT_RESERVE (E2)
+
+`P12_RESERVE` (1171–1272, Decke K73, Boden K82, Ziel 67,6355 / Spiegel
+69,5550) bleibt Reserve und wird **nicht** in `AKTIVE_DEFAULT_SEGMENTE`
+aufgenommen.
+
+Kein Freiheitsgrad erzeugt einen legitimen P12-Trade:
+
+1. **M6 bleibt** ⇒ 0 Trades (Ist-Zustand, `P12: V0 0 | V1 0`).
+2. **M6 aus** ⇒ 1211 (Stufe 2) und 1272 (Stufe 1) würden handeln — das ist
+   aber ein *Fade unter einer unberührten Außenwand* ⇒ Doktrinbruch.
+3. **Decke auf K67 umdefiniert** ⇒ Sweep 69,611 liegt 0,4787 % unter
+   69,9458 ⇒ **kein Touch** an der Decke ⇒ weiterhin kein Trade.
+
+STATUS: `STRUKTURELL_INERT_RESERVE` (nicht „empirisch leer").
+
+### 48.3 Kausalitätsnachweis `_lebt` vs. `_existiert`
+
+| Prüfung | Zeilen | Semantik | K67 @1211 |
+|---|---|---|---|
+| `_lebt` | 2398–2409 | letzter Wick-Kontakt ≤ `wall_live_bars` (96) | **False** → Kaskade ueberspringt K67 |
+| `_existiert` | 2386–2396 | AKTIV und Pivot bestätigt (`erster_pivot_bar + 2 ≤ k + 1`) | **True** → M6 sieht K67 als Außenwand |
+
+Diese Zweiteilung erhält eine **dormante** Außenwand als institutionellen
+Blocker, während dieselbe Linie die Innenkandidaten-Kaskade nicht mehr
+aufhält. Beide Prüfungen sind arretiert und werden **nicht** verändert.
+(Beleg: `test/tmp_dryrun_p12_out.txt` Abschnitt F weist als Kandidaten
+`pos1 K76` aus ⇒ K67 wurde in der Kaskade via `continue` übersprungen.)
+
+## 49. Status
+
+| Kennzahl | Wert | Berührt durch v0.11? |
+|---|---|---|
+| V0 / H1 / V1 / H2 V1 | 14 / 8 / 15 / 7 (R unverändert) | nein |
+| P12-Trades (V0 / V1) | 0 / 0 | nein |
+| Engine SHA256 | `3ba15c72…5255cb006` | nein |
+| `P12_RESERVE` in `AKTIVE_DEFAULT_SEGMENTE` | nicht enthalten | nein |
+
+Addendum v0.11 rein dokumentarisch: kein Code ausgeführt, keine Datei der
+Engine oder des Adapters angefasst.
+
+Nächster Schritt (E3): **Gesamttabelle §37 auf die Dreispalten-Matrix
+nachziehen** (Bar-Index als Key; Broker/UTC als Leitwährung; Berlin nur als
+Altzitat), danach Abschluss der P12-Teil-Exploration.

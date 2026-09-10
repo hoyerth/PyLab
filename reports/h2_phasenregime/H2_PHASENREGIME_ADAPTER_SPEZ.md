@@ -2819,3 +2819,290 @@ nicht als stille Änderung an §66/§67. §69 bleibt davon unberührt.
 **Nicht freigegeben / inert:** Aktivierung der Regel G4 im Produktivpfad ·
 Ausweitung auf `P12_RESERVE` (Beobachtung §69.11) · jede Änderung an
 `poc_start`, `quartil_distanz_pct` oder am `Europe/Berlin`-/`box_end_bar`-Interlock.
+
+---
+
+# Addendum v0.18 — Abnahme des V014-Satzes, Auflagen A-1…A-5 und G4-Integrationsplan (2026-09-10)
+
+**Auftrag.** Arretierung des **Votums** zur visuellen Abnahme des V014-Satzes
+samt der daraus abgeleiteten **Auflagen A-1 … A-5** sowie Vormerkung des
+**Integrationsplans für die generische Phasenboden-Regel G4** (§69.8).
+**Wirkung:** **Dokumentations-Addendum.** Engine, Adapter und beide arretierten
+Bildsätze bleiben **byte-unverändert**; es wird **kein** Produktivpfad geändert.
+Die Umsetzung der Auflagen und der G4-Integration bleibt ausdrücklich **offen**
+(§68.8).
+
+| Übergabe | Gegenstand | Status |
+|---|---|---|
+| Regelwerk | §68 (dieses Addendum) | **neu** |
+| Abnahmebogen | `reports/h2_phasenregime/ABNAHME_V014_2026-09-10.md` | **abgeschlossen**, committet `07d536f` |
+| Engine | `test/tmp_kanten_engine_replay.py` | SHA256 `3ba15c72…5255cb006` **unberührt** |
+| Adapter | `backtest_lab/phasen_regime_adapter.py` | SHA256 `50bd47c6…afd9b4eda` **unberührt** |
+| Renderer | `test/tmp_png_aug_sichttest.py` | SHA256 `e88ec58d…5014521d` **unberührt** |
+| Bildsätze | V01 (5 PNG) + V014 (5 PNG) + V015-Staging (5 PNG) | **unberührt** |
+
+## 68.0 Geltung und Abgrenzung
+
+1. **append-only.** Dieses Addendum ergänzt; §54 (v0.13), §66 (v0.16), §67
+   (v0.17) und §69 (v0.19) bleiben als Zitat unverändert bestehen.
+2. **v0.18 war reserviert.** §67.9 hat v0.18 ausdrücklich für die visuelle
+   Abnahme des V014-Satzes freigehalten; §69.0.3 hat die Q29-/G4-Materie
+   deshalb nach v0.19 ausgelagert. Mit diesem Addendum wird die Reservierung
+   **eingelöst**.
+3. **Kein Eingriff.** Alle Aussagen beruhen auf lesenden Läufen und auf
+   Code-Inspektion; keine Zeile Produktivlogik wurde angefasst.
+4. **Kein Ertragsanspruch.** Der hier referenzierte G4-Beleg ist ein
+   **Nachweis der Regelmechanik** (§68.5), **kein** Baseline-Ertrag.
+5. **Trennung.** Das Votum (§68.1) betrifft den **Bildsatz**; der G4-Nachweis
+   (§68.5) betrifft die **Regel**. Beide sind ausdrücklich **nicht**
+   gegenseitig Bedingung (Beschluss E2).
+
+## 68.1 Votum (wörtlich, arretiert)
+
+**Urheberschaft.** Das Votum wurde vom **Anwender** nach visueller Durchsicht
+der Dateien `test/aug_sichttest_v014_01_gesamt.png` … `_05_kantenkarte.png`
+erteilt und im Bogen protokolliert. Die IDE hat die Positionen **nicht** am Bild
+geprüft.
+
+| Position | Ergebnis |
+|---|---|
+| Vorbefüllt `☑ PB` (ohne Sichtprüfung) | **34 Positionen** = 32 Tabellenzeilen + 2 Inline (S-0 · Kreuzprobe §69) — 0.1 (6) · 0.2 (6) · B (8) · C02-5 (1) · D7/D9/D10 (3) · E (7) · G6 (1) |
+| davon **derselbe** Tatbestand „H1-Panel byte-identisch" | **4 Zeilen** (S-0 · C02-5 · D10 · G6) = **1** Sachbeweis |
+| Visuell geprüft | **57** = A (12) + C01 (8) + C02 (4) + C03 (7) + C04 (8) + C05 (5) + D (8) + E (3) + scharfe Einzelprüfung (1) + Kenntnisnahme A-2 (1) |
+| davon OK | **53** |
+| ABW Klasse 1 | **3** — A-1 (C04-7) · A-3 (C01-8) · A-4 (C03-1) |
+| ABW Klasse 2 | **0** (in der visuellen Schicht) |
+| ABW Klasse 3 | **0** |
+| Kenntnisnahme (A-2) | **1** |
+
+**Gesamturteil V014:** **angenommen mit Auflagen A-1 … A-5.**
+**Gesamturteil V01:** **angenommen** auf Basis des G6-Bit-Nachweises
+(`d9f35876442593c529083f194ab50cc37e7691a65794dfe6456a311c1b7cbb04`,
+899.249 B).
+
+**D1/D2 ist vollständig erfüllt (OK).** Der Soll-String
+`K67 69.975 -> 69.870 (P9-Override) -> 69.946 *  Norm 69.9140` ist im Bild
+vorhanden und deckt sich mit der Protokollzeile. Eine früher übermittelte
+Vorfassung des Durchgangs ist **verworfen** (falscher Prüfpfad
+`docs/artefakte/aug_p11/`; nicht existenter String `K67* (piv1 980, 100 Wicks)`;
+Fehlzuordnung C02-4/C03-4/C03-6). Der Bogen führt die Verwerfung in Teil V.
+
+## 68.2 Auflagen A-1 … A-5
+
+| # | Auflage | Klasse | Hash-Folge |
+|---|---|---|---|
+| A-1 | Tick-Dichte **Panel 04** (12 Ticks über 820..1045) | 1 (Kosmetik) | neuer Satz **V015** |
+| A-2 | Doppelbelegung Marker `x` (rot §32 · violett §54.2 R7) | 2 (Norm-Schärfung) | neuer Satz **V015** |
+| A-3 | Überlappung der Trade-Annotationsboxen in dichten Bereichen | 1 (Kosmetik) | neuer Satz **V015** |
+| A-4 | Position `P9 AKTIV` / `P12 RESERVE` am oberen Rand | 1 (Kosmetik) | neuer Satz **V015** |
+| A-5 | §66.5 gilt **nicht** für Panel 02 (Byte-Identität hat Vorrang) | 2 (Norm-Schärfung) | **keine** — Spez-Klarstellung (§68.3) |
+
+**Reihenfolge (bindend).** Dieses Addendum wird **vor** der Abarbeitung der
+Auflagen arretiert (Bogen Teil VI, Beschluss 5). Die Umsetzung von A-1 … A-4
+erfolgt **gebündelt** und erzeugt einen **neuen Satz V015** mit eigenem
+Lebenszyklus; die Hashes in Bogen 0.1/0.2 bleiben davon unberührt (Bogen
+Teil III).
+
+## 68.3 A-5 — Klarstellung zu §66.5 (Regel-Konflikt)
+
+**Befund.** §66.5 verlangt, die drei V014-Zusatzeinträge der Legende
+(`LEG_MODUS`) in **allen** Panels zu führen. §67.4 / G6 verlangt dagegen, dass
+das H1-Panel `aug_sichttest_v014_02_h1_box.png` **byte-identisch** zum
+V01-Panel bleibt (`d9f35876…`, 899.249 B). Die Legende ist **Bestandteil der
+gespeicherten Figur** und damit des Hashes. Beide Forderungen sind gleichzeitig
+**nicht** erfüllbar.
+
+**Beleg (Code-Inspektion).** `LEG_BASIS` = **9** Einträge, `LEG_MODUS` = **3**.
+`png_02_h1_box` ruft `legend(ax1, LEG_BASIS)` (Z. 1086); die Panels 01/03/05
+rufen `LEG_BASIS + [Tombstone] + LEG_MODUS` (Z. 1025 / 1168 / 1428) ⇒ **13**.
+Panel 02 trägt damit **9** statt **13** Einträge.
+
+**Entscheid.** Der **Regressionsanker hat Vorrang.** §66.5 wird wie folgt
+eingeschränkt:
+
+> **§66.5-Ausnahme (neu, v0.18).** Die Erweiterung der Legende um die drei
+> V014-Zusatzeinträge gilt **NICHT für Panel 02 (H1-Box)**. Um den
+> Regressionsanker `aug_sichttest_v014_02_h1_box.png` ==
+> `d9f35876442593c529083f194ab50cc37e7691a65794dfe6456a311c1b7cbb04`
+> (§67.4 / G6) byte-identisch zu halten, behält Panel 02 die unverkürzte
+> Baseline-Legende (`LEG_BASIS`, 9 Einträge). Die übrigen Panels führen die
+> Erweiterung unverändert.
+
+**Konsequenz für die Prüflinie C02-4/D8.** Diese Positionen sind im V014-Satz
+**erfüllt** (Panel 02 trägt bewusst die Baseline-Legende); sie sind **nicht**
+als Mangel zu führen.
+
+**Hinweis auf eine Reserve.** Sollte die H1-Byte-Invariante in einer künftigen
+Version planmäßig aufgegeben werden, entfällt diese Ausnahme automatisch —
+dann ist C02-4/D8 auf die Regelform des §66.5 zurückzuführen.
+
+## 68.4 Stand des Abnahmebogens (Änderungen)
+
+| Ort | Änderung |
+|---|---|
+| Kopf | Status `VORBEFÜLLT` → **`ABGESCHLOSSEN`**; Hinweis zur Granularität (verbindlich ist die Zusammenfassung in Teil V) |
+| I.1 | Kenntnisnahme **A-2** abgehakt |
+| Teil III | Auflagenkette auf **fünf** geöffnet (A-5 mit Quelltext-Beleg und Wortlaut); Zusatz zur Hash-Relevanz |
+| Teil V | **Votum** ausgefüllt (53 / 3 / 0 / 0 / 1 Kenntnisnahme), Auflagenliste, G4-Abgrenzung, Begründung, Datum/Kürzel |
+| Teil VI | Konsequenz für den Git-Stand (Endstand mit Votum, ein Commit) |
+| Teil VIII | Status V014-Durchgang **abgeschlossen**; VIII.7-Geltung präzisiert; Restliste aktualisiert |
+| VIII.7 | unverändert (Anhang, append-only) |
+
+**Granularität.** Übermittelt wurde eine **Zusammenfassung je Block**; die
+Einzelzeilen I.1–I.5 tragen weiterhin `☐ OK ☐ ABW`. Verbindlich ist die
+Zusammenfassung in Teil V.
+
+## 68.5 Nachweis der Regel G4 (§69.8) — V015-Staging
+
+**Gegenstand.** Das Staging-Skript
+`test/tmp_png_aug_sichttest_v015_g4.py` rendert den **kanonischen** Renderer
+erneut mit **10** in-memory gepatchten Fragmenten (jeder Anker fail-loud
+`assert count == 1`); kanonischer Code, Engine und Adapter bleiben
+byte-unverändert.
+
+| Kennzahl | V014 | **V015** | Δ |
+|---|---|---|---|
+| Trades | 17 | **18** | +1 |
+| R gesamt | +61,250064 | **+64,879080** | +3,629016 |
+| H1 | 8 / +38,964262 | 8 / +38,964262 | **0 (bit-fest)** |
+| H2 (Bucket ≥ 640) | 9 / +22,285802 | **10 / +25,914818** | +1 |
+| P9-Regimebeitrag | +19,804922 | **+23,433938** | +3,629016 |
+| H2-LONGS (Adapter-Regime ≥ 848) | 0 | **1** | +1 |
+
+**Abgrenzung „H2" (bindend).** „H2" im Sinne des Null-LONG-Asserts ist das
+**Adapter-governed Regime ab `P9.start_bar = 848`**: **0 → 1 Long**. Der **rohe
+Bucket** `entry_bar >= box_end` (640) enthält den arretierten MAKRO-Transition-
+Park `[640..847]` mit **3 LONG-Trades** (K1@639 −1,0 · K3@650 −1,0 ·
+K45@679 +6,480880) und lautet **3 → 4 Longs**. Beide Zählweisen sind korrekt und
+werden ab v0.18 gemeinsam ausgewiesen.
+
+**H1-Invariante.** `aug_sichttest_v015_02_h1_box.png` ist **byte-identisch** zu
+`aug_sichttest_02_h1_box.png` (`d9f35876…`, 899.249 B) — assertiert im Lauf
+(`h1_byte_invariante`). Der G4-Trade liegt mit `entry_bar = 1003 ≥ 848` außerhalb
+jeder H1-Reichweite.
+
+**Satz V015 (Staging, gitignored).**
+
+| # | Datei | Bytes | SHA256 |
+|---|---|---|---|
+| 1 | `aug_sichttest_v015_01_gesamt.png` | 2.114.674 | `93853367f7057ac5d4d1518e5a2ef229f0f1137a8f1c270e219c1383c260d991` |
+| 2 | `aug_sichttest_v015_02_h1_box.png` | 899.249 | `d9f35876442593c529083f194ab50cc37e7691a65794dfe6456a311c1b7cbb04` |
+| 3 | `aug_sichttest_v015_03_h2_phasen.png` | 1.760.205 | `ca361af3721bfbcc5001f45ea1b48655c2dec3c05a75e7c562b14a186c750212` |
+| 4 | `aug_sichttest_v015_04_p9_regime.png` | 1.226.458 | `4113ad2381760d0811d10ed295beb7f65ee31214d4971bd5db364505002fc032` |
+| 5 | `aug_sichttest_v015_05_kantenkarte.png` | 2.124.935 | `4160d1ae76dce67ae60936dc202985404717500fed2e0c154f544118d8de8c14` |
+| P | `tmp_png_aug_sichttest_v015_out.txt` | 5.366 | `47e478e51cd3727dabaad4cce6b9c49c157f09af938a4e4dcc9fdc5f62089cd7` |
+
+**Residuen (deklariert, nicht korrigiert).** Kein Neu-Lauf — die Hashes bleiben
+eingefroren; Revisionssicherheit schlägt Textkosmetik.
+
+| # | Residuum |
+|---|---|
+| 1 | Protokollzeile `Neu im V014-Lauf: …` stammt aus dem kanonischen Renderer (müsste „V015" heißen); rein beschriftend. |
+| 2 | `Delta V015-v0.1: +18.012733 R (Soll +18.012732)` — Rundung in der 6. Stelle (Assert-Toleranz 1e-4). |
+| 3 | Protokollzeile `Quartett : … | Summe +23.433938 R` listet nur die vier Quartett-Bars (Summe +19,804922 R), weist als „Summe" aber den P9-Regimebeitrag inkl. G4 aus; die **Bild-Statistik** trennt korrekt (`QUARTETT` / `P9-REGIME-BEITRAG`). |
+| 4 | **V-S-Zählung:** im Staging `stats["v_s"] = 17` bei 18 Trades (Injektion **post-return**), im Produktivlauf `18` (Einschub **vor** `stats["v_s"]`, Engine Z. 2676). Kein Fehler — Deklaration. |
+
+## 68.6 Integrationsplan G4 (Vormerkung, **nicht** freigegeben)
+
+Architektur: **Der Adapter autorisiert, die Engine exekutiert.** Der Adapter
+bleibt engine- **und** marktdatenfrei.
+
+**Adapter (`backtest_lab/phasen_regime_adapter.py`)**
+
+1. **Feld** `boden_deklariert_literal: Optional[float] = None` auf
+   `PhasenSegmentEintrag` — **als letztes Feld** (alle vorhergehenden haben
+   Defaults; Keyword-Konstruktion der Bestandssegmente bleibt kompatibel).
+   `None` = **inert**.
+2. **Rückgabe-Vertrag** (vier Felder, alles andere wird im Executor aus
+   `cfg`/`seg` aufgelöst — keine zweite Wahrheit):
+
+   ```python
+   @dataclass(frozen=True, slots=True)
+   class BodenReclaimSpec:
+       phasen_id: str
+       boden_kid: int
+       deklarierter_boden_literal: float
+       tp2: float
+   ```
+
+3. **Hook 4:** `hook_3_boden_reclaim(self, bar_idx: int)
+   -> Optional[BodenReclaimSpec]`. Kein Marktskalar, kein Fremd-Callable
+   (Variante F3/1).
+4. **TP2-Auflösung** über den Override:
+   `self.angewandte_basis(bar_idx, seg.decke.kid, seg.ziel_preis_long)`
+   → **69,8700** statt `hook_2_ziel` = 69,9140. Latenter Bestand: in P9 wurde
+   nie ein LONG gehandelt, die Diskrepanz blieb unsichtbar — als Kommentar am
+   Hook zu dokumentieren.
+5. **Fail-Loud** `verifiziere_boden_literale()` neben
+   `verifiziere_niveau_overrides()`: endlich, `> 0`,
+   `< seg.decke.provenienz_basis`, Fenster nicht leer. Die Plausibilisierung
+   erfolgt **nicht** über `basis_bei` (68,4000 vs. 68,3427 = +0,0837 %) — der
+   Nachweis „Literal stammt nie aus `basis_bei`" ist **strukturell**
+   (Code-Inspektion).
+6. **Aktivierung** nur über ein **neues** Segment
+   `P9_BODEN_RECLAIM` (Literal 68,4000) in `AKTIVE_SEGMENTE_V015` /
+   `ADAPTER_V015`. `P9`, `P9_DIRECT_69_87`, `DEFAULT_ADAPTER` und `ADAPTER_V014`
+   bleiben **unberührt (inert)**.
+
+**Engine (`test/tmp_kanten_engine_replay.py`)**
+
+7. **Einschubstelle:** Post-Loop, **vor** `stats["v_s"] = len(setups)`
+   (Z. 2676) → der G4-Trade zählt in `v_s` (**17 → 18**).
+8. **Fenster:** `range(seg.start_bar, seg.end_bar + 1)` — **nicht** `range(n)`;
+   operative Form von „Zugang nur über `adapter.segmente`". H1 ist damit
+   **strukturell** unerreichbar.
+9. **Dedup:** `getradete_entry_bars` (Z. 2380) **wiederverwenden**.
+10. **Regel-Primitive:** `touch_conf(k)` aus der Engine-Kante (Bedingung 3);
+    `berechne_kausalen_histogramm_poc` mit Anker `seg.start_bar` und Band
+    `[boden_literal, tp2]`; `_c_loese_trade` für die Auflösung.
+11. **SL-Fenster** ist die **deklarierte** Regel `min(lo[k:k+2]) −
+    cfg.sl_buffer_usd` — **nicht** das Idiom `lo[k:reclaim_bar+1]` (zufällig
+    identisch 68,2580, aber nicht dasselbe).
+12. **`entry_bar = bar_idx + 1`** (Stufe 1) wird abgeleitet, nicht übergeben.
+13. **Neuer SHA = neue Arretierung.** Die Engine-Revision ist mit **eigenem**
+    Reproduktionsnachweis zu arretieren; die Tabellen auf `3ba15c72…` bleiben
+    für v0.13–v0.19 historisch gültig und werden **nicht** überschrieben.
+
+**Verworfene Artefakte.** `PhasenAdapterHookErweiterung` und
+`PhasenBodenAuditStatus`: **ersatzlos gestrichen.** `Final` ist im
+`@dataclass`-Rumpf kein Konstantenmarker (Instanzfeld); die Dokumentation
+gehört in den Modul-Docstring (wie Hook 1/2).
+
+## 68.7 Integrität und Hygiene
+
+| Prüfung | Ergebnis |
+|---|---|
+| Engine SHA256 | `3ba15c723958161fffc28a106a5758bd3e27a6152f0e0235969594a5255cb006` **unverändert** ✅ |
+| Adapter SHA256 | `50bd47c68d4ff543f3d4314d9c771f1d39425119e1d8ac63049c0d9afd9b4eda` **unverändert** ✅ |
+| Renderer SHA256 | `e88ec58d79232eff1d0634a938ec67fd627b500643775f707365e97a5014521d` **unverändert** ✅ |
+| `box_end_bar = 640` / `Europe/Berlin` (Z. 600) | unberührt (eingefrorene Ausnahme) ✅ |
+| V01- / V014-Bildsatz | beide **byte-identisch** (vor == nach dem V015-Lauf geprüft) ✅ |
+| H1-Panel | in V01, V014 **und** V015 identisch `d9f35876…` / 899.249 B ✅ |
+| Produktivcode | **keine** Änderung ✅ |
+| V015-Lauf | `EXIT 0`; nur neue Dateien mit Präfix `aug_sichttest_v015_` erzeugt ✅ |
+
+## 68.8 Status (v0.18)
+
+| Kennzahl | Wert | Berührt durch v0.18? |
+|---|---|---|
+| V0 / H1 | 14 / 8 / +38,964262 R | nein |
+| V1 v0.1 (arretiert) | 15 / +46,866348 R | nein |
+| H2 v0.1 / H2 v0.14 | 7 / +7,902085 R · 9 / +22,285802 R | nein |
+| Gesamt v0.14 | 17 / +61,250064 R | nein |
+| P9-Beitrag v0.14 | +19,804922 R | nein |
+| V015-Staging (Regel-Beleg) | 18 / +64,879080 R | **neu, nicht Baseline** |
+| Bildsätze | V01 (5) + V014 (5) + V015-Staging (5) | V015-Staging **dokumentiert** |
+| Engine / Adapter / Renderer SHA256 | `3ba15c72…` / `50bd47c6…` / `e88ec58d…` | unverändert |
+| Regelbestand | §54 (v0.13) + §66 (v0.16) + §67 (v0.17) + **§68 (v0.18)** + §69 (v0.19) | erweitert |
+| Auflagen | A-1 · A-2 · A-3 · A-4 · **A-5** | **neu**, Umsetzung **offen** |
+| Regel G4 im Produktivpfad | **nicht aktiviert** | unverändert inert |
+
+v0.18 ist ein **Abnahme- und Planungs-Addendum**. Es friert das **Votum** und
+die **Auflagenkette** ein und formuliert die §66.5-Ausnahme (§68.3). Es ändert
+**keinen** Produktivpfad und **keine** Baseline.
+
+**Nicht freigegeben / inert:** Umsetzung der Auflagen A-1 … A-4 vor der
+v0.18-Arretierung · Aktivierung der Regel G4 im Produktivpfad (§68.6 ist
+**Planung**, nicht Freigabe) · Ausweitung auf `P12_RESERVE` ·
+jede Änderung an `poc_start`, `quartil_distanz_pct` oder am
+`Europe/Berlin`-/`box_end_bar`-Interlock.

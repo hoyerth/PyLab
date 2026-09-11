@@ -1424,3 +1424,90 @@ Produktionsadapter**, kein §75-Addendum, kein S1-Cache.
 7. §73.10-Punkte (Renderer-Backup `pre_v018`, `SWEEP_MARKER_P02`, E-12): offen.
 8. **Plattform-Regel offen:** künftige Spez-Appends **müssen** im LF-Zustand
    erfolgen (sonst kippt der Blob-SHA) — noch nicht als Regel verankert.
+
+---
+
+## Phase 1 (2026-09-11, e) — Ratifikation: Single-Trade-Artefakt als Disqualifikations-Kriterium
+
+Anwender-Beschluss (Textfassung; **ersetzt** den offenen Block S8). Dies ist
+eine **Verfahrensregel** und soll bei Aufhebung des §75-Frosts in die Spez
+überführt werden — bis dahin ist dieses Handoff der gültige Verwahrort.
+
+### D0 · Anlass
+
+`VD_K408_409` meldete `+26.524056 R` gegen die Baseline, obwohl **53 von 54**
+H2-Trades ausgestoppt wurden. Der gesamte Zuwachs stammt aus **einem** Trade
+(`entry 18825`, K517, `risk` 0,2460 USD = 0,45 %: `−1,0 → +33,934350 R`).
+Das ist kein Edge, sondern ein Tail-Artefakt. Der frühere Block S8/C ist
+damit **ratifiziert und verschärft**.
+
+### D1 · Zwei Pflichtmetriken (ab sofort für **jede** Auswertung)
+
+1. **Einzeltrade-bereinigtes Ergebnis**
+
+   ```
+   R_adj = R_gesamt − R_max        (R_max = größter Einzelgewinn im Buch)
+   ```
+
+   Zusätzlich auszuweisen: `R_adj` je Partition (H1/H2) gegen den
+   Partitions-Bestwert.
+
+2. **Stop-Out-Quotient**
+
+   ```
+   Q_stop = N_stop / N_trades      (N_stop = Trades mit r <= −1,0 + 1e-9)
+   ```
+
+### D2 · Schwellen (hart, kategorisch)
+
+| Metrik | Schwelle | Folge |
+|---|---|---|
+| `Q_stop` | **> 0,75** | **Übernahme kategorisch ausgeschlossen** — unabhängig von `R` |
+| `R_adj` | **≤ Baseline `R_adj`** | Variante **verworfen** (auch bei positivem `R`-Delta) |
+| Vortrag | `R` **und** `R_adj` **und** `Q_stop` | einseitiger `R`-Ausweis ist unzulässig |
+
+Ein positives `R`-Delta bei `Q_stop > 0,75` ist **kein** Verbesserungsnachweis
+und darf nicht als solcher berichtet werden.
+
+### D3 · Anwendung auf den S2-Stresstest (Nachrechnung)
+
+| Lauf | H2 `R` | H2 `R_max` | H2 `R_adj` | H2 `Q_stop` | Urteil |
+|---|---|---|---|---|---|
+| `BASE` (ungepatcht) | −45,589707 | +1,827819 | −47,417526 | 50/54 = **0,926** | **disqualifiziert** |
+| `VD_K408_409` | −19,065650 | +33,934350 | **−53,000000** | 53/54 = **0,981** | **disqualifiziert** |
+| `VD_K408_409_H` (0,5) | −20,387335 | — | — | 53/54 ≈ **0,981** | **disqualifiziert** |
+
+**Kernaussage:** `R_adj(H2) = −19,065650 − 33,934350 = −53,000000 R` **exakt**
+(die verbleibenden 53 Trades sind sämtlich −1,0). Damit ist `VD_K408_409`
+adjustiert um **−7,410293 R _schlechter_** als die Baseline-H2. `Q_stop`
+liegt in **beiden** Läufen über 0,75 — die gesamte S2-Maschinerie ist unter
+D2 disqualifiziert, **nicht nur die Variante**.
+
+> **Definitionseinschränkung:** `R_adj` ist in D3 **partitions-lokal (H2)**
+> ausgewiesen, damit die Messpartition vergleichbar bleibt. Der globale
+> `R_max` über H1+H2 ist **noch nicht** extrahiert (H1-Einzelzeilen wurden
+> nicht gedruckt); H1 ist über alle V-D-Läufe **bit-identisch**
+> (245 / −140,466233 R), das H1-`R_max` also eine Konstante und damit
+> delta-neutral. Die H2-lokale Zahl ist für den Variantenvergleich
+> belastbar, **nicht** als globales `R_adj`.
+
+### D4 · Ratifikation des Entscheidungsblocks
+
+- **(A) Segmentdefinition — ratifiziert:** Umstellung auf „Grenzkanten der
+  **laufenden** Konsolidierung" (Lookback 480/960). Die Split-Erstarrung
+  (K408/K409) ist empirisch gescheitert. **Umsetzung erst nach (E-20)**
+  (siehe Leitfrage 2) und als **additiver** Entwurf; kein Kern-Eingriff.
+- **(B) Stop-Geometrie — ratifiziert als vorgelagerter Blocker:** Stop
+  orientiert sich künftig an Kanten-Struktur bzw. lokaler Volatilität
+  (ATR-Kandidat), nicht an statischen Cent-Puffern
+  (`sl_buffer_usd` = 0,05 USD). Solange (B) ungelöst ist, ist die
+  Gegenkanten-Diskussion **nachrangig**.
+- **(C) Bewertungsmaßstab — ratifiziert:** siehe D1/D2.
+- **(D) Commit — ausgeführt:** `de17fdb`
+  (`docs(handoff): S2-Stresstest — V-D-Schleife, E-19/E-20`).
+
+**Entwicklungsstopp (Produktivcode):** Kein Einbrand in
+`backtest_lab/phasen_regime_adapter.py`, **kein §75**, **kein S1-Cache**,
+bis (A) und (B) sauber konzipiert sind. Explorations-Prototypen in `test/`
+bleiben zulässig (sie sind nicht Produktivcode), müssen aber `R_adj` und
+`Q_stop` mitführen.

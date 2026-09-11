@@ -1511,3 +1511,144 @@ D2 disqualifiziert, **nicht nur die Variante**.
 bis (A) und (B) sauber konzipiert sind. Explorations-Prototypen in `test/`
 bleiben zulässig (sie sind nicht Produktivcode), müssen aber `R_adj` und
 `Q_stop` mitführen.
+
+---
+
+## Phase 2 / Block E-20 (2026-09-11, f) — POC-Entkopplung: implementiert, gemessen, **nicht bindend**
+
+Freigabe erteilt für den additiven In-Memory-Prototyp. Umgesetzt ist der
+Schalter **`poc_quelle`** mit den zwei ratifizierten Werten; die harte
+Zulässigkeitsordnung `sl > entry > poc > tp2` (SHORT) blieb **unverändert**.
+
+### E0 · Umsetzung (rein additiv, kein Kern-Eingriff)
+
+Der Renderer-Patch-Slice (`tmp_png_aug_sichttest.py`, Z. 541–660) wird
+**unverändert** übernommen und um genau zwei textuelle Ersetzungen erweitert:
+
+```
+unter, ober = gegen_basis, basis    ->  _hook.poc_fenster(k, richtung, gegen_basis, basis)
+unter, ober = basis, gegen_basis    ->  _hook.poc_fenster(k, richtung, gegen_basis, basis)
+```
+
+`poc_fenster` liefert:
+- `GEGENKANTE_LEGACY` (Default) → `(gegen_basis, basis)` bzw. `(basis, gegen_basis)`;
+- `PHASE_RANGE` → `sorted(boden_kausal, decke_kausal)`, kausal über
+  `aufloese_referenz_kausal` + `KantenSicht`; Fallback LEGACY, wenn keine
+  aktive Phase oder eine Grenze `None` ist.
+
+Engine-SHA `4a576a76…` **vor und nach allen Läufen unverändert**.
+
+### E1 · Harness-Kontrolle (gültig)
+
+| Kontrolle | Ergebnis |
+|---|---|
+| `LEGACY_CTRL` H2 `R` vs. `_tmp_s2_vd_stresstest.py` (`VD_K408_409`) | **`−19,065650` — exakt**, `R_adj` `−53,000000`, `Q_stop` `0,981` |
+
+### E2 · Messung (S2-Cache, Partition bei `entry_bar` = 17.692)
+
+H2 ist die Messpartition; H1 ist über **alle** gepatchten Läufe
+bit-identisch (245 / −140,466233 R) und daher Kontrolle.
+
+| Lauf | N | R | R_max | R_adj | N_stop | Q_stop | EV | EV_adj |
+|---|---|---|---|---|---|---|---|---|
+| `BASE` H2 | 54 | −45,589707 | +1,827819 | −47,417525 | 50 | 0,926 | −0,844254 | −0,878102 |
+| `LEGACY_CTRL` H2 | 54 | −19,065650 | +33,934350 | **−53,000000** | 53 | **0,981** | −0,353068 | **−0,981481** |
+| `PHASE_RANGE` H2 | 54 | −18,697002 | +34,302998 | **−53,000000** | 53 | **0,981** | −0,346241 | **−0,981481** |
+| `PR_AUSSEN_NAEHE` H2 | **0** | +0,000000 | — | — | 0 | — | — | — |
+| `BASE` gesamt | 299 | −186,055940 | +20,835855 | −206,891794 | 239 | 0,799 | −0,622261 | −0,691946 |
+
+Deltas `PHASE_RANGE` gegen `LEGACY_CTRL` (H2):
+**`dR` +0,368648 · `dR_adj` +0,000000 · `dQ_stop` +0,000 · `dEV_adj` +0,000000.**
+
+### E3 · Befund F1 — E-20 ist ein **latenter**, kein bindender Defekt
+
+`R_adj` und `Q_stop` sind zwischen LEGACY und PHASE_RANGE **bit-identisch**.
+Der gesamte Unterschied sind **+0,368648 R auf genau EINEM Trade**
+(`entry 18825`): `−19,065650 − 33,934350 = −18,697002 − 34,302998 = −53,000000`
+**exakt**. Alle 53 übrigen Trades sind in beiden Läufen `−1,000000`.
+
+Ursache: `tp1 = poc` wird in H2 von **1 von 54** Trades vor dem Stop erreicht.
+Eine Änderung des POC kann daher nur diesen einen Trade bewegen. Die
+Mentor-These „E-20 erklärt die Verluste" ist damit **widerlegt** — die
+Verlustquelle liegt ausschließlich in der Stop-Geometrie (Block B).
+
+### E4 · Neuer Befund E-21 — der POC ist ein **Randartefakt** des Fensters
+
+`berechne_kausalen_histogramm_poc` spannt die Bins über `(unter, ober)` und
+**clippt** Bars außerhalb in die Rand-Bins (`searchsorted(...)-1` + `np.clip`),
+die Glättung (`win=3`) hebt danach Bin 1 über Bin 0. Messung für das Fenster
+`(45,7890, 47,1221)` (Segment K408/K409, kausal bis Bar 21553):
+
+| Lage der Bars | Bars | Volumen | Anteil |
+|---|---|---|---|
+| vollständig **unter** dem Fenster | 17.486 | 17.544.085 | **67,3 %** |
+| überlappend | 64 | 124.885 | 0,5 % |
+| vollständig innerhalb | 402 | 727.402 | 2,8 % |
+| vollständig **über** dem Fenster | 3.602 | 7.663.723 | **29,4 %** |
+
+Bin 0 = 67,3 % · letzter Bin = 29,6 % · **Bins 1…−2 zusammen = 3,1 %**.
+`argmax` nach Glättung = **Bin 1** → `POC = 45,8223` = `tp2 + 0,0333 USD`
+(**0,073 %** der Basis).
+
+**Konsequenz:** `tp1 = poc` liegt praktisch **auf** `tp2`. Ein SHORT muss die
+volle Strecke von ~47–54 USD bis ~45,82 USD laufen, um TP1 zu erreichen — bei
+0,14–0,87 % Stop. TP1 ist damit **strukturell unerreichbar vor dem Stop**, in
+**beiden** Fensterdefinitionen. Das erklärt `Q_stop = 0,981` mechanisch und
+zeigt: die Fenster-Entkopplung (E-20) greift am falschen Ende — solange das
+Fenster den Volumenschwerpunkt nicht enthält, ist der „POC" kein
+Akzeptanzniveau. **`PHASE_RANGE` mit Split-Kanten erfüllt diese Bedingung
+nicht** (67 % des Volumens liegt unterhalb).
+
+### E5 · Neuer Befund E-22 — `R` ist unter degeneriertem Stop **nicht skaleninvariant**
+
+Derselbe Ausreißer-Trade (`entry` 54,2440, Ziel 45,7890, Bewegung 8,4550 USD):
+
+| Stop | risk USD | % von entry | `R` |
+|---|---|---|---|
+| tatsächlich (Cluster-Extremum + 0,05) | 0,2460 | 0,45 % | **34,3699** |
+| hypothetisch 1 % | 0,5424 | 1,00 % | **15,5881** |
+| hypothetisch 2 % | 1,0849 | 2,00 % | **7,7933** |
+
+Der „+34-R-Gewinner" ist damit primär ein **Normalisierungsartefakt des zu
+engen Stops**, nicht ein Markterfolg. Folge: `R` darf **nicht** über
+verschiedene Stop-Settings verglichen werden (Block B). Pflicht für Block B:
+Ausweis zusätzlich in **USD-Bewegung** und/oder **ATR-normiert**.
+
+### E6 · Nebenbeobachtungen (Datenstand)
+
+- **54/54 H2-Trades sind SHORT**, bei steigendem Markt (Entry-Preise 47,09 →
+  54,24; H2-Spanne 45,53 → 56,53). Das System fadet systematisch den Aufwärtslauf.
+- `PR_AUSSEN_NAEHE` liefert weiterhin **0 H2-Trades** (`kein_raum` 14 → 152) —
+  auch unter `PHASE_RANGE`. Der Rollen-Envelope-Pfad bleibt handelslos.
+- H1-`R_max` ist jetzt extrahiert: **+20,835855** (BASE gesamt `R_adj`
+  −206,891794). Damit ist die frühere Definitionseinschränkung (D3) aufgelöst.
+
+### E7 · Artefakt-Anker (SHA256; `test/` = gitignored)
+
+| Artefakt | SHA256 | Bytes |
+|---|---|---|
+| `test/_tmp_s2_e20_poc.py` | `ea2f1f1abcea0dedf9bfda4cb4faa03b234cd022b6fa2ad25f470d6da922888c` | 14.258 |
+| `test/_tmp_s2_e20_poc_out.txt` | `2b7a8629b7ffba3c15f19256932cd656de02aa23b4a96754b8241454e9fad333` | 16.805 |
+| `test/_tmp_e20_poc_diagnose.py` | `f2ecc7634f3ebfbd1b252ab21258aad1f279ebe6501e8a9b75d269714e8c0e24` | 4.438 |
+| `test/_tmp_sha_liste.py` | `eef538cc6f050bc62adbdde9e9900370f4a39ec82ab82aa70dac1e2ba0c676e7` | 1.170 |
+
+`*_stderr.txt` = leer (`e3b0c442…`). Engine `4a576a76…` und VD-Entwurf
+`1615a4af…` unverändert.
+
+### E8 · Offene Entscheidungen (Textblock)
+
+1. **POC-Fenster vs. POC-Bars.** E-21 zeigt: das Problem ist nicht nur die
+   **Preis**-Grenze (`unter, ober`), sondern auch das **Bar**-Fenster
+   (`poc_start = 0`). Soll `poc_start` auf den **Phasen-/Konsolidierungsbeginn**
+   (bzw. `k − lookback`) gesetzt werden, damit das Histogramm nur die aktuelle
+   Balance abbildet? Ohne das bleibt der POC ein Randartefakt.
+2. **Wirklichkeitsnähe `tp1 = poc`.** Ist ein Teilgewinn exakt am POC überhaupt
+   die richtige Regel — oder gehört TP1 an eine **Strukturmarke** (z. B.
+   Mittelband / 50 % der Phasenrange) und der POC nur zur Filterung?
+3. **Block-B-Reihenfolge.** Soll Block B (Stop-Geometrie) **vor** Block A
+   kommen? E-22 legt das nahe: solange der Stop degeneriert ist, ist jede
+   R-basierte Messung — auch die von Block A — nicht interpretierbar.
+4. **Metrik-Normierung für Block B.** Ausweis zusätzlich in USD-Bewegung
+   (absolut) und ATR-normiert (relativ)? Beides ist mit E-22 neu zu beschließen.
+5. **`JAHR`/L3840 bleibt verboten** (Riesenband-Falle, §12). Für Block A
+   bestätigt: 960 = Erkennung, 480 = Bestätigung, Übergabe ereignisgetrieben.

@@ -4,8 +4,12 @@
 > Es dient nur noch als **Archiv/Historie** (verworfene Ansätze, Referenzzahlen,
 > Git-Zustand), um Wiederholungen/Re-Tests zu vermeiden.
 >
-> **👉 Aktueller Live-Session-State + Konzept: `docs/reclaim.md`**
-> (dort zuerst lesen = Bootstrap). Diese Datei nur bei Bedarf für tiefe Details.
+> **⚠️ Erratum (2026-09-11):** Der frühere Bootstrap-Verweis auf
+> `docs/reclaim.md` war **falsch** — diese Datei existiert weder im Dateisystem
+> noch in git. Der Live-Session-State steht im **jeweils letzten
+> Append-Abschnitt** dieser Datei. Verbindliche Zeitbasis ist seit 2026-09-11
+> **`docs/ZEITBASIS_KANON.md`** (BKZ = `time AT TIME ZONE 'UTC'`; die frühere
+> `Europe/Berlin`-Projektion ist aufgehoben)
 
 ---
 

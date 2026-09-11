@@ -1,5 +1,15 @@
 # Spezifikation: Reclaim-Snapshot-Engine (Post-Phase-Kanten, Setup B)
 
+> **⚠️ Zeitbasis-Erratum (2026-09-11):** Dieses Dokument verwendet den historisch
+> überladenen Begriff „Wanduhr" und teils die `Europe/Berlin`-Projektion (+2 h).
+> **Verbindlich ist seit 2026-09-11 `docs/ZEITBASIS_KANON.md`:** Rechenbasis ist
+> ausschließlich die **Broker-Kerzen-Zeit (BKZ)** = `time AT TIME ZONE 'UTC'`;
+> `Europe/Berlin`/`Europe/Budapest` sind reine Anzeige-Dubletten.
+> Abschnitte, die bereits `time AT TIME ZONE 'UTC'` nutzen, sind
+> kanonkonform; Zeitangaben aus der alten Berlin-Projektion sind um
+> −2 h gegen die BKZ verschoben.
+
+
 Status: **ARRETIERT / SPEZIFIKATION (Pfad B)**
 Datum: 2026-09-06
 Bezug: `docs/reclaim_live_lateriz_befund.md` (Commit `b6bcfc6`, §7 Ausblick),

@@ -1,5 +1,15 @@
 # Session-Checkpoint V3 Straight-Edge (SILVER M15) — 2026-09-08
 
+> **⚠️ Zeitbasis-Erratum (2026-09-11):** Dieses Dokument verwendet den historisch
+> überladenen Begriff „Wanduhr" und teils die `Europe/Berlin`-Projektion (+2 h).
+> **Verbindlich ist seit 2026-09-11 `docs/ZEITBASIS_KANON.md`:** Rechenbasis ist
+> ausschließlich die **Broker-Kerzen-Zeit (BKZ)** = `time AT TIME ZONE 'UTC'`;
+> `Europe/Berlin`/`Europe/Budapest` sind reine Anzeige-Dubletten.
+> Abschnitte, die bereits `time AT TIME ZONE 'UTC'` nutzen, sind
+> kanonkonform; Zeitangaben aus der alten Berlin-Projektion sind um
+> −2 h gegen die BKZ verschoben.
+
+
 > Status: **Erkundungs-/Analyse-/Dokumentationsphase.** Kein Feature-Code-Compile
 > ohne Freigabe. Fortsetzung später — dieser Checkpoint stellt den vollständigen
 > Kontext wieder her (Stand nach Commit `b253175`, vor Schritt 2).

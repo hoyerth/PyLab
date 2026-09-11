@@ -1,5 +1,15 @@
 # Setup C: Trendfolge, Sägezahn-Expansion & Ausbruchs-Engine
 
+> **⚠️ Zeitbasis-Erratum (2026-09-11):** Dieses Dokument verwendet den historisch
+> überladenen Begriff „Wanduhr" und teils die `Europe/Berlin`-Projektion (+2 h).
+> **Verbindlich ist seit 2026-09-11 `docs/ZEITBASIS_KANON.md`:** Rechenbasis ist
+> ausschließlich die **Broker-Kerzen-Zeit (BKZ)** = `time AT TIME ZONE 'UTC'`;
+> `Europe/Berlin`/`Europe/Budapest` sind reine Anzeige-Dubletten.
+> Abschnitte, die bereits `time AT TIME ZONE 'UTC'` nutzen, sind
+> kanonkonform; Zeitangaben aus der alten Berlin-Projektion sind um
+> −2 h gegen die BKZ verschoben.
+
+
 > **Status:** Schritte 1–4b + Schritt 4 abgeschlossen (B1–B4 §2.5, C1–C5 §2.7, D1–D5 §2.9, H1–H4 §2.11, W1–W4 §2.12, Produktions-Blueprint §2.13, 05.09.2026); 274R-Artefakt eliminiert; F4+Zeit-Exit schlägt Stufen-Trailing in 16/18 Zellen; 1-Close-Vorteil Whipsaw-korrigiert (S1 N48 +18,2R → Netto +1,8R); **Schritt 4 abgeschlossen — Entscheidungsvorlage arretiert (Phase-1-Kern RAW-A + F4 + Zeit-Exit 48/96 + Suppression; Regime-Schalter = Stufe-5-Validierungs-Rückstellung) — Übergabe an Entwicklungsphase (`scripts/setup_c_profil.py`)** — **Entwicklungs-Schritt 1 verankert (§2.14: Acceptance-Gates L1/L2 + Architektur-Beschlüsse)** — **Phase 1 abgeschlossen & produktionsreif (§2.15: L1/L2-Gate bitgenau bestanden über AUG/S1/S2, Abnahmeprotokoll; `scripts/market_segmentation.py` + `scripts/setup_c_profil.py` committet)** — **Einheiten-Bereinigung D4-Ratchet (05.09.2026): µs/ns-Bug in `_kanten_reihe` beseitigt (statische Kante → zeitlich gültige Ratchet-Stufenfunktion); §2.13-D/§2.14/§2.15 re-arretiert — L1-F3/CONFIRMED/RETEST bitgenau unverändert, RAW-Split & L2 korrigiert (S1 N48 +22,81R / N96 +27,87R, n=38; S2 N48 +0,31R / N96 +0,98R, n=3; AUG erstmals n=2: +3,64R / −0,87R statt Vakuum)** — Baseline unverändert.
 > **Bezug:** `scripts/setup_c_profil.py` (neu anzulegen) auf Infrastruktur-Basis von `scripts/phasen_volumen_profil.py` (v0.4.0-baseline-frozen, unverändert).
 

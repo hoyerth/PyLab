@@ -1,5 +1,17 @@
 # Spezifikation: Kausale Standalone-Kanten-Engine (Setup B, SILVER M15)
 
+> **⚠️ Zeitbasis-Erratum (2026-09-11):** Dieses Dokument verwendet den historisch
+> überladenen Begriff „Wanduhr" und teils die `Europe/Berlin`-Projektion (+2 h).
+> **Verbindlich ist seit 2026-09-11 `docs/ZEITBASIS_KANON.md`:** Rechenbasis ist
+> ausschließlich die **Broker-Kerzen-Zeit (BKZ)** = `time AT TIME ZONE 'UTC'`;
+> `Europe/Berlin`/`Europe/Budapest` sind reine Anzeige-Dubletten.
+> Abschnitte, die bereits `time AT TIME ZONE 'UTC'` nutzen, sind
+> kanonkonform; Zeitangaben aus der alten Berlin-Projektion sind um
+> −2 h gegen die BKZ verschoben. Für die Kanten-Engine gilt:
+> `box_end_bar = 640` (Berlin-Artefakt) → **644** (BKZ, 19.08. 00:00);
+> H1 **8 / +38,919584 R**, H2 **6 / +3,531386 R** (Gesamt unverändert).
+
+
 Status: **ARRETIERT / SPEZIFIKATION V2 (Standalone-Kausal-Engine, Modus B)**
 Datum: 2026-09-06 (V1: Commit `c66457b`) — Nachtrag V2: 2026-09-06
        (Kanten-Audit K20/K9/K14: Modus-A-Null-Befund arretiert, §8.3)

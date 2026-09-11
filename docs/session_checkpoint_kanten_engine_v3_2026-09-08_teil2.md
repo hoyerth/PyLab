@@ -1,5 +1,15 @@
 # Session-Checkpoint V3 Straight-Edge — Teil 2 (2026-09-08, Harness-Scharfschaltung)
 
+> **⚠️ Zeitbasis-Erratum (2026-09-11):** Dieses Dokument verwendet den historisch
+> überladenen Begriff „Wanduhr" und teils die `Europe/Berlin`-Projektion (+2 h).
+> **Verbindlich ist seit 2026-09-11 `docs/ZEITBASIS_KANON.md`:** Rechenbasis ist
+> ausschließlich die **Broker-Kerzen-Zeit (BKZ)** = `time AT TIME ZONE 'UTC'`;
+> `Europe/Berlin`/`Europe/Budapest` sind reine Anzeige-Dubletten.
+> Abschnitte, die bereits `time AT TIME ZONE 'UTC'` nutzen, sind
+> kanonkonform; Zeitangaben aus der alten Berlin-Projektion sind um
+> −2 h gegen die BKZ verschoben.
+
+
 > Status: **Harness-Code aktiv (test/tmp_kanten_engine_replay.py, gitignored).**
 > D1–D5 scharfgeschaltet, danach 6 Mentoren-Befunde iterativ korrigiert
 > (Patch 2–16). `py_compile` grün, AUG-Lauf Exit 0. Offene Arretierungen

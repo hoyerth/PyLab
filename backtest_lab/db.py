@@ -103,7 +103,7 @@ def connect_backtest(
 
 
 def _to_utc_naive(series: pd.Series) -> pd.Series:
-    """Normalisiert eine Zeit-Spalte auf naive UTC (Wanduhr-Garantie).
+    """Normalisiert eine Zeit-Spalte auf naive UTC (BKZ-Garantie).
 
     Die Quell-DBs speichern TIMESTAMPTZ mit Berlin-Offset (z. B.
     `2014-05-19 02:00:00+02:00`). Die SQL-Extraktion nutzt bereits
@@ -126,7 +126,7 @@ def load_ohlcv(
 ) -> pd.DataFrame:
     """Laedt OHLCV (inkl. spread) fuer Symbol/TF aus market_data (read-only).
 
-    Zeitachse: **naive UTC** (Wanduhr-Garantie, `AT TIME ZONE 'UTC'`) -
+    Zeitachse: **naive UTC** (BKZ-Garantie, `AT TIME ZONE 'UTC'`) -
     DST-korrekt und konsistent mit `load_signal_events`. Die Bar-Zeiten
     sind damit auf derselben Achse wie die Signal-Events.
 
@@ -182,7 +182,7 @@ def load_signal_events(
 ) -> pd.DataFrame:
     """Laedt die Signal-Events eines Runs aus analytics_data (read-only).
 
-    Zeitachse: **naive UTC** (Wanduhr-Garantie, `AT TIME ZONE 'UTC'`) -
+    Zeitachse: **naive UTC** (BKZ-Garantie, `AT TIME ZONE 'UTC'`) -
     konsistent zu `load_ohlcv`. Die Events sind damit direkt auf die
     OHLCV-Bars abbildbar (Entry am naechsten Bar-Open nach dem Signal).
 
@@ -274,7 +274,7 @@ def count_bars(
 def available_date_range(
     db_path: Optional[Union[str, Path]] = None,
 ) -> tuple[Optional[pd.Timestamp], Optional[pd.Timestamp]]:
-    """Verfuegbare Datumsspanne in market_data (naive UTC, Wanduhr-Garantie).
+    """Verfuegbare Datumsspanne in market_data (naive UTC, BKZ-Garantie).
 
     Konsistent zur Zeitachse von `load_ohlcv` / `count_bars`
     (`"time" AT TIME ZONE 'UTC'`). Die Grenzen dienen als min/max der
@@ -407,7 +407,7 @@ def _effective_run_timestamp(run_name: Optional[str], created_at) -> Optional[pd
     """Effektiver Lauf-Zeitstempel je Run (fuer die Run-Auswahl).
 
     Bevorzugt den Zeitstempel im `run_name` (Primaerlogik, tz-korrekt als
-    Berliner Wanduhrzeit normalisiert). Fallback bei `run_name_override`
+    Anzeige-Zeit (Europe/Budapest) normalisiert). Fallback bei `run_name_override`
     (kein Zeitstempel im Namen): `created_at`.
 
     Args:
@@ -420,8 +420,8 @@ def _effective_run_timestamp(run_name: Optional[str], created_at) -> Optional[pd
     ts = extract_run_timestamp(run_name)
     if ts is not None:
         try:
-            # Name-Ts ist die Berliner Wanduhrzeit (naive, aus datetime.now()).
-            # tz_localize rechnet DST-korrekt auf UTC um (Wanduhr-Garantie).
+            # Name-Ts ist die Anzeige-Zeit Europe/Budapest (naive, aus datetime.now()).
+            # tz_localize rechnet DST-korrekt auf UTC um (BKZ-Garantie).
             return pd.Timestamp(ts).tz_localize(
                 "Europe/Budapest", ambiguous="NaT", nonexistent="NaT"
             )
@@ -489,7 +489,7 @@ def get_signal_run_batches(
 
     Returns:
         DataFrame mit Spalten `ts` (ISO-String, UTC-aware), `run_count` und
-        `label` (lesbare Berliner Wanduhrzeit + Run-Anzahl), absteigend nach
+        `label` (lesbare Anzeige-Zeit Europe/Budapest + Run-Anzahl), absteigend nach
         Zeit sortiert. Leer, wenn keine Runs vorhanden sind.
 
     Example:
@@ -621,7 +621,7 @@ def enrich_signal_ranges(
 
 
 def _fmt_wallclock(ts: pd.Timestamp) -> str:
-    """tz-aware Timestamp -> lesbare Berliner Wanduhrzeit (String)."""
+    """tz-aware Timestamp -> lesbare Anzeige-Zeit Europe/Budapest (String)."""
     t = pd.Timestamp(ts)
     if getattr(t, "tz", None) is not None:
         t = t.tz_convert("Europe/Budapest")
@@ -813,10 +813,10 @@ def _fmt_duration(minutes: float) -> str:
 
 
 def _fmt_wallclock_series(series: pd.Series) -> pd.Series:
-    """Zeit-Spalte -> lesbare Berliner Wanduhrzeit (String "YYYY-MM-DD HH:MM").
+    """Zeit-Spalte -> lesbare Anzeige-Zeit Europe/Budapest ("YYYY-MM-DD HH:MM").
 
-    Wanduhr-Garantie: naive Werte werden als UTC interpretiert und nach
-    Europe/Budapest umgerechnet (Berliner Wanduhrzeit), tz-aware Werte
+    BKZ-Garantie: naive Werte werden als UTC interpretiert und nach
+    Europe/Budapest umgerechnet (Anzeige-Zeit), tz-aware Werte
     direkt konvertiert - konsistent zur uebrigen UI (DuckDB liefert die
     Zeiten bereits als naive UTC via `AT TIME ZONE 'UTC'`).
 
@@ -840,12 +840,12 @@ def get_backtest_trades(
     """Laedt die Einzeltrades eines Backtest-Runs (fuer die Detail-Tabelle).
 
     Vorsortiert auf den LETZTEN Trade ganz oben (`exit_time DESC`,
-    Wanduhr-Garantie: `AT TIME ZONE 'UTC'`). Neben den Rohspalten aus
+    BKZ-Garantie: `AT TIME ZONE 'UTC'`). Neben den Rohspalten aus
     `backtest_trades` werden angereicherte Infospalten mitgeliefert
     (moeglichst viele Spalten, siehe `TRADE_DETAIL_COLUMNS`):
 
       - run_name / symbol / timeframe: Run-Kontext (JOIN backtest_runs)
-      - entry_time / exit_time: Berliner Wanduhrzeit (String "YYYY-MM-DD HH:MM")
+      - entry_time / exit_time: Anzeige-Zeit Europe/Budapest ("YYYY-MM-DD HH:MM")
       - duration: Haltedauer (z. B. "2h 15m")
       - direction: "Long"/"Short" (lesbar statt +1/-1)
       - move_pct: richtungsbereinigte Kursbewegung in % (Gewinn/Verlust
@@ -918,7 +918,7 @@ def get_backtest_trades(
             for e, x in zip(df["entry_time"], df["exit_time"])
         )
     ]
-    # Zeiten als Berliner Wanduhrzeit (lesbar, lexikografisch sortierbar).
+    # Zeiten als Anzeige-Zeit (Europe/Budapest) (lesbar, lexikografisch sortierbar).
     df["entry_time"] = _fmt_wallclock_series(df["entry_time"])
     df["exit_time"] = _fmt_wallclock_series(df["exit_time"])
     # PnL in % des Startkapitals (aus params_json->'equity').

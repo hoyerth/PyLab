@@ -113,7 +113,7 @@ def _build_signal_arrays(
 
     Timing (lookahead-frei): Signal bei Bar-Close T -> Entry am Open von T+1
     (Arrays werden um 1 Bar geshiftet). Signale, deren Zeit nicht exakt auf
-    einer Bar-Zeit liegt, werden uebersprungen (Wanduhr-Garantie: Signal-Zeit
+    einer Bar-Zeit liegt, werden uebersprungen (BKZ-Garantie: Signal-Zeit
     ist exakt eine Bar-Zeit, in Schritt 3 verifiziert).
 
     Args:

@@ -19,7 +19,7 @@ KAUSALITAET (unveraendert aus der Baseline):
   Phasen-Huellkurve).
 - Regel-7-Finalize (letzter Grenz-Kontakt) ist POST-HOC am Datenende.
 
-Datenherkunft: DuckDB `read_only=True` (Wanduhr-Garantie: `time AT TIME ZONE
+Datenherkunft: DuckDB `read_only=True` (BKZ-Garantie: `time AT TIME ZONE
 'UTC'`, keine stille Lokalzeit-Konvertierung).
 """
 from __future__ import annotations
@@ -160,7 +160,7 @@ def load_data(db_path: Path, start: str, ende: str) -> pd.DataFrame:
     """Liest OHLCV-Bars strikt aus DuckDB (``read_only=True``).
 
     SQL und Zeitbehandlung 1:1 aus der Baseline (Z. 320-335):
-    ``time AT TIME ZONE 'UTC'`` (Wanduhr-Garantie), Entnaivisierung nach UTC,
+    ``time AT TIME ZONE 'UTC'`` (BKZ-Garantie), Entnaivisierung nach UTC,
     numerische ``idx``-Spalte. Symbol/Timeframe sind wie in der Baseline fest
     auf ``SILVER``/``M15`` verdrahtet (keine funktionale Verwässerung).
 

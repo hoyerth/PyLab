@@ -18,7 +18,7 @@ def build_run_name(
     """Erzeugt einen lesbaren, sortierbaren Run-Namen.
 
     Format: {indikator}_{param-kurz}_{SYMBOL}_{TF}_{JJJJMMTT}_{HHMM}[_{free_tag}]
-    Der Zeitstempel (Berliner Wanduhrzeit, naive) ist fester Bestandteil des
+    Der Zeitstempel (Anzeige-Zeit (Europe/Budapest), naive) ist fester Bestandteil des
     Namens und macht jeden Run eindeutig identifizierbar (z. B. für die
     Run-Auswahl im Backtest Lab via `extract_run_timestamp`).
     """

@@ -19,7 +19,7 @@ Scope (K4, arretiert):
     * D2-asym-Cooldown wird nur in seiner Baseline-Auspraegung benoetigt
       (dec ist immer None -> Kette last_bar_t1).
 
-M15-Spezifik (Wanduhr-Invariante):
+M15-Spezifik (BKZ-Invariante):
     * Die Segmentierung arbeitet auf 15-Minuten-Bars (frozen Z. 640:
       ``PIVOT_LOOKBACK * 15`` Minuten). Der Kernel ist daher an SILVER M15
       gebunden; ein Timeframe-Wechsel erfordert eine erneute Spezifikation.

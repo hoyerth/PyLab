@@ -4211,3 +4211,216 @@ Regressionstests).
    Zeitzeugen).
 
 **Naechster Auftrag:** H2-Marktanalyse (Phase P10 ab Bar 1021) — unveraendert.
+
+---
+
+## Addendum v0.24 / §74 — Ebene-2-Ratifizierung: Zielmechanismus, Ranking, Kausalitaet, Sleep-Bypass
+
+**Datum:** 2026-09-11 · **Status:** ratifiziert (Anwender) · **Art:** additiv.
+**Keine Projektdatei geaendert** — Engine `4a576a766670d684c30381969e4d7349d5786b1b22ea6dda08b93b7d811bb38a`
+/ 196.649 B · Renderer `0d145ef4c5ea0aa9b9b158c00bd54d97bfb1abd68e4a2a32f4e496fcea1f6fc7`
+/ 97.160 B · Adapter `0f3f8765b1682910a7332b2bcb6f30f79fb56afaec180bdca674693d3ec2b01b`
+/ 25.783 B — alle **unveraendert** (nach dem Lauf verifiziert).
+
+### §74.1 Gegenstand und Beschluesse
+
+Vier Entscheidungen mit Messlage. Grundlage: `test/_tmp_gegenkante_probe.py`
+(`3c7fbfa8ded6b08e6e3479fe4b4c5cffa913ab404b2d6513f74721dae478bb11`, 11.547 B)
+und die neue S2-Pipeline `test/_tmp_s2_scan_pipeline.py`
+(`1a87c1a65dab378282a54bec0e99eb09d9bd3e9e69ce34abfbebaa44de7a2118`, 9.062 B).
+
+| # | Beschluss | Messlage / Begruendung |
+|---|---|---|
+| **1** | **`GegenkantenWahl.PHASE_EIGEN`** ersetzt die Engine-Makrowand als TP2-Anker in `NiveauModus.GEGENKANTE_RELATIV` | **+65,504879 R / 17 Trades** (99,4977 % der Baseline) gegen `MAKRO_ENGINE` **+51,255680 R / 18 Trades** = **−14,579896 R** |
+| **2** | **`RangModus.NAEHE`** fuer die Innenraenge (`INNEN_*`): Rang nach `|basis − sweep_px|` | `INNEN_UNTEN_1` = K82 67,5450 (Handelszonen-Wand) statt K49 62,8590 (Makro-Kante) |
+| **3** | Pre-Birth-Lookahead wird **Adapter-seitig** gekapselt (`KantenSicht`), **kein** Engine-Eingriff | Engine bleibt `4a576a76…` arretiert; kein V019 |
+| **4** | `RECLAIM_AT_OPENING` filtert **nur Kausalitaet**, **nie** den Schlafstatus | K82-Reclaim an Bar 1075 trotz Schlaf-Fenster `(1074, 1174)` |
+
+### §74.2 Messlage AUG — Gegenkanten-Wahl (Zielmechanismus)
+
+`P9.boden.kid = K77`, `P9.boden.provenienz_basis = 68,3700` **==**
+`P9.ziel_preis_short = 68,3700`. Die arretierte Phase zielt also bereits auf
+**ihre eigene** Gegenkante, nicht auf die Makrowand. Vier Mechanismen bei
+**konstanter** kid-Bindung:
+
+| Mechanismus | Anker | Trd | R | Delta zu PHASE |
+|---|---|---|---|---|
+| **Z0 `PHASE`** (Bestand, Literal) | 68,3700 / 69,8700 | 17 | +65,835576 | — |
+| Z1 `MAKRO` (Engine `_gegenkante`, Q5/Q14) | K48 **62,5770** | 18 | +51,255680 | **−14,579896** |
+| **Z2 `SEG_BODEN` (kausal `basis_bei`)** | K77 **68,3920** | 17 | **+65,504879** | **−0,330697** |
+| Z3 `INNEN_UNTEN_1` (absoluter Rang) | K49 62,8590 | 18 | +51,255680 | −14,579896 |
+
+Kernaussagen:
+
+* **Z2 ist der Treffer:** die phaseneigene Gegenkante ueber kausales
+  `basis_bei(k)` reproduziert die Baseline zu **99,4977 %** — ohne jedes
+  Preis-Literal, ohne neuen Trade, ohne zusaetzlichen `−1,000000`-Stop. Die
+  Restabweichung ist reine **Preis-Drift** (68,3700 → 68,3920, i. e.
+  −0,0220 USD Zielnaehe).
+* **Z3 == Z1 bit-identisch** (gleiche Trades, gleiche R; nur das `tp2`-Label
+  differiert 62,8590 vs. 62,5770) ⇒ in diesen Trades bindet `tp2`
+  nachweislich **nicht**; der Verlust stammt allein aus den beiden
+  `−1,000000`-Stops (Bar 853 K59, Bar 981 K73).
+* Der Fehler war **nie** das Prinzip "relativ", sondern die **Wahl** der
+  Gegenkante. Genau so formuliert die Mentor-Kritik.
+
+**Beweis 1 (Resolver, bereits §73-naehe):** `R0 (kid+PHASE) == R1
+(ROLLE+PHASE)` **bit-identisch** — die Rollenaufloesung fuer die
+AUSSEN-Grenze ist Engine-aequivalent. **Beweis 2:** `ROLLE+MAKRO` == `kid+MAKRO`
+(18 / +51,255680) — die Niveau-Divergenz ist rein mechanisch.
+
+### §74.3 Messlage AUG — Ranking (`RangModus`)
+
+`INNEN_UNTEN_1` unter `RangModus.ABSOLUT` (Engine-Ordnung) landet auf der
+**Makro-Kante** K49 (62,8590): der UNTEN-Pool wird nach `basis_bei`
+**aufsteigend** sortiert, Rang 1 ist damit die naechs-tiefere Wand. Das ist
+nicht die "naechste relevante Innenwand der aktuellen Range". Unter
+`RangModus.NAEHE` (Abstand zu `sweep_px`) ist Rang 1 die Handelszonen-Wand
+(gemessen: K82 67,5450). **Erratum E-16 (neu).**
+
+Einschraenkung: Rang 0 (`AUSSEN_*`) ist unter beiden Semantiken identisch —
+deshalb war die Rangfamilie fuer die Aussengrenze ueberhaupt
+reproduzierbar. Fuer **K82** ist die Rangfamilie strukturell unzulaessig:
+K82 besetzt die Raenge **10/11** und ist in **111 von 267** H2-Bars nicht
+existent ⇒ Ereignisfamilie.
+
+### §74.4 Messlage AUG — Kausalitaet und Schlaf (Befunde C)
+
+1. **Pre-Birth-Lookahead (E-17, neu):** `K77.erster_pivot_bar = 934`
+   (Geburt 991), `existiert(K77, 903) = False` — dennoch liefert
+   `K77.basis_bei(903) = 68,3920`. Ursache ist der Engine-Rueckfall
+   `_SEEdgeH.basis_bei`: bei leerem `px`-Filter
+   (`wicks[0][0] + 2 <= k`) gibt die Methode `self.wicks[0][1]` zurueck —
+   den **ersten Docht** der Kante, also **Zukunft**. Genau der Trade
+   `(903, SHORT)` haengt in Z2 daran. Adapter-Kapselung:
+   `KantenSicht.kausal_existent(k) := erster_pivot_bar + 2 <= k + 1`
+   (identisch zu `_se_trades::_existiert`); `basis_kausal(k)` liefert vor der
+   Bestaetigung **`None`** statt eines Zukunftspreises. **Kein Engine-Eingriff**
+   (Beschluss 3) — die Arretierung `4a576a76…` bleibt gueltig.
+2. **Schlaf-Falle (E-18, neu):** `K82.schlaf_windows = [(1074, 1174)]`,
+   `ist_aktiv_bei(1075) = False`; die Kerze 1075
+   (`L 67,4200 < 67,5530 < C 67,6780`) ist ein sauberer
+   `STUFE_1_IN_BAR`-Reclaim **direkt** an der deklarierten Grenzkante. Der
+   Bruch/Sweep lag auf Bar 1072, das Fenster beginnt 1074 — der Reclaim
+   faellt also **1 Bar nach dem Einschlafen** aus. Filtert der Detektor ueber
+   `_existiert`/`ist_aktiv_bei`, sperrt er genau das Fakeout-Muster, das er
+   fangen soll. Beschluss 4: **Ereignis schlaegt Status**.
+   Zweitbefund: `K67` (OBEN) liefert in `[1021, 1288)` **kein** Reclaim ≥ 1 —
+   der M6-K67-Pfad ist dort strukturell leer.
+3. **Ereignis-Bestaetigung Bar 1002:** `L 68,3080 < 68,4000 < C 68,5090`,
+   `K77.touch_conf(1002) = 3` (erstmals ≥ `min_touches_handelbar`); genau
+   **eine** UNTEN-Kante mit Reclaim ≥ 1: **K77, Stufe 1**. Die Ereignisfamilie
+   `RECLAIM_AT_OPENING` ist damit an Bar 1002 datenseitig bestaetigt.
+4. **M6-Blindstelle = Bandbreiten-Mismatch** (kein Liveness-Problem):
+   `touch_band_pct = 0,12` gegen M6 `max_seed_distanz_pct = 0,75`. Nur 3
+   M6-Sperren im gesamten Fenster, alle K67-dormant. Freigabe-Volumen:
+   0,12 % → 5 Bars (P9) / **0** (P10); 0,75 % → 82 / 33 (28 dormant).
+
+### §74.5 Implementierung — V-D-Entwurf v0.24 (rein additiv)
+
+`test/_tmp_vd_vertrag_entwurf.py` — neuer SHA
+`1615a4aff5b1231be652ffc418d981662a049508cc9a82aa8c420cee7a20983a` (44.429 B).
+Die arretierte Produktionsdatei `backtest_lab/phasen_regime_adapter.py` bleibt
+**unberuehrt** (`0f3f8765…`).
+
+**Neu (nur ergaenzt, nichts ersetzt):**
+
+| Baustein | Zweck |
+|---|---|
+| `KantenSicht` (`kausal_existent`, `basis_kausal`) | Kapselt den Pre-Birth-Lookahead; `None` statt Zukunftspreis |
+| `KantenSichtKat` | Katalog-Typ mit Existenz-Vorbedingung |
+| `GegenkantenWahl` (`PHASE_EIGEN` / `MAKRO_ENGINE`) | Zielmechanismus explizit; `MAKRO_ENGINE` fuer endogene Segmente **fail-loud verboten** |
+| `RangModus` (`ABSOLUT` / `NAEHE`) | Sortiersemantik der Rangfamilie |
+| `SegmentVD.gegenkante_wahl`, `.rang_modus` | Segment-Felder (Default `PHASE_EIGEN` / `NAEHE`) |
+| `OeffnungsTrigger.ignoriere_schlafstatus` | Sleep-Bypass (Default `True`) |
+| `filtere_kausal`, `sortiere_nach_naehe` | Helfende Aufloeser |
+| `aufloese_rolle_kausal`, `aufloese_referenz_kausal` | Engine-identische Methoden bleiben; kausal gehaertete Varianten daneben |
+| `gegenkante_basis`, `ziel_preis_kausal` | TP2 endogen + kausal, kein Literal |
+| `aufloese_reclaim_at_opening` | Ereignisfamilie (Stufe 1) mit Sleep-Bypass |
+| `verifiziere` (+2 Regeln) | MAKRO-Engine-Verbot; Oeffnungs-Trigger-Konsistenz |
+
+**Verifikation (Hausregel: keine UI-/Regressionstests):** `py_compile` OK ·
+`test/test.py` **75 OK / 0 FAIL** (davon 27 neue V-D-Checks, inkl.
+Integration gegen den arretierten AUG-Scan: K77 Pre-Birth, K82-Schlaf am
+Ereignis-Bar, Reclaim Bar 1075 = `STUFE_1_IN_BAR`).
+
+### §74.6 S2-Cache (Ebene 2)
+
+`test/_tmp_s2_scan_pipeline.py` — Freigabe 2026-09-11 unter drei Auflagen
+(Split-Kalenderkante, fixierter Loader-Name, relative Logik ohne
+August-Literale). Ergebnis:
+
+| Groesse | Wert |
+|---|---|
+| n | 21.624 |
+| `box_end_bar` (hart 2026-08-19) | **21.624 == n** ⇒ B1 bestaetigt |
+| Split 2025-10-01 | **Bar 17.692** (2025-10-01T00:00 BKZ) |
+| H1 / H2 | 17.692 / **3.932** Bars |
+| Kanten | 411 edges + 37 seeds, `kid` 0..562 (fensterlokal ⇒ B4) |
+| Preisspanne | **28,2860 .. 56,5250** (mean close 37,7355) |
+| August-Literale 67,6355 / 68,3700 / 69,8700 / 69,9140 | **alle oberhalb des S2-Maximums** ⇒ B3 bestaetigt |
+| Pickle `test/_tmp_s2_scan_cache.pkl` | 1.254.468 B, SHA `a86ad1801c054ad039ee55a11f44f661eb9f651afb1e702af4e690548b1b2e2b` |
+| Roundtrip | Keys identisch; Fidelity-Lauf (`box_end=3000`) **bit-identisch** (27 / −16,939020) |
+| Rollenprobe H2 (Stride 3, 1.311 Bars) | leerer Pool **0**; `AUSSEN_OBEN`/`AUSSEN_UNTEN` 1.311/1.311; `PHASE_EIGEN` SHORT/LONG 1.311/1.311; `RECLAIM_AT_OPENING` **890** Ereignisse |
+
+**Laufzeit:** `_se_scan('S2')` = **410,7 s** (21624 Bars) — fuer weitere
+S2-Laeufe ist der Cache verbindlich.
+
+**Wichtig (Auflage 3):** Die Rollenprobe verwendet `AUSSEN_OBEN` /
+`AUSSEN_UNTEN` als Segmentgrenzen. Das ist ein **Aufloesbarkeits-Test des
+Pfades**, keine finale Segmentdefinition: die phaseneigene Gegenkante
+(Beschluss 1) setzt voraus, dass das Segment seine **eigene** Konsolidierung
+deklariert. Die S2-Segmentdefinition selbst ist noch offen (§74.7).
+
+### §74.7 Offene Punkte / Naechster Auftrag
+
+1. **S2-Segmentdefinition** fehlt. Der Pfad ist nachgewiesen (0 leere Pools,
+   `RECLAIM_AT_OPENING` feuert 890×), aber welche Rolle die S2-Konsolidierung
+   als `decke`/`boden` traegt, ist **nicht** bestimmt. Endogene Oeffnung
+   (`OeffnungsTrigger`) + Hybrid-Schliessung sind entworfen, aber auf S2
+   **noch nicht gemessen**.
+2. **Erste OOS-Messung auf Ebene 2 in S2** steht aus (relative Logik, kein
+   August-Literal). Vergleichsmassstab muss die **relative** Baseline sein,
+   nicht die AUG-Baseline — E-15 (H1/H2 generationsgebunden) gilt sinngemaess.
+3. **`INNEN_1`-Rangregel** ist implementiert und getestet, aber im
+   Adapter-**Bestand** (`backtest_lab/…`) noch nicht verdrahtet — bewusst:
+   der Entwurf bleibt additiv, kein Engpass fuer die AUG-Arretierung.
+4. **S1** (2026-02-05..08-28) ist noch nicht als Cache erzeugt.
+5. `SWEEP_MARKER_P02`, E-12, Renderer-Backup `pre_v018`: unveraendert offen
+   (§73.10).
+
+### §74.8 Errata (neu)
+
+* **E-16:** `INNEN_UNTEN_1` / `INNEN_OBEN_1` unter
+  `pool.sort(key=basis_bei(k))` sind **semantisch falsch** — Rang 1 ist dort
+  die naechs-tiefere Makro-Kante, nicht die Wand der Handelszone. Gueltig nur
+  fuer `AUSSEN_*`. Ersatz: `RangModus.NAEHE`.
+* **E-17:** `_SEEdgeH.basis_bei(k)` **vor** `erster_pivot_bar + 2` liefert
+  `wicks[0][1]` = Zukunfts-Docht (Pre-Birth-Lookahead). Adapter-seitig
+  gekapselt; **kein** Engine-Fix (Arretierung `4a576a76…` bleibt).
+* **E-18:** `_existiert`/`ist_aktiv_bei` sind fuer die **Ereignisfamilie**
+  `RECLAIM_AT_OPENING` untauglich: der Reclaim folgt dem Bruch, das
+  Schlaf-Fenster ist dessen Folge (K82: Fenster ab 1074, Reclaim 1075).
+
+### §74.9 Artefakte (SHA256, `test/` = gitignored → urkundlich)
+
+| Artefakt | SHA256 | Bytes |
+|---|---|---|
+| `_tmp_gegenkante_probe.py` | `3c7fbfa8ded6b08e6e3479fe4b4c5cffa913ab404b2d6513f74721dae478bb11` | 11.547 |
+| `_tmp_gegenkante_probe_out.txt` | `f3a7f82e3af3abd0a9849571481ada1d5e45cee9f2c4a30d811bdd65723663a3` | 6.314 |
+| `_tmp_vd_vertrag_entwurf.py` (**neu**) | `1615a4aff5b1231be652ffc418d981662a049508cc9a82aa8c420cee7a20983a` | 44.429 |
+| `test/test.py` (**neu**) | `25bc8d11ab35a06bf0f93e1a270d782dc41057b12c239637efc4f36706a0a348` | 13.909 |
+| `_tmp_s2_scan_pipeline.py` (**neu**) | `1a87c1a65dab378282a54bec0e99eb09d9bd3e9e69ce34abfbebaa44de7a2118` | 9.062 |
+| `_tmp_s2_scan_pipeline_out.txt` (**neu**) | `c3d439efd025d5f5e97572bc434c9b50be2a13457ecc6e53fae71ba7b9d99319` | 4.445 |
+| `_tmp_s2_scan_cache.pkl` (**neu**) | `a86ad1801c054ad039ee55a11f44f661eb9f651afb1e702af4e690548b1b2e2b` | 1.254.468 |
+| Engine V018 (invariant) | `4a576a766670d684c30381969e4d7349d5786b1b22ea6dda08b93b7d811bb38a` | 196.649 |
+| Renderer V018 (invariant) | `0d145ef4c5ea0aa9b9b158c00bd54d97bfb1abd68e4a2a32f4e496fcea1f6fc7` | 97.160 |
+| Adapter (invariant) | `0f3f8765b1682910a7332b2bcb6f30f79fb56afaec180bdca674693d3ec2b01b` | 25.783 |
+
+**Urkundliche SHA der Spez vor dem Append:**
+`5b902df40ac7493431f7dbd97ffc9fb9bd577fa9f0e87a1646e878da99e7b69f`
+(207.666 B, 4.213 Zeilen, LF).
+
+**Regelbestand nach v0.24:** §54 + §66 + §67 + §68 + §69 + §70 + §71 + §72 +
+§73 + **§74**. **Errata:** E-5 · E-11 · E-12 · E-13 · E-14 · E-15 · **E-16** ·
+**E-17** · **E-18**.

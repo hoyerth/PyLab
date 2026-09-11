@@ -27,7 +27,6 @@ def _():
     TF_LIST = ["MN1", "W1", "D1", "H4", "H1", "M30", "M15", "M10", "M5", "M2", "M1"]
     ALL_TIMEFRAMES = "ALLE Timeframes"
 
-    TZ_OFFSET_HOURS = 2
     WINDOW_BARS = 500
     WARMUP = 200
     OFFSET_MAX = 20000
@@ -40,7 +39,6 @@ def _():
         Path,
         SYMBOLS,
         TF_LIST,
-        TZ_OFFSET_HOURS,
         WARMUP,
         WINDOW_BARS,
         duckdb,
@@ -526,7 +524,6 @@ def _(conn_btn, mo, pd, sync_btn):
 @app.cell(hide_code=True)
 def _(
     DB_MARKET_DATA,
-    TZ_OFFSET_HOURS,
     close_conn,
     mo,
     open_conn,
@@ -542,19 +539,20 @@ def _(
         con = open_conn(DB_MARKET_DATA, read_only=True)
         try:
             rows = con.execute("""
-                SELECT symbol, timeframe, COUNT(*) AS bars, MIN(time) AS t_min, MAX(time) AS t_max
+                SELECT symbol, timeframe, COUNT(*) AS bars,
+                       MIN(time AT TIME ZONE 'UTC') AS t_min,
+                       MAX(time AT TIME ZONE 'UTC') AS t_max
                 FROM ohlcv_bars
                 GROUP BY symbol, timeframe
                 ORDER BY symbol, timeframe
             """).fetchall()
             df = pd.DataFrame(rows, columns=["Symbol", "TF", "Kerzen", "von", "bis"])
-            # DB speichert die MT5-Serverzeit (UTC+2) als TIMESTAMPTZ; pandas
-            # rendert sie in lokaler Zeit (+2). Für die Brokerzeit-Anzeige werden
-            # das Suffix entfernt UND die 2 h abgezogen (identisch zum Chart).
-            # to_datetime(..., utc=True): schuetzt gegen leere DB (MIN/MAX = NULL
-            # -> object-Spalten, .dt wuerde mit AttributeError scheitern).
-            df["von"] = pd.to_datetime(df["von"], errors="coerce", utc=True).dt.tz_localize(None) - pd.Timedelta(hours=TZ_OFFSET_HOURS)
-            df["bis"] = pd.to_datetime(df["bis"], errors="coerce", utc=True).dt.tz_localize(None) - pd.Timedelta(hours=TZ_OFFSET_HOURS)
+            # BKZ-Kanon (docs/ZEITBASIS_KANON.md): die SQL projiziert bereits
+            # die naive Broker-Kerzen-Zeit (kein Offset). to_datetime(...,
+            # errors="coerce") schuetzt gegen leere DB (MIN/MAX = NULL ->
+            # object-Spalten, .dt wuerde mit AttributeError scheitern).
+            df["von"] = pd.to_datetime(df["von"], errors="coerce")
+            df["bis"] = pd.to_datetime(df["bis"], errors="coerce")
             return df
         finally:
             close_conn(con)
@@ -685,7 +683,6 @@ def _(
     ALL_TIMEFRAMES,
     DB_MARKET_DATA,
     OFFSET_MAX,
-    TZ_OFFSET_HOURS,
     WARMUP,
     WINDOW_BARS,
     fenster,
@@ -713,7 +710,6 @@ def _(
             symbol=symbol_dd.value,
             timeframe=tf_dd.value,
             limit=WINDOW_BARS,
-            tz_offset_hours=TZ_OFFSET_HOURS,
             end_offset_bars=offset,
             warmup_bars=WARMUP,
             db_path=DB_MARKET_DATA,

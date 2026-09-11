@@ -9,6 +9,24 @@ import numpy as np
 
 from algos.signal_events import SignalEvent
 
+# Epoch-Nullpunkt fuer die naive BKZ->Sekunden-Rechnung (kein OS-TZ-Lookup).
+_EPOCH = pd.Timestamp("1970-01-01")
+
+
+def _epoch_sec(ts: Any) -> int:
+    """BKZ-Zeitstempel -> Unix-Sekunden (rein naiv, ohne OS-Zeitzone).
+
+    Kanon (docs/ZEITBASIS_KANON.md): Rechenbasis ist die Broker-Kerzen-Zeit
+    (BKZ). Die Epoche entsteht ausschliesslich durch Subtraktion des
+    Epoch-Nullpunkts; ``Timestamp.timestamp()`` wuerde den tz-naiven Wert je
+    nach Laufzeitumgebung aufloesen. Ein tz-aware Wert (falls je uebergeben)
+    wird zuvor auf UTC normiert und tz-naiv gestellt.
+    """
+    t = pd.Timestamp(ts)
+    if t.tzinfo is not None:
+        t = t.tz_convert("UTC").tz_localize(None)
+    return int((t - _EPOCH) // pd.Timedelta(seconds=1))
+
 
 def build_candles_payload(df: pd.DataFrame) -> Tuple[List[Dict[str, Any]], int, float]:
     """Erzeugt das Kerzen-Payload für Lightweight Charts inkl. automatischer Präzision."""
@@ -61,7 +79,7 @@ def build_day_separators_payload(df: pd.DataFrame) -> List[Dict[str, Any]]:
     for idx in day_change_indices:
         if idx == 0:
             continue
-        t_sec = int(times.iloc[idx].timestamp())
+        t_sec = _epoch_sec(times.iloc[idx])
         separators.append({
             "time": t_sec,
             "color": "rgba(255, 255, 255, 0.18)",
@@ -173,7 +191,7 @@ def build_grid_payload(
     hit_circles = []
 
     for hc in res.get("hit_circles", []):
-        t_sec = int(pd.Timestamp(hc["time"]).timestamp())
+        t_sec = _epoch_sec(hc["time"])
         hit_circles.append({
             "time": t_sec,
             "price": float(hc["price"]),
@@ -195,7 +213,7 @@ def build_signal_markers_payload(
     signals_df = df[df["signal"] != 0]
 
     for _, row in signals_df.iterrows():
-        t_sec = int(pd.Timestamp(row["time"]).timestamp())
+        t_sec = _epoch_sec(row["time"])
         is_buy = (row["signal"] == 1)
         markers.append({
             "time": t_sec,
@@ -310,7 +328,7 @@ def build_signal_markers_from_events(
         # Registry-Farben mit bull/bear überschreiben, falls keine TF-Farbe
         if not meta_tf and e.signal_type == "swing_change":
             style["color"] = bull_color if e.direction >= 0 else bear_color
-        t_sec = int(pd.Timestamp(e.time).timestamp())
+        t_sec = _epoch_sec(e.time)
         markers.append({
             "time": t_sec,
             "position": style["position"],
@@ -331,7 +349,7 @@ def build_hit_circles_from_events(
     for e in events:
         if e.signal_type in ["circle_yellow", "circle_fuchsia"]:
             color = time_circle_color if e.signal_type == "circle_yellow" else circle_color
-            t_sec = int(pd.Timestamp(e.time).timestamp())
+            t_sec = _epoch_sec(e.time)
             circles.append({
                 "time": t_sec,
                 "price": float(e.price),

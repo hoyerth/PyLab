@@ -13,7 +13,6 @@ def _():
     TIMEFRAME = "M1"
     WINDOW_BARS = 1000         # Größe des sichtbaren Fensters (Kerzen)
     WARMUP = 200               # MA-Warmup links vom Fenster (nur Berechnung)
-    TZ_OFFSET_HOURS = 2
     OFFSET_MAX = 20000         # Max. Scroll-Offset in Bars (Slider-Range)
 
     # ==========================================
@@ -74,7 +73,6 @@ def _():
         OFFSET_MAX,
         SYMBOL,
         TIMEFRAME,
-        TZ_OFFSET_HOURS,
         WARMUP,
         WINDOW_BARS,
         fenster,
@@ -90,7 +88,6 @@ def _(
     OFFSET_MAX,
     SYMBOL,
     TIMEFRAME,
-    TZ_OFFSET_HOURS,
     WARMUP,
     WINDOW_BARS,
     fenster,
@@ -108,7 +105,6 @@ def _(
         symbol=SYMBOL,
         timeframe=TIMEFRAME,
         limit=WINDOW_BARS,
-        tz_offset_hours=TZ_OFFSET_HOURS,
         end_offset_bars=offset,
         warmup_bars=WARMUP,
         db_path=DB_MARKET_DATA,

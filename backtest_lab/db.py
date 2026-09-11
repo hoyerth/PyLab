@@ -832,6 +832,22 @@ def _fmt_wallclock_series(series: pd.Series) -> pd.Series:
     return s.dt.tz_convert("Europe/Budapest").dt.strftime("%Y-%m-%d %H:%M")
 
 
+def to_display_bp(series: pd.Series) -> pd.Series:
+    """Oeffentliche Anzeige-Dublette: Zeit-Spalte -> Europe/Budapest-String.
+
+    Einzige oeffentliche Schnittstelle fuer die Darstellung der BKZ als
+    Anzeige-Zeit (docs/ZEITBASIS_KANON.md). Rechenbasis bleibt die
+    Broker-Kerzen-Zeit (naive UTC); ``Europe/Budapest`` ist reine Anzeige.
+
+    Args:
+        series: Zeit-Spalte (naive UTC/BKZ oder tz-aware).
+
+    Returns:
+        String-Spalte im Format "YYYY-MM-DD HH:MM" (Europe/Budapest).
+    """
+    return _fmt_wallclock_series(series)
+
+
 def get_backtest_trades(
     run_id: Union[str, object],
     db_path: Optional[Union[str, Path]] = None,

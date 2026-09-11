@@ -42,18 +42,19 @@ def load_market_data(
     db_path: Union[str, Path],
     date_from: Optional[str] = None,
     date_to: Optional[str] = None,
-    tz_offset_hours: int = 2,
     limit: int = 2_000_000,
 ) -> pd.DataFrame:
     """Lädt OHLCV für Symbol/TF, optional begrenzt auf einen Datumsbereich.
 
-    Konvention: naive Brokerzeit (wie im Chart Inspector).
+    Zeitbasis: Broker-Kerzen-Zeit (BKZ = ``time AT TIME ZONE 'UTC'``, tz-naiv,
+    docs/ZEITBASIS_KANON.md). Ein Offset-Parameter existiert bewusst nicht mehr.
     """
     con: Optional[duckdb.DuckDBPyConnection] = None
     try:
         con = duckdb.connect(str(db_path), read_only=True)
         q: str = f"""
-            SELECT "time", open, high, low, close, tick_volume AS volume, spread
+            SELECT "time" AT TIME ZONE 'UTC' AS time,
+                   open, high, low, close, tick_volume AS volume, spread
             FROM ohlcv_bars
             WHERE LOWER(symbol) = LOWER('{symbol}')
               AND LOWER(timeframe) = LOWER('{timeframe}')
@@ -61,10 +62,10 @@ def load_market_data(
         """
         params_list: List[str] = []
         if date_from:
-            q += ' AND "time" >= CAST(? AS TIMESTAMP)'
+            q += ' AND "time" >= CAST(? AS TIMESTAMP) AT TIME ZONE \'UTC\''
             params_list.append(date_from)
         if date_to:
-            q += ' AND "time" <= CAST(? AS TIMESTAMP)'
+            q += ' AND "time" <= CAST(? AS TIMESTAMP) AT TIME ZONE \'UTC\''
             params_list.append(date_to)
         q += " ORDER BY \"time\" ASC LIMIT " + str(int(limit))
         df: pd.DataFrame = con.execute(q, params_list).df().copy()
@@ -85,9 +86,7 @@ def load_market_data(
             ]
         )
 
-    df["time"] = df["time"].dt.tz_localize(None)
-    if tz_offset_hours != 0:
-        df["time"] = df["time"] - pd.Timedelta(hours=tz_offset_hours)
+    # BKZ-Kanon: die SQL liefert bereits naive Broker-Kerzen-Zeit.
     df["time"] = df["time"].astype("datetime64[ns]")
 
     for col in ["open", "high", "low", "close", "volume"]:
@@ -154,7 +153,6 @@ def run_sweep_sequential(
     db_market: Union[str, Path],
     service: DuckDBSignalService,
     warmup_bars: int = 200,
-    tz_offset_hours: int = 2,
     progress_callback: Optional[Callable[[int, int, str], None]] = None,
     free_tag: str = "",
     timestamp: Optional[datetime] = None,
@@ -182,7 +180,6 @@ def run_sweep_sequential(
                 db_market,
                 definition.date_from,
                 definition.date_to,
-                tz_offset_hours,
             )
 
             small_df: Optional[pd.DataFrame] = None
@@ -193,7 +190,6 @@ def run_sweep_sequential(
                     db_market,
                     definition.date_from,
                     definition.date_to,
-                    tz_offset_hours,
                 )
 
             for params in definition.param_space:
@@ -312,7 +308,6 @@ def run_sweep_parallel(
     db_market: Union[str, Path],
     service: DuckDBSignalService,
     warmup_bars: int = 200,
-    tz_offset_hours: int = 2,
     n_workers: Optional[int] = None,
     progress_callback: Optional[Callable[[int, int, str], None]] = None,
     free_tag: str = "",
@@ -340,7 +335,6 @@ def run_sweep_parallel(
                 db_market,
                 definition.date_from,
                 definition.date_to,
-                tz_offset_hours,
             )
             small_df: Optional[pd.DataFrame] = None
             if definition.htf_exact_time and definition.htf_small_tf != tf:
@@ -350,7 +344,6 @@ def run_sweep_parallel(
                     db_market,
                     definition.date_from,
                     definition.date_to,
-                    tz_offset_hours,
                 )
 
             ctx = mp.get_context("spawn")

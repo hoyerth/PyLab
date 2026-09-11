@@ -65,15 +65,21 @@ def load_candles(
     symbol: str,
     timeframe: str,
     limit: int,
-    tz_offset_hours: int = 0,
     db_path: Path = DEFAULT_DB_PATH,
     end_offset_bars: int = 0,
     warmup_bars: int = 0,
 ) -> pd.DataFrame:
-    """Lädt historische OHLCV-Kerzen aus der DuckDB-Datenbank."""
+    """Lädt historische OHLCV-Kerzen aus der DuckDB-Datenbank.
+
+    Zeitbasis (docs/ZEITBASIS_KANON.md): Die Spalte ``time`` wird als
+    Broker-Kerzen-Zeit (BKZ = ``time AT TIME ZONE 'UTC'``) projiziert und
+    tz-naiv zurueckgegeben -- die einzige Rechenbasis. Ein Offset-Parameter
+    existiert bewusst nicht mehr.
+    """
     fetch_limit = int(limit) + int(end_offset_bars) + int(warmup_bars)
     query = f"""
-        SELECT "time", open, high, low, close, tick_volume AS volume
+        SELECT "time" AT TIME ZONE 'UTC' AS time,
+               open, high, low, close, tick_volume AS volume
         FROM (
             SELECT "time", open, high, low, close, tick_volume
             FROM ohlcv_bars 
@@ -100,10 +106,8 @@ def load_candles(
             columns=["time", "open", "high", "low", "close", "volume"]
         )
 
-    df["time"] = df["time"].dt.tz_localize(None)
-    if tz_offset_hours != 0:
-        df["time"] = df["time"] - pd.Timedelta(hours=tz_offset_hours)
-
+    # BKZ-Kanon: die SQL liefert bereits naive Broker-Kerzen-Zeit
+    # (`time AT TIME ZONE 'UTC'`) -- kein Offset, keine Projektion mehr.
     df["time"] = df["time"].astype("datetime64[ns]")
     for col in ["open", "high", "low", "close", "volume"]:
         df[col] = df[col].astype("float64")

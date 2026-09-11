@@ -23,6 +23,7 @@ from typing import Any, Optional
 
 import pandas as pd
 
+from backtest_lab import db as _db
 from backtest_lab.types import OrderConfig, make_order_config
 from backtest_lab.ui_state import get_marimo_states
 
@@ -39,17 +40,13 @@ _HIDDEN_COLUMNS: list[str] = ["run_id"]
 
 
 def _format_created_at(series: pd.Series) -> pd.Series:
-    """Formatiert created_at fuer die Anzeige (Lokalzeit, lesbar).
+    """Formatiert created_at als Anzeige-Zeit (Europe/Budapest).
 
-    Die Quell-DB liefert tz-aware Zeitstempel (Europe/Budapest = Berlin).
-    Fuer die Tabelle reicht eine kompakte String-Darstellung.
+    Delegiert an die oeffentliche Anzeige-Dublette ``backtest_lab.db.to_display_bp``
+    (S4: zentrale Stelle). Rechenbasis bleibt die BKZ (naive UTC); die
+    BP-Projektion ist reine Darstellung (docs/ZEITBASIS_KANON.md).
     """
-    s = pd.to_datetime(series, errors="coerce")
-    if getattr(s.dtype, "tz", None) is not None:
-        s = s.dt.tz_convert("Europe/Budapest").dt.strftime("%Y-%m-%d %H:%M")
-    else:
-        s = s.dt.strftime("%Y-%m-%d %H:%M")
-    return s.astype(str)
+    return _db.to_display_bp(series)
 
 
 def render_run_selection(

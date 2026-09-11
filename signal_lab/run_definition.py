@@ -138,36 +138,29 @@ def favorite_symbols(db_path) -> List[str]:
     return [r[0] for r in rows]
 
 
-def available_date_range(db_path, tz_offset_hours: int = 2):
-    """Verfügbare Datumsspanne in market_data (naive Brokerzeit).
+def available_date_range(db_path):
+    """Verfügbare Datumsspanne in market_data (BKZ, tz-naiv).
 
     Liefert (min_date, max_date) als pandas.Timestamp (Datum) oder (None, None),
-    wenn keine Daten vorhanden sind. Konvention wie im Chart Inspector:
-    Brokerzeit wird als naive Zeit geführt (DB-TZ entfernt, Offset abgezogen).
+    wenn keine Daten vorhanden sind. Rechenbasis ist die Broker-Kerzen-Zeit
+    (BKZ = ``time AT TIME ZONE 'UTC'``, docs/ZEITBASIS_KANON.md); ein
+    Offset-Parameter existiert bewusst nicht mehr.
     """
     import duckdb
     con = duckdb.connect(str(db_path), read_only=True)
     try:
         row = con.execute(
-            'SELECT MIN("time"), MAX("time") FROM ohlcv_bars WHERE "time" IS NOT NULL'
+            'SELECT MIN("time" AT TIME ZONE \'UTC\'), '
+            'MAX("time" AT TIME ZONE \'UTC\') '
+            'FROM ohlcv_bars WHERE "time" IS NOT NULL'
         ).fetchone()
     finally:
         con.close()
     if not row or row[0] is None or row[1] is None:
         return None, None
     import pandas as pd
-    # DuckDB liefert je nach Treiber naive oder tz-aware datetimes – beides normalisieren
-    t_min = row[0] if not hasattr(row[0], "tz_localize") else row[0].tz_localize(None)
-    t_max = row[1] if not hasattr(row[1], "tz_localize") else row[1].tz_localize(None)
-    t_min = pd.Timestamp(t_min)
-    t_max = pd.Timestamp(t_max)
-    if t_min.tzinfo is not None:
-        t_min = t_min.tz_localize(None)
-        t_max = t_max.tz_localize(None)
-    if tz_offset_hours != 0:
-        t_min = t_min - pd.Timedelta(hours=tz_offset_hours)
-        t_max = t_max - pd.Timedelta(hours=tz_offset_hours)
-    return t_min, t_max
+    # BKZ-Kanon: die SQL projiziert bereits naive Broker-Kerzen-Zeit.
+    return pd.Timestamp(row[0]), pd.Timestamp(row[1])
 
 
 def available_symbols(db_path, favorite_symbols: Optional[List[str]] = None) -> List[str]:

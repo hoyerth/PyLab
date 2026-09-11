@@ -27,21 +27,21 @@ def _load_tf_range(
     timeframe: str,
     t_from: pd.Timestamp,
     t_to: pd.Timestamp,
-    tz_offset_hours: int = 2,
 ) -> pd.DataFrame:
-    """Lädt OHLCV für Symbol/TF im Zeitbereich [t_from, t_to] (naive Brokerzeit)."""
+    """Lädt OHLCV für Symbol/TF im Zeitbereich [t_from, t_to] (BKZ, tz-naiv)."""
     import duckdb
 
     con = duckdb.connect(str(db_path), read_only=True)
     try:
         q = f"""
-            SELECT "time", open, high, low, close, tick_volume AS volume
+            SELECT "time" AT TIME ZONE 'UTC' AS time,
+                   open, high, low, close, tick_volume AS volume
             FROM ohlcv_bars
             WHERE LOWER(symbol)=LOWER('{symbol}')
               AND LOWER(timeframe)=LOWER('{timeframe}')
               AND "time" IS NOT NULL
-              AND "time" >= CAST(? AS TIMESTAMP)
-              AND "time" <= CAST(? AS TIMESTAMP)
+              AND "time" >= CAST(? AS TIMESTAMP) AT TIME ZONE 'UTC'
+              AND "time" <= CAST(? AS TIMESTAMP) AT TIME ZONE 'UTC'
             ORDER BY "time" ASC
         """
         df = con.execute(q, [t_from, t_to]).df().copy()
@@ -50,9 +50,7 @@ def _load_tf_range(
 
     if df.empty:
         return pd.DataFrame(columns=["time", "open", "high", "low", "close", "volume"])
-    df["time"] = df["time"].dt.tz_localize(None)
-    if tz_offset_hours != 0:
-        df["time"] = df["time"] - pd.Timedelta(hours=tz_offset_hours)
+    # BKZ-Kanon: die SQL liefert bereits naive Broker-Kerzen-Zeit.
     df["time"] = df["time"].astype("datetime64[ns]")
     for col in ["open", "high", "low", "close", "volume"]:
         df[col] = df[col].astype("float64")
@@ -110,7 +108,6 @@ def build_quick_look_result(
     window_bars: int = 1000,
     warmup_bars: int = 200,
     end_offset_bars: int = 0,
-    tz_offset_hours: int = 2,
     indicator_name: str = "JumpIndicator",
     indicator_params: Optional[Dict[str, Any]] = None,
 ) -> Tuple[pd.DataFrame, List[IndicatorResult]]:
@@ -121,7 +118,6 @@ def build_quick_look_result(
         symbol=symbol,
         timeframe=timeframe,
         limit=window_bars,
-        tz_offset_hours=tz_offset_hours,
         end_offset_bars=end_offset_bars,
         warmup_bars=warmup_bars,
         db_path=db_market,
@@ -182,7 +178,7 @@ def build_quick_look_result(
         t_last = pd.Timestamp(small_times[-1])
 
         for htf in overlay_tfs:
-            hdf = _load_tf_range(db_market, symbol, htf, t_first, t_last, tz_offset_hours)
+            hdf = _load_tf_range(db_market, symbol, htf, t_first, t_last)
             if hdf.empty or len(hdf) < 3:
                 continue
             hma = MAIndicator(**params)
@@ -216,7 +212,6 @@ def render_quick_look(
     window_bars: int = 1000,
     warmup_bars: int = 200,
     end_offset_bars: int = 0,
-    tz_offset_hours: int = 2,
     indicator_name: str = "JumpIndicator",
     indicator_params: Optional[Dict[str, Any]] = None,
     **chart_kwargs: Any,
@@ -233,7 +228,6 @@ def render_quick_look(
         window_bars=window_bars,
         warmup_bars=warmup_bars,
         end_offset_bars=end_offset_bars,
-        tz_offset_hours=tz_offset_hours,
         indicator_name=indicator_name,
         indicator_params=indicator_params,
     )

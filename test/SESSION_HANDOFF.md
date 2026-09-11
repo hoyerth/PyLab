@@ -1652,3 +1652,124 @@ Ausweis zusätzlich in **USD-Bewegung** und/oder **ATR-normiert**.
    (absolut) und ATR-normiert (relativ)? Beides ist mit E-22 neu zu beschließen.
 5. **`JAHR`/L3840 bleibt verboten** (Riesenband-Falle, §12). Für Block A
    bestätigt: 960 = Erkennung, 480 = Bestätigung, Übergabe ereignisgetrieben.
+
+---
+
+## Phase 2 / E-23 (2026-09-11, g) — Offline-Matrix: **der Stop ist nicht das Problem**
+
+Vor dem Aufsetzen von Block B wurde eine **selektions-invariante Offline-Matrix**
+gerechnet: die 54 H2-Trades aus `LEGACY_CTRL` sind festgehalten, je Szenario
+wird **nur der Engine-eigene Auflöser** `_c_loese_trade` durchgespielt. Laufzeit
+< 1 s, kein Engine-Eingriff. Kontrolle: `LEGACY` reproduziert `−19,065650 R`
+**exakt**.
+
+**Dual-Ausweis (Beschluss 4) exakt**: `USD = R · risk` (Stück-PnL, da `R` auf
+`risk` normiert ist), `ATR/Tr = USD / ATR14(k)` (kausal, BKZ-Reihe).
+ATO14 am ersten Signal-Bar = **0,1584 USD**.
+
+### F0 · Die Matrix (54 Trades, H2)
+
+| Szenario | N | ablehn | R | R_adj | N_stop | Q_stop | USD/Tr | ATR/Tr |
+|---|---|---|---|---|---|---|---|---|
+| `LEGACY` | 54 | 0 | −19,065650 | −53,000000 | 53 | 0,981 | −0,0328 | −0,0463 |
+| `POC_W480` (`poc_start` = k−480) | 53 | 1 | −15,193612 | −46,921717 | 51 | 0,962 | −0,0201 | +0,0585 |
+| `POC_W960` (`poc_start` = k−960) | 54 | 0 | −16,193612 | −47,921717 | 52 | 0,963 | −0,0217 | +0,0412 |
+| **`POC_SPLIT`** (`poc_start` = 17.692) | 52 | 2 | −13,250791 | −44,978896 | 49 | 0,942 | **−0,0072** | **+0,1335** |
+| `TP1_MID` (tp1 = Mittelband 46,4556) | 54 | 0 | −19,984858 | −53,000000 | 53 | 0,981 | −0,0370 | −0,0792 |
+| `POC_W960_MID` | 54 | 0 | −19,984858 | −53,000000 | 53 | 0,981 | −0,0370 | −0,0792 |
+| `STOP_ATR15` (sl = max(sl, entry+1,5·ATR)) | 54 | 0 | **−2,138860** | −36,073209 | 52 | 0,963 | −0,0378 | −0,0011 |
+| `STOP_ATR15_W960` | 54 | 0 | −2,116077 | **−33,844182** | 51 | 0,944 | −0,0379 | +0,0073 |
+| `STOP_PCT1` (1 % Mindestabstand) | 54 | 0 | −22,074521 | −37,463965 | 51 | 0,944 | **−0,1998** | −1,3120 |
+| `STOP_PCT1_W960` | 54 | 0 | −20,632475 | −35,021373 | 49 | **0,907** | −0,1878 | −1,1431 |
+| `STOP_ATR30` (3·ATR) | 54 | 0 | −14,111940 | −35,985401 | 51 | 0,944 | −0,1697 | −0,7875 |
+| `STOP_ATR50` (5·ATR) | 54 | 0 | −28,867164 | −41,991241 | 51 | 0,944 | −0,4673 | −2,6729 |
+| `STOP_ATR50_W960` | 54 | 0 | −23,972801 | −36,243614 | 47 | 0,870 | −0,4053 | −2,2197 |
+
+Risiko-Verteilung (USD): `LEGACY` 0,0410 / Median 0,1465 / 0,6460 ·
+`STOP_ATR15` 0,1256 / 0,2320 / 0,6985 · `STOP_PCT1` 0,4685 / 0,5097 / 0,6460.
+
+### F1 · Befund — die Stop-Verbreiterung ist ein **Normalisierungsartefakt**
+
+`STOP_ATR15` verbessert `R_adj` von −53,000000 auf **−36,073209** (+16,93 R) —
+aber `USD/Tr` **verschlechtert sich** von −0,0328 auf **−0,0378**, und
+`ATR/Tr` bleibt ≈ 0. Der scheinbare Gewinn ist **allein** die R-Kompression
+durch den größeren Nenner (`risk`), also genau das in **E-22** beschriebene
+Artefakt. **USD ist die Wahrheit; R ist es nicht.**
+
+Weiter: `Q_stop` fällt von 0,981 nur auf 0,963/0,944 und **erreicht in keinem
+Szenario die Schwelle 0,75** (Bestwert `STOP_ATR50_W960` = 0,870). Eine
+Verdopplung des Stops (1,5 → 3 · ATR) senkt `Q_stop` **nicht**
+(51/54 beide), verschlechtert `USD/Tr` aber auf −0,170.
+
+**⇒ Die Mentor-Hypothese „der Stop ist zu eng, der Markt atmet breiter" ist
+durch die Daten widerlegt.** Die Trades sterben nicht am Mikrorauschen,
+sondern weil sie **54/54 gegen den Trend** stehen; ein weiterer Stop verliert
+pro Trade **mehr**, nicht weniger.
+
+### F2 · Befund — der **POC** ist der reale (kleine) Hebel, `tp1` praktisch irrelevant
+
+- `TP1_MID` und `POC_W960_MID` sind **identisch** zu `LEGACY` in `R_adj`
+  (−53,000000) und `N_stop` (53): die TP1-Wahl ändert **ausschließlich den
+  einen Gewinner**. Für die 53 Verlierer wird TP1 **nie** vor dem SL erreicht.
+  ⇒ `tp1 = poc` vs. `tp1 = Mittelband` ist **kein Hebel** (E-21 bleibt als
+  Diagnose richtig, aber als Fix wirkungslos).
+- `POC_SPLIT` verbessert `USD/Tr` auf **−0,0072** (von −0,0328; Faktor 4,6)
+  und `ATR/Tr` auf **+0,1335**; `N_stop` fällt 53 → 49. Das ist ein
+  **echter** Effekt: ein höher liegender POC macht TP1 für einige Trades
+  erreichbar. Aber der Bestwert bleibt **negativ**.
+- **`POC_SPLIT` ist ein Grenzfall**: `poc_start` = 17.692 → alle Bars ab Split
+  liegen über der Range → Clamping in den **obersten** Bin → `tp1` = 47,0888
+  = konstant `tp2` + 1,2998. Der Effekt kommt also aus einem weiteren
+  Randartefakt, nicht aus einem echten Akzeptanzniveau (E-21 bleibt gültig).
+
+### F3 · Blocker — `poc_start = segment.start_bar` ist **nicht definiert**
+
+`SegmentVD('P_K408_409', …, erwarteter_start_bar=None)` — das endogene
+Segment hat **keinen** Start-Bar. Der in Beschluss 1 verlangte Fix
+(`poc_start = segment.start_bar`) ist damit **erst nach Block A** verfügbar
+(zirkuläre Abhängigkeit: POC-Sanierung braucht das Phasenfenster, das Block A
+liefert). Proxy für eine Zwischenmessung: `poc_start = k − 960` (bzw. 480).
+
+### F4 · Bilanz und Empfehlung (Textblock — Entscheidung offen)
+
+1. **Kein Szenario erreicht ein positives Ergebnis.** Alle 13 Läufe bleiben
+   bei negativem `USD/Tr` und `Q_stop ≥ 0,870` → nach **D2** **sämtlich
+   disqualifiziert**.
+2. **Die Priorität kehrt sich um.** Nach `USD/Tr` ist **POC/Bar-Fenster** der
+   wirksame Hebel (Faktor 4,6), die **Stop-Verbreiterung schadet**. Die
+   Beschlussfolge „(B) vor (A)" ist auf Basis von F1 **nicht mehr gestützt**.
+3. **Der eigentliche Edge fehlt im Einstieg**, nicht im Exit: 54/54
+   Counter-Trend-Shorts (`USD/Tr` bleibt in **allen** Exit-Varianten negativ).
+   Der Regime-/Expansionsfilter (Block A) ist damit **nicht Vorbereitung,
+   sondern die Kernmaßnahme**.
+4. **Offene Entscheidung (Anwender):** Bleibt es bei (B) zuerst — oder wird
+   auf **POC-Fenster zuerst** (mit `poc_start = k − 960` als Proxy, da
+   `segment.start_bar` fehlt) umgestellt und Block A **vorgezogen**?
+   Eine dritte Option: zuerst den **Regime-Filter** isoliert messen
+   (Short-Verbot bei Expansion über `decke`), weil F3/F1 auf die
+   Einstiegsseite zeigen.
+
+**Kein Produktivcode, kein §75, kein S1-Cache.** Die Offline-Matrix ist
+read-only und hat den Engine-SHA `4a576a76…` nicht berührt.
+
+### F5 · Erratum E-23 (Präzision)
+
+Die E-22-Tabelle hatte `entry · 0,01` auf `0,5424` und `entry · 0,02` auf
+`1,0849` **gerundet**; korrekt ist `entry · 1 % = 0,542440` bzw.
+`1,084880`. R exakt:
+
+| risk | % | R |
+|---|---|---|
+| 0,244098 | 0,45 % | 34,637727 |
+| 0,542440 | 1,00 % | **15,586977** (Handoff sagte 15,5881) |
+| 1,084880 | 2,00 % | **7,793489** (Handoff sagte 7,7933) |
+| 0,246000 | tatsächlich | 34,369919 |
+
+Die Korrektur ist < 0,002 R und ändert keine Aussage.
+
+### F6 · Artefakt-Anker (SHA256; `test/` = gitignored)
+
+| Artefakt | SHA256 | Bytes |
+|---|---|---|
+| `test/_tmp_e23_offline_matrix.py` | `7e888a35c660d17b1264d5e252a37d39667642419797e58ebbdee48d483929d9` | 9.709 |
+| `test/_tmp_e23_offline_matrix_out.txt` | `392cc3f050edeb6a22221bb5e0fbbf872abd974e41c499bfecce1f4e71a982fd` | 5.612 |

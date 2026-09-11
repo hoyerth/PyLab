@@ -4733,3 +4733,135 @@ Skript `test/_tmp_e34h_einbrand_verify.py` (`02860929…`), Output
 
 1. Renderer-Schritt (`"V019"`, 9 Stellen) — Entwurf nach der Messung.
 2. Unveraendert: **kein §75, kein S1, keine S2-Laeufe.**
+
+---
+
+## Phase 2 / E-34i (2026-09-11, z) — Messung der Renderer-Sollwerte UND Falsifikation des „9-Zeilen-Plans": **V019 braucht vier Engine-Zielzonen-Patches**
+
+### W0 · Auftrag
+
+Rein lesende Messung (Anwender-Freigabe x) der drei offenen Renderer-Sollwerte
+und des tatsaechlichen Renderer-Verhaltens fuer den Modus `"V019"`.
+Kein PNG, kein Schreiben in Adapter/Engine.
+
+### W1 · Die drei Sollwerte (gemessen, E-34i/3)
+
+Skript `test/_tmp_e34i3_sollwerte.py` (`de7930ab…`), Output
+`test/_tmp_e34i3_sollwerte_out.txt` (`955c6c27…`). Maschinerie = exakt der
+Renderer-Patch; `V0`/`V1_basis` mit `DEFAULT_ADAPTER`, `V1_aktiv` mit
+`ADAPTER_V019`.
+
+| Sollwert | gemessener Wert |
+|---|---|
+| `referenz_soll` | `((980, 73),)` |
+| `neu_basis_soll` (ohne G4) | `((903,67),(980,67),(981,73),(1075,62),(1122,73),(1211,76),(1268,76),(1272,73),(1280,76))` |
+| ↳ mit G4-Auto-Zusatz `(1002,77)` | 10 Eintraege |
+| `quartett_r_soll` | `((903,4.119775),(980,9.987676),(981,2.695488),(1020,3.003157))` |
+| `quartett_r_summe_soll` | `+19.806095` |
+| `quartett` kids | `(67, 67, 73, 67)` |
+
+`V0 = 14 / +42.450970` und `V1_basis/RB = 14 / +47.815697` bleiben
+**bit-identisch** → `ziel_v1_basis_r` und `ziel_delta_rb = 34.798688` stabil.
+
+### W2 · **Falsifikation des 9-Zeilen-Plans**
+
+Skript `test/_tmp_e34i_messung.py` (`5891d095…`), Output
+`..._out.txt` (`21740508…`): Wird `ADAPTER_V019` an den **bestehenden**
+Renderer-Patch gebunden, liefert der Lauf exakt **V018**:
+
+```
+gesamt 17 / +65.835576 R  |  H1 8 / +38.919584  |  H2 +26.915992  |  ZIEL 0 / +0.000000
+```
+
+Die Segmente A1/A2 allein sind im Renderer **inert** (`ZIEL` = 0 Trades).
+Die Zielzone braucht vier **engine-seitige** Zusatz-Patches, die bisher nur in
+`test/_tmp_e34_auto.py` leben:
+
+| Patch | Wirkung | Anker (Engine) |
+|---|---|---|
+| `A_UEB1` | Ueberdehnungsschranke `_ueb(k)` = **0,80 segment-lokal** | `if dist > cfg.max_sweep_ueberdehnung_pct:` |
+| `A_VC` | `ex_hi/ex_lo` **ab Segmentstart** (`_q0 = seg.start_bar`) | `ex_hi = float(np.max(hi[:k + 1]))` |
+| `A_M6L` | M6-Blocker ueberspringt Nicht-`_lebt`-Linien in der Zone | `if e is kd or not _existiert(e, k):` |
+| `A_SB` | gesweepte Linie zaehlt in der Zone als aktiv | `if not e.aktiv_bei(k): return False` |
+
+plus Injektion `_zv`/`_ueb` und der Wrapper `_reclaim_stufe` (0,80 lokal).
+
+**Gegenprobe (E-34i/2):** Mit genau diesen vier Patches erscheint V019 exakt —
+**23 / +82.614385 R**, H1 8/+38.919584, H2 +43.694801, ZIEL 6/+16.778809
+(`..._out.txt` `efb532de…`, Skript `9c9bbfe2…`).
+
+**Verdikt:** Der geplante „9-Stellen-Renderer-Diff" ist **unvollstaendig**.
+V019 ist **kein reiner Datensatz**, sondern ein **gekoppeltes System** aus
+Segmentgrenzen (Adapter) **und** Zielzonen-Engine-Regeln (Renderer-Patchset
+**ZP-4**). Invariante 1 (Adapter engine-frei) bleibt gewahrt — die Physik liegt
+im Renderer, nicht im Adapter.
+
+### W3 · Der Verlust zur abgenommenen V018 — es gibt keinen
+
+Skript `test/_tmp_e34k_v18_v19.py` (`a81513ad…`), Output `..._out.txt`
+(`0f63cdbd…`): gleicher Patch, Schluessel `(bar, kid)`.
+
+```
+V018 -> V019:  +0 verloren / +6 gewonnen   (R-Abweichungen der 17 gemeinsamen: 0)
+```
+
+`V018 \\ V019` ist **leer**; H1 und P9-Fenster sind bit-identisch. Die 6
+Neuzugaenge (BKZ): 1075/K62 LONG 25.08. 15:45 → +1,475768 · 1122/K73 SHORT
+26.08. 04:30 → +10,752473 · 1211/K76 SHORT 27.08. 03:45 → +2,539476 ·
+1268/K76 SHORT 27.08. 18:00 → −1,000000 · 1272/K73 SHORT 27.08. 19:00 →
++1,254682 · 1280/K76 SHORT 27.08. 21:00 → +1,756410.
+
+**Der dokumentierte `referenz_soll`-Verlust `(980,73) / +2,412991` liegt gegen
+die v0.1-BASIS, nicht gegen V018** — V018 hat `(980,73)` bereits selbst
+ersetzt. Daher `delta_v1_trades = 9` (23 − 14), nicht 23 − 17.
+
+### W4 · Erratum zum Gating-Entwurf `ZielzonenPatchsetKonfiguration`
+
+Der vorgeschlagene Diskriminator `ist_zielzonen_mechanik_aktiv = (mode == "V019")`
+ist **strukturell zu grob**: der Renderer faehrt in EINEM V019-Lauf DREI
+`_lauf`-Aufrufe (`V0` + `V1_basis` mit `DEFAULT_ADAPTER`, `V1_aktiv` mit
+`ADAPTER_V019`). Ein globaler Modus-Konstanten-Gate waere fuer alle drei wahr.
+Der Laufzeit-Gate `_zv` **muss am gebundenen Adapter** haengen
+(`len(hook.segmente) > 1` bzw. `hook is ADAPTER_V019`), nicht am Modus.
+Der Modus-Gate gehoert auf die **Quelltext-Anwendung** (Quelltext nur fuer
+V019 wenden), der Adapter-Gate auf die **Laufzeit** (`_zv`).
+
+**Ehrliche Einschraenkung (Befund, nicht Vermutung):** Ein Hazard-Test
+(`_tmp_e34i2_probe.py`, `[HAZARD]`-Zeilen) zeigt: **un-gegatet** bleiben sowohl
+`DEFAULT_ADAPTER` (14 / +47.815697) als auch `ADAPTER_V015` (V018,
+17 / +65.835576) in diesem Datensatz **numerisch unveraendert**. Die Behauptung
+„ungestuetzt zerschlagen die Patches die Altsatz-Garantie" ist fuer AUG damit
+**falsifiziert** — der Gate ist **Vorsorge/Guarantee**, kein gemessener Bruch.
+Er bleibt trotzdem Pflicht (strukturelle Korrektheit + Zukunftssicherheit).
+
+### W5 · Der H1-Trade an der Grenze (E-34j)
+
+Skript `test/_tmp_e34j_h1.py` (`a42c555c…`), Output `..._out.txt`
+(`80406e1c…`). Gegenueber V017 liegt der einzige H1/H2-Grenz-Trade in V018/V019
+in H1: **K1@639 LONG, Signal 18.08. 21:45 BKZ, Entry 18.08. 22:00 BKZ,
+r = −1,000000** (BKZ-Kalenderkante `box_end` 644 = 19.08. 00:00 BKZ).
+Gegenueber V016 (Berlin-Anzeige) verlor H1 beim Motor-Sprung V016→V017 drei
+Trades: Bars 383/K8 (14.08. 05:45 BKZ), 492/K16 (17.08. 10:00 BKZ),
+620/K8 (18.08. 19:00 BKZ).
+
+### W6 · Artefakt-Anker E-34i/E-34j/E-34k (SHA256; `test/` = gitignored)
+
+| Datei | Bytes | SHA256 |
+|---|---|---|
+| `_tmp_e34i_messung.py` | 10.613 | `5891d095e9092cb8742620d0bc7e20877d9da0468252c072933b82d77c4aeae1` |
+| `_tmp_e34i_messung_out.txt` | 2.263 | `217405081daf9a6d773e660378d25cd832ba2783abb87f346dc42c04dbd2660f` |
+| `_tmp_e34i2_probe.py` | 11.195 | `9c9bbfe25b5388a4266b5092a7a4b4be8930192d56d5c861b3232bc49c44779e` |
+| `_tmp_e34i2_probe_out.txt` | 2.444 | `efb532de507fc2bad074c0226d65920c12bbf46a329c78e49e24bd074f55d12d` |
+| `_tmp_e34i3_sollwerte.py` | 11.270 | `de7930abd4de045e49d9390c3f5ee8655e2208789ac4f668492a7113122bc708` |
+| `_tmp_e34i3_sollwerte_out.txt` | 1.261 | `955c6c27b138e28b72d9ae2e23874b8adbda60a702adcc53dffb768f8cbe8cad` |
+| `_tmp_e34j_h1.py` | 5.698 | `a42c555cd38b43893f0137d1f5bc4db01cbe91c566f808142ca57516fe610dd7` |
+| `_tmp_e34j_h1_out.txt` | 4.982 | `80406e1c6a48bdb52f924318d03fb0a39904952f2d966e92e3a27abae4727b12` |
+| `_tmp_e34k_v18_v19.py` | 11.837 | `a81513ad4159b5a70010cbc675b8bee839e8ada5196bd09373a4435093413217` |
+| `_tmp_e34k_v18_v19_out.txt` | 3.054 | `0f63cdbdc84ea94275ecb8ed6e0b2e763502ae4f9c22416b7ca82c3eb2eb3448` |
+
+### W7 · Offene Entscheidungen (Textblock)
+
+1. ZP-4 als eigene Hilfsfunktion `_wende_zielzonen_patches_v019(src) -> str`
+   kapseln — Freigabe des Renderer-Diffs.
+2. Gating zweistufig: Quelltext = Modus, Laufzeit-`_zv` = gebundener Adapter.
+3. Unveraendert: **kein §75, kein S1, keine S2-Laeufe.**

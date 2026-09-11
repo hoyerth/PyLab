@@ -4591,3 +4591,145 @@ Einbrand. **Der Adapter bleibt bis dahin unberuehrt.**
 5. **Renderer-Mode `"V019"`** in `test/tmp_png_aug_sichttest.py` — mit dem
    Einbrand zusammen oder getrennt?
 6. Unveraendert: **kein §75, kein S1, keine S2-Laeufe.**
+
+---
+
+## Phase 2 / E-34g (2026-09-11, x) — Diff-Gutachten V019 + Renderer-Trockenlauf (rein lesend)
+
+### U0 · Auftrag und Status
+
+Anwender-Freigabe (w): Namenskonvention **`V019`**, Toleranz **explizit 1,0**,
+Renderer-Werte **messen statt raten**, Reihenfolge **erst Adapter, dann
+Renderer**. Alle Artefakte sind rein lesend (`test/`, gitignored).
+
+### U1 · Das Diff-Gutachten (§B)
+
+Artefakt `test/_tmp_e34g_diff_gutachten.md` (`85410e93…`, Stand C.2).
+Der §B-Block haengt **am Dateiende** an, **keine** bestehende Zeile geaendert;
+**kein** neuer Import noetig. Bestandteile: Herkunftskommentar
+(E-34/E-34f), `PLATEAU_MIN_BARS=41` / `MAX=114` / `REFERENZ=77`, Dataclass
+`PhasenReifeKonfiguration` (SSoT, Semantik = **Verschmelzungsschwelle**),
+`A1_AUTO_77` (1033..1173, K67/K82), `A2_AUTO_77` (1174..1287, K73/K82),
+`AKTIVE_SEGMENTE_V019` = `(P9_BODEN_RECLAIM, A1_AUTO_77, A2_AUTO_77)`,
+`ADAPTER_V019` + Fail-Loud-Aufbau. `provenienz_toleranz_pct=1.0` **explizit**
+(Audit-Hygiene, verhaltensneutral ggü. Feld-Default).
+
+**`DEFAULT_ADAPTER` bleibt unveraendert** — der Renderer faehrt `V0`/`V1_basis`
+mit dem Default (Z. 663/664); eine Umstellung wuerde `V0`, `R_B`, `H1` und die
+Altsatz-Garantie kippen.
+
+### U2 · Zwei unabhaengige Nachweise (rein lesend)
+
+* **Syntax-/Konstruktionsprobe** `test/_tmp_e34g_syntaxprobe.py`
+  (`e4e25a40…`), Output `..._out.txt` (`1f9dbc15…`): der woertliche
+  §B-Block (104 Zeilen) laeuft per `exec` im echten Adapter-Namespace — OK,
+  8 neue Namen, **keine Kollision**, P9 `is P9_BODEN_RECLAIM`, alle Pruefer OK,
+  Adapter-SHA vorher == nachher.
+* **Toleranz-Nachweis** `test/_tmp_e34g_toleranz.py` (`e67305ca…`), Output
+  `..._out.txt` (`ba2052ea…`): max. Abweichung `provenienz_basis` vs.
+  `basis_bei(k)` ueber 7 Audit-Bars = **0,1106 %** (A2/K73) — die 1-%-Schranke
+  traegt mit Faktor ≈ 9. **K82-Doppelrolle exakt:** `basis_bei(1173)=67,5350`
+  → `basis_bei(1174)=67,5530` (Preisschritt genau an der Segmentgrenze, je
+  0,0000 % zum Segmentstart). Sollwert-Arithmetik schliesst exakt:
+  `26,915992 + 16,778809 = 43,694801` und `38,919584 + 43,694801 = 82,614385`.
+
+### U3 · Renderer-Trockenlauf (§D, rein lesend, 9 Stellen)
+
+Der Renderer liest Segmente **generisch** aus `adapter.segmente` (Z. 698/830) —
+G4_SEG, P9_BEITRAG und Niveau-Override sind **ohne Umbau** V019-faehig. Nötig:
+
+1. `AdapterMode` (Z. 147) + `"V019"`;
+2. `ADAPTER_V019`-Import (Z. 135–141);
+3. `_KONFIGURATIONEN["V019"]` (Z. 381–383);
+4. `KONFIGURATION_V019` (neu, §E);
+5. Adapter-Wahl (Z. 428–431) **erweiternd** — V019 traegt ebenfalls
+   `g4_aktiv=True`; die Bool-Kette wuerde sonst `ADAPTER_V015` binden;
+6. `_V19`/`_NEU`/`_VTAG`/`_VER_TEXT` (Z. 462–475);
+7. Engine-Guard (Z. 497–506): V019 nutzt die **V018-Engine** (`box_end == 644`);
+8. `assert len(V1) - len(V1_basis) in (2, 3)` (Z. 739) **reisst** fuer V019
+   (23 − 14 = **9**) → V019-Zweig nötig;
+9. `neu_basis_soll`/`referenz_soll`/`quartett_r_soll` — **messen, nicht raten**.
+
+**Nicht betroffen:** `ziel_v0_r=42,450970`, `ziel_v1_basis_trades=14`,
+`ziel_v1_basis_r=47,815697`, `ziel_h1_trades=8`, `niveauwechsel_gesamt=66`,
+`niveauwechsel_baseline=205`.
+
+### U4 · Artefakt-Anker E-34g (SHA256; `test/` = gitignored)
+
+| Datei | Bytes | SHA256 |
+|---|---|---|
+| `_tmp_e34g_diff_gutachten.md` | 14.415 | `85410e93a2515779aee772cbfd8f1b46ed5fe7b235b989c90950384e5161dca0` |
+| `_tmp_e34g_toleranz.py` | 6.029 | `e67305cafcf72d65b02c6ae59d29b43b0f79534ecd20626b7543d8fff9fd5ba1` |
+| `_tmp_e34g_toleranz_out.txt` | 3.125 | `ba2052eac3049b947243d7b42d696e3d2594422a5ad2977a3ed4829a7decc241` |
+| `_tmp_e34g_syntaxprobe.py` | 5.668 | `e4e25a40487d1543a76861c9df02bd14978800b5b302c2d13e0c2ce382f2ba8b` |
+| `_tmp_e34g_syntaxprobe_out.txt` | 2.003 | `1f9dbc1513e96c136c1fb4bb0f4cac3b13cf90ec12754fae007a5d7b5d496278` |
+
+### U5 · Offene Entscheidungen (Textblock)
+
+1. Freigabe des Renderer-Diffs (§D/§E) nach der Messung.
+2. Messung der drei offenen Sollwerte — rein lesend, keine PNG-Erzeugung.
+
+---
+
+## Phase 2 / E-34h (2026-09-11, y) — EINBRAND: Generation V019 im Adapter
+
+### V0 · Was passiert ist
+
+Mit Anwender-Freigabe (x) wurde der §B-Block **wortgleich** an das Dateiende
+von `backtest_lab/phasen_regime_adapter.py` angehaengt. Der Einbrand ist
+**rein additiv**: der gesamte vorherige Dateiinhalt bleibt **byte-identisch**
+(binaer gegen den HEAD-Blob geprueft: `neu[:25783] == HEAD`). Kein Import
+angefasst, keine bestehende Konstante/Generation veraendert.
+
+| Groesse | vorher | nachher |
+|---|---|---|
+| Bytes | 25.783 | **30.663** (+4.880) |
+| Zeilen | 588 | **691** (+103) |
+| CRLF | 0 | 0 (LF, endet mit NL) |
+| SHA256 | `0f3f8765b1682910a7332b2bcb6f30f79fb56afaec180bdca674693d3ec2b01b` | **`4f50b6b0829ad031613acb9edcfd79c6316a2082cda35152821bf010cb861e83`** |
+
+`python -m py_compile backtest_lab/phasen_regime_adapter.py` → Exit 0.
+
+### V1 · Verifikation (E-34h, rein lesend) — ALLE PRUEFUNGEN OK
+
+Skript `test/_tmp_e34h_einbrand_verify.py` (`02860929…`), Output
+`test/_tmp_e34h_einbrand_verify_out.txt` (`d01238df…`).
+
+* **Konstruktion:** Fail-Loud laeuft schon beim Import. P9 `is
+  P9_BODEN_RECLAIM` (True), Override 69,87 erhalten, Boden-Literal 68,40
+  erhalten, A1/A2 ohne Literal (G4 inert), Toleranz 1,0 explizit.
+* **Pruefer gegen den echten Scan:** `verifiziere_gegen_scan` @REF
+  848/980/1259 OK · `verifiziere_niveau_overrides` OK ·
+  `verifiziere_boden_literale` OK.
+* **Nahtstellen:** 1020 PHASE · 1021/1032 BLOCKIERT · 1033/1173/1174/1287
+  PHASE · 1288 BLOCKIERT · aktive Phasen **255/267**.
+* **Plateau-SSoT:** 40 F · 41 T · 77 T · 114 T · 115 F.
+* **Integritaets-Audit (11/11):** `DEFAULT_ADAPTER=(P9,)` ·
+  `AKTIVE_DEFAULT_SEGMENTE=(P9,)` · `ADAPTER_V014=(P9_DIRECT_69_87,)` ·
+  `ADAPTER_V015=(P9_BODEN_RECLAIM,)` · `RESERVE_SEGMENTE=(P12_RESERVE,)` ·
+  Benchmark-Konstanten · `QUARTETT_V014_BARS` · `K67_OVERRIDE_69_87=69.87` ·
+  `P9_BODEN_LITERAL=68.4000` · P9/P9_DIRECT/P12-Rollen — alle unveraendert.
+  `ADAPTER_V019.segmente == (P9_BODEN_RECLAIM, A1_AUTO_77, A2_AUTO_77)`.
+
+### V2 · V019-Sollwerte (gemessen, MIN77 + arretiertes P9)
+
+| Kennzahl | Sollwert |
+|---|---|
+| gesamt | **+82,614385 R** (23 Setups) |
+| H1 | **8 / +38,919584 R** — Invariante |
+| H2 | **+43,694801 R** |
+| ZIEL (A1/A2, 1021..1287) | **6 / +16,778809 R** |
+| P9-Beitrag | +23,435111 R |
+| `ziel_delta_rb` | **+34,798688** (= 82,614385 − 47,815697) |
+
+### V3 · Artefakt-Anker E-34h (SHA256; `test/` = gitignored)
+
+| Datei | Bytes | SHA256 |
+|---|---|---|
+| `_tmp_e34h_einbrand_verify.py` | 7.375 | `028609297a53a23cb8d112419ba4df9665d40c1402c410571c6de98d3cc2e47f` |
+| `_tmp_e34h_einbrand_verify_out.txt` | 3.068 | `d01238dffba0a23a8e3b253a8d80b1135a63d08cbfad7c840b9132d9f77a99ef` |
+
+### V4 · Offene Entscheidungen (Textblock)
+
+1. Renderer-Schritt (`"V019"`, 9 Stellen) — Entwurf nach der Messung.
+2. Unveraendert: **kein §75, kein S1, keine S2-Laeufe.**

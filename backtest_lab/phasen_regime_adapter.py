@@ -585,3 +585,107 @@ ADAPTER_V015: PhasenRegimeAdapter = PhasenRegimeAdapter(
     segmente=AKTIVE_SEGMENTE_V015)
 ADAPTER_V015.verifiziere_niveau_overrides()
 ADAPTER_V015.verifiziere_boden_literale()
+
+
+# --- v0.24/V019: endogene Segmentbildung (E-34 .. E-34f) -------------------
+# Anwender-Ratifizierung 2026-09-11 (v): §S0 (Basis +82.614385 R, kein (a))
+# und §S1 (Plateau [41, 114], Referenz 77). V019 loest V018 als
+# Betriebsstandard ab.
+#
+# Die Zielfenster A1 (1033..1173) und A2 (1174..1287) sind ZIELFREI aus EINER
+# Regel hergeleitet (E-34 §O1): eine Kante lebt, solange ihr letzter
+# BESTAETIGTER Docht b+2 <= k juenger als cfg.wall_live_bars (96) ist; die
+# Segmentgrenze ist der Wechsel des Paares (aeusserste lebende Linie je Seite).
+#
+# Die Fenster werden hier als ARRETIERTE KONSTANTEN gefuehrt, NICHT zur
+# Laufzeit neu berechnet: der Adapter bleibt eine reine Wertedomaene ohne
+# Engine-Import (Invariante 1, Modul-Docstring).
+#
+# Herkunft/Limit der Plateaugrenzen: Klippenkarte
+# test/_tmp_e34b_klippenkarte_out.txt,
+# SHA256 7bfa4ec9e122530080c7ec31c1b123f017e69b8a4ce9d680378d0ea870b58dce.
+# Das Plateau ist AUG-SPEZIFISCH; eine Verallgemeinerung ist NICHT belegt.
+PLATEAU_MIN_BARS: int = 41          # untere PnL-Klippe (§S1)
+PLATEAU_MAX_BARS: int = 114         # obere PnL-Klippe (§S1, 115 = 1 Segment)
+PLATEAU_REFERENZ_BARS: int = 77     # Plateaumitte, max. Klippenabstand
+
+
+@dataclass(frozen=True, slots=True)
+class PhasenReifeKonfiguration:
+    """SSoT des PnL-invarianten Phasen-Plateaus (endogene Segmentbildung).
+
+    WICHTIG (Semantik, E-34e §S1): gesteuert wird die VERSCHMELZUNGS-
+    SCHWELLE, nicht die Segmentlaenge. Ein gueltiges Segment kann aus
+    mehreren verschmolzenen Teilstuecken entstehen; die Pruefung
+    ``ist_im_plateau`` ist daher eine Aussage ueber den PARAMETER, nicht
+    ueber ein Ergebnis-Segment.
+
+    Args:
+        verschmelzungs_schwelle: Ersatzwert fuer ``cfg.wall_live_bars`` der
+            endogenen Regel. Default = Plateaumitte (max. Klippenabstand).
+    """
+
+    verschmelzungs_schwelle: int = PLATEAU_REFERENZ_BARS
+
+    def ist_im_plateau(self) -> bool:
+        """True gdw. die gewaehlte Schwelle im invarianten Plateau liegt."""
+        return (PLATEAU_MIN_BARS <= self.verschmelzungs_schwelle
+                <= PLATEAU_MAX_BARS)
+
+
+# --- v0.24/V019: Zielzone A1/A2 (endogen, MIN77) ---------------------------
+# P9 wird NICHT neu deklariert, sondern aus ``P9_BODEN_RECLAIM`` uebernommen
+# (E-34f §T1): eine Neudeklaration mit vertauschten Rollen (K77 als Decke)
+# scheitert an ``verifiziere_gegen_scan``; ausserdem gingen der Niveau-Override
+# 69.87 und das Boden-Literal 68.40 verloren (Trade @1020 entfaellt).
+#
+# A1/A2 tragen KEIN ``boden_deklariert_literal`` -> Hook 3 (Regel G4) bleibt
+# dort inert; die G4-Regel handelt ausschliesslich im arretierten P9.
+
+# A1 (1033..1173): Decke K67 (69.8990), Boden K82 (67.5350).
+A1_AUTO_77: PhasenSegmentEintrag = PhasenSegmentEintrag(
+    phasen_id="A1_AUTO_77",
+    start_bar=1033,
+    end_bar=1173,
+    decke=PhasenKanteInfo(kid=67, provenienz_basis=69.8990),
+    boden=PhasenKanteInfo(kid=82, provenienz_basis=67.5350),
+    ziel_preis_short=67.5350,
+    ziel_preis_long=69.8990,
+    provenienz_toleranz_pct=1.0,        # == Feld-Default; explizit ausgewiesen
+)
+
+# A2 (1174..1287): Decke K73 (69.6380), Boden K82 (67.5530).
+#
+# K82-DOPPELROLLE (dokumentationspflichtig, E-34f §T8.4 / E-34g): K82 ist
+# Boden in A1 UND A2, traegt aber ZWEI Provenienz-Werte (67.5350 / 67.5530,
+# Differenz 1.80 Cent). Das ist KEIN Widerspruch, sondern der Preisschritt der
+# Kante an der Segmentgrenze: basis_bei(1173) = 67.5350, basis_bei(1174) =
+# 67.5530. Beide Provenienz-Werte sind exakt der kausale Basiswert am
+# jeweiligen Segmentstart (Abweichung 0.0000 %; Nachweis E-34g
+# test/_tmp_e34g_toleranz_out.txt). Fuer die Signalmechanik entscheidet dieser
+# Cent ueber ``dist < 0`` vs. ``dist >= 0`` --- die Hook-Pruefung nutzt
+# ohnehin ausschliesslich ``basis_bei(k)`` (Invariante 2).
+A2_AUTO_77: PhasenSegmentEintrag = PhasenSegmentEintrag(
+    phasen_id="A2_AUTO_77",
+    start_bar=1174,
+    end_bar=1287,
+    decke=PhasenKanteInfo(kid=73, provenienz_basis=69.6380),
+    boden=PhasenKanteInfo(kid=82, provenienz_basis=67.5530),
+    ziel_preis_short=67.5530,
+    ziel_preis_long=69.6380,
+    provenienz_toleranz_pct=1.0,        # == Feld-Default; explizit ausgewiesen
+)
+
+# Selektionsliste der V019-Generation (explizit, NICHT Default).
+# Reihenfolge = chronologisch. Die Luecke 1021..1032 bleibt offen ->
+# fail-closed (eliminiert den E-33-Verlust-Trade @1028).
+AKTIVE_SEGMENTE_V019: Tuple[PhasenSegmentEintrag, ...] = (
+    P9_BODEN_RECLAIM, A1_AUTO_77, A2_AUTO_77)
+
+# Fail-Loud beim Aufbau - analog ``ADAPTER_V014`` / ``ADAPTER_V015``.
+# ``verifiziere_gegen_scan`` bewusst NICHT hier: sie braucht den Scan-Katalog
+# und laeuft im Renderer/Test (engine-freie Wertedomaene, Invariante 1).
+ADAPTER_V019: PhasenRegimeAdapter = PhasenRegimeAdapter(
+    segmente=AKTIVE_SEGMENTE_V019)
+ADAPTER_V019.verifiziere_niveau_overrides()
+ADAPTER_V019.verifiziere_boden_literale()

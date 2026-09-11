@@ -1242,3 +1242,185 @@ Die Produktionsdatei `backtest_lab/phasen_regime_adapter.py` blieb unberührt.
 4. **S1-Cache** (2026-02-05..08-28) noch nicht erzeugt.
 5. §73.10-Punkte (Renderer-Backup `pre_v018`, `SWEEP_MARKER_P02`, E-12):
    unverändert offen.
+
+---
+
+## S2-Stresstest 2026-09-11 (d) — V-D-Schleife gegen die S2-Baseline
+
+Freigabe „weiter" auf den letzten offenen Punkt (§74.7 / R7): der **Schritt 3**
+des Plans — die V-D-Schleife (PHASE_EIGEN + `RangModus.NAEHE` + `KantenSicht`)
+über den arretierten S2-Scan, gegen die S2-Baseline. Engine-SHA
+`4a576a766670d684c30381969e4d7349d5786b1b22ea6dda08b93b7d811bb38a`
+**vor und nach allen Läufen unverändert**; kein Projektdatei-Eingriff.
+
+### S1 · Harness-Verankerung (die beiden gültigen Selbstkontrollen)
+
+Der RAM-Patch `patched_src` wird unverändert aus `test/tmp_png_aug_sichttest.py`
+(Zeilen 541–660) bezogen — dieselbe Verdrahtung wie in der P4-Probe.
+
+| Kontrolle | Ergebnis | Wert |
+|---|---|---|
+| `BASE` (ungepatcht) vs. `_tmp_s2_baseline_ref.py` | **exakt** | 299 / −186,055940 R (H1 245 / −140,466233 · H2 54 / −45,589707) |
+| `MAKRO` (gepatcht, `hook_2_ziel → MAKRO_ENGINE`) vs. `BASE` | **bit-identisch** | 299 / −186,055940 R, alle `stats` gleich |
+
+⇒ Der Patch-Harness ist **treu**: die gepatchte Engine reproduziert ohne
+Ziel-Override die ungepatchte bit-genau. Buchs-Trennung eingehalten
+(`box_end` = 17.692 Partition, `scan['box_end_bar']` = 21.624 Laufgrenze).
+
+### S2 · E-19 — der P4-AUG-Wert ist **kein** gültiger Fidelity-Anker
+
+Der Versuch, den arretierten P4-Messwert `Z2 = 17 / +65,504879 R` über
+`VD_K67_77 @ start 848` nachzuvollziehen, ergibt **13 / +45,347845 R** und ist
+**kein** Harness-Fehler. Ursache: der Stress-Harness verdrahtet
+`hook_1_freigabe_kid → None` und `hook_3_boden_reclaim → G4/P9`; die P4-Probe
+hatte eine eigene `hook_1`-Freigabelogik (`L2Adapter.hook_1_freigabe_kid`).
+Die 2×2-Isolation im **eigenen** Harness:
+
+| Lauf | Trd | R |
+|---|---|---|
+| `kausal=F ov=F` | 14 | +48,976861 |
+| `kausal=F ov=T` | 16 | +62,862379 |
+| `kausal=T ov=F` | 14 | +48,976861 |
+| `kausal=T ov=T` | 15 | +58,812459 |
+
+⇒ Der K67-Override **69,87** (statt Provenienz 69,914) bewegt das AUG-Ergebnis
+um **+13,89 R**; die Kausalitätsschranke ist in diesem Harness **wirkungslos**
+(14 == 14), weil der G4-Zweig eigene Eintritte liefert. **E-19:** AUG-Zahlen
+sind harness-gebunden und dürfen **nicht** als Fidelity-Anker für S2 dienen —
+gültig ist allein `MAKRO == BASE`.
+
+### S3 · S2-Ergebnis (n = 21.624; Partition bei `entry_bar` = 17.692)
+
+| Lauf | Trd | R gesamt | H1 Trd | H1 R | H2 Trd | H2 R | H2+ |
+|---|---|---|---|---|---|---|---|
+| `BASE` (ungepatcht) | 299 | −186,055940 | 245 | −140,466233 | 54 | −45,589707 | 4 |
+| `MAKRO` (Kontrolle) | 299 | −186,055940 | 245 | −140,466233 | 54 | −45,589707 | 4 |
+| `VD_AUSSEN_ABS` (Rollen `AUSSEN_*`, ABSOLUT) | 299 | −186,055940 | 245 | −140,466233 | 54 | −45,589707 | 4 |
+| `VD_NAEHE_ENV` (Rollen `AUSSEN_*`, NAEHE) | 245 | −140,466233 | 245 | −140,466233 | **0** | +0,000000 | 0 |
+| **`VD_K408_409`** (kid, PHASE_EIGEN) | 299 | **−159,531883** | 245 | −140,466233 | 54 | **−19,065650** | 1 |
+| `VD_K408_409_H` (`ziel_anteil` = 0,5) | 299 | −160,853568 | 245 | −140,466233 | 54 | −20,387335 | 1 |
+
+- **H1 ist in allen V-D-Läufen bit-identisch** (`start_scope_bar` = 17.692) —
+  H1 ist **Kontrolle**, nicht Messung; die gesamte Differenz liegt im H2.
+- **`VD_AUSSEN_ABS` == `BASE`** beweist positiv: die Baseline-Exit-Logik **ist**
+  die Riesenband-Falle (`AUSSEN_UNTEN` löst auf **K172 28,4255** auf; jedes
+  `tp2` = 28,4320 wird nie erreicht).
+- **`VD_NAEHE_ENV`** (jeweils nächste Wand je Seite) erzeugt **0 H2-Trades**
+  (`kein_raum` 14 → 152): keine Verlustquelle, aber auch kein Handel.
+- `kein_gegner` 0 · `blocker` 332 · `quartil_blockiert` 1341 · `kein_raum` 14
+  sind in `BASE` und `VD_K408_409` **identisch** ⇒ **identische Trade-Menge**,
+  nur `tp2` (und damit `poc`) differiert.
+
+### S4 · Warum die +26,52 R trügen (E-20)
+
+**Alle 54 H2-Trades sind SHORT** (kein einziger LONG). `tp2`: 28,4320 → 45,7890 (K409).
+
+- **Ein Ausreißer** `entry 18825` (Signal-Bar 18824, K517): `sl` 54,4900 ·
+  `entry` 54,2440 · **`risk` 0,2460 USD (0,45 %)** → **R −1,000000 → +33,934350**.
+  Der Markt fällt danach tatsächlich bis 45,5300 (Bar ~19.480) — der Trade ist
+  **kausal und nicht degeneriert**.
+- **Vier echte kleine Gewinner werden zerstört**: 19584 `+0,802929` · 20071
+  `+1,827819` · 20241 `+0,739141` · 20272 `+1,040405` → alle `−1,000000`.
+- **Ursache (E-20):** `gegen_basis` speist **zugleich** das POC-Fenster
+  `(unter, ober)` in `_se_trades`. Ein nahes `tp2` verengt die Range → das POC
+  wandert zur Unterkante → Hälfte 1 (`tp1 = poc`) erreicht ihren Trigger nicht
+  mehr vor dem SL (`_c_loese_trade` löst **beide Hälften unabhängig über das
+  gesamte Restfenster** auf, nicht sequenziell).
+- Bilanz H2: 53 × (−1,0) + **+33,93** = −19,07 R. **Ein einziger Trade trägt die
+  gesamte „Verbesserung".**
+
+**⇒ Der V-D-Stresstest liefert in S2 KEINEN Edge.** H2 bleibt mit **−19,07 R**
+tief negativ, gesamt **−159,53 R**. Die Stop-Geometrie (risk 0,14–0,87 %, Ziele
+1,3–8,5 USD entfernt) erzeugt 53/54 Stop-outs.
+
+### S5 · Endogene Öffnung im H2 (Teil C)
+
+`aufloese_reclaim_at_opening` (Sleep-Bypass) über alle 3.932 H2-Bars:
+
+- **K408 (Kandidatendecke): 19** Ereignisse · **K409 (Kandidatenboden): 1**.
+- Schwerpunkte: `K439 48,5520 (67×)` · `K433 48,2590 (55×)` · `K437 48,4140
+  (53×)` · `K436 48,6100 (52×)` … — rund **1,3–1,8 USD oberhalb** der
+  Split-Konsolidierung.
+
+⇒ §12 bestätigt: H2 expandiert nach oben, **K408 wird durchbrochen**;
+K408/K409 sind **nicht** die H2-Handelszone.
+
+### S6 · Artefakt-Anker (SHA256; `test/` = gitignored)
+
+| Artefakt | SHA256 | Bytes |
+|---|---|---|
+| `test/_tmp_s2_segment_kandidaten.py` | `c15022a018136c4d6afe628cdb2fb0d1ecf53371720304354f0b181062e36242` | 14.305 |
+| `test/_tmp_s2_segment_kandidaten_out.txt` | `cc3e4533b9d8c5ea615b8a2c516757d8e17fe6cd21d000d81404c1d3b80c6b85` | 10.162 |
+| `test/_tmp_s2_baseline_ref.py` | `4cc658ed6bf12499ce4d9e3693bbe4a36a6dcfd4d92f46135cdda83db44a6383` | 4.148 |
+| `test/_tmp_s2_baseline_ref_out.txt` | `e029c1b863c201cc9653bc23432d63fe032e00216c48c2434c8efcda98d18d3b` | 394.484 |
+| `test/_tmp_s2_vd_stresstest.py` | `4da8165dd5070005b72492646bff4c6601aaa20fe6d629f82570d5952c8fc16d` | 12.300 |
+| `test/_tmp_s2_vd_stresstest_out.txt` | `15e7f29c31fed2703e305b758cf05edd8a76df7524b7d73281a7e6cb263ec554` | 6.263 |
+| `test/_tmp_s2_vd_detail.py` | `9488e3d44ea59a106e566c3854721461e896eef3a223a1b3a50fde7b6096640d` | 10.890 |
+| `test/_tmp_s2_vd_detail_out.txt` | `496d3cf78ab7f12fe91435616140f7adcc3f2c81d36a079711cf74af452ac585` | 7.316 |
+| `test/_tmp_s2_vd_risiko.py` | `874fc1cdf3cb675736dd67441da2934af416a05b63c149d5b6caae2b3c5ee805` | 2.862 |
+| `test/_tmp_sha_liste.py` | `48d9117b93d0e35abdc80176b90793a6c6cd3fee329280e9af52d09706fecadd` | 952 |
+| Engine `test/tmp_kanten_engine_replay.py` | `4a576a766670d684c30381969e4d7349d5786b1b22ea6dda08b93b7d811bb38a` | 196.649 |
+| VD-Entwurf `test/_tmp_vd_vertrag_entwurf.py` | `1615a4aff5b1231be652ffc418d981662a049508cc9a82aa8c420cee7a20983a` | 44.429 |
+
+`*_stderr.txt` beider Läufe sind **leer** (`e3b0c442…` = Leerdatei-SHA);
+`*_stdout.txt` spiegeln die `*_out.txt` (plus Abschlusszeile).
+
+### S7 · Neue Errata
+
+- **E-19** — Der P4-AUG-Wert `Z2` (17 / +65,504879) ist **harness-gebunden**
+  (`hook_1_freigabe_kid`/G4-Verdrahtung der Probe) und mit dem Stress-Harness
+  nicht reproduzierbar. AUG-Zahlen sind **kein** Fidelity-Anker für S2.
+- **E-20** — `gegen_basis` ist **kein reiner Exit-Anker**: es definiert zugleich
+  das POC-Fenster `(unter, ober)`. Jede Änderung der Gegenkanten-Wahl verändert
+  damit **TP1** und kann Gewinner in Verlierer kippen. Eine isolierte Bewertung
+  „Gegenkante besser/schlechter" ist über `gegen_basis` allein **nicht** möglich.
+
+### S8 · Offene Entscheidung (Textblock — keine Auswahl)
+
+**Die S2-Segmentdefinition ist entschieden worden, aber das Ergebnis widerlegt
+die naheliegende Wahl.** Gemessen sind drei Lagen:
+
+1. **Riesenband** (`AUSSEN_*` absolut) — identisch zur Baseline (−186,06 R),
+   also die Falle selbst. **Verworfen.**
+2. **Split-Konsolidierung K408/K409** (kausal, PHASE_EIGEN) — reproduziert die
+   Absicht (+26,52 R), aber der Gewinn ist **ein Einzeltrade-Artefakt** (E-20).
+3. **Neuauflösung im H2** (die Ereignisse liegen bei K439/K433 48,3–48,6) —
+   **noch nicht gemessen**.
+
+Daraus folgen drei Entscheidungen, die der Anwender treffen muss, bevor
+irgendetwas verdrahtet wird:
+
+- **(A) Segmentdefinition.** Bleibt es bei „die Grenzkanten der Konsolidierung
+  **zum Split**" (dann ist S2 negativ, aber das Verfahren ist bewiesen) — oder
+  wird Ebene 2 auf „die Grenzkanten der **laufenden** Konsolidierung"
+  (Lookback-Fenster, z. B. 480/960 Bars, jeweils neu aufgelöst) umgestellt?
+  Die Messung in §12 zeigt, dass genau das die stabile Struktur ist
+  (`17692 K408/K409` → `18652 K494/K493` → `20572 K547/K484`).
+
+- **(B) Stop-Geometrie.** Vor jeder weiteren Segmentarbeit: Ist ein Stop von
+  0,14–0,87 % (Median ~0,25 %) bei einer Jahres-Spanne von 66,7 % und
+  H2-Bewegungen von 10,99 USD überhaupt sinnvoll? Bei 53/54 Stop-outs in H2
+  ist die Gegenkanten-Diskussion **nachrangig** — die Verlustquelle sitzt im
+  Stop/Target-Verhältnis, nicht in der Zielwahl.
+
+- **(C) Bewertungsmaßstab.** Ist ein Ergebnis, das von **einem** Trade
+  (+33,93 R bei 0,2460 USD risk) getragen wird, überhaupt als „Verbesserung"
+  zulässig? Ohne diese Klärung ist jede V-D-Zahl in S2 nicht entscheidungsfähig
+  (E-20). Vorschlag zur Entscheidung: Ausweis **mit und ohne** den größten
+  Einzeltrade, plus Stop-Out-Quotient je Lauf.
+
+Bis zu diesen drei Entscheidungen gilt: **keine Verdrahtung in den
+Produktionsadapter**, kein §75-Addendum, kein S1-Cache.
+
+### S9 · Offen (Stand nach dem Stresstest)
+
+1. **S2-Segmentdefinition** — siehe S8/A (nicht mehr „welche Rolle", sondern
+   „statisch zum Split" vs. „laufend neu aufgelöst").
+2. **Stop-Geometrie** — S8/B (neuer, vorgelagerter Blocker).
+3. **Bewertungsmaßstab** — S8/C (Einzeltrade-Ausweis).
+4. **Erste OOS-Messung auf Ebene 2 in S2** — erst nach 1–3.
+5. **`INNEN_1`-Rangregel** im Produktions-Adapter **nicht** verdrahtet.
+6. **S1-Cache** (2026-02-05..08-28) noch nicht erzeugt.
+7. §73.10-Punkte (Renderer-Backup `pre_v018`, `SWEEP_MARKER_P02`, E-12): offen.
+8. **Plattform-Regel offen:** künftige Spez-Appends **müssen** im LF-Zustand
+   erfolgen (sonst kippt der Blob-SHA) — noch nicht als Regel verankert.

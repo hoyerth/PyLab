@@ -4446,3 +4446,148 @@ Fail-Loud-Pruefung `verifiziere_gegen_scan` ist auf Toleranz 1 % auszulegen;
    *unterschiedliche* Semantik `dist < 0 AND not lebt` als Kandidat (a)
    erhalten bleiben (verworfen, aber dokumentiert)?
 5. Unveraendert: **kein §75, kein S1, keine S2-Laeufe.**
+
+---
+
+## Phase 2 / E-34f (2026-09-11, w) — Audit der V019-Spezifikation: **der Adapter weist die Anwender-Fassung selbst zurueck — P9 muss aus `P9_BODEN_RECLAIM` uebernommen werden** (Schritt 2)
+
+### T0 · Auftrag und Status
+
+Die Ratifikation `(v)` hat **§S0** (Basis **+82,614385 R** = neuer Standard,
+kein `(a)`) und **§S1** (Plateau **[41, 114]**, Referenz **77**) bestaetigt.
+Vereinbart waren drei Schritte:
+
+1. **Schritt 1:** Handoff-Arretierung (dieser Abschnitt).
+2. **Schritt 2:** Audit der vom Anwender gelieferten V019-Spezifikation
+   (`PhasenSegmentV019` + `AdapterGenerationV019Spezifikation`) — **rein
+   lesend**, gegen die Fail-Loud-Pruefer des **unveraenderten** Adapters.
+3. **Schritt 3:** Einbrand der Generation V019 (nach ausdruecklicher Freigabe).
+
+**Schritt 2 ist ausgefuehrt.** `backtest_lab/phasen_regime_adapter.py` ist
+**bit-identisch unberuehrt**: SHA256
+`0f3f8765b1682910a7332b2bcb6f30f79fb56afaec180bdca674693d3ec2b01b`
+(25.783 B). Engine unveraendert:
+`4a576a766670d684c30381969e4d7349d5786b1b22ea6dda08b93b7d811bb38a`.
+
+### T1 · Der Befund — der Adapter weist die Anwender-Fassung zurueck
+
+Skript `test/_tmp_e34f_audit.py` importiert den Adapter unveraendert und ruft
+die drei Fail-Loud-Pruefer gegen zwei Fassungen.
+
+**A) Anwender-Fassung** — P9 als `(decke=K77, boden=K67)`, wie im Entwurf
+`("P9_BODEN_RECLAIM", 848, 1020, 77, 67)`:
+
+```
+   verifiziere_gegen_scan         FEHLER: Phasen-Kante K77 (P9_BODEN_RECLAIM) hat falsche Seite: erwartet OBEN, gefunden UNTEN.
+   verifiziere_niveau_overrides   OK
+   verifiziere_boden_literale     OK
+```
+
+**B) Audit-Fassung** — P9 unveraendert aus der bestehenden Konstante
+`P9_BODEN_RECLAIM` (decke K67, boden K77):
+
+```
+   verifiziere_gegen_scan         OK
+   verifiziere_niveau_overrides   OK
+   verifiziere_boden_literale     OK
+```
+
+**Verdikt:** Die Anwender-Fassung hat `decke`/`boden` fuer P9 **vertauscht**.
+K77 ist im Scan ein **BODEN** (`P9_BODEN_RECLAIM`), kein Deckel. Wird P9 neu
+deklariert statt aus der Konstante uebernommen, gehen zusaetzlich der
+**Niveau-Override 69,87** und das **Boden-Literal 68,40** verloren, und der
+Trade bei Bar 1020 faellt weg. **P9 ist zu uebernehmen, nicht neu zu
+deklarieren.** (Die uebrigen beiden Segmente des Anwender-Entwurfs sind
+dagegen korrekt und identisch mit der Audit-Fassung.)
+
+### T2 · Segment-Daten (Audit-Fassung, alle drei Pruefer bestanden)
+
+| phasen_id | start | ende | decke | boden | ziel_short | ziel_long | override | literal |
+|---|---|---|---|---|---|---|---|---|
+| `P9` (arretiert) | 848 | 1020 | K67 | K77 | 68,3700 | 69,9140 | 69,87 | 68,4 |
+| `A1_AUTO_77` | 1033 | 1173 | K67 | K82 | 67,5350 | 69,8990 | — | — |
+| `A2_AUTO_77` | 1174 | 1287 | K73 | K82 | 67,5530 | 69,6380 | — | — |
+
+### T3 · Nahtstellen und aktive Phasen
+
+`hook_2_ziel`-Modus an den Grenzen:
+
+| Bar | Modus |
+|---|---|
+| 1021 | BLOCKIERT |
+| 1032 | BLOCKIERT |
+| 1033 | PHASE |
+| 1173 | PHASE |
+| 1174 | PHASE |
+| 1287 | PHASE |
+| 1288 | BLOCKIERT |
+
+Aktive Phasen: **255 / 267**. Die Luecke **1021..1032** (12 Bars) entspricht
+exakt dem in E-33 verlorenen Trade **1028**.
+
+### T4 · Verdrahtungsbefund (rein lesend)
+
+- Produktionsadapter ist `ADAPTER_V015`
+  (`AKTIVE_SEGMENTE_V015 = (P9_BODEN_RECLAIM,)`).
+- **Einziger Produktionskonsument:** `test/tmp_png_aug_sichttest.py`.
+  `AdapterMode = Literal["V01", …, "V018"]`; Adapter-Wahl Z. 428;
+  `KONFIGURATION_V017/V018` mit Sollwert-Bloecken; `box_end_bar = n` (Z. 507,
+  Voll-Lauf); Engine-Asserts (V017 box_end 640, V018 box_end 644);
+  Fail-Loud-Assert-Katalog ohne Aus-Schalter (§66.5).
+- `backtest_lab/` selbst konsumiert den Adapter **nirgends**.
+- **Konsequenz:** V019 braucht **zwei** Aenderungen — Adapter-Generation
+  **und** Renderer-Mode (`"V019"` mit eigenem Praefix und eigenen Sollwerten
+  Trades/R/H1/H2/P9-Beitrag, `g4_aktiv`, `ziel_*`).
+
+### T5 · V019-Sollwerte (AUG, MIN77 + arretiertes P9)
+
+| Kennzahl | Sollwert |
+|---|---|
+| gesamt | **+82,614385 R** (23 Setups) |
+| H1 | **8 / +38,919584 R** (`Q_stop` 0,125) — **Invariante** |
+| H2 | **+43,694801 R** (`Q_stop` 0,267) |
+| ZIEL (1021..1287) | **6 / +16,778809 R** |
+| `Q_stop` gesamt | 0,217 |
+| `USD/Trade` | +0,9819 |
+| Segmente | P9 arretiert (848..1020) · **A1** 1033..1173 (K67/K82) · **A2** 1174..1287 (K73/K82) |
+| aktive Phasen | 255 / 267 |
+
+### T6 · Artefakt-Anker (SHA256; `test/` = gitignored)
+
+| Datei | Bytes | SHA256 |
+|---|---|---|
+| `_tmp_e34f_audit.py` | 6.344 | `87a9483f003b4c7cce2dcc77dbb95d3245ff2db21765df2b6202fcb5aaf353d7` |
+| `_tmp_e34f_audit_out.txt` | 1.934 | `224f8a56a15651dfcfbd43058cc67b2bb1118718c15fadcafec641552bf3550d` |
+
+### T7 · Ratifizierungen (Anwender, 2026-09-11 w) und Antwort auf die Leitfragen
+
+1. **§S0 ratifiziert** — Basis **+82,614385 R** ist der neue Standard.
+2. **§S1 ratifiziert** — Plateau **[41, 114]**, Referenz **77**.
+3. **MIN48** nur dokumentarisch im Register, **kein** Betriebswert.
+4. **`--poolhart`-Kontrakt endgueltig verworfen**; die `(a)`-Semantik wird als
+   Falsifikations-Urkunde archiviert (nicht geloescht).
+5. **V018 (+65,84 R) ist ueberholt;** V019 soll die offizielle Generation
+   werden — Einbrand erst nach Schritt 3/Freigabe.
+
+**Antwort Leitfrage 1 (Diff vorbereiten?):** **Ja** — der Diff fuer
+`phasen_regime_adapter.py` wird vorbereitet, aber als **Gutachten** (reiner
+Text/Diff, **kein** Schreiben). Er umfasst: (i) Generation V019 mit den drei
+Segmenten dieses Audits; (ii) `plateau [41, 114] / 77` als SSoT-Konstante;
+(iii) `verifiziere_gegen_scan`-Toleranz **1 %** fuer A1/A2; (iv)
+Dokumentation, dass K82 in A1/A2 verschiedene Basiswerte traegt.
+
+**Antwort Leitfrage 2 (Freigabe Implementierung?):** Noch **nicht** erteilt.
+Reihenfolge bleibt: erst Diff-Gutachten, dann ausdrueckliche Freigabe, dann
+Einbrand. **Der Adapter bleibt bis dahin unberuehrt.**
+
+### T8 · Offene Entscheidungen (Textblock)
+
+1. **Diff-Gutachten** fuer `phasen_regime_adapter.py` jetzt ausarbeiten
+   (Antwort auf Leitfrage 1) — ja/nein?
+2. **Freigabe** fuer die Implementierungsphase (Einbrand V019) — derzeit offen.
+3. **`verifiziere_gegen_scan`-Toleranz 1 %** fuer A1/A2 — bestaetigen?
+4. **K82-Basiswerte** (67,5350 in A1 / 67,5530 in A2) — als zulaessig
+   dokumentieren?
+5. **Renderer-Mode `"V019"`** in `test/tmp_png_aug_sichttest.py` — mit dem
+   Einbrand zusammen oder getrennt?
+6. Unveraendert: **kein §75, kein S1, keine S2-Laeufe.**

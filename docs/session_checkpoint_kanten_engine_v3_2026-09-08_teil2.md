@@ -140,6 +140,7 @@ außen→innen, In-Band-Schatten-Regel, keine Zwischen-Seed-Promotion.
 - **Nicht committen:** `test/` ist gitignored; Docs-Änderungen (Spez-Korrektur
   Z. 902, ggf. Arretierungs-Nachtrag) müssen separat committet werden.
 
+<!-- ⚠️ historisch überholt: siehe docs/ZEITBASIS_KANON.md -->
 ## 8. Daten-Anker (AUG, M15, Wanduhr)
 
 - Box 10.08 00:00 … < 19.08 (Bar 644). Fenster AUG 2026-08-10 … < 08-28.

@@ -2912,6 +2912,7 @@ kippten auf den **Vortag**:
 Die alten Labels matchten zufaellig die Spez-Uhrzeiten, weil **die Spez
 dieselbe UTC-Projektion nutzt** (z. B. §7.2 Teil 7: "Bar 229 (11:15)",
 Teil 9: "Bar 564 = 03:00"). Die Spez-Zeiten sind damit als **UTC-Projektion**
+<!-- ⚠️ historisch überholt: siehe docs/ZEITBASIS_KANON.md -->
 zu lesen; die Berlin-Wanduhr liegt 2 h darueber.
 
 **Fix (Patch `_p11`, rein kosmetisch):** `SELECT time AT TIME ZONE
@@ -2928,9 +2929,11 @@ Verifikation: Bars 1288 = 1288, OHLC identisch, **Modus A/B/C bit-identisch**
 
 **Nebenbefund (box_end_bar):** Die Box-Grenze wandert von **644 auf 640**.
 `644` entspricht **19.08. 02:00 Berlin** - die Box lief also 2 h ueber
+<!-- ⚠️ historisch überholt: siehe docs/ZEITBASIS_KANON.md -->
 Mitternacht hinaus. `640` = **19.08. 00:00** ist die korrekte Wanduhr-Grenze.
 Folge fuer den **offiziellen Box-Lauf**: **9 → 8 Trades / +37,96 → +38,96 R**
 (der Trade Bar 650, Entry 653, -1,00 R entfaellt; er lag bei UTC-Lesart
+<!-- ⚠️ historisch überholt: siehe docs/ZEITBASIS_KANON.md -->
 innerhalb, bei Wanduhr-Lesart ausserhalb der Box). Der **Voll-Lauf
 (arretierte Kennzahl 14/+40,45 R) bleibt unveraendert**. Das ist ein
 **Reporting-/Populations-Effekt der Box-Grenze**, keine Regelwirkung

@@ -19,6 +19,7 @@
 - Arbeitsverzeichnis `F:\Python\PyLab` (Win, PyCharm). Keine UI-/Regressions-Tests;
   Verifikation nur via `python -m py_compile`, isolierte Logik-Tests in `test/`
   (nie im Root/data). Test-Python/`*.duckdb` immer in `test/`.
+<!-- ⚠️ historisch überholt: siehe docs/ZEITBASIS_KANON.md -->
 - Wanduhr-Invariante: MT5-Epochs Berlin-encoded; SQL nutzt strikt
   `time AT TIME ZONE 'UTC'`, tz-naiv. M15-Fenster exakt frozen.
 - Commit-Signatur: „Generated with [Continue](https://continue.dev) /

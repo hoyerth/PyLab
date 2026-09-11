@@ -1773,3 +1773,103 @@ Die Korrektur ist < 0,002 R und ändert keine Aussage.
 |---|---|---|
 | `test/_tmp_e23_offline_matrix.py` | `7e888a35c660d17b1264d5e252a37d39667642419797e58ebbdee48d483929d9` | 9.709 |
 | `test/_tmp_e23_offline_matrix_out.txt` | `392cc3f050edeb6a22221bb5e0fbbf872abd974e41c499bfecce1f4e71a982fd` | 5.612 |
+
+---
+
+## Phase 2 / E-24 (2026-09-11, h) — Regime-Gate-Analyse: **der Bruch liegt vor dem ersten Trade**
+
+Read-only, offline (`_tmp_e24_regime_gate.py`, Laufzeit < 1 s): die 54
+LEGACY-H2-Trades sind festgehalten, je Gate-Variante wird **nur die Selektion**
+variiert. Engine-SHA `4a576a76…` unberührt.
+
+Zwei Decken-Definitionen × `n_closes` ∈ {1, 2, 3} × Puffer ∈ {0 %, 0,5 %}.
+
+### F0 · Befund — der Erstbruch liegt **5 Bars vor dem ersten Signal**
+
+| Ereignis | Bar | Zeit (BKZ) |
+|---|---|---|
+| erster Close > `K408` (47,1221) | **17.707** | 2025-10-01T03:45 |
+| erster Bar mit **2** Closes > 47,1221 | **17.708** | 2025-10-01T04:00 |
+| erster Bar mit **3** Closes > 47,1221 | 17.709 | 2025-10-01T04:15 |
+| **erster Trade-Signal-Bar k** | **17.712** | — |
+| erster Entry | 17.713 | — |
+
+Das `K408`-Dach (Split-Konsolidierung, 47,1221) war zum Zeitpunkt des ersten
+Signals **bereits seit 5 Bars gebrochen**. Das System hatte **keinerlei
+Regime-Wahrnehmung**: `close > STATIC` gilt für **52 von 54** Trades.
+
+### F1 · Gate-Matrix (Short-Verbot bei Expansion)
+
+| Decke | n | Puffer | behalten | gefiltert | R | R_adj | USD/Tr | ATR/Tr | N_stop | Q_stop |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `STATIC` | 1/2/3 | 0 % / 0,5 % | **2** | **52** | −2,000000 | −2,000000 | −0,2060 | −1,3964 | 2 | **1,000** |
+| `ROLL` | 1/2/3 | 0 % | 53 | 1 | −18,065650 | −52,000000 | −0,0265 | −0,0058 | 52 | 0,981 |
+| `ROLL` | 1/2/3 | 0,5 % | 54 | 0 | −19,065650 | −53,000000 | −0,0328 | −0,0463 | 53 | 0,981 |
+
+**Die Parameter `n_closes` und Puffer sind empirisch wirkungslos** — sämtliche
+Zellen sind in jeder Decken-Zeile identisch. Die einzige wirksame Variable ist
+die **Wahl der Decke**.
+
+### F2 · Befund — beide Decken-Definitionen sind als Gate unbrauchbar
+
+- **`STATIC` (K408 = 47,1221) = Not-Aus, kein Filter.** Es überleben genau die
+  zwei Trades, deren Signal-Bar **unter** dem Dach lag (`k` 17.712 mit
+  `close` 47,0870 und `k` 17.871 mit 46,8490) — und **beide verlieren**
+  (−1,0 R). `Q_stop` = **2/2 = 1,000**. Der absolute USD-Verlust sinkt von
+  −1,77 auf −0,41, aber das ist die Aussage „**am besten gar nicht handeln**",
+  nicht ein Edge.
+- **`ROLL` (laufende Außenwand) = inert.** Nur **1 von 54** Trades liegt über
+  der rollenden Decke (`entry` 18.465, `close` 51,2550 > 51,2200). Ursache:
+  die rollende Außenwand **folgt dem Preis** — ab Bar ~18.824 steht sie
+  konstant bei 54,3610, während die Closes 48–54 bleiben. Ein
+  Expansionsdetektor, der sich mit dem Markt mitbewegt, kann keinen Bruch
+  detektieren.
+
+**⇒ Aus `F2` folgt eine harte Design-Bedingung:** Ein Expansions-Gate braucht
+ein **festes (deklariertes) Niveau**, das nicht mit dem Preis wandert — aber
+ein **dauerhaft** festes Niveau wird nach dem ersten Bruch zum Not-Aus. Das
+Niveau muss daher **je Konsolidierung neu deklariert** werden. Genau das ist
+Block A — und damit ist Block A **nicht** optional, sondern die
+Voraussetzung für jedes Regime-Gate.
+
+### F3 · Antwort auf Klärungsfrage 1 (N Closes vs. N Closes + Puffer)
+
+**Die Frage ist empirisch nicht diskriminierend.** `n_closes` 1/2/3 und
+Puffer 0 %/0,5 % liefern **identische** Ergebnisse in allen 12 Zellen. Der
+Grund: nach dem Erstbruch liegt der Preis so weit über dem Niveau, dass jede
+Schwelle 1..3 und jeder Puffer bis 0,5 % gleichzeitig erfüllt ist. **Empfehlung:**
+die Gate-Parameter **nicht** feinjustieren; die Freiheitsgrade liegen in der
+**Niveau-Semantik** (fest + periodisch neu deklariert) und in der
+**Rückkehr-Bedingung** (wann darf wieder gehandelt werden).
+
+### F4 · Präzisierung von Leitfrage 2 (Anzahl eliminierter Shorts)
+
+**52 von 54** würden durch ein 2-Close-Gate über `K408` eliminiert. Das ist
+**kein Erfolg**: die zwei Überlebenden sind beide Verlierer, und das Gate
+entspricht einem Handelsverbot in 96 % der Fälle. Die relevante Zahl ist
+nicht „wie viele werden gefiltert", sondern: **der Bruch lag vor dem ersten
+Signal** (`F0`) — die Handelszone war zum Start bereits ungültig.
+
+### F5 · Artefakt-Anker (SHA256; `test/` = gitignored)
+
+| Artefakt | SHA256 | Bytes |
+|---|---|---|
+| `test/_tmp_e24_regime_gate.py` | `08444abe2805d7507c51b0e25d92414d55068dbbdd4255358178422dc2706eba` | 8.128 |
+| `test/_tmp_e24_regime_gate_out.txt` | `a5fcf2e308689ce3ddea656f5e61b77bbea74b8f24b1787e68cf184e6cd9a252` | 5.348 |
+
+### F6 · Offene Entscheidungen (Textblock)
+
+1. **Rückkehr-Bedingung fehlt.** Das Gate sagt nur, wann Shorts **verboten**
+   sind. Es fehlt die symmetrische Regel, **wann ein Reclaim wieder feuern
+   darf** („Ausbruchszone zurückgeholt" / neue Balance). Ohne sie ist das
+   Gate einseitig.
+2. **Niveau-Deklaration.** Wie wird das feste Niveau je Konsolidierung
+   bestimmt und wann neu deklariert? Kandidaten: `AUSSEN_OBEN` zum
+   Phasenbeginn eingefroren; oder der Hochpunkt der letzten
+   `PREISNAH`-Konsolidierung (`§12`: K408 → K494 → K547).
+3. **Scope.** Gilt das Gate nur für SHORT (Expansion nach oben) oder
+   symmetrisch auch für LONG (Expansion nach unten)? In H2 gibt es 0 LONGs —
+   in H1/S1 aber nicht.
+4. **Reihenfolge.** Bleibt es bei Block A zuerst? `F2` sagt **ja**, aber die
+   Analyse zeigt: Block A muss das **Niveau-Deklarationsverfahren** liefern,
+   sonst ist das Gate wirkungslos.

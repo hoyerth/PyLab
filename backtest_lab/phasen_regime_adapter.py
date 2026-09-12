@@ -62,7 +62,7 @@ wird nicht angefasst.
 Provenienz: ``reports/h2_phasenregime/H2_PHASENREGIME_ADAPTER_SPEZ.md``
 (Addenda v0.3-v0.6, Abschnitte 12-25).
 """
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import Enum
 import math
 from typing import Optional, Sequence, Tuple
@@ -633,6 +633,50 @@ class PhasenReifeKonfiguration:
                 <= PLATEAU_MAX_BARS)
 
 
+# --- Bindung der V019-Segmente an die Reife-SSoT (E-34n/15 §D4) ------------
+# Die Fenster A1 (1033..1173) und A2 (1174..1287) sind aus EINER Regel mit
+# der Verschmelzungsschwelle hergeleitet; ihre Namen ``..._AUTO_77`` und die
+# Plateaumitte muessen deshalb uebereinstimmen. Ohne diese Bindung waere
+# ``PhasenReifeKonfiguration`` ein Deklarations-Datenblatt ohne Laufzeit-
+# Wirkung (genau der E-34n/15-Befund). Die Bindung wird beim Modulimport
+# erzwungen.
+#
+# Bewusst ``raise`` statt ``assert``: ``python -O`` entfernt Asserts und
+# liesse die Arretierung stumm ausfallen; die Meldung muss unueberhoerbar
+# sein. Konvention identisch zu ``verifiziere_niveau_overrides``.
+AUTO_VERSCHMELZUNG_SCHWELLE: int = (
+    PhasenReifeKonfiguration().verschmelzungs_schwelle)
+
+
+def _verifiziere_reife_bindung() -> None:
+    """Fail-Loud beim Import: V019-Segmente stammen aus dem Plateau.
+
+    Geprueft wird der GEBUNDENE Wert ``AUTO_VERSCHMELZUNG_SCHWELLE`` (der
+    Zustand, den die Segmente konsumieren), NICHT der Klassen-Default: ein
+    Aufruf ``PhasenReifeKonfiguration().ist_im_plateau()`` waere tautologisch,
+    weil der Default stets ``PLATEAU_REFERENZ_BARS`` ist. Der Praedikat-
+    Aufruf nutzt weiterhin die SSoT-Methode (keine zweite Plateau-Wahrheit).
+
+    Raises:
+        ValueError: Verschmelzungsschwelle ausserhalb ``[41, 114]`` oder
+            ungleich der Plateaumitte (Referenz 77).
+    """
+    if not PhasenReifeKonfiguration(
+            AUTO_VERSCHMELZUNG_SCHWELLE).ist_im_plateau():
+        raise ValueError(
+            "Verschmelzungsschwelle ausserhalb des Plateaus "
+            f"[{PLATEAU_MIN_BARS}, {PLATEAU_MAX_BARS}] "
+            f"(ist {AUTO_VERSCHMELZUNG_SCHWELLE}).")
+    if AUTO_VERSCHMELZUNG_SCHWELLE != PLATEAU_REFERENZ_BARS:
+        raise ValueError(
+            "Konfigurations-Mismatch zur Plateaumitte: "
+            f"PhasenReifeKonfiguration={AUTO_VERSCHMELZUNG_SCHWELLE}, "
+            f"PLATEAU_REFERENZ_BARS={PLATEAU_REFERENZ_BARS}.")
+
+
+_verifiziere_reife_bindung()
+
+
 # --- v0.24/V019: Zielzone A1/A2 (endogen, MIN77) ---------------------------
 # P9 wird NICHT neu deklariert, sondern aus ``P9_BODEN_RECLAIM`` uebernommen
 # (E-34f §T1): eine Neudeklaration mit vertauschten Rollen (K77 als Decke)
@@ -641,6 +685,11 @@ class PhasenReifeKonfiguration:
 #
 # A1/A2 tragen KEIN ``boden_deklariert_literal`` -> Hook 3 (Regel G4) bleibt
 # dort inert; die G4-Regel handelt ausschliesslich im arretierten P9.
+#
+# Die Schwellenzahl 77 im Namen ist NICHT frei gewaehlt, sondern
+# ``AUTO_VERSCHMELZUNG_SCHWELLE`` (= Plateaumitte, oben fail-loud gebunden).
+# Der machineelle Nachweis ``zusammenfassen(roh, 77) == A1/A2`` folgt als
+# separater Prueflauf (E-34n/15 §D4, Teilschritt 1b.2).
 
 # A1 (1033..1173): Decke K67 (69.8990), Boden K82 (67.5350).
 A1_AUTO_77: PhasenSegmentEintrag = PhasenSegmentEintrag(
@@ -689,3 +738,79 @@ ADAPTER_V019: PhasenRegimeAdapter = PhasenRegimeAdapter(
     segmente=AKTIVE_SEGMENTE_V019)
 ADAPTER_V019.verifiziere_niveau_overrides()
 ADAPTER_V019.verifiziere_boden_literale()
+
+
+# --- v0.24/V019-KAUSAL: kausale Fensterableitung (E-34n/15 D6/D7) ----------
+# Der Batch-Lauf (ADAPTER_V019) etikettiert rueckwirkend: ``zusammenfassen``
+# dehnt das Etikett eines Segmentes ueber die gemeinsamen Bars aus. Kausal
+# verfuegbar ist ein Etikett jedoch erst ab ``start_bar + Schwelle - 1``
+# (Mindestlaenge bestaetigt). MESSUNG (E-34n/15 §D6, Harness
+# ``test/_chk_v019_kausal_vergleich.py``): das kostet genau einen Trade --
+# Bar 1211 SHORT K76 (+2.539476 R) faellt weg -> 23 / +85.577150 (H2 15 /
+# +46.657566), H1 unveraendert 8 / +38.919584.
+#
+# Die Ableitung ist eine REINE, zustandsfreie Funktion der arretierten
+# Segmente -- der Renderer konsumiert nur, er rechnet NICHT (keine zweite
+# Wahrheit). Semantik:
+#   * Index 0 (P9) ist der ARRETIERTE Anker und bleibt unberuehrt.
+#   * Die uebrigen (endogenen) Segmente behalten ihren ``start_bar``; das
+#     Etikett des Vorgaengers reicht bis ``wirksam_ab - 1``.
+#   * ``wirksam_ab`` des ersten endogenen Segments ist sein eigener Start
+#     (kein Vorgaenger-Etikett zu verlaengern).
+# Das Fenster wird in ``aktive_phase_bei`` per First-Match aufgeloest; fuer
+# 1174..1249 gewinnt damit A1 -- exakt das Harness-Ergebnis.
+def kausale_segmentfenster(
+    segmente: Sequence[PhasenSegmentEintrag],
+    verschmelzungs_schwelle: int,
+) -> Tuple[PhasenSegmentEintrag, ...]:
+    """Leitet die kausalen Segmentfenster aus den Batch-Fenstern ab.
+
+    Args:
+        segmente: Chronologische Batch-Segmente; Index 0 = arretierter Anker
+            (P9), alle weiteren = endogen.
+        verschmelzungs_schwelle: Bestaetigungslaenge in Bars (Plateaumitte,
+            ``AUTO_VERSCHMELZUNG_SCHWELLE``).
+
+    Returns:
+        Segmenttupel mit unveraendertem Anker und verlaengerten endogenen
+        Fenstern (``end_bar`` des Vorgaengers = ``wirksam_ab`` des
+        Nachfolgers - 1).
+
+    Raises:
+        ValueError: Schwelle < 1 oder leerer Segmentverbund.
+    """
+    if verschmelzungs_schwelle < 1:
+        raise ValueError(
+            f"Verschmelzungsschwelle muss >= 1 sein "
+            f"(ist {verschmelzungs_schwelle}).")
+    if not segmente:
+        raise ValueError("kein Segmentverbund uebergeben.")
+    if len(segmente) == 1:
+        return tuple(segmente)
+
+    endogen = list(segmente[1:])
+    wirksam_ab = [
+        s.start_bar if i == 0 else s.start_bar + verschmelzungs_schwelle - 1
+        for i, s in enumerate(endogen)
+    ]
+    neu: list[PhasenSegmentEintrag] = []
+    for i, s in enumerate(endogen):
+        if i == len(endogen) - 1:
+            ende = s.end_bar
+        else:
+            ende = max(s.end_bar, wirksam_ab[i + 1] - 1)
+        if ende < s.start_bar:
+            raise ValueError(
+                f"Kausales Fenster {s.phasen_id} waere leer "
+                f"({s.start_bar}..{ende}).")
+        neu.append(replace(s, end_bar=int(ende)))
+    return (segmente[0], *neu)
+
+
+# Kausalitaets-Variante (Stufe 2a): gleiche Kanten, gleiche Sollwerte,
+# ausschliesslich verlaengerte Fenster. Explizit, NICHT Default.
+ADAPTER_V019_KAUSAL: PhasenRegimeAdapter = PhasenRegimeAdapter(
+    segmente=kausale_segmentfenster(AKTIVE_SEGMENTE_V019,
+                                    AUTO_VERSCHMELZUNG_SCHWELLE))
+ADAPTER_V019_KAUSAL.verifiziere_niveau_overrides()
+ADAPTER_V019_KAUSAL.verifiziere_boden_literale()

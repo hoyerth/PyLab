@@ -7066,3 +7066,135 @@ Stufe 5 (Anwender-Entscheid A aus E-34n/16).
 
 Unveraendert offen: Stufe 5 (ZP-5-Refaktor + Paragraph 75), Zweitfenster
 S1/S2; aus E-34n/14: Q1 Bilanzierung (a)/(b) und Q2 Schranke.
+
+## Phase 3 / E-34n/19 (2026-09-12, ag) - STUFE 5 ARRETIERT (5.1-5.3): ZP-5-VORLAUF EXTRAHIERT, §75 NORM
+
+Auftrag (Anwender): Stufe 5 in drei Schritten -- 5.1 Audit der strukturellen
+Koppelung, 5.2 isolierter Bit-Identitaets-Trockenlauf, 5.3 scharfer Einbrand
+(Extraktion + §75 + Neubeurkundung) in EINEM geschlossenen Vorgang.
+
+Bindende Anwender-Antworten (Interview):
+ 1. Gate-Freigabe: 100 % Bit-Identitaet -> Extraktion zulaessig, sonst
+    verworfen.
+ 2. Signatur (2a): 6 Argumente, `ueb_fn` EXPLIZIT uebergeben -- keine
+    impliziten Modul-Globals.
+ 3. Harness im selben Zug synchron (keine parallelen Pruefwelten).
+ 4. §75 + Handoff in EINEM Commit (Code und Regelwerk untrennbar).
+
+### H19.1 - Vorbedingung und Anker
+
+Vorbedingung: Handoff-SHA (E-34n/18)
+`10f70934b506f03ee24fe245c4197d0886bfdd8491e9c4333ea546f752ab135f`
+(397.384 B / 7.068 Zeilen CRLF) - vor dem Append binaer geprueft.
+
+| Anker | vor Stufe 5 | nach Stufe 5 |
+|---|---|---|
+| `test/tmp_png_aug_sichttest.py` | 120.955 B / `341253edb402f45b651c7b829a6fd2d939a4e5e1c68bd9199a6a5141931aa1f1` | 123.343 B / `500b55762001d6667af3d977324c81eb4ecbceacc2fa0d8b62c36c7e383250e0` |
+| `test/tmp_kanten_engine_replay.py` | 200.433 B / `53f28e1b6971a64df59beaf3292b466fb37ac86b870278f238a1b385084fd006` | **UNVERAENDERT** |
+
+### H19.2 - Phase 5.1: Struktureller Befund
+
+ZP-5 war kein kontinuierlicher Schleifencode, sondern ein einmalig wirkender
+Block am Anfang von `_se_trades`, der die Kantenobjekte (`wicks`,
+`schlaf_windows`, `status`) mutiert. Diese Mutation ueberlebte nur, weil der
+Renderer-Harness in `_lauf()` vor jedem Lauf ein isoliertes `copy.deepcopy`
+zieht. Eine globale Vorab-Ausfuehrung auf dem Master-Scan haette das
+Master-Objekt vergiftet und die Scan-Verifikation gebrochen. Ergebnis: die
+Funktion muss INNERHALB von `_lauf()` auf der deepcopy laufen.
+
+### H19.3 - Phase 5.2: Bit-Identitaets-Trockenlauf (read-only)
+
+`test/_chk_v019_zp5_extrahieren.py` (10.208 B /
+`034748264bf77e6155bdbf3ca1194f6660af8bb2b4541c517c9f0073c425dd02`)
+verglich zwei Wege auf je eigenen deepcopy-Instanzen (ADAPTER_V019_KAUSAL):
+A = arretierter Inline-Patch `A_KL_DOCHT`, B = Vorlauf-Funktion.
+
+| Ebene | Ergebnis |
+|---|---|
+| OBJEKT: wicks + schlaf_windows + status je kid (73 Kanten, 297 Wicks) | **0 Abweichungen** |
+| ERGEBNIS: A | 23 / +85.577150 R |
+| ERGEBNIS: B (auf Patchset OHNE ZP-5) | 23 / +85.577150 R |
+| Trade-Signaturen (`bar/kid/r/r1/r2/grund1/grund2`) | **bit-identisch** |
+| Engine-`stats` + Endzustand der Kanten | **identisch** |
+
+Verdikt: `GESAMT: OK` -> Extraktion ist bit-identisch, Einbrand freigegeben.
+
+### H19.4 - Phase 5.3: Einbrand (Renderer)
+
+`test/_tmp_s53_patch.py` (6.465 B), 3 assert-gesicherte Ersetzungen:
+
+ 1. Paar 5 (`A_KL_DOCHT`, ~53 Quelltextzeilen) aus
+    `_wende_zielzonen_patches_v019()` geloescht -> Patchset = 4 ZP-4-Regeln.
+ 2. Docstring auf den 4-Regel-Stand harmonisiert.
+ 3. `erweitere_segmentwand_dochte()` mit 6-Argument-Signatur und Type Hints
+    verankert; `_lauf()` ruft sie auf `sc_copy` VOR `engine._se_trades()`
+    (Gate: `KONF.mode == "V019" and len(hook.segmente) > 1`).
+
+`py_compile` OK.
+
+### H19.5 - Harness-Synchronisation
+
+`test/_chk_v019_kausal_vergleich.py` laedt die Vorlauf-Funktion jetzt
+ebenfalls per AST aus dem Renderer (`from __future__ import annotations` wird
+vorangestellt) und ruft DIESELBE Funktion in `_lauf()` auf. Ergebnis
+unveraendert:
+
+| Lauf | n | R |
+|---|---|---|
+| A arretiert (Kontrolle) | 24 | +88.116626 |
+| B kausal | 23 | +85.577150 |
+| C kausal + ZP-5-Fenster alt | 23 | +85.577150 |
+
+### H19.6 - Verifikationslauf und Byte-Identitaet
+
+`python test/tmp_png_aug_sichttest.py --mode V019` -> **exit 0**, alle
+Fail-Loud-Asserts bestanden. Protokoll unveraendert:
+
+```
+Baseline V0    : 14 Trades / +42.450970 R  (H1 8/+38.919584 | H2 6/+3.531386)
+V1_basis (v0.1): 14 Trades / +47.815697 R
+V1_kausal (LIVE, primaer): 23 Trades / +85.577150 R  (H1 8/+38.919584 | H2 15/+46.657566)
+V1_batch (HINDSIGHT)     : 24 Trades / +88.116626 R  (H1 8/+38.919584 | H2 16/+49.197042)
+```
+
+**Alle fuenf PNGs UND das Protokoll sind SHA256-identisch zu E-34n/18**
+(vgl. H18.9). Die in H18.11 erwartete „SHA-Zeilenänderung“ ist
+gegenstandslos: die Engine wurde NICHT angefasst, und die PNGs tragen nur
+`ENGINE_SHA[:16]` (unveraendert `53f28e1b...`). Ergebnis ist ein reiner
+Refaktor ohne jede sichtbare Aenderung.
+
+### H19.7 - Normierung §75
+
+`reports/h2_phasenregime/H2_PHASENREGIME_ADAPTER_SPEZ.md` wurde um
+`Addendum v0.24 / §75` ergaenzt (§75.0..§75.6): Kausalitaets-Trennung,
+Datenkante, Concurrency, ZP-5-Vorlauf/Master-Kapselung, Realwert-Kennzahlen
+(b)/(a), Artefakte. Damit ist der in §74.9 offen ausgewiesene
+Paragraph-75-Vorgang geschlossen.
+
+### H19.8 - Artefakt-Anker (SHA256; `test/` = gitignored)
+
+| Datei | Bytes | SHA256 |
+|---|---|---|
+| `test/tmp_png_aug_sichttest.py` | 123.343 | `500b55762001d6667af3d977324c81eb4ecbceacc2fa0d8b62c36c7e383250e0` |
+| `test/_chk_v019_kausal_vergleich.py` | 14.828 | `f260d252befba5774af4a996b3a36466bff4710e18162aa63c30c4ddaf96c276` |
+| `test/_chk_v019_zp5_extrahieren.py` | 10.208 | `034748264bf77e6155bdbf3ca1194f6660af8bb2b4541c517c9f0073c425dd02` |
+| `test/_tmp_s53_patch.py` | 6.465 | `460a93a44a19aa07c9493175d8c48bf5fb83d367ee1dbc920c177a7e4f8ec7ec` |
+| `test/tmp_kanten_engine_replay.py` (unveraendert) | 200.433 | `53f28e1b6971a64df59beaf3292b466fb37ac86b870278f238a1b385084fd006` |
+
+PNG-/Protokoll-SHA256 siehe §75.6 (byte-identisch zu H18.9).
+
+### H19.9 - Konsequenzen und offene Punkte
+
+**Re-Pin entfaellt:** Die Engine ist unveraendert (`53f28e1b...`). Die
+H18.11-Prognose „Stufe 5 aendert die Engine -> Re-Pin zwingend“ ist damit
+gegenstandslos; der Pin bleibt gueltig. Best-Case eingetreten: reiner
+Refaktor, PNGs byte-identisch.
+
+**Konsumiertes Artefakt:** `test/_chk_v019_zp5_extrahieren.py` las Paar 5
+noch aus dem Renderer-Patchset. Nach dem Einbrand existiert `A_KL_DOCHT`
+nicht mehr, der Trockenlauf-Beleg ist damit historisch konsumiert und wird
+NICHT nachgefuehrt (kein Parallelpfad). Der synchrone Pfad ist der Harness
+H19.5.
+
+**Offen:** Zweitfenster S1/S2 (Concurrency-Hoehe belastbar, Kausalitaets-
+Robustheit); aus E-34n/14: Q1 Bilanzierung (a)/(b) und Q2 Schranke.

@@ -4458,5 +4458,120 @@ deklariert. Die S2-Segmentdefinition selbst ist noch offen (§74.7).
 (207.666 B, 4.213 Zeilen, LF).
 
 **Regelbestand nach v0.24:** §54 + §66 + §67 + §68 + §69 + §70 + §71 + §72 +
-§73 + **§74**. **Errata:** E-5 · E-11 · E-12 · E-13 · E-14 · E-15 · **E-16** ·
+§73 + **§74** + **§75**. **Errata:** E-5 · E-11 · E-12 · E-13 · E-14 · E-15 · **E-16** ·
 **E-17** · **E-18**.
+
+---
+
+## Addendum v0.24 / §75 — Kausalitaets-Trennung, Datenkante, Concurrency und ZP-5-Vorlauf
+
+### §75.0 Geltung und Abgrenzung
+
+Dieser Paragraph ist der geschlossene Regelwerk-Vorgang zu Stufe 5
+(ZP-5-Refaktor, E-34n/19). Er normiert vier bereits im Code arretierte
+Sachverhalte und schliesst die in §74.9 als offen ausgewiesenen Punkte:
+(1) Kausalitaets-Trennung, (2) Datenkante (Zeitbasis), (3) Concurrency-
+Schranke, (4) ZP-5-Vorlauf und Master-Kapselung. Er beschreibt die arretierte
+v0.24; er aendert KEINE Engine-Funktion und KEINEN Sollwert.
+
+### §75.1 Kausalitaets-Trennung (ein Vertrag, zwei Wahrheiten)
+
+- **V1_kausal ist der Primaersatz.** 23 Trades / **+85.577150 R**
+  (H1 8/+38.919584 | H2 15/+46.657566). LIVE-faehig, weil saemtliche
+  Segment-Etiketten ausschliesslich aus der Vergangenheit abgeleitet werden
+  (Bestaetigungsbar `a + min_bars - 1`).
+- **V1_batch bleibt Hindsight.** 24 Trades / +88.116626 R (H1 8/+38.919584 |
+  H2 16/+49.197042). NICHT handelbar; dient nur als Provenienz-/Dampfungs-
+  Ausweis der rueckwirkenden Hysterese (MIN_BARS = 77).
+- Die Differenz ist EXAKT ein Artefakt-Trade: **bar 1211 entry 1214 SHORT
+  K76 +2.53948 R**. Er existiert nur, weil das Batch-Etikett „rueckwaerts“
+  verschmilzt.
+- **Keine parallelen Pruefwelten:** der kausale Lauf zieht sein Fenster aus
+  `ADAPTER_V019_KAUSAL`, der Batch-Lauf aus `ADAPTER_V019`. Beide laufen
+  ueber dieselbe Segmentmaschine und denselben Renderer-Pfad.
+- **Darstellung:** Hindsight-Artefakte werden nur gedaempft gezeichnet
+  (§54.4); gehandelt wird ausschliesslich der kausale Satz.
+
+### §75.2 Datenkante (Zeitbasis-Kanon)
+
+- Einzige Rechenbasis ist die **Broker-Kerzen-Zeit (BKZ)** =
+  `time AT TIME ZONE 'UTC'` (docs/ZEITBASIS_KANON.md).
+- **`box_end` ist KEINE Bar-Konstante**, sondern die dynamische Kalenderkante
+  `searchsorted(ts_bkz, "2026-08-19")` (AUG = **644**).
+- Der Grenztrade K1@640 (r = -1.000000) partitioniert nach H1 (8 Trades),
+  nicht nach H2.
+- Keine Europe/Berlin- oder Europe/Budapest-Projektion in `WHERE`,
+  `searchsorted`, `floor` oder Auswertungslogik; die Anzeige-Dublette ist
+  reine Beschriftung.
+
+### §75.3 Concurrency-Schranke
+
+- `max_gleichzeitig_je_richtung = 3` (0 = aus), symmetrisch fuer LONG/SHORT.
+- Die Schranke greift im **Regel-Loop** UND im **G4-Reclaim-Pfad** (der
+  frueher direkt an `setups` hing); der G4-Bypass ist geschlossen.
+- **Bindetest (maschinell):** T1 — der 4. gleichzeitige Trade wird bei Cap 3
+  blockiert, kein Ueberlapp/andere Richtung zaehlen nicht; T3 — Cap 2
+  entfernt end-to-end `bar 981 entry 982 SHORT K73 +2.69549` (22 / +82.881663).
+- Auf AUG ist Cap 3 **inert** (`concurrency_blockiert == 0`). Belegt ist die
+  Wirksamkeit der Schranke, nicht die optimale Hoehe; diese ist erst im
+  Zweitfenster S1/S2 belastbar.
+
+### §75.4 ZP-5-Vorlauf und Master-Kapselung (Stufe 5, E-34n/19)
+
+- Der Kantenlaeufer-Durchstich **ZP-5(D)** (E-34n/10+11) ist ab Stufe 5
+  **kein Quelltext-Patch** im `_se_trades`-Rumpf mehr, sondern die
+  eigenstaendige, zustandsfreie Renderer-Funktion
+  `erweitere_segmentwand_dochte(...)`.
+- **Signatur (6 Argumente, keine impliziten Modul-Globals):**
+  `(scan_copy: dict, hook: PhasenRegimeAdapter,
+  cfg: StraightEdgeHarnessKonfiguration, hi: np.ndarray, lo: np.ndarray,
+  ueb_fn: Callable[[int], float]) -> None`.
+- **Ausfuehrung ausschliesslich in `_lauf()`** auf der laufeigenen
+  `deepcopy` (`sc_copy`) unmittelbar VOR `engine._se_trades()`. Das
+  Master-Objekt `scan` wird NIE mutiert; `verifiziere_gegen_scan()` und der
+  ZP-5-Geometriewaechter bleiben stabil.
+- **Doppel-Gatung:** Quelltext-Stufe `KONF.mode == "V019"` UND Laufzeit-Gate
+  `len(hook.segmente) > 1`. V0 und V1_basis (DEFAULT_ADAPTER, 1 Segment)
+  bleiben inert.
+- **Invarianten:** `b0 = basis_bei(seg.start_bar)` ist TRAGEND (nicht die
+  statische `.basis`); untere Schwelle `cfg.touch_band_pct`, obere Schwelle
+  `ueb_fn` (segment-lokale 0.80) — kein Literal; P9 ist ueber sein
+  Boden-Literal ausgenommen.
+- **ZP-Patchset = VIER Regeln** (`A_UEB1`/`A_VC`/`A_M6L`/`A_SB`). Der
+  frueher fuenfte Eintrag `A_KL_DOCHT` ist geloescht.
+- **Bit-Identitaets-Gate (Stufe 5.2):** Inline-`A_KL_DOCHT` gegen
+  Vorlauf-Funktion = 100 % identisch auf **Objekt-Ebene** (wicks +
+  schlaf_windows + status je kid) und **Trade-Ebene** (23 / +85.577150 R,
+  saemtliche `r/r1/r2/grund1/grund2`, stats, Endzustand) -> Extraktion
+  zulaessig.
+- **Byte-Identitaet (Stufe 5.3):** die fuenf V019-PNGs und das Lauf-Protokoll
+  bleiben SHA256-identisch zu E-34n/18 (§75.6) -> reiner Refaktor, kein
+  Alpha- oder Darstellungseingriff.
+
+### §75.5 Realwert-Kennzahlen (b)/(a)
+
+- `R_realisiert (b)` = **+75.677008 R** (ENDE-Schenkel genullt);
+  `R_untergrenze (a)` = **+75.588050 R** (19 Trades, ENDE entfernt).
+- `_SESetup` traegt `grund2: str` und `r1/r2: float` (abwaertskompatibel;
+  Defaults `""`/`0.0`).
+- Die 78.2er-Zahlen aus E-34n/16 waren **Batch-Vormerkungen** fuer den
+  24er-Satz; massgeblich im kausalen Satz sind (b)/(a).
+
+### §75.6 Artefakte (SHA256; `test/` = gitignored → urkundlich)
+
+| Datei | Bytes | SHA256 |
+|---|---|---|
+| `test/tmp_kanten_engine_replay.py` (UNVERAENDERT) | 200.433 | `53f28e1b6971a64df59beaf3292b466fb37ac86b870278f238a1b385084fd006` |
+| `test/tmp_png_aug_sichttest.py` (Stufe 5.3) | 123.343 | `500b55762001d6667af3d977324c81eb4ecbceacc2fa0d8b62c36c7e383250e0` |
+| `test/_chk_v019_kausal_vergleich.py` (synchron) | 14.828 | `f260d252befba5774af4a996b3a36466bff4710e18162aa63c30c4ddaf96c276` |
+| `test/_chk_v019_zp5_extrahieren.py` (5.2-Beleg) | 10.208 | `034748264bf77e6155bdbf3ca1194f6660af8bb2b4541c517c9f0073c425dd02` |
+| `test/aug_sichttest_v019_01_gesamt.png` | 2.159.332 | `0f8ac94b07cb10199f380012915174301f88441fde0b81f32f3d73c38d710ed3` |
+| `test/aug_sichttest_v019_02_h1_box.png` | 896.312 | `7189fa55f0c940855bc3bfa7c94e493f06652c5fd977869651ef4c38afa0ca2f` |
+| `test/aug_sichttest_v019_03_h2_phasen.png` | 1.797.691 | `881230f2cde0e92ee920944e084d3453fd9af20164109af0a5f9b12abc23b7b8` |
+| `test/aug_sichttest_v019_04_p9_regime.png` | 1.196.384 | `c0fb552afac5e0321c484010914fc8a799544abc79f1d17a5f10bd9e26dacfe2` |
+| `test/aug_sichttest_v019_05_kantenkarte.png` | 2.152.873 | `743f06cb88a72f7af1093dcffee6727ba5b5b8ea45c73545549eadaa523cbbbc` |
+| `test/tmp_png_aug_sichttest_v019_out.txt` | 5.462 | `e1314950ef6479b594fe194a4902621d8a4aae49e61a19afbf3bd8951cf8a6f7` |
+
+Alle fuenf PNGs und das Protokoll sind **byte-identisch zu E-34n/18** (vgl.
+Handoff H18.9). Der Renderer-Lauf endete mit exit 0; alle Fail-Loud-Asserts
+bestanden.

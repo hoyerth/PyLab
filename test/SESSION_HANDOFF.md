@@ -7381,3 +7381,5274 @@ Struktur liefert. Zu entscheiden:
 6. **Q1-Bilanzierung.** Baseline auf AUG26 ist (b) = (a) = brutto
    (kein ENDE-Trade bei V0/V1_basis). Fuer den Phasenlauf bleibt die
    (a)/(b)-Schranke aus E-34n/14 offen.
+
+#### H20.8 Schritt 3 - Endogener Transitions-Detektor: NEGATIVER BEFUND (AUG26)
+
+Ziel war ein kausaler Zustandsautomat TRANSITION <-> BALANCE (Dwell-Fenster W
++ Kantenreife + Breakout), der die Phasen ohne Anwender-Setzung endogen
+findet. Ergebnis: **kein Plateau, keine Struktur, in dieser Form untauglich.**
+
+| W (Bars) | Balances | 1. Balance ab Bar | Transitionsintervalle |
+|---|---|---|---|
+| 24 (6 h) | 48 | 0 | 48 |
+| 36 (9 h) | 36 | 0 | 36 |
+| 48 (12 h) | 27 | 0 | 27 |
+| 72 (18 h) | 11 | 236 (05.08.) | 11 |
+
+Ziel-Reproduktion (Anwender-Nullwerte aus Schritt 2):
+
+- Bar 552 (11.08.): **alle W ABWEICHUNG** (W=72 Delta -316).
+- Zone 1104..1479: **alle W ABWEICHUNG** (W=24 1195/1209, W=36 1162/1222,
+  W=48 1162/1234, W=72 932/1261).
+- Zone 1748..1904: W = 24/36/48 TREFFER, W=72 ABWEICHUNG.
+
+Zusatz Phase 1c: Q24-Kantenreife (`min_wall_alter_bars` = 24) verschiebt die
+1. Balance nur 0 -> 13 (W=24) bzw. 0 -> 1 (W=36); R unveraendert.
+
+PnL je Sweep-Stufe (V0 + endogenes Gate, AUG26):
+
+| W | Trades | Treffer | SL | R_brutto | vs ZB | vs ZE |
+|---|---|---|---|---|---|---|
+| 24 | 13 | 2 | 9 | -4.0465 | -3.0553 | -5.0553 |
+| 36 | 11 | 2 | 8 | -2.9467 | -1.9555 | -3.9555 |
+| 48 | 8 | 1 | 6 | -6.0454 | -5.0543 | -7.0543 |
+| 72 | 5 | 0 | 3 | -3.5620 | -2.5709 | -4.5709 |
+| ZB | 11 | 4 | 5 | **-0.9912** | - | - |
+| ZE | 9 | 4 | 3 | +1.0088 | - | - |
+
+Drei Befunde:
+
+1. **Kein Parameter-Plateau.** Die Reihe ist nicht monoton
+   (-4.05 / -2.95 / -6.05 / -3.56); zwischen W=36 und W=48 kippt es um
+   -3.1 R. W=48 (die "stabilste" Erwartung) ist der schlechteste Wert.
+2. **Der Detektor fragmentiert.** 11-48 Umschaltungen pro Monat, alle
+   ~40-175 Bars -> fehlende Hysterese -> Zufallsfilter. W=48s Zone
+   `989..1073` loescht den besten Trade (Bar 1025 K75 **+5.0987 R**).
+3. **Bar 552 ist KEINE Dwell-Grenze.** Um 480..532 (10.08.) liegt eine
+   legitime Balance (K52/K55, Dwell erfuellt); die -2.0 R sind
+   Normalverluste INNERHALB einer Balance, nicht ein Transitionsschaden.
+
+#### H20.9 ALT-AUG-Gegenprobe (Falsifikation, K1-K3)
+
+Vor jedem Neukonstrukt wurde der Detektor auf dem BEKANNTEN Fenster geprueft
+(`AUG`, n = 1288, `box_end` nativ 644, 59 edges + 14 seeds).
+
+Anker (Harness-Treue, beide OK):
+
+- `box_end_bar = n` (Voll-Lauf, kein Gate): 14 / +42.450970.
+- `box_end_bar` = 644 (H1, kein Gate): 8 / +38.919584.
+
+Damit ist die arretierte **Zweiteilung** unabhaengig bestaetigt: H1 (0..643)
+laeuft **ungegatet**, nur H2 (644..1287) traegt die P9/A1/A2-Gate-Logik.
+
+Falsifikationskriterien (alle drei muessen halten):
+
+- **K1 GRENZE**: 1. Balance bei Bar 848 +/- 48.
+- **K2 SCHNITT**: <= 4 Balances (arretiert: genau 3).
+- **K3 FLAECHE**: IoU(Balance-Maske, arretierte Segmente) >= 0.80 im
+  Loop-Bereich [2, 1284] (425 arretierte Balance-Bars).
+
+| W | Balances | 1. Balance | TP | FP | FN | IoU | K1 | K2 | K3 | Urteil |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 24 | 35 | 0 | 425 | 848 | 0 | 0.334 | NEIN | NEIN | NEIN | WIDERLEGT |
+| 36 | 23 | 20 | 408 | 793 | 17 | 0.335 | NEIN | NEIN | NEIN | WIDERLEGT |
+| 48 | 18 | 15 | 351 | 687 | 74 | 0.316 | NEIN | NEIN | NEIN | WIDERLEGT |
+| 72 | 7 | 119 | 306 | 349 | 119 | 0.395 | NEIN | NEIN | NEIN | WIDERLEGT |
+
+Der Detektor zersplittert auf den bekannten Daten identisch (7-35 gleitende
+Fenster statt 3) und verfehlt die Vor-Balance 0..847 vollstaendig. Die
+Q24-Kantenreife aendert daran nichts.
+
+PnL-Einordnung (ganzer Monat, `box_end = n`; das Detektor-Gate laeuft dort
+ueber den GESAMTEN Monat und ist deshalb gegen Z0 zu lesen, nicht gegen V019):
+
+| Lauf | Trades | R_brutto | vs Z0 |
+|---|---|---|---|
+| Z0 (kein Gate) | 14 | +42.450970 | - |
+| arretiert H1+H2 (Gate, OHNE Zielinjektion) | 10 | +38.970089 | -3.4809 |
+| V019 arretiert (Gate + Zielinjektion) | 23 | +82.614385 | +40.1634 |
+| Detektor W=24 | 9 | +25.2766 | -17.1744 |
+| Detektor W=36 | 8 | +26.2766 | -16.1744 |
+| Detektor W=48 | 4 | -0.7720 | -43.2230 |
+| Detektor W=72 | 2 | +6.7482 | -35.7028 |
+
+Zweiter, unabhaengiger Befund: Der V019-Sprung auf +82.614385 R stammt aus
+der **Ziel-Injektion** des Hooks (sie aendert ueber den Filter `kein_raum`
+auch den Entry-Bestand), nicht aus der Blockade. Das H2-Gate allein liegt
+-3.4809 R unter dem ungegateten Monat.
+
+**Methodik-Lehre (festgehalten):** Ein blosser Overlap-Anteil je Zielzone ist
+als Kriterium UNTAUGLICH - bei 18..35 gleitenden Fenstern ist jede Zone per
+Konstruktion zu >= 50 % ueberdeckt. Ein erster Lauf urteilte W=36 damit
+faelschlich "SAUBER"; erst K1-K3 decken die Zersplitterung auf.
+
+**Urteil:** Der gleitende Dwell-Detektor ist auf Bar-Ebene **widerlegt**. Auf
+AUG26 wird mit diesem Instrument NICHT weitergesucht. Aufgesetzt wird
+stattdessen auf der bereits arretierten Kantenwechsel-Regel (E-34,
+"aeusserste lebende Linie je Seite", `wall_live_bars`), die die Grenzen
+848 / 1033 / 1174 historisch geliefert hat.
+
+#### H20.10 Notarielle Streichung von ZE / Arretierung von ZB
+
+**ZE ist gestrichen.** Die Variante "ZB + Grenze 552" (9 Trades /
++1.008837 R, Delta +9.0000 R) beruhte auf einem Artefakt: Bar 552 ist keine
+Dwell-Grenze, sondern der willkuerlich gewaehlte Abschnitt einer legitimen
+Balance 480..532 (K52/K55). Die +2.0 R gegenueber ZB sind
+**Ergebnis-Fitting** und werden aus den Referenzzielen entfernt.
+
+**Einzige Benchmark des Transitionsverbots ist ZB:**
+
+| Kennzahl | ZB |
+|---|---|
+| Zonen (AUG26) | 368..551 / 1104..1479 / 1748..1904 |
+| Trades | 11 |
+| Treffer / SL | 4 / 5 |
+| R_brutto | **-0.991154** |
+| Delta vs Z0 | **+7.000000** |
+| Vollverluste eliminiert | **7 / 7** (391 K36, 433 K47, 498 K48, 533 K52, 1222 K101, 1315 K109, 1812 K140) |
+| Gewinner verloren | 0 |
+| Neue Trades | 0 |
+
+ZB wirkt **rein subtraktiv**. ZA (13 / -2.991154, +5.0 R) verfehlt 498/533;
+ZC und ZD sind ergebnisgleich zu ZB. Die Null-Referenz fuer die endogene
+Regel ist damit **ZB**. Der Ausreisser Bar 1481 (25.08., K117, -1.0) bleibt
+per Anwender-Entscheid (Frage 7) **Normalverlust** - kein Curve-Fitting.
+
+#### H20.11 Artefakt-Anker (Ergaenzung zu H20.6, SHA256; `test/` = gitignored)
+
+| Datei | Bytes | SHA256 |
+|---|---|---|
+| `test/_chk_aug26_transitionen.py` | 4.639 | `31dcc24d8a7cfa394dd294779a3ef9e61acd1c08782d07bad82b040a9f42b5b1` |
+| `test/_chk_aug26_transitionen_out.txt` | 3.896 | `f74e8b67d0c3ea228adce38e6a47518385a7fe99748fe4e7a84dffbd007a45ee` |
+| `test/_chk_aug26_no_transition_run.py` | 8.998 | `03f1083eaa5a5b28216d8281731859c0bac43cbfc2d1e128948388c8cbb6f65a` |
+| `test/_chk_aug26_no_transition_run_out.txt` | 7.007 | `ea616c2acba8ff35ec66a676d37a411d2f01b1356ae9c892e1e8d64bacbe3f36` |
+| `test/_chk_aug26_transition_endogen.py` | 15.633 | `c977566e3a525a26a10c6ea146303819003dc5dbd23de5eae8b2fd6e35d4291d` |
+| `test/_chk_aug26_transition_endogen_out.txt` | 20.048 | `728e898a7fc626f795d15aa919ae613c626a676e9464dac5425bc726a029b6b1` |
+| `test/_chk_alt_aug_transition_endogen.py` | 25.271 | `ad07f3302ae274d805c7730ad6e45b78ee93ac95de9e75a75dc763f1a9c177c2` |
+| `test/_chk_alt_aug_transition_endogen_out.txt` | 39.142 | `10525ad288b86d65c64419892799163f0d8956089e0f2c0080220e9643e9e37c` |
+| `test/tmp_kanten_engine_replay.py` (unveraendert) | 200.433 | `53f28e1b6971a64df59beaf3292b466fb37ac86b870278f238a1b385084fd006` |
+| `backtest_lab/phasen_regime_adapter.py` (unveraendert) | 36.255 | `983192b3d25a1a50dcd06aac3b9230fc31f7759e5297c933d286b4fa88033cfb` |
+
+Alle Laeufe dieses Blocks sind read-only: Engine und Adapter byte-identisch,
+die Gate-Patches wirkten ausschliesslich im RAM der Testskripte.
+
+#### H20.12 Naechster Schritt (freigegeben): Kantenwechsel-Regel E-34 als Regime-Detektor
+
+Kein Zeitfenster-Konstrukt, keine Hysterese-Kosmetik. Geprueft wird die
+bereits angelegte Regel "**Segmentgrenze = Wechsel des Paares
+(Decke-Kid, Boden-Kid) der aeussersten LEBENDEN Linie je Seite**"
+(E-34 Paragraph O1; Leben = letzter bestaetigter Docht `b+2 <= k` juenger als
+`cfg.wall_live_bars = 96`). Prueffragen:
+
+1. Liefert die Regel auf `AUG` kausal genau 848 / 1033 / 1174 (K1-K3)?
+2. Welche Grenzen wirft dieselbe Regel auf `AUG26` aus (+460-Offset)?
+3. Ist der Wechsel kausal stabil oder kippt er mit dem Katalog (Fenster-
+   Artefakt wie in H20.5)?
+
+Der Anwender hat Weg (b) verbindlich freigegeben; K2 bleibt Obergrenze <= 4
+mit Zielgroesse exakt 3.
+
+#### H20.13 Schritt 2 - E-34 Paragraph O1 als Regime-Detektor: POSITIVER BEFUND
+
+Geprueft wurde kein neues Konstrukt, sondern die arretierte Kantenwechsel-Regel
+(E-34 Paragraph O1; 1:1-Port aus `_tmp_e34_auto.py` / `_chk_aug26_segmente.py`):
+`lebt(e, k)` = letzter BESTAETIGTER Docht `b + 2 <= k` mit
+`b >= k - wall_live_bars` (96); `decke(k)`/`boden(k)` = aeusserste lebende Linie
+je Seite; Segmentgrenze = Wechsel des Paares `(decke_kid, boden_kid)`;
+`zusammenfassen` nach Laenge < SCHWELLE ODER Grenzniveaus <= 0.12 % gleich.
+
+**A. Anschlag-Physik (woran haengt der Umschaltpunkt?)**
+
+| Fenster | Katalog | Umschaltpunkte | davon VERFALL | davon NEU | beides | Sprung Median | Sprung p90 | Sprung max | <= 0.12 % |
+|---|---|---|---|---|---|---|---|---|---|
+| AUG | 73 Linien | 62 | 29 | 33 | 0 | 0.5414 % | 1.2531 % | 4.2673 % | 2 (3.2 %) |
+| AUG26 | 116 Linien | 97 | 50 | 47 | 0 | 0.6222 % | 1.8238 % | 4.1466 % | 3 (3.1 %) |
+
+Der Umschaltpunkt ist **entweder** der Tod der Aussenwand (naechste lebende
+Linie rueckt nach) **oder** die Bestaetigung einer weiter aussen liegenden
+Linie - nie beides gleichzeitig. Entscheidend: nur ~3 % der Spruenge liegen im
+Verschmelzungsband 0.12 %, der Median bei 0.54/0.62 %. Die Regel schlaegt also
+an ECHTEN strukturellen Niveaus an, nicht an Mikro-Rauschen - genau der Modus,
+an dem der gleitende Dwell-Detektor gescheitert ist (H20.8/H20.9).
+
+**B. AUG - liefert die Regel 848 / 1033 / 1174?**
+
+- **1033 (A1-Start) und 1174 (A2-Start) sind BIT-EXAKT regel-erzeugt.** Mit dem
+  P9-Anker (`START` = P9-Ende + 1 = **1021**) und SCHWELLE 77 liefert
+  `zusammenfassen` genau `[(1033, 1173), (1174, 1287)]` - also A1 und A2
+  vollstaendig; die Luecke **1021..1032** entsteht fail-closed aus dem Anker.
+  (Rohsegmente: 61 ab 0 bzw. 7 ab 1021.)
+- **848 ist NICHT regel-erzeugt.** Es ist der arretierte P9-Start - laut
+  E-34 Paragraph O1 die "einzige uebernommene Groesse". Die Regel bildet den
+  P9-Bereich nur zu 51.4 % ab (Innenlinien-Dynamik: im P9-Bereich wechselt der
+  Boden ueber K17/K62/K63/K60 bis K77; vgl. E-34 Paragraph O4).
+- K1/K2/K3 mit `START = 0` (rein regel-erzeugt): **K1 NEIN, K2 JA** (3
+  Segmente), **K3 NEIN** (IoU 0.333, 851 FP). Im **anker-gebundenen** Betrieb
+  dagegen: 3 Segmente, Balance-Maske == arretierte Maske (IoU 1.000); dieser
+  K3-Wert ist per Konstruktion tautologisch und daher nicht als Beweis lesbar.
+
+**C. AUG26 - was wirft dieselbe Regel aus? Fensterstabil?**
+
+| Anker | Grenzen AUG | Grenzen AUG26 | Bewertung |
+|---|---|---|---|
+| keiner (`START = 0`, SCHWELLE 77) | 937 / 1174 | 1397 / 1634 | **+460 bit-exakt** |
+| P9-Ende + 1 (+460) | 1033 / 1174 | 1493 / 1634 | **+460 bit-exakt** |
+
+Damit ist H20.5 praezisiert: **die Regel SELBST ist fensterstabil.** Der dort
+gemeldete Kollaps (Seg 1 = 14..1396, 95.9 % ausserhalb) ist KEIN Defekt der
+Kantenwechsel-Regel, sondern die Folge des **fehlenden Ankers**: ohne
+P9-Vor-Balance kettet `zusammenfassen` den gesamten Vormonat in einen
+Monolithen. Ueber den P9-Anker geliefert werden auf AUG26 die +460-Bilder der
+arretierten Struktur:
+
+- A1-Analogon: **1493..1633** (Soll 1493..1633 = 1033+460 .. 1173+460) - exakt.
+- A2-Analogon: Start **1634** (Soll 1634 = 1174+460) - exakt; offenes Ende wie
+  in AUG (Segment laeuft bis Fensterende).
+
+Nicht reproduziert wird das P9-Analogon 1308..1480 (Ueberdeckung 51.4 %) -
+dieselbe Aussage wie auf AUG: P9 ist Setzung, nicht Regelprodukt.
+
+**D. Der offene Punkt ist der ANKER, nicht die Regel.** Die Regel braucht
+einen Startpunkt "Beginn der ersten bestaetigten Balance". Auf AUG ist das das
+hand-gesetzte P9 (848..1020) - endogen ist dieser Start nicht ableitbar. Genau
+dort liegt die offene Frage (vgl. F4: quartilfrei bis erste bestaetigte Balance
+plus Warmup 96 Bars).
+
+Artefakt-Anker:
+
+| Datei | Bytes | SHA256 |
+|---|---|---|
+| `test/_chk_kantenwechsel_o1.py` | 18.082 | `e8218a6a5a92f44f91588d61d302645634b2218ba6432da1c8dbe6fa0713875f` |
+| `test/_chk_kantenwechsel_o1_out.txt` | 23.802 | `936663d2921992ad4801ca7c2a604b410a46c3e98032f40c60a66ed40832cb6f` |
+
+#### H20.14 Konsequenz und offene Entscheidung (Textblock, kein Menue)
+
+**Befund.** Die Kantenwechsel-Regel (E-34 Paragraph O1) ist als Regime-Detektor
+**nicht widerlegt**: sie erzeugt die arretierten Grenzen 1033/1174 (AUG) bzw.
+1493/1634 (AUG26) bit-exakt und fensterstabil; sie schlaegt an echten
+Niveau-Spruengen an (Median 0.54 %). Der gleitende Dwell-Detektor ist dagegen
+nach K1-K3 widerlegt (H20.8/H20.9). Der Kollaps aus H20.5 ist auf den
+**fehlenden Anker** zurueckzufuehren, nicht auf die Regel.
+
+**Offene Frage 1 - Anker-Herkunft.** Woher kommt der Startpunkt der ersten
+bestaetigten Balance, wenn P9 (848) auf AUG eine Setzung ist? Drei
+Moeglichkeiten sind zu pruefen und zu bewerten:
+(a) erster Kantenwechsel, bei dem BEIDE Seiten eine etablierte Linie
+(V-S >= 3) tragen, nach einer Warmup-Zone von 96 Bars (F4);
+(b) erster Bar, an dem die aeusserste lebende Linie ueber `wall_live_bars`
+hinweg stabil bleibt (Dwell auf der KANTE, nicht auf dem Zeitfenster);
+(c) Beibehaltung der Setzung, aber explizit als Setzung deklariert
+(Anwender-Entscheid), samt Angabe, was das fuer AUG26 bedeutet (+460).
+
+**Offene Frage 2 - Vor-Balance auf AUG26.** Ohne P9-Anker liefert die Regel
+14..1396 als Monolith. Ist die Vor-Balance auf AUG26 (03.08. .. 07.08.)
+ueberhaupt eine Balance im Sinne der Regel, oder ist sie Trendvorlauf und
+bleibt dauerhaft TRANSITION (dann entfaellt der Anker-Zwang)?
+
+**Offene Frage 3 - K1/K3 fuer die Regel.** K1 gilt fuer die reine Regel als
+NICHT erfuellt (848 ist vererbt). Soll K1 fuer die Regelpruefung entfallen und
+stattdessen K2 (Schnitt) plus K3 (Flaechenmass im anker-gebundenen Betrieb,
+IoU der DERIVED-Segmente ohne P9) gelten?
+
+**Nicht fortgesetzt wird:** das gleitende Dwell-Fenster in jeder Form
+(Hysterese-Neukonstrukt gestrichen); Warte auf Anwender-Entscheid zu
+Frage 1-3.
+
+#### H20.15 Forensik 21./24.08. — Pivot-Rechner und Kanten-Genealogie (read-only, 2026-09-12)
+
+**Auftrag (Anwender):** (1) Wie ist der Pivot-Rechner formuliert? (2) Hat der Scan
+die Kante am 21.08. 16:30 (~68,88 USD) selbst im Speicher — und warum wurde sie
+nicht automatisch Gegenkante des Phasenstarts? (3) Verdacht: der Adapter koennte
+gerechnete Ergebnisse als Literale zementiert haben.
+
+**Artefakt-Anker (SHA256; `test/` = gitignored):**
+- `test/_chk_gegenpivot_2108.py`
+  17.465 B, `48973dd16f500d2ecc7035774730d6cc760c91a6d1614b1ec3427742d74b6e76`
+- `test/_chk_gegenpivot_2108_out.txt` (Lauf exit = 0)
+  23.129 B, `e149dd3e8b9bbf88f08150b2b20f4d941621bb594e3820fe1a74b396a58c4ca7`
+- Unveraendert (physisch): Engine `53f28e1b...` 200.433 B,
+  Adapter `983192b3...` 36.255 B, Renderer `500b5576...` 123.343 B.
+
+**Befund 1 — Pivot-Formel (Quelltext, Z. 1407 / 2240).** Der SE-Scan benutzt
+`_pivot_dual()`: **striktes 5-Bar-Kurs-Fraktal**.
+`H @ m <=> high[m] > high[m-2], high[m-1], high[m+1], high[m+2]`; L symmetrisch;
+H und L unabhaengig geprueft (Doppel-Pivot moeglich). Kausale Bestaetigung bei
+`k = m+2`. **Kein prozentualer Mindest-Rebound im SE-Pfad** —
+`MIN_SWING_PCT = 1.0 %` und `DENSITY_BAND = 0.15 USD` gehoeren zum alten
+`_verarbeite_pivot`-Pfad (Z. 730/754/1232) und werden in `_se_scan` NICHT
+aufgerufen.
+
+**Befund 2 — Erster Gegen-Pivot nach der Transition (kausal, ab P9-Ende).**
+Anwender-Marke 68,88 USD am 21.08. 16:30 trifft **exakt** den vom Scanner selbst
+erzeugten Pivot:
+- AUG   : Bar **894** (21.08. 16:30) L **68.8700** -> **K71**  (V-S 5, geb. 924)
+- AUG26 : Bar **1354** (= 894 + 460)  L **68.8700** -> **K121** (V-S 5)
+Weitere autonome Umkehrpivots im Zielbereich (AUG-Koordinaten): 928/69.6380 (K73),
+934/68.3920 (K77), 1031/67.5350 (K82). Der Scanner hat die Marke also **ohne
+Vorgabe** im Speicher (Katalog-Ausgabe von SCHRITT 2 belegt die Wicks-Zuordnung).
+
+**Befund 3 — Warum er NICHT Phasen-Gegenkante wurde (SCHRITT 4, gemessen).**
+Die O1-Regel nimmt die **aeusserste lebende** Linie je Seite. Der Gegen-Pivot ist
+zu keinem Bar Rang 1:
+- AUG   (12 Diagnose-Bars 848..1033): Rang unten 6/7, 5/7, 4/6, 3/5, 5/6 — nie 1.
+- AUG26 (dieselben Bars +460):        Rang unten 6/7, 5/7, 4/6, 3/5, 5/6 — nie 1.
+Fensterstabil identisch: der O1-Boden wird von tieferen Linien derselben Seite
+getragen (AUG K17/K62/K63/K60/K77; AUG26 K72/K112/K113/K110/K127).
+Ergebnis: der Gegen-Pivot ist ein **Rechenergebnis**, aber **nicht das Phasenpaar**
+— und es gibt **keine** Funktion `finde_gegenpivot`; die Gegenkante entsteht
+ausschliesslich aus der O1-Regel.
+
+**Befund 4 — Provenienz-Gegenprobe (SCHRITT 3): Rechenwert vs. Adapter-Literal.**
+| Position | kid AUG | kid AUG26 | Provenienz (a) | Scan `basis_bei(Start)` | Delta | Status |
+|---|---|---|---|---|---|---|
+| P9 boden | K77 | K127 | 68.3700 | 68.3920 | +0.0220 | Abweichung |
+| P9 decke | K67 | K117 | 69.9140 | 69.9750 | +0.0610 | Abweichung |
+| A1 decke | K67 | K117 | 69.8990 | 69.8990 | 0.0000 | **IDENTISCH** |
+| A1 boden | K82 | K132 | 67.5350 | 67.5350 | 0.0000 | **IDENTISCH** |
+| A2 decke | K73 | K123 | 69.6380 | 69.6380 | 0.0000 | **IDENTISCH** |
+| A2 boden | K82 | K132 | 67.5530 | 67.5530 | 0.0000 | **IDENTISCH** |
+
+A1/A2 sind in **beiden** Fenstern bit-exakt (fensterstabil +460): die arretierten
+Provenienz-Werte sind **exakt der Rechenwert zum jeweiligen Segmentstart**
+(`basis_bei(1033)` = 69.8990 / 67.5350; `basis_bei(1174)` = 69.6380 / 67.5530).
+Der Verdacht „gerechnete Werte als Literale zementiert" ist damit fuer A1/A2
+**widerlegt**. Die P9-Abweichung ist erklaert und kein Widerspruch: der P9-Start
+(848) liegt **vor** dem ersten Docht von K67 (873) und K77 (934), daher faellt
+`basis_bei` auf `wicks[0][1]` zurueck (Fallback); die P9-Werte 69.9140 (Decke,
+Override 69.87) und 68.3700 (Boden-Literal) stammen aus der **arretierten
+v0.20-P9-Setzung**, nicht aus `basis_bei`.
+
+**Antwort auf die Leitfrage „autonom genutzt?"** Ja: die Kante ist autonom
+berechnet und im Katalog (K71/K121). Sie wurde nicht als Phasen-Gegenkante
+verwendet, weil das Kriterium die **aeusserste lebende** Linie ist (O1) und
+die Gegenpivot-Linie zu diesem Zeitpunkt Rang >= 3 belegte. Das ist eine
+**Regelfolge**, kein Auslassungsfehler und keine Literal-Zementierung.
+
+**Offene Entscheidungen (Textblock, unveraendert offen aus H20.14):**
+F1 Anker-Herkunft (a) erster Wechsel mit beidseitig etablierter Linie (V-S >= 3)
+nach 96-Bar-Warmup / (b) erster Bar mit stabiler aeusserster Linie (`wall_live_bars`
+Dwell auf der Kante) / (c) Setzung beibehalten und explizit deklarieren?
+F2 Vor-Balance AUG26 (03.-07.08.) = Balance oder Trendvorlauf?
+F3 K1 fuer die Regelpruefung streichen und stattdessen K2 + K3 (IoU der derived
+Segmente ohne P9) verwenden?
+
+**Nicht geaendert:** Engine, Adapter, Renderer (SHAs identisch). Kein
+Einbrand. Warte auf Anwender-Entscheid zu F1-F3.
+
+#### H20.16 DEFINITIONS-AUDIT — alle Phasenbegriffe der Codebasis (read-only, 2026-09-12)
+
+**Auftrag (Anwender):** (1) Wie ist ein Phasenbeginn (neue Kante + Gegenkante)
+definiert — konkret fuer die Phasenstarts bei H1, H2, H2/2? (2) Gibt es ein
+Phasenende, oder ergibt es sich aus dem Beginn der neuen Phase? (3) Welche
+brauchbaren Start-/Ende-Definitionen existieren fuer Phasen/Segmente?
+
+**Methode.** Reine Quelltext-Inspektion, kein Lauf, kein Test, kein Einbrand:
+`test/tmp_kanten_engine_replay.py` (4.663 Z.), `backtest_lab/phasen_regime_adapter.py`
+(816 Z.), `test/SESSION_HANDOFF.md` (H20.1-H20.15), `reports/h2_phasenregime/
+H2_PHASENREGIME_ADAPTER_SPEZ.md`, `scripts/market_segmentation.py`,
+`scripts/macro_persistence.py`, `test/_tmp_e34_auto.py`, `test/_chk_kantenwechsel_o1.py`.
+Temporaere Inspektionsdateien wurden restlos entfernt; im Arbeitsbaum bleibt nur
+diese Handoff-Aenderung.
+
+**Befund 1 — H1 / H2 / H2-2 sind KEINE Phasen.**
+Es sind eine Kalender-Partition und ein Dokument-Titel.
+- `box_end_datum: str = "2026-08-19"` (Engine Z. 1915);
+  `box_end_bar = int(np.searchsorted(ts_arr, np.datetime64(cfg.box_end_datum)))`
+  (Engine Z. 2214) -> AUG **644**, AUG26 **1104**.
+- Partition: **H1 = `entry_bar < box_end_bar`**, **H2 = `entry_bar >= box_end_bar`**
+  (Handoff 5083/5084, 4412).
+- **Der Motor handelt ausschliesslich H1**: `for k in range(2, box_end - 3)`
+  (Engine Z. 2613) -> Signal-Scan endet bei Bar 640 (AUG) / 1100 (AUG26).
+  H2 wird nur gefahren, wenn der Harness `scan["box_end_bar"] = n` setzt
+  (H20.4; Renderer Z. 630).
+- **H2/2 hat keinen Code-Traeger.** Es ist der Arbeitstitel der zweiten
+  H2-Haelfte, Zielzone 1021..1287, entry >= 966 (Handoff 3392/3542) — inhaltlich
+  identisch mit **P12 (1171..1272)** bzw. **A2 (1174..1287)**. Der H2-Spec nennt
+  es unter "K73-Decke / K82-Boden" (Z. 1126).
+
+**Befund 2 — Die ENGINE kennt keinen Phasenbegriff (per Design).**
+Der Docstring sagt es selbst (Z. 9-11): "Reine OHLCV-Rohdaten - KEINE
+Phasen-Segmentierung, KEIN finales Zonen-Screening, **KEIN Phasen-Ende-Wissen.**
+Kanten entstehen kausal und sequenziell aus bestaetigten Pivots."
+Anstelle von Phasen fuehrt die Engine einen **Kanten-Lebenszyklus**:
+
+| Mechanik | Regel | Ort |
+|---|---|---|
+| Pivot | striktes 5-Bar-Fraktal, bestaetigt bei `k = m+2` | `_pivot_dual` Z. 1407; Aufruf Z. 2240 |
+| Geburt | kein gleichseitiger Docht im Band `touch_band_pct = 0.12 %` (Abstand >= 3) -> `_SEEdgeH(kid, seite, basis=px, geburts_bar=mbar, erster_pivot_bar=mbar)` | Z. 2243-2291 |
+| Keimung | `touch_anzahl >= 2` -> edge, sonst seed | Z. 2337-2340 |
+| Liveness | letzter bestaetigter Docht (`b+2 <= k`) juenger als `wall_live_bars = 96` | `_lebt` Z. 2462-2473; Z. 1895 |
+| Etablierung | `k - erster_pivot_bar >= min_wall_alter_bars = 24` | `_etabliert` Z. 2528-2533 |
+| 2-Body-Bruch | zwei aufeinanderfolgende **Koerper** ausserhalb: `min(op,cl)[k-1] > basis` UND `min(op,cl)[k] > basis` (OBEN) -> Kante `SCHLAFEND` | Z. 2293-2306 |
+| Reaktivierung | `body_reclaim_reaktivierung = True`; `_akzeptiere` setzt `SCHLAFEND -> AKTIV` | Z. 170, 2224-2235, 3166 |
+| Verfall (R21) | Alter >= 96, nicht `prim_anker`, nicht mehr aeusserste -> Tombstone; Ruhezeit roher Touch = 192 | Z. 2184-2197, 2309-2334, 1906 |
+| Gegenkante | aeusserste Gegenseite mit `touch_conf >= 2`, **SCHLAFEND ausdruecklich zulaessig** | `_gegenkante` Z. 2597-2611 |
+
+Die Paarung "Decke = max(OBEN) / Boden = min(UNTEN)" existiert nur als **lokale
+Hilfsgroesse je Bar** (`ecken`, `_gegenkante`); sie wird nie persistiert und nie
+zu einer Phase verdichtet.
+**=> Der Mentor-Befund "im bisherigen V019-Code existierte keine autonome
+Phasenberechnung" ist BESTAETIGT.**
+
+**Befund 3 — Der ADAPTER kennt nur GESETZTE Fenster.**
+`PhasenSegmentEintrag` (Z. 110-150): `phasen_id, start_bar, end_bar, decke, boden,
+ziel_preis_short, ziel_preis_long, touch_band_pct=0.12, provenienz_toleranz_pct=1.0,
+boden_deklariert_literal`; Abdeckung `start_bar <= bar_idx <= end_bar` (Z. 141-150).
+
+| Segment | `start_bar` | `end_bar` | Quelle |
+|---|---|---|---|
+| P9 / P9_DIRECT_69_87 / P9_BODEN_RECLAIM | **848** (Literal) | **1020** (LOAD-BEARING) | Z. 191-200, 215-227, 568-581 |
+| P12_RESERVE | 1171 | 1272 | Z. 242-254 |
+| A1_AUTO_77 | **1033** | **1173** | Z. 695-704 |
+| A2_AUTO_77 | **1174** | **1287** | Z. 717-726 |
+
+`verifiziere_niveau_overrides` / `verifiziere_boden_literale` / `verifiziere_gegen_scan`
+pruefen **Kanten-Kids und Niveaus** gegen den Scan — **die Bars werden nicht
+berechnet und nicht geprueft.**
+Einziges echtes Ende-Objekt: `kausale_segmentfenster` (Z. 762-807) — Index 0
+(Anker P9) unberuehrt; endogene Segmente behalten `start_bar`, `end_bar` wird auf
+`wirksam_ab(Nachfolger) - 1` verlaengert mit
+`wirksam_ab = start_bar + AUTO_VERSCHMELZUNG_SCHWELLE - 1` (Schwelle **77**).
+**=> Phasenstart = gesetzter Integer. Phasenende = (i) Literal oder (ii)
+`Nachfolger.wirksam_ab - 1`. Kein Kanten- oder Gegenkanten-Trigger.**
+
+**Befund 4 — E-34 Paragraph O1 (nur in `test/`): der einzige echte Wechsel-Detektor.**
+`test/_tmp_e34_auto.py`:
+
+| Schritt | Regel | Ort |
+|---|---|---|
+| `lebt` | `[b fuer (b,_) in wicks wenn b+2 <= k]`, `max(b) >= k - 96` | Z. 151-154 |
+| `ecken(k)` | `(argmax basis_bei(k) ueber OBEN, argmin ueber UNTEN)` | Z. 157-166 |
+| Start | Wechsel des Paares `(decke_kid, boden_kid)`; `ko is None or ku is None` -> uebersprungen (Korridor-Aufspannung!) | Z. 178-188, 213-218 |
+| Merge | Laenge `< min_bars` ODER `_nah` (beide Grenzniveaus <= 0.12 % gleich) | Z. 223-247 |
+| Ende | `ende := naechster_Start - 1`; letztes Segment bis `n-1` | Z. 216-218 |
+
+Mit `scan["box_end_bar"] = n` (Z. 143) laeuft die Regel ueber den ganzen Monat.
+Ergebnis (H20.13): **A1/A2 (1033/1174) bit-exakt, 848 NICHT erzeugt.**
+
+**Befund 5 — Die ALT-Generation (`scripts/`) hat Start UND Ende vollstaendig.**
+`PhaseData` (`scripts/market_segmentation.py` Z. 93-125; Klone in
+`phasen_volumen_profil.py`, `reclaim_live_kernel.py`, `counter_engine_profil.py`,
+`scripts/archiv/phasen_makro_swings.py`): `start, ende, U_final, L_final,
+birth_h/l, U_conf_ts/L_conf_ts, break_dir, brk_idx, brk_kante, U_hist/L_hist`.
+
+| Element | Definition | Ort |
+|---|---|---|
+| Start | `phasen_start = ts[i]`; `i = brk_idx` des Vorgaengers -> **die neue Phase beginnt am Bruch-Bar des Vorgaengers** | Z. 523, 727 |
+| Etablierung | `est_idx` = erster Bar mit `U` UND `L` und `n_touches(H)+n_touches(L) >= MIN_ESTABLISH = 4` | Z. 556-563 |
+| Linien | `_linie` = Schnittmengen-Cluster ueber max. 100 Pivots, `DENSITY_BAND = 0.15` | Z. 311-329 |
+| Ende | **2-Close-Bruch**: `close[j] > h_ref + TOL` UND `close[j+1] > h_ref + TOL`, fruehestens `MIN_PHASE_CANDLES = 46` nach Start; `TOL = 0.34` | Z. 579-607, 80, 84 |
+| Grenzreferenz | `h_ref = max(U, birth_h)`, `l_ref = min(L, birth_l)` | Z. 584-593 |
+| `ende` | **letzter Touch der GEGEN-Grenze vor dem Bruch** (`TOL_TOUCH = 0.15`), sonst `ts[i]` | Z. 644-693, 81 |
+| `PhaseBoundaryEvent` | "Kausales Phasenende (2-Close-Bruch), B = durchbrochene Kante" + `ended_phase_id` | `macro_persistence.py` Z. 104-110 |
+
+Die Alt-Generation ist **archiviert** und wird vom SE-Harness nicht importiert.
+
+**Befund 6 — Audit des Mentor-Textblocks (Einzelurteil).**
+
+| # | Mentor-Behauptung | Code-Realitaet | Urteil |
+|---|---|---|---|
+| 1 | Decke = hoechste lebende Kante OBEN (`basis_bei`) | `max` ueber OBEN, `_gegenkante` Z. 2609 | BELEGT |
+| 2 | Boden = tiefste lebende Kante UNTEN | `min` ueber UNTEN, Z. 2611 | BELEGT |
+| 3 | `wall_live_bars = 96` (24 Handelsstunden) | cfg Z. 1895; `_lebt` Z. 2462-2473 | BELEGT |
+| 4 | "V >= 3 Docht-Touches + 0,12 % = Strukturbestaetigung" | O1/`_gegenkante` fordern **`touch_conf >= 2`** (Z. 2606); `min_touches_handelbar = 3` gilt nur fuer **innere** Kandidaten (Z. 2592) und G4 (Z. 2787). Band 0.12 % ok | TEILS FALSCH |
+| 5 | "Eine einmal verlassene Phase wird NIEMALS reaktiviert" | `body_reclaim_reaktivierung = True` (Z. 170, 3166), `_akzeptiere` SCHLAFEND->AKTIV (Z. 2231), `_gegenkante` erlaubt SCHLAFEND (Z. 2598) | FALSCH fuer Kanten; gilt nur fuer Adapter-Fenster |
+| 6 | Start = Erschoepfungs-Peak + Gegenpeak + Korridor-Aufspannung | sinngemaess = O1 (beide Seiten muessen existieren, Z. 214), **aber nicht implementiert**; "Extremum 1/2" ist keine Codegroesse | KONZEPT OK, NICHT IMPLEMENTIERT |
+| 7 | Paragraph O1 detektiert NEU/VERFALL | H20.13: AUG 62 = 29+33+0; AUG26 97 = 50+47+0 | BELEGT |
+| 8 | V019 nutzte P9/848 bzw. 1308 als statische Setzung | Adapter Z. 193; 848+460 = 1308 | BELEGT |
+| 9 | `ausbruch_schwelle_pct = 0,60 %`, `High > Decke*1.006` | 0.60 existiert nur als `max_sweep_ueberdehnung_pct` (Z. 1887) = **Obergrenze des Reclaim-Korridors** ("dist > max_sweep -> Ueberdehnung, kein Trade", Z. 2586). Kein `ausbruch_schwelle_pct`, kein `1.006` | FALSCH / Zahl umgedeutet |
+| 10 | Zwei-Kerzen: `Low[k-1] > Decke` UND `Low[k] > Decke` | Motor prueft **Koerper** `min(op,cl)`, nicht die Spanne; wirkt auf die **Kante** (`SCHLAFEND`), nicht auf eine Phase; per Body-Reclaim umkehrbar | WOERTLICH FALSCH, sinngemaess richtig |
+| 11 | "n >= 4 Docht-Touches -> Reclaim gesperrt" | Zahl ist **3** (`min_touches_handelbar`, Z. 1886), Wirkung **umgekehrt**: ab 3 Touches wird eine innere Linie **handelbar** (Z. 2592). Kein 4-Touch-Absorptions-Lock; einziges Lock ist R21 nach **192** Bars (Z. 1906) | FALSCH |
+| 12 | Transition toxisch: "0/7 Treffer, -7,0 R" | H20.10 ZB: **7/7 Vollverluste eliminiert** (391/433/498/533/1222/1315/1812), Summe **-7.000000 R**, Delta vs Z0 **+7.000000**; ZB selbst 11 Trades / 4 Treffer / 5 SL / R_brutto **-0.991154** | BELEGT, aber die "7" sind die ELIMINIERTEN Trades |
+
+**Fazit Mentor-Block:** als Diskussionsgeruest brauchbar; **5 Punkte sachlich nicht
+haltbar (4, 5, 9, 10-wortlaut, 11)**, ein Punkt umgedeutet (9: 0.60 ist eine
+**Handelssperre**, kein Ausbruch). Der historische Kern ("keine autonome
+Phasenberechnung im V019-Code") ist **korrekt**.
+
+**Befund 7 — Bestandsaufnahme der vier vorhandenen Start/Ende-Kandidaten.**
+
+| Kandidat | Start | Ende | Traeger | Produktionspfad? | getestet? |
+|---|---|---|---|---|---|
+| E-34 Paragraph O1 | Wechsel des aeussersten lebenden Paares (beide Seiten muessen existieren) | `Nachfolger-1` (derivativ) | `test/_tmp_e34_auto.py`, `_chk_kantenwechsel_o1.py` | nein | ja (H20.13, K1-K3) |
+| Adapter-Fenster | Literal (848/1033/1174) | Literal (1020/1173/1287) bzw. kausal `wirksam_ab-1` | `phasen_regime_adapter.py` | **ja** | ja (E-34h...E-34n) |
+| Alt-Baseline | Bruch-Bar des Vorgaengers (`i = brk_idx`) | 2-Close-Bruch (`TOL 0.34`, >= 46 Bars) -> `ende` = letzter Gegen-Grenz-Touch | `scripts/market_segmentation.py` u. a. | nein (Alt-Generation) | historisch |
+| Box-Partition H1/H2 | `box_end_datum` (Kalender) | dito | Engine cfg Z. 1915 | **ja** (Gate/Reporting) | ja (V017/V018) |
+
+**Offene Entscheidungen aus diesem Audit (Textblock):** (D1) Endkriterium —
+derivatives Ende (Paragraph O1) oder eigenstaendiges (2-Close-Bruch, R21-Verfall,
+Kantenwechsel)? (D2) Bleibt "H2/2" zulaessig, obwohl es keinen Code-Traeger hat
+(= P12/A2)? (D3) Soll H2 in den Motor (zweite Box oder `box_end = n`), oder bleibt
+es Reporting-/Gate-Zone? (D4) Die Anker-Fragen F1-F3 (H20.14) sind Voraussetzung
+und weiter offen. (D5) Typisierter Datenvertrag, der die drei Herkuenfte
+(a) Paragraph-O1-Regel, (b) Alt-2-Close-Bruch, (c) Adapter-Fenster **getrennt**
+fuehrt?
+
+#### H20.17 TAXONOMIE-BESTAETIGUNG — mPhase = Paar (Decke, Boden) (read-only, 2026-09-12)
+
+**Anwender-Vorgabe (verbindlich formuliert):**
+1. Es wird **immer** eine lebende Decke UND ein lebender Boden ermittelt; dieses
+   Paar ist fuer den Anwender die Begrenzung der **aktuellen Balancephase = mPhase**.
+2. Die **Bildung eines neuen Paares** ist der **Phasenstart** — und zugleich das
+   **Phasenende** des vorherigen Paares.
+3. **Phasenende** = Ende der Balancephase mit dieser Decke und diesem Boden.
+4. Bestimmte Marktbewegungen beenden das aktuelle Paar = **Transition** zu einer
+   neuen Balance.
+5. Nomenklatur soll **nicht** an den KI-Eigenbezeichnungen (H1/H2/H2-2) haengen.
+
+**Antwort: JA, die Taxonomie ist mit der Codebasis vereinbar.** Sie ist sogar
+deckungsgleich mit dem Kantenwechsel-Port `ecken(k)` (`_tmp_e34_auto.py` Z. 157-166).
+Es fehlt nicht die Idee, sondern die **Formalisierung der Zwischenzustaende**.
+
+**A. Formalisierung der fuenf Punkte.**
+
+| Symbol | Definition (kausal) |
+|---|---|
+| **M(k)** | `(D(k), B(k))` mit `D(k) = argmax{basis_bei(k): OBEN lebend}`, `B(k) = argmin{basis_bei(k): UNTEN lebend}` |
+| lebend | letzter bestaetigter Docht `b+2 <= k` und `b >= k - 96` (`wall_live_bars`) |
+| **mPhase / BALANCE** | Zeitraum, in dem `M(k)` unveraendert und vertraut ist |
+| **PAARWECHSEL** | `M(k) != M(k-1)` — ein Ereignis, das **zugleich** Ende und Start ist |
+| **TRANSITION** | Zeitraum ohne vertrautes `M(k)` |
+| **PHASENENDE** | letzter Bar mit altem `M` = neuer Start - 1 (kein Overlap, kein Gap) |
+
+- Die Sichtbarkeitsbedingung ist im Code **bereits** so: `ko is None or ku is None`
+  -> Segment uebersprungen (Z. 214). Vor der Aufspannung existiert **keine** Balance.
+- **Ausloeser sind zwei diskrete Ereignisse, kein Preis-Schwellenwert:**
+
+| Ereignis | Bedeutung | Wirkung | Code |
+|---|---|---|---|
+| **NEU** | frisch bestaetigte Linie liegt weiter AUSSEN als die bisherige Wand | aeussere Grenze wandert nach aussen -> Paarwechsel | Z. 2243-2291 + `ecken` |
+| **VERFALL** | bisherige Aussenlinie ueberschreitet 96 Bars ohne Touch (bzw. R21-Tombstone) | naechste lebende Linie rueckt nach -> Paarwechsel (i.d.R. nach innen) | Z. 2309-2334, 2184-2197 |
+| beides gleichzeitig | — | — | **empirisch 0** (H20.13: AUG 29/33/0, AUG26 50/47/0) |
+
+- **Wichtige Nebenfolge (stuetzt die Taxonomie):** Eine **Geburt im Korridor**
+  (neue Linie zwischen Decke und Boden) aendert `M(k)` **nicht**; sie wird
+  ZWISCHEN_LEVEL und darf nur zusaetzlich handeln (Regel-2-Kaskade, `_kandidat`
+  Z. 2535-2595). Eine Balance endet also **nur** durch Aenderung der aeussersten
+  lebenden Grenze — nicht durch jede neue Linie.
+- **Zwei-Zustands-Automat (das fehlende Stueck):**
+  `Z1 BALANCE (M vertraut)` --Ereignis(NEU|VERFALL)--> `Z2 TRANSITION` --Vertrauensdauer--> `Z1'`.
+  Paragraph O1 implementiert **nur das Ereignis** und laesst Z2 auf Laenge **0**
+  zusammenfallen. V019 materialisiert Z2 als Luecke **1021..1032** (12 Bars,
+  fail-closed: keine Phase -> kein Trade). Beides ist mit der Taxonomie vereinbar
+  — es sind zwei Betriebsarten von Z2.
+
+**B. Fuenf unterbestimmte Stellen (muessen entschieden werden).**
+
+| # | Sachverhalt | Datenlage/Beleg |
+|---|---|---|
+| B1 | **Einseitigkeit:** Da "beides gleichzeitig" nie auftritt (0/62, 0/97), ist ein neues Paar zwingend ein **einseitiger** Wechsel. Formulierung muss lauten "mindestens eine der beiden Grenzen wird neu bestimmt" | H20.13 |
+| B2 | **Geraeuschlose Transition:** VERFALL kann eintreten, **ohne dass sich der Preis bewegt** (Ablauf der 96 Bars). Dann endet eine Balance ohne Marktereignis. Die Anwender-Definition ("bestimmte Marktbewegungen") deckt das **nicht** ab | Z. 2309-2334; H20.5-Drift |
+| B3 | **Mikro-Sprung:** Ein Wechsel auf praktisch gleichem Niveau ist strukturell kein neuer Zustand. Engine verschmilzt ueber `_nah` (<= 0.12 %). Empirie: nur **3,2 % (AUG) / 3,1 % (AUG26)** der Wechsel liegen darin; Median-Sprung **0,54 % / 0,62 %**. Ein **Strukturband** ist noch nicht gesetzt (0.12 % ist eine Touch-, nicht eine Struktur-Toleranz) | H20.13; H20.5 (0,5-0,8 %) |
+| B4 | **Grenze = Innenhuelle, nicht Marktextrem:** `basis_bei` liefert OBEN `min(wicks)`, UNTEN `max(wicks)` (Z. 2144-2147) -> `D(k)` monoton nicht-steigend, `B(k)` monoton nicht-fallend. Der Korridor kann sich **nur verengen**; Aufweitung ist zwingend Paarwechsel | Z. 2135-2147 |
+| B5 | **"Phasengrenze" != "Handelswand":** `_kandidat` steigt von aussen nach innen ab (Z. 2535-2595); `_gegenkante` nimmt die aeusserste Gegenseite mit `touch_conf >= 2` und **erlaubt SCHLAFEND** (Z. 2597-2611). Phasenstart (Paarbildung) und Signal (Kandidatenwand) muessen getrennt bleiben | Z. 2535, 2597 |
+
+**Nomenklatur-Bereinigung (Anwender-Vorgabe 5):** H1/H2/H2-2 werden im Weiteren
+ausschliesslich als **Reporting-Zonen** gefuehrt, nie als Phasen. Der Phasenbegriff
+ist `mPhase = M(k)` gemaess Tabelle A.
+
+**C. Verbindliche Symboltabelle (Vorschlag zur Bestaetigung).**
+
+| Symbol | Definition (kausal) | Abgrenzung |
+|---|---|---|
+| **M(k)** | Paar (Decke, Boden) der aeussersten lebenden Linien, beide vorhanden | nicht definiert, wenn eine Seite None |
+| **BALANCE / mPhase** | Zeitraum mit unveraendertem und vertrautem M(k) | nicht identisch mit "Box H1/H2" |
+| **PAARWECHSEL** | M(k) != M(k-1) via NEU oder VERFALL | Geburt innen zaehlt NICHT |
+| **TRANSITION** | Zeitraum ohne vertrautes M(k) | endet mit Vertrauen des neuen M |
+| **Vertrauensdauer** | bis das neue M als gueltig gilt | V019: Luecke 1021..1032; kausale Adapter-Variante: `start + 77 - 1` |
+| **PHASENENDE** | letzter Bar mit altem M | = neuer Start - 1 |
+
+**D. Offene Entscheidungsfragen (Textblock, kein Menue).**
+
+1. **Einseitigkeit bestaetigen.** Neues Paar durch **eine** geaenderte Grenze
+   (nie beide — 0/62 bzw. 0/97)? Oder soll ein "echtes" Paar beide Seiten neu
+   fordern (dann gaebe es in AUG/AUG26 **keinen einzigen** Phasenstart)?
+2. **Geraeuschlose Transition.** Zaehlt reiner **Zeitablauf** (96 Bars ohne Touch,
+   VERFALL) als legitime beendende Marktbewegung — oder gilt eine Balance als
+   fortdauernd, solange kein *preislicher* Bruch erfolgt (dann braucht VERFALL
+   ein Zusatzkriterium)?
+3. **Strukturband.** Ab welchem Niveau-Unterschied gilt ein Paarwechsel als **neue
+   Balance**? Zur Diskussion: Engine-Touchwert 0,12 % (nur ~3 % der Wechsel) vs.
+   strukturelles Band 0,5-0,8 % (H20.5). Diese Zahl ist **die** freie Groesse.
+4. **Balance-Grenze = Innenhuelle oder Mitte?** Code-Ist: Innenhuelle (monoton
+   verengend, Z. 2144-2147) vs. arretierter Mittelwert (`basis`-Feld, nur beim
+   Primaer-Anker eingefroren)?
+5. **Transition-Laenge.** **Laenge 0** (Paragraph O1 gapless) oder
+   **fail-closed-Luecke** (V019: 1021..1032)? Welche Semantik gilt fuer AUG26?
+6. **Zwei Lags getrennt halten.** Ist die Reife-Verzoegerung (Etikett erst ab
+   `start + 77 - 1`, `ADAPTER_V019_KAUSAL`) Teil der Transition — oder ein reiner
+   Ausfuehrungs-Lag ohne Bezug zur Phasendefinition?
+7. **Reihenfolge.** Bleiben F1-F3 (H20.14) **vor** jeder Formalisierung offen, oder
+   wird die Taxonomie zuerst festgeschrieben und der Anker danach als reine
+   Parameterfrage behandelt?
+
+**Engine-/Bestandsstand bei diesem Checkpoint (unveraendert):**
+
+| Artefakt | Bytes | SHA256 |
+|---|---|---|
+| `test/tmp_kanten_engine_replay.py` | 200.433 | `53f28e1b6971a64df59beaf3292b466fb37ac86b870278f238a1b385084fd006` |
+| `backtest_lab/phasen_regime_adapter.py` | 36.255 | `983192b3d25a1a50dcd06aac3b9230fc31f7759e5297c933d286b4fa88033cfb` |
+| `test/tmp_png_aug_sichttest.py` | 123.343 | `500b55762001d6667af3d977324c81eb4ecbceacc2fa0d8b62c36c7e383250e0` |
+
+Kein Einbrand. In H20.16/H20.17 wurde **kein** Code geaendert und **kein** Lauf
+ausgefuehrt — ausschliesslich Quelltext-Inspektion und Dokumentation.
+
+**Wiedervorlage morgen (Reihenfolge):**
+1. Antwort auf D.1-D.7 (Taxonomie) und D1-D5 (Audit) — Textform.
+2. Anker-Entscheid F1-F3 (H20.14) auf Basis der Taxonomie nachziehen.
+3. Danach erst: typisierter Datenvertrag (Type Hints, Google-Docstrings), der
+   `M(k)/mPhase`, PAARWECHSEL, TRANSITION und Vertrauensdauer als getrennte
+   Objekte fuehrt — ohne die drei Herkuenfte zu vermischen.
+## H20.18 — Whole-August AUG26: Altlast-Test der §O1-Regel (2026-09-12)
+
+**Auftrag (Anwender):** Prüfen, ob ein Whole-August-Durchlauf die erforschten Bereiche automatisch wiedergefunden wird, **wenn keine alten Kanten mitgeschleppt werden** und Balance-Phasen sicher als aktiv/nicht aktiv erkannt werden.
+
+**Werkzeug:** `test/_chk_aug26_altlast.py` (read-only, Engine physisch unberührt) · Out `test/_chk_aug26_altlast_out.txt` (9.925 B, UTF-8) · exit 0. Engine-SHA `53f28e1b…` unverändert.
+
+**Drei Katalog-Varianten** — identische §O1-Regel (`lebt`: letzter bestätigter Docht `b+2<=k`, `b >= k-96`), **START = 0 (kein Anker)**:
+
+| Variante | Vorrat |
+|---|---|
+| V_full | `edges + seeds` (Baseline) |
+| V_noseed | nur `edges` (Fensterende-Singletons entfernt) |
+| V_kausal | nur `edges` mit `geburts_bar <= k` |
+
+### Befund 1 — Altlast quantifiziert (Divergenz der Ecken-Reihe)
+- **V_full vs. V_noseed:** 498 abweichende Bars, erster **Bar 64** `03.08(64)`: full=`(1,7)`, noseed=`(1,3)`.
+- **V_full vs. V_kausal:** 1.037 abweichende Bars, erster **Bar 10**: full=`(1,None)`, kausal=`(None,None)`.
+- **Ursache:** `_lebt_kausal` zählt jeden bestätigten Docht `b` des Objekts — auch wenn `b` **vor der Keimung** (`geburts_bar` = Pivot des 2. Dochts) liegt. Vor der Keimung existiert nur ein Seed (1 Docht). Die Fensterende-Singletons (`scan["seeds"]`, Engine Z. 2339/2342) werden dadurch als **lebende äußere Linie** behandelt — das ist die „mitgeschleppte alte Kante".
+
+### Befund 2 — Balance aktiv / nicht aktiv
+- **V_full / V_noseed:** 12 inaktive Bars (0,6 %), einzig Block **2..13** (Warmup).
+- **V_kausal:** 28 inaktive Bars (1,5 %), Block **2..29** (streng kausal später warm).
+- Nach dem Warmup ist in **allen** Varianten lückenlos ein Paar vorhanden ⇒ die §O1-Regel ist ein **lückenloser** Balance-Detektor; Z1→(Transition)→Z1' hat Länge 0 (kein fail-closed-Zwang im Regelbetrieb).
+
+### Befund 3 — Segmentgrenzen (Schwelle 77, START = 0)
+- **V_full:** 3 Segmente `[(14,1396),(1397,1633),(1634,1931)]` → Grenzen `[14,1397,1634]`
+- **V_noseed:** 4 Segmente `[(14,1396),(1397,1492),(1493,1633),(1634,1931)]` → Grenzen `[14,1397,1493,1634]`
+- **V_kausal:** 2 Segmente `[(30,1633),(1634,1931)]` → Grenzen `[30,1634]`
+
+### Befund 4 — Abgleich mit arretiertem AUG-Stand (+460)
+| Soll | V_full | V_noseed | V_kausal |
+|---|---|---|---|
+| P9 1308..1480 | ~14..1396 (Δ +89) | ~14..1396 (Δ +89) | ~30..1633 (Δ +326) |
+| A1 1493..1633 | ~1397..1633 (Δ +96) | **=1493..1633 (Δ 0)** | ~30..1633 (Δ +141) |
+| A2 1634..1747 | ~1634..1931 (Δ 0) | **=1634..1931 (Δ 0)** | ~1634..1931 (Δ 0) |
+
+⇒ **Ohne die Fensterende-Singletons reproduziert die reine §O1-Regel auf AUG26 die arretierten Grenzen A1 (1493) und A2 (1634) BIT-EXAKT — mit START = 0, also ohne jeden Anker und ohne alte Kante.**
+Das P9-Analogon 1308..1480 bleibt in **keiner** Variante reproduziert (Δ +89 bzw. +326) → F1-Ankerfrage bestätigt sich erneut.
+
+### Befund 5 — Schwellenstabilität
+`1493` bleibt in V_noseed für die Schwellen 41/48/60/77 erhalten und verschwindet erst bei 114 (2 Segmente). In V_full tritt `1493` nur als instabiles Kurzsegment bei 41 auf (`(1493,1583)`) und ist bei 48/60/77 **weg** — die Seeds zerstören die A1-Grenze. `1634` ist in allen Varianten und Schwellen stabil.
+
+### Deutung
+Die Fensterende-Singletons sind die „alten Kanten", die den Zustand mitschleppen. Nach ihrer Entfernung (V_noseed) findet die erforschte Struktur sich **automatisch** wieder — der Whole-August-Lauf ist damit für A1/A2 **positiv** belegt. Die strikt kausale Keimung (V_kausal) kollabiert die Struktur, weil sie die Äußere-Linie-Existenz erst ab dem 2. Docht zulässt; die Frage „ab wann existiert eine Linie" ist damit entscheidungsrelevant.
+
+### Offene Entscheidungsfragen H20.18
+- **E1 (Existenz-Definition):** Zählt eine Linie ab Keimung (`geburts_bar`, 2. Docht) oder ab dem 1. bestätigten Docht? V_noseed lässt die zweite Lesart zu, V_kausal erzwingt die erste.
+- **E2 (Fensterende-Singletons):** aus dem Zustands-Katalog **verbannen** (V_noseed) oder als schlafende Kandidaten führen, die **nie** äußere Linie werden dürfen?
+- **E3 (P9-Analogon):** bleibt 1308..1480 arretierte Setzung (Weg c) oder soll der Anker automatisch abgeleitet werden (F1/a oder F1/b)? Hängt direkt an der Δ +89.
+- **E4 (Schwelle):** 77 ist für A1/A2 bestätigt; soll die Schwelle fix bleiben oder aus der Struktur abgeleitet werden?
+
+**Anker:** Handoff-Kopf vor diesem Append = `e9ed06c6781afed61e795b5a816ccec9a54819592d7434c06ca24c37f339ee45` / 452.356 B / 8.001 CRLF. Engine/Adapter/Renderer-SHA unverändert (`53f28e1b…` / `983192b3…` / `500b5576…`).
+
+## H20.19 — Transitionsbeginn/Balanceende: 0,6 % UND zwei Kerzen komplett außerhalb (Anwender-Setzung, 2026-09-13)
+
+**Anwender-Vorgabe (verbindlich, wörtlich aufgenommen):**
+
+> Transitionsbeginn / Balanceende: Bewegung Preis >= 0,6 % (Parameter für Reihentests) UND zwei Kerzen komplett außerhalb der Kante.
+
+**Status:** gesetzt. Ersetzt die bisherige unterbestimmte Ende-Semantik aus H20.17 (§B2/B3, D.2/D.3) für die **Phasen-/Balance-Ebene**. Kein Einbrand, kein Lauf — reine Dokumentation.
+
+**Formalisierung (kausal).** Eine Balance mit Paar `M = (D, B)` endet bei Bar `k` (= Transitionsbeginn), wenn **beide** Bedingungen gleichzeitig erfüllt sind:
+
+| # | Bedingung | Definition |
+|---|---|---|
+| T1 | Preisbewegung >= 0,6 % | `move(k) = abs(px(k) - grenze) / grenze >= 0.006` (Parameter für Reihentests) |
+| T2 | zwei Kerzen komplett außerhalb | `low[k-1] > D` UND `low[k] > D` (Deckenbruch) bzw. `high[k-1] < B` UND `high[k] < B` (Bodenbruch) |
+
+- **"komplett außerhalb"** = die gesamte Kerze (Docht inklusive), nicht nur der Körper. Das ist strikt schärfer als die bisherige 2-Body-Regel (`min(op,cl) > basis`, Engine Z. 2293-2306).
+- Beide Kerzen müssen auf **dieselbe Seite derselben Grenze** zeigen; die Grenze wird am ersten Bruch-Bar **eingefroren** (kein Driften von `basis_bei` während der Messung).
+- Beide Bedingungen sind **konjunktiv (UND)**, nicht alternativ.
+
+**Wirkung auf die offenen Fragen:**
+
+- **D.3 (Strukturband):** 0,6 % gesetzt; wird als **Reihen-Testparameter** geführt (nicht als Konstante einzementiert).
+- **D.2 (geräuschlose Transition):** reiner Zeitablauf (VERFALL >= 96 Bars ohne Touch) beendet **keine** Balance ⇒ VERFALL bleibt **Re-Label** (Vorbehalt 2 bestätigt).
+- **B2/B3:** die Anwender-Definition deckt sowohl die preisliche Störung (T1) als auch die Strukturverletzung (T2) ab; ein Mikro-Sprung unter 0,6 % kann **keine** Balance beenden.
+- **B1 (Einseitigkeit):** T2 ist zunächst einseitig formuliert (eine Grenze); der beidseitige Fall bleibt offene Präzisierung P5.
+
+**Abgrenzung zu bestehenden Regeln:**
+
+- Die **2-Body-Regel bleibt** für den KANTEN-Lebenszyklus (`SCHLAFEND`, `body_reclaim_reaktivierung`, Engine Z. 2293-2306/2224-2235) erhalten.
+- Die neue **T1+T2-Regel gilt auf der PHASEN-/Balance-Ebene** (Z2 → Z3 im Automaten aus der Taxonomie-Setzung).
+- Der **Reclaim** (Z2 → Z1) bleibt `body_reclaim_reaktivierung` + Rückkehr in den Korridor — von T1+T2 unberührt.
+- Getrennte Größen: **0,6 %** (Bewegung) ≠ **0,12 %** (`touch_band_pct`, Touch-Toleranz) ≠ **77** (`AUTO_VERSCHMELZUNG_SCHWELLE`).
+
+**Offene Präzisierungen (Textblock, keine Auswahl):**
+
+1. **`px(k)`:** welcher Preis — `close[k]` oder der Extrempunkt (`high`/`low`)? Und: gemessen von der eingefrorenen Grenze oder vom letzten Close **innerhalb** des Korridors?
+2. **Bezugsbasis von 0,6 %:** Grenzniveau oder Korridorbreite? Bis auf Widerruf gilt **Grenzniveau**.
+3. **Grenzenwahl bei Paarwechsel:** welche Grenze wird zwischen `k-1` und `k` gemessen, wenn dort ein Paarwechsel (NEU/VERFALL) eintritt?
+4. **Zeitfenster:** müssen die zwei Kerzen unmittelbar aufeinanderfolgen (`k-1`, `k`), oder dürfen sie durch eine Inside-Kerze getrennt sein?
+5. **Beidseitiger Bruch** (Decke UND Boden im selben Fenster): beendet die Balance einmal oder zweimal?
+6. **Verhältnis zu R21/96 Bars:** bestätigt, dass VERFALL **nie allein** T1+T2 ersetzt.
+7. **Geltungsbereich:** gilt T1+T2 auch für den Übergang Z3 → Z1' (Bestätigung des neuen Paares), oder nur für das Ende der alten Balance?
+8. **Reihen-Testparameter:** in welcher Achse (0,3/0,4/0,5/0,6/0,8/1,0 %) soll die Schwelle in den ersten Messungen gefahren werden?
+
+**Anker:** Handoff-Kopf vor diesem Append = `54b3fe145560d5a46087a2a5bedebfaae86ee35b6d37538e9822870900ded4b6` / 457.110 B / 8.053 CRLF. Engine/Adapter/Renderer-SHA unverändert (`53f28e1b…` / `983192b3…` / `500b5576…`).
+
+## H20.20 — Mentor-Antwort (institutionelle Gegenprüfung): drei Korrekturen, revidierter Automat (2026-09-13)
+
+**Status:** Diskussionsstand, kein Einbrand, kein Lauf. Diese Sektion **überschreibt meine eigenen Thesen aus der Taxonomie-Diskussion**, wo der Mentor sachlich widerspricht. Die Anwender-Setzung H20.19 (T1+T2) bleibt unberührt und wird hier nur **eingebettet**.
+
+**Bestätigt durch den Mentor:**
+- Reclaim = **Absorptions-Signatur** (Liquidity wird abgegriffen, ohne Folge-Volumen zur Richtungs-Expansion → Preis kollabiert zurück in die Range).
+- **Trennung Balance/Transition** empirisch belegt: 7/7 Breakout-Trades auf AUG26 = SL-Vollverluste, Summe **−7.000000 R**.
+- **Z2 (BEDROHT/PROBE)** schließt eine logische Lücke; ein 2-Zustands-Automat verwechselt Absorption mit sofortigem Regime-Bruch.
+
+### Korrektur 1 — VERFALL (96 Bars) ist KEINE Buchhaltung (mein Vorbehalt 2 war FALSCH)
+
+**Mentor:** „Liquidity Decay" ist im Orderbuch real. Eine Kante, die 96 M15-Bars (24 Handelsstunden) nicht berührt wurde, hat ihre Limit-Orders längst gecancelt/umplatziert — sie verliert Relevanz. Verfall als reines Re-Label zu behandeln = **Geisterkanten als Balance-Träger mitschleppen**.
+
+**Übernahme:** Vorbehalt 2 wird **zurückgezogen**. Eine Balance, deren Grenze per VERFALL/R21 (96 Bars ohne Touch) erlischt, ist **nicht mehr zweibeinig** und damit **kein handelbares Range-Objekt** mehr. Folge: **Trade-Erlaubnis entfällt** (fail-closed), nicht nur Re-Label.
+
+### Korrektur 2 — kein `reclaim_fenster` (mein Vorschlag war FALSCH)
+
+**Mentor:** Liegt ein 2-Body-Bruch vor, ist der Bruch für das institutionelle Risikomanagement **vollzogen**. N Bars auf einen eventuellen Reclaim zu warten = **toxische Inventory während echter Trend-Expansion** halten. Z3 muss für Neueinstiege **sofort** gelten.
+
+**Übernahme:** `reclaim_fenster` wird als **Entscheidungs-Gate gestrichen**. Das Bestätigungsmoment ist die **zweite vollständig außenliegende Kerze** (T2 aus H20.19) — kein Zeitfenster darüber. Auflösung des scheinbaren Widerspruchs:
+- **Mit Position:** T1+T2 → sofortiger Exit. Kein Nachlauf.
+- **Ohne Position (flach in Z2):** auf den Reclaim warten ist riskfrei, weil kein Inventory. Warten ist **nur flach** erlaubt.
+- Ein Reclaim **nach** bestätigtem Bruch ist **kein** Retro-Cancel des Bruchs, sondern ein **neuer Balance-Start** (Z3 → Z1′).
+
+### Korrektur 3 — Reife-Lag 77 gehört NICHT in die Definition (mein Vorschlag war FALSCH)
+
+**Mentor:** 77 Bars ist das Produkt der Plateau-Studie auf AUG26 (E-34b/e) = **Hindsight**. Als Bestandteil von „Balance Start" bedeutet es: eine Balance wird erst **19,25 h nach Entstehung** als handelbar eingestuft. Historisch sicher, **kausal teuer** (Beispiel **Bar 1211: −2.5395 R**).
+
+**Übernahme:** 77 wird aus der **Definition** von „Balance Start" **entfernt**. Eine Balance ist **ab ihrem kausalen Start handelbar** (beide Linien lebend + etabliert + Korridor ≥ Strukturband). 77 verbleibt höchstens als (a) retrospektives **Reporting-Label** oder (b) **kausale Verschmelzung gleichnamiger Paare** — und darf dort **nie** die Handelbarkeit nach hinten verschieben.
+
+### Revidierter Automat (fünf Zustände)
+
+| Zustand | Name | Bedeutung | Trade-Erlaubnis | Eintritt |
+|---|---|---|---|---|
+| **Z0** | WARMUP | kein lebendes Paar | fail-closed | Start |
+| **Z1** | BALANCE (laufend) | beide Grenzen lebend, etabliert, `M(k)` vertraut; Preis im Korridor | **Reclaim an Grenze erlaubt** | Z0/Z2/Z3/Z4 mit neuem gültigem `M` |
+| **Z2** | PROBE / BEDROHT | Grenze angestochen, Bruchbestätigung (T1+T2) **noch nicht** erreicht | **flach**; nur vorbereiten | Z1: Docht/Körper sticht eine Grenze an |
+| **Z3** | TRANSITION | Bruch bestätigt durch **T1+T2** (0,6 % UND zwei Kerzen komplett außen) | **keine Neueinstiege**; mit Position: sofort Exit | Z1/Z2 auf T1+T2 |
+| **Z4** | ERLÖSCHEN / DECAY | Grenze per VERFALL/R21 (96 Bars ohne Touch) erloschen → nicht mehr zweibeinig | **keine Neueinstiege** | Z1/Z2 auf Leg-Erlöschen |
+
+**Übergänge (kausal):**
+
+| von → nach | Auslöser | Träger |
+|---|---|---|
+| Z0 → Z1 | erstes gültiges `M` (Anker F1/E1 offen) | `ecken(k)` + `_lebt` + `_etabliert` |
+| Z1 → Z2 | Grenz-Durchstich | 2-Body/Pierce Z. 2293-2306 |
+| Z2 → Z1 | **Reclaim**: Körper zurück im Korridor + Touch, **vor** T1+T2 | `body_reclaim_reaktivierung` Z. 2224-2235 |
+| Z2 → Z3 | **T1+T2** (zweite vollständig außenliegende Kerze + ≥ 0,6 %) | H20.19 |
+| Z1 → Z3 | NEU nach außen (überlebende Seite, etabliert) | O1 Z. 2243-2291 |
+| Z1/Z2 → Z4 | Leg-Erlöschen (96 Bars ohne Touch, R21) | Z. 2309-2334, 2184-2197 |
+| Z3/Z4 → Z1′ | neues gültiges Paar, **kausal sofort handelbar** (kein 77-Lag) | O1 + neue Definition |
+| Z1 → Z1 | nichts (kein Selbstübergang durch Zeitablauf) | — |
+
+**Zwei getrennte „kein-Balance"-Ursachen bleiben getrennt:** Z3 = **preislich** (T1+T2), Z4 = **zeitlich** (Decay). Beide fail-closed, aber über verschiedene Buchungsgründe — der Mentor-Einwand (Geisterkanten) verbietet, Z4 zu unterschlagen.
+
+### Delta gegen den bisherigen Stand
+
+| Punkt | Vorher (meine These) | Jetzt (nach Mentor) |
+|---|---|---|
+| VERFALL/R21 | reines Re-Label, Z1 bleibt | **Z4**, Trade-Erlaubnis entfällt |
+| Z2 → Z3 | über `reclaim_fenster` (N Bars) | **sofort** auf T1+T2, kein Gate |
+| Reife-Lag 77 | Teil von „Balance Start" (Z1_PROVISIONAL) | **gestrichen** aus der Definition; höchstens Label |
+| Reclaim nach Bruch | undefiniert | **neuer Balance-Start** (Z3 → Z1′), kein Retro-Cancel |
+
+### Geparkte Klärungen (unverändert aus H20.19/H20.18, bewusst NICHT jetzt entschieden)
+
+Offen bleiben: Pixelfrage (`px(k)` Close vs. Extrema), Bezugsbasis 0,6 % (Grenzniveau vs. Korridorbreite), Grenzenwahl bei Paarwechsel, Fensterkopplung der zwei Kerzen, beidseitiger Bruch, Geltung T1+T2 für Z3 → Z1′, Test-Achse; ferner E1–E4 (Existenz/Singletons/P9-Anker/Schwelle), F1–F3 (Ankerherkunft), D.4/D.5/D.6 aus H20.17.
+
+**Anker:** Handoff-Kopf vor diesem Append = `fd2ffc2aadd3bb92a9061604d5c17bbd3d44b377c216d5fc39e237aadd7614c3` / 461.071 B / 8.099 CRLF. Engine/Adapter/Renderer-SHA unverändert (`53f28e1b…` / `983192b3…` / `500b5576…`).
+
+## H20.21 — Mentor-Antworten zu den 10 Fragen: Zustandsautomat zustandsrein arretiert (2026-09-13)
+
+**Status:** Diskussionsstand/Arretierung der Semantik, kein Einbrand, kein Lauf. Die zehn Antworten sind **verbindlich aufgenommen**. Die Anwender-Setzung H20.19 (T1+T2) bleibt unberührt.
+
+### A. Die zehn Antworten (verbatim-Kern, komprimiert)
+
+| # | Frage | Mentor-Antwort |
+|---|---|---|
+| 1 | Z2 eigenständig oder Flag auf Z1? | **Eigenständig** (Z2 = BALANCE BEDROHT/PROBE). Ein Flag verschleiert die Orderflow-Dynamik: bei Penetration wechselt der MM von passivem Quoting in **Bestandsabsicherung**; Trade-Erlaubnis und Sizing ändern sich **kategorial**. Einstieg erst, wenn Absorption durch Rückkehr bestätigt ist. |
+| 2 | Strukturband | **>= 0,50 %**. 0,12 % ist Docht-/Touch-Toleranz (Rauschen), 0,80 % ist auf M15 zu restriktiv (verwirft valide Konsolidierungen). 0,50 % trennt Mikro-Fraktale von quote-baren Spannen. |
+| 3 | `touch_conf` N auf Phasenebene | **N = 2 für die EXISTENZ** des Paares, **N = 3 für die TRADE-FREIGABE**. Zwei Tests spannen den Korridor auf, der dritte autorisiert den Reclaim-Handel. |
+| 4 | `reclaim_fenster` | **Strikt in Bars: 3–5** (M15: 45–75 min). **Keine ATR-Skalierung.** Braucht der Markt > 5 Kerzen zur Rückkehr, liegt **kein Fakeout**, sondern **Acceptance** (echter Breakout/Transition) vor. |
+| 5 | NEU nach außen | **Sofortige Transition (Z1 → Z3).** Ein neuer Außen-Pivot jenseits des Korridors = neues akzeptiertes Niveau. Auf 24-Bar-Reife der neuen Kante zu warten = beginnenden Trendimpuls mit Mean-Reversion faden. |
+| 6 | VERFALL (96 Bars ohne Touch) | **Re-Label INNERHALB Z1, sofern eine valide Innenkante nachrückt.** Existiert **keine** andere bestätigte Kante derselben Seite → `M(k)` kollabiert **sofort zu None → Z3 (TRANSITION)**. Re-Label nur, wenn die Liquiditätswand auf ein neues Niveau übergeben wird. |
+| 7 | Reife-Lag 77 | **Ausführungs-Lag / Reife-Gate (`Z1_PROVISIONAL`)**, **keine** Neudefinition der Marktkante. Die Balance existiert **physikalisch ab Entstehung**, wird aber erst nach Ablauf der Reifeschwelle (Plateau-Mitte 77 Bars) für **Neusignale** freigegeben. |
+| 8 | Wiedereintritt nach gescheitertem Break (Z2→Z1) | **Resurrektion desselben `M(k)`.** Die Kantenbasis bleibt identisch; nur der Docht wird als Liquiditätsabgriff verbucht. Eine neue Balance würde die Historie löschen und den Absorptionsvorteil zerstören. |
+| 9 | F1/E1 als Voraussetzung | **Taxonomie zuerst.** Der Automat muss mathematisch **zustandsrein** formuliert sein. Initialisierungsparameter (F1/E1) sind **Startwerte der Eingangssequenz**, dürfen die **Übergangslogik nicht diktieren**. |
+| 10 | Z3 materialisieren oder „kein M"? | **Materialisieren als expliziter Zustand Z3 = TRANSITION.** „Kein M" ist ein technischer `None`-Zustand im Code. Eine Transition ist ein **aktiver Marktzustand** (Price Discovery) — explizit modelliert (fail-closed), um Logging, Metriken und Sperren transparent zu steuern. |
+
+### B. Drei Widersprüche zu H20.20 — mit Auflösung
+
+Die Antworten 4, 6, 7 stehen **wortwörtlich gegen die Korrekturen aus H20.20**. Das ist kein Rückzug des Mentors, sondern eine **Präzisierung**: die früheren Korrekturen betrafen die *falsche Platzierung* der Größen; die jetzigen Antworten setzen die *richtige*. Auflösung je Punkt:
+
+**(1) `reclaim_fenster` — Auflösung: es ist KEIN Z3-Verzögerungs-Gate, sondern ein Z1-Rückkehr-Kredit.**
+- H20.20 verbot: „N Bars warten, **bevor** Z3 gilt". Dieses Verbot **bleibt gültig**: Z3 feuert **sofort** auf T1+T2.
+- Q4 präzisiert die **Gegenrichtung** Z2 → Z1: die Rückkehr in die Range muss innerhalb **3–5 Bars** erfolgen, um als Absorptions-Reclaim zu gelten.
+- Beides ist konsistent, weil das Fenster nur die **Buchung des Reclaims** begrenzt, nie den **Trigger des Bruchs** verzögert. Fällt eine dritte/vierte Kerze komplett außen (T2) **vor** Ablauf der 5 Bars, gewinnt T1+T2 → Z3.
+
+**(2) Reife-Lag 77 — Auflösung: Definiton ≠ Ausführungs-Gate.**
+- H20.20 verbot: 77 als **Bestandteil der Definition** („handelbar ab kausalem Start") — bleibt gültig.
+- Q7 setzt 77 als **`Z1_PROVISIONAL`-Freigabe-Gate für NEUSIGNALE**, ausdrücklich **ohne** Neudefinition der Marktkante. Die Balance existiert ab Entstehung; nur die Signal-Freigabe wartet.
+- Bewusster Trade-off, vom Mentor benannt: kostet den kausalen Trade an Bar 1211 (−2,5395 R), ist aber der Preis der Validierung.
+
+**(3) Z4 ERLÖSCHEN — Auflösung: Z4 wird in Z3 eingeschmolzen (4 Zustände, nicht 5).**
+- H20.20 führte Z4 als eigenen Zustand („zwei getrennte kein-Balance-Ursachen"). Q6 ersetzt das: Decay **ohne Nachfolgekante** → `M = None` → **Z3**; Decay **mit** valider Innenkante → **Re-Label innerhalb Z1**.
+- Damit bleibt es bei **vier Marktzuständen** (Z0/Z1/Z2/Z3) plus zwei Z1-Qualifiern (PROVISIONAL-Gate, Re-Label-Ereignis). Die Logging-Forderung aus Q10 (Decay vs. Bruch unterscheidbar machen) wird über **Buchungsgründe/Events** erfüllt, nicht über einen fünften Zustand.
+
+### C. Arretierter Zustandsautomat (zustandsrein, vier Zustände)
+
+| Zustand | Name | Trade-Erlaubnis | Sizing |
+|---|---|---|---|
+| **Z0** | WARMUP | fail-closed | — |
+| **Z1** | BALANCE (laufend) | Reclaim an der Grenze erlaubt (ab `touch_conf = 3`) | normal |
+| **Z1_PROVISIONAL** | damit noch nicht signalfreigegeben (Reife-Gate 77) | **keine Neusignale** | — |
+| **Z2** | BALANCE BEDROHT / PROBE | **flach**, nur Bestandsabsicherung/Vorbereitung | reduziert/keine |
+| **Z3** | TRANSITION (inkl. Decay-Kollaps) | **keine Neueinstiege**; Position → sofort Exit | — |
+
+**Übergänge (kausal):**
+
+| von → nach | Auslöser | Anmerkung |
+|---|---|---|
+| Z0 → Z1 | erstes gültiges Paar: beide Linien lebend (N=2) **und** Korridor >= 0,50 % | F1/E1 = Startwerte, diktieren nicht die Logik |
+| Z1 → Z1_PROVISIONAL → Z1 | Reife-Gate 77 (Ausführungs-Lag) | Balance existiert physisch ab Entstehung |
+| Z1 → Z2 | Grenz-Penetration | 2-Body/Pierce |
+| Z2 → Z1 | **Reclaim** innerhalb **3–5 Bars**, Rückkehr in den Korridor → **Resurrektion desselben `M`** | Docht = Liquiditätsabgriff |
+| Z2/Z1 → Z3 | **T1 + T2** (>= 0,60 % UND zwei Kerzen **komplett** außen) | sofort, kein Nachlauf |
+| Z1 → Z3 | **NEU nach außen** (neuer Außen-Pivot jenseits des Korridors) | sofortige Transition, kein 24-Bar-Warten |
+| Z1 → Z1 | **Re-Label** bei VERFALL **mit** valider Innenkante auf derselben Seite | Liquiditätswand wird übergeben |
+| Z1 → Z3 | **Decay-Kollaps**: keine andere bestätigte Kante derselben Seite → `M = None` | Buchungsgrund `DECAY_NO_SUCCESSOR` |
+| Z3 → Z1′ | neues gültiges Paar (Korridor >= 0,50 %, N=2), danach Reife-Gate | neuer Start |
+
+### D. Damit gesetzte Konstanten (für den ersten Reihentest)
+
+| Größe | Wert | Rolle | Abgrenzung |
+|---|---|---|---|
+| `struktur_band_pct` | **0,50 %** | minimale Korridorbreite für Balance-Gültigkeit | ≠ 0,12 % Touch |
+| `breakout_move_pct` | **0,60 %** (Reihen-Test, H20.19) | T1 Preisbewegung | ≥ Strukturband, konsistent |
+| `reclaim_fenster_bars` | **3–5** | Z2 → Z1, strikt Bars, keine ATR | ≠ Z3-Trigger |
+| `touch_conf` existenz | **2** | Paar-Existenz | — |
+| `touch_conf` handelbar | **3** | Trade-Freigabe | — |
+| `reife_gate_bars` | **77** | Z1_PROVISIONAL (Ausführungs-Lag) | keine Definitionsgröße |
+| `wall_live_bars` | **96** | Decay ⇒ Re-Label oder Z3 | Liquidity Decay real |
+
+### E. Ergebnis für die Gesamtstrategie (MM-Sicht)
+
+Der Automat ist jetzt **zustandsrein** und deckt genau die drei Geschäftsprozesse ab: (1) Balance **erkennen** (Z0→Z1, Existenz N=2 + Band >= 0,50 %), (2) Balance **laufend** überwachen und Reclaim **handeln** (Z1/Z2, Fenster 3–5 Bars, Freigabe ab N=3 und Reife-Gate), (3) Balance-**Ende** erkennen und **aussteigen** (Z3 über T1+T2, NEU nach außen, Decay-Kollaps). Nomenklatur bleibt `mPhase = M(k)` (H20.17); H1/H2 bleiben Reporting-Zonen.
+
+### F. Verbleibend offen (bewusst, Textform)
+
+1. **Reihen-Test-Achse:** in welcher Reihe werden `struktur_band_pct` (0,40/0,50/0,60/0,80 %), `breakout_move_pct` (0,4–1,0 %) und `reclaim_fenster_bars` (3/4/5) kombiniert gefahren?
+2. **`px(k)` und Bezugsbasis** aus H20.19 (Close vs. Extremum; Grenzniveau vs. Korridorbreite) — weiterhin unbestimmt.
+3. **Beidseitiger Bruch** (Decke UND Boden gleichzeitig): ein Z3-Eintritt oder zwei?
+4. **Z1_PROVISIONAL-Zählung:** läuft das 77-Gate ab Paarbildung oder ab dem dritten Touch (Trade-Freigabe)?
+5. **Re-Label vs. Resurrektion:** übernimmt das Re-Label den alten `M`-Schlüssel (Historie bleibt) oder startet ein neuer Paar-Schlüssel?
+6. **Z4-Logging:** genügt Buchungsgrund `DECAY_NO_SUCCESSOR` (Z3-Eintritt) oder soll Z4 als Metrik-Label erhalten bleiben, ohne Automatenzustand zu sein?
+7. **F1/E1-Startwerte:** dürfen sie als **einmalige** Initialisierung des ersten `M` dienen, ohne die Übergangslogik zu berühren (Mentor Q9)?
+
+**Anker:** Handoff-Kopf vor diesem Append = `c6bb999c53141c0c80102381876cb9b86a6d4498a97ba5f5d9b22301f58a73ce` / 467.384 B / 8.169 CRLF. Engine/Adapter/Renderer-SHA unverändert (`53f28e1b…` / `983192b3…` / `500b5576…`).
+
+## H20.22 — Schichtentrennung: V019-Reclaim-Logik eingefroren, Taxonomie additiv (Anwender-Setzung + Mentor-Festlegung, 2026-09-13)
+
+**Anwender-Vorgabe (verbindlich, wörtlich aufgenommen):**
+
+> Ich möchte, dass die Regeln für Reclaims an den Kanten von unserer neuen Taxonomie **nicht beeinflusst** werden. Die Logik nach V019 bleibt gesetzt, damit wir die Report-Zonen H1, H2 etc. **genauso gut treffen wie bisher**.
+
+**Status:** Architektur-Invariante gesetzt. Kein Einbrand, kein Lauf, kein Code, kein Refactoring. Engine/Adapter/Renderer-SHA unverändert (`53f28e1b…` / `983192b3…` / `500b5576…`).
+
+### A. Die Invariante (oberste Regel dieses Schritts)
+
+**Zwei Schichten, gerichtete Abhängigkeit, keine Rückkopplung.**
+
+| Schicht | Inhalt | Status |
+|---|---|---|
+| **A — ARRETIERT (V019)** | Kanten-Lebenszyklus (`_SEEdgeH`, `basis_bei`), Reclaim-Stufen (`_reclaim_stufe`), Sweep/Reclaim-Handel, endogene Segmentbildung (MIN77 + `_nah`), Zielzonen A1/A2, Hook-3-Boden-Reclaim | **eingefroren**. Änderung nur per expliziter Anwender-Freigabe, nie durch die Taxonomie |
+| **B — NEU (Taxonomie/Automat)** | Z0/Z1/Z1_PROVISIONAL/Z2/Z3, Paarwechsel NEU/VERFALL, Reclaim-*Klassifikation*, Break-Bestätigung T1+T2 | **additiv**. Liest A, schreibt A **nie** um |
+
+**Kernregel:** Schicht B darf **beobachten, loggen, sperren (gate)** — sie darf **nie** die Reclaim-Erkennung, das Reclaim-Fenster, die Referenzlinie, die Handelbarkeitsschwelle oder die Segmentgrenzen von A verändern.
+
+**Nachweis-Invariante (Pass-Through-Identität):** In der Default-Konfiguration der Taxonomie (= keine Sperren aktiv) muss der V019-Lauf **bit-identisch** sein zum arretierten Benchmark: gleiche Trade-Liste, gleiche Bars, gleiches R. Referenzen: dualer Lauf **23 / +85.577150** (inkl. Hindsight-Marker), H2 **15 / +78.127525**, v0.14 H2 **+22.285802**, ZB-Benchmark **+7.000000 R** (`_chk_aug26_no_transition_run.py`). Erst wenn diese Identität belegt ist, darf überhaupt eine Sperre scharf geschaltet werden.
+
+### B. Zwei konkrete Kollisionsflächen (aus dem Code belegt)
+
+**K1 — Reclaim-Fenster: 2 Bars (V019) gegen 3–5 Bars (Taxonomie).**
+`tmp_kanten_engine_replay.py` Z. 1888: `reclaim_grace_bars = 2` („Schluss innerhalb k..k+2"), Z. 2007/2021: **`np.any(cl[bar_k : bar_k+3] <= basis)`** — Any-Close-Semantik, kalibriert an Bar 229 (Reclaim in 230) und Bar 242 (Reclaim in 244).
+⇒ Das Taxonomie-Fenster `3–5` (H20.21 Q4) ist **nicht** dasselbe und darf `reclaim_grace_bars` **nicht** ersetzen. Es gilt ausschließlich für die **Z2 → Z1-Zustandsbuchung** in Schicht B. Für den *Trade* gilt weiterhin `reclaim_grace_bars = 2`.
+
+**K2 — 0,60 % mit umgekehrter Rolle.**
+V019 Z. 1887: `max_sweep_ueberdehnung_pct = 0.60` ist eine **Obergrenze** — ein Sweep weiter als 0,60 % gilt als Überdehnung und wird **nicht** gehandelt (Z. 2019). Die Taxonomie nutzt 0,60 % als **Untergrenze** für den Break (T1).
+⇒ Gleiche Zahl, **entgegengesetzte** Semantik. Beide müssen namensräumlich getrennt bleiben (`max_sweep_ueberdehnung_pct` vs. `breakout_move_pct`); eine Vereinheitlichung ist verboten.
+
+**K3 — Paarwechsel: MIN77/`_nah` (V019) gegen „sofortige Transition" (Mentor Q5).**
+V019 verschmilzt Paarwechsel über `AUTO_VERSCHMELZUNG_SCHWELLE = 77` und `_nah` (≤ 0,12 %); genau das erzeugt A1 = 1033/1493 und A2 = 1174/1634 bit-exakt (H20.13/H20.18). Die Mentor-Festlegung „NEU nach außen ⇒ sofortige Transition" würde diese Verschmelzung umgehen.
+⇒ **Auflösung:** Die sofortige Transition gilt **nur für den Z2/Z1 → Z3-Zustand** (Risikosteuerung: Position raus). Die **Segmentbildung** bleibt unverändert bei MIN77/`_nah`. Zustandswechsel ≠ Segmentgrenze.
+
+### C. Mentor-Festlegungen zu den 7 offenen Punkten (übernommen)
+
+| # | Punkt | Festlegung |
+|---|---|---|
+| 1 | Reihen-Test-Achse | erst **nach** Fixierung der Bezugsbasis parametrisieren — **keine** 27er-Blindkombination |
+| 2 | `px(k)` / Bezugsbasis | **`basis_bei(k)`** (Innenhülle der Touch-Zone), **niemals** Docht-Extrema: Durchstich `High_k > basis_bei_Decke(k)`; Reclaim `Close_k <= basis_bei_Decke(k)`; Bruch per Überdehnung bzw. 2 konsekutive Kerzen (s.u. §E) |
+| 3 | Beidseitiger Bruch | **genau ein** Z3-Eintritt; mehrere Gründe als `TransitionReason.BOTH_SIDES` im Event-Payload (Enum-Set/bitweise), **kein** doppelter Zustandswechsel |
+| 4 | `Z1_PROVISIONAL`-Start | **ab Paarbildung M(k) = (D,B), N=2** — nicht ab 3. Touch. Erreicht N=3 vor Ablauf der 77 Bars, bleibt der Handel bis zum Zeit-Gate gesperrt |
+| 5 | Re-Label bei Verfall | bestehender Phasen-Schlüssel / Balance-Objekt bleibt (**Resurrektion/Nachfolge**); verfallene Kante wird durch nächste lebende Innenkante ersetzt; akkumulierte Dochte der überlebenden Seite bleiben intakt |
+| 6 | Z4 | bleibt **Metrik-Label** (`exit_reason = DECAY_COLLAPSE`); Automat strikt **4-stufig** (Z0/Z1/Z2/Z3) |
+| 7 | F1/E1 | reines **Bootstrap-Event bei Bar 0** (`Event.INITIALIZE`); Start in Z0, Übergang nach Z1 ausschließlich über reguläre Kriterien |
+
+### D. Widerspruch, der noch offen ist (nicht stillschweigend übernommen)
+
+**UND (Anwender H20.19) gegen ODER (Mentor Q2).**
+- Anwender-Setzung H20.19, wörtlich: „Bewegung Preis >= 0,6 % **UND** zwei Kerzen komplett außerhalb der Kante."
+- Mentor-Festlegung §B: Bruch per Überdehnung **ODER** 2 konsekutive Kerzen komplett außerhalb.
+
+Das **ODER** weitet den Z3-Trigger deutlich (schon ein einzelner Docht > 0,60 % bricht; ebenso zwei Kerzen ohne 0,60 %-Bewegung). Es ist **nicht** durch die Anwender-Vorgabe gedeckt (H20.19 ist konjunktiv und ausdrücklich als Reihen-Testparameter gesetzt). Wird hier als **unentschieden** dokumentiert, nicht als geltend.
+
+### E. Entscheidungsfragen (Textblock, keine Auswahl)
+
+1. **UND oder ODER beim Z3-Trigger?** Anwender-H20.19 sagt UND. Der Mentor begründet ODER mit dem institutionellen Risikomanagement (Überdehnung allein genügt). Wenn UND gilt, ist ein Docht-Ausbruch > 0,60 % **ohne** zweite freie Kerze nur Z2 — mit der Folge, dass die Position in einer echten Expansion länger gehalten wird. Wenn ODER gilt, weicht der Trigger von der verbindlichen Setzung ab. Bitte setzen.
+2. **Fensterkollision K1:** bleibt `reclaim_grace_bars = 2` (V019, arretiert) für den **Trade** und 3–5 Bars ausschließlich für die **Zustandsbuchung** — oder soll das Taxonomie-Fenster dem V019-Fenster nachziehen?
+3. **Paarwechsel K3:** bestätigt, dass „sofortige Transition" nur den **Zustand** betrifft und die **Segmentbildung** bei MIN77/`_nah` unangetastet bleibt?
+4. **Bezugsbasis-Invariante:** `basis_bei(k)` als einzige Referenzlinie (nie Docht-Extrema) — bestätigt auch für die **Reclaim**-Messung im Bestand?
+5. **Pass-Through-Beweis:** genügt die Identität gegen **einen** Benchmark (23 / +85.577150) oder gegen die volle Liste (inkl. H2 15 / +78.127525, v0.14 +22.285802, ZB +7.000000)?
+6. **Beidseitiger Bruch:** ein Z3-Eintritt mit `BOTH_SIDES`-Payload — akzeptiert, oder soll der zweite Grenzbruch ein eigenes Event (ohne Zustandswechsel) erzeugen?
+7. **Reife-Gate & N=3:** Zählung läuft ab N=2; gesperrt bis `max(77 Bars, N=3)` erreicht — oder darf N=3 das Zeit-Gate **nicht** verkürzen?
+
+### F. Reihenfolge (gemäß Mentor-Plan, mit der Invariante aus §A verzahnt)
+
+1. **Antwort auf §E (1–7)** — Textform. Ohne diese Antworten bleibt der Trigger unterbestimmt.
+2. **Zustandsübergangsmatrix** `f(Z_{k-1}, MarktEvent_k) -> Z_k` formal tabellarisch in der Doku fixieren (reine Spezifikation).
+3. **Typisierter Datenvertrag** (`M(k)`, `BalanceZustand`, `PaarwechselEreignis`, `TransitionReason`, `Vertrauensdauer`) in `backtest_lab/phasen_regime_adapter.py` — **nur** Dataclasses/Enums/Type Hints, **keine** Logikverdrahtung.
+4. **Pass-Through-Identitätstest** gegen V019 (Schicht A unverändert) — **vor** jeder Sperre.
+5. Erst danach: erster schreibgeschützter Validierungslauf AUG26.
+
+**Anker:** Handoff-Kopf vor diesem Append = `68396c66b2783c914efceac328471d711a61fc5e29e6d633945edeec69fdeb1d` / 476.675 B / 8.258 CRLF. Engine/Adapter/Renderer-SHA unverändert (`53f28e1b…` / `983192b3…` / `500b5576…`).
+
+## H20.23 — Sicherheitsgitter arretiert: Taxonomie = binäres Gate vor V019 (Mentor-Festlegung, 2026-09-13)
+
+**Anwender-Vorgabe:** V019-Reclaim-Logik unangetastet; Taxonomie ausschließlich als vorgeschalteter Regime-Klassifikator. **Status:** Konsens festgehalten, kein Einbrand, kein Lauf, kein Code. Engine/Adapter/Renderer-SHA unverändert (`53f28e1b…` / `983192b3…` / `500b5576…`).
+
+### A. Das Gate (verbindliche Formel)
+
+**Befugnis ≠ Exekution.** Der Automat autorisiert nur das Spielfeld; die Ausführung bleibt zu 100 % V019.
+
+```
+Signal_final(k) = Signal_V019(k)   WENN  Zustand(k) ∈ {Z1, Z2}
+                  None             SONST (Z0, Z3)          # fail-closed
+```
+
+| Zustand | Befugnis | Konsequenz |
+|---|---|---|
+| Z0 WARMUP | Handelsverbot | kein Signal an die Execution |
+| Z1 BALANCE | **AUTHORIZED** | V019-Regelwerk unverändert |
+| Z1_PROVISIONAL | gesperrt (Reife-Gate) | kein Neusignal |
+| Z2 BEDROHT/PROBE | **AUTHORIZED** | V019 darf Reclaim evaluieren |
+| Z3 TRANSITION | Handelsverbot | kein Signal (eliminiert die 7 SL-Totalverluste) |
+
+**Kardinalfehler, den dieses Design verhindert (Mentor):** funktionierende Setup-Trigger anzufassen, weil man glaubt, die Makro-Phase müsse den Mikro-Einstieg „besser timen". Der Reclaim selbst (Close holt das Niveau zurück, Durchstich lag vor, Bestätigung über Touch-Conf) ist ein reines Orderbuch-Absorptionsmuster — er bleibt **inert**.
+
+**Kein Lookahead / keine Doppel-Logik:** Die Taxonomie darf **nie nachträglich Bars umetikettieren**, sodass ein kausal von V019 erzeugtes Signal rückwirkend in ein Vakuum fällt. Regime-Gültigkeit wird am **SIGNAL-Bar k** geprüft, nicht am Entry-Bar `k+1` (bestehende Adapter-Invariante, Z. 39).
+
+### B. Wichtige Präzisierung zu den genannten Performance-Ankern (Fundstelle)
+
+Der Mentor nennt „H1 8 / +38.919584 R und H2 16 / +49.197042 R". Bestandsabgleich (`test/SESSION_HANDOFF.md`):
+
+| Variante | Gesamt | H1 | H2 | handelbar? |
+|---|---|---|---|---|
+| **V1_kausal (LIVE, PRIMÄR)** | **23 / +85.577150** | **8 / +38.919584** | **15 / +46.657566** | **ja** (live-fähig) |
+| V1_batch (HINDSIGHT) | 24 / +88.116626 | 8 / +38.919584 | **16 / +49.197042** | **nein** (nicht handelbar) |
+| V0-Baseline | 14 / +42.450970 | 8 / +38.919584 | 6 / +3.531386 | — |
+
+⇒ **H1 8 / +38.919584 ist in allen Varianten bit-identisch** (echter Anker, unkritisch). **H2 16 / +49.197042 ist der Batch-/Hindsight-Wert**, nicht der handelbare; der live-gültige H2-Anker ist **15 / +46.657566**. Für den Pass-Through-Beweis muss der Anker eindeutig benannt werden (siehe §E Frage 5). Zusätzliche Referenzen: v0.14 H2 **+22.285802**, ZB-Benchmark **+7.000000 R** (`_chk_aug26_no_transition_run.py`), arretierte 4-Regel **24 / +88.116626**.
+
+### C. Der 7-Verluste-Nachweis (Ziel des Gates)
+
+Die zu eliminierenden Trades sind die sieben Voll-SL-Trades aus H20.16 Befund 6 (#12): Bars **391 / 433 / 498 / 533 / 1222 / 1315 / 1812**, Summe **−7.000000 R**. Wichtig (aus H20.10 ZB): die „7" sind die **eliminierten** Trades; die ZB-Variante selbst fährt 11 Trades / 4 Treffer / 5 SL / R_brutto **−0.991154**. Das Gate muss also **genau diese sieben** entfernen und **keinen** der 23 live-Trades beschädigen.
+
+### D. Geplante Parameter der Übergangsfunktion (Mentor, Schritt 2)
+
+| Größe | Wert | Rolle |
+|---|---|---|
+| Strukturband | **>= 0,50 %** | Balance-Gültigkeit |
+| Überdehnung / Bruch | **> 0,60 %** *oder* 2 Bars frei außerhalb → **Z3** | (siehe §E Frage 1) |
+| Reclaim-Fenster (Z2 → Z1) | **3–5 Bars** | Zustandsbuchung |
+| Reife-Gate | **77 Bars ab Paarbildung** | Z1_PROVISIONAL |
+
+### E. Offene Fragen — erneut gestellt (Textblock, keine Auswahl)
+
+**E1 — UND oder ODER beim Z3-Trigger (unverändert offen, jetzt zugespitzt).**
+Ihre Setzung H20.19 ist konjunktiv („≥ 0,6 % **UND** zwei Kerzen komplett außerhalb"). Der Mentor formuliert erneut **ODER** („Überdehnung > 0,60 % **oder** 2 Bars frei außerhalb → Z3"). Das ODER ist deutlich weiter: ein einzelner Docht > 0,60 % bricht sofort. Wichtig für das Gate-Ziel: das **weitere** ODER entfernt die 7 Verluste sicherer, kann aber live-Trades aus H2 (15 / +46.657566) mitblockieren — genau das, was die Invariante verbietet, wenn ein solcher Trade nur wegen des Gates wegfällt. Bitte entscheiden: UND (Ihre Setzung, enger) oder ODER (Mentor, weiter)?
+
+**E2 — Widerspruch Mentor Q1 ↔ Q2 zu Z2.**
+In der Z2-Antwort heißt es: „Trade-Erlaubnis und Sizing ändern sich **kategorial**", Z2 = Bestandsabsicherung, Einstieg erst nach bestätigter Absorption. In der neuen Frage 2 heißt es: Z2 = „Kante wird getestet, V019 darf den Reclaim evaluieren". Beides zusammen ist nur haltbar, wenn **die Reclaim-Bestätigung selbst der Übergang Z2 → Z1 ist** (Resurrektion, H20.21 Q8) und der Gate-Check **am Signal-Bar k** gegen den Zustand *vor* der Bestätigung läuft. Ist das die gemeinte Semantik — oder ist Z2 für Neugeschäft gesperrt (dann wäre der Reclaim-Trade in Z2 unmöglich, und Z2 wäre rein diagnostisch)?
+
+**E3 — Gate-Ebene: Signal oder Ergebnis?**
+Der Vorläufer `_chk_aug26_no_transition_run.py` blockiert **auf Signal-Ebene** (der Bar wird gar nicht verarbeitet), ausdrücklich damit „Concurrency-Schranke und Entry-Dedup korrekt frei bleiben" (AST-Patch `A_TRANS_GATE` nach der Q29-Sperre, Engine physisch unverändert). Soll das Taxonomie-Gate **dieselbe** Injektionsweise nutzen (Signal-Ebene, RAM-Patch, Engine-SHA unverändert) oder als Ergebnis-Filter laufen (dann verschiebt es Concurrency und Dedup)?
+
+**E4 — Reclaim-Fenster (K1 aus H20.22).**
+V019-Zwangsbindung bleibt `reclaim_grace_bars = 2` mit Any-Close-Semantik (`np.any(cl[k:k+3] <= basis)`). Die 3–5 Bars gelten nur für die **Zustandsbuchung**. Bestätigt — oder zieht die Zustandsbuchung auf 2 Bars nach, damit Zustand und Trade nie auseinanderlaufen?
+
+**E5 — Pass-Through-Anker: welcher genau?**
+Genügt **ein** Anker (23 / +85.577150, live) oder die volle Liste (V1_kausal 23/+85.577150 · H1 8/+38.919584 · H2 15/+46.657566 · V1_batch 24/+88.116626 nur als Kontrast · v0.14 +22.285802 · ZB +7.000000)? Und: gilt der Beweis gegen **V1_kausal (live)** — nicht gegen den vom Mentor genannten Batch-Wert H2 16/+49.197042, der nicht handelbar ist?
+
+**E6 — Paarwechsel (K3 aus H20.22).**
+„NEU nach außen ⇒ sofortige Transition" gilt nur als **Zustandswechsel** (Gate/Position); die **Segmentbildung** bleibt bei MIN77/`_nah`, weil genau sie A1 = 1033/1493 und A2 = 1174/1634 bit-exakt erzeugt. Bestätigt?
+
+**E7 — `basis_bei(k)` als einzige Referenzlinie.**
+Innenhülle der Touch-Zone, nie Docht-Extrema — auch für die Reclaim-Messung im Bestand. Bestätigt?
+
+**E8 — Beidseitiger Bruch.**
+Genau **ein** Z3-Eintritt, mehrere Gründe als `TransitionReason.BOTH_SIDES` im Payload — oder ein zweites Event ohne Zustandswechsel?
+
+**E9 — N=3 gegen Reife-Gate 77.**
+Zählung läuft ab N=2; gesperrt bis `max(77 Bars, N=3)`. Darf N=3 das Zeit-Gate **nie** verkürzen (Mentor: sonst greift das Gate, wenn die Balance halb vorbei ist)?
+
+**E10 — Re-Label und Historie.**
+Verfall mit Nachfolge-Innenkante: Der **Schlüssel** des Balance-Objekts und die akkumulierten Dochte der überlebenden Seite bleiben erhalten (Mentor §5). Bestätigt — auch für die **Zählung** des Reife-Gates (läuft sie beim Re-Label weiter oder neu)?
+
+### F. Reihenfolge (Mentor-Plan, verzahnt mit der Invariante)
+
+1. Antwort auf **E1–E10** (Textform).
+2. **Zustandsübergangsmatrix** `f(Z_{k-1}, MarktEvent_k) -> Z_k` tabellarisch und zustandsrein — reine Spezifikation.
+3. **Typisierte Datenverträge** in `backtest_lab/phasen_regime_adapter.py`: Enums (`MarktRegimeZustand`, `RegimeEvent`), immutable `dataclasses`, strikte Type Hints — **keine** Logikverdrahtung.
+4. **Zero-Trust-Trockenlauf AUG26** gegen `test/tmp_kanten_engine_replay.py`: Nachweis, dass **alle 23 live-Trades erhalten** bleiben und **genau die 7** Transition-Verluste (391/433/498/533/1222/1315/1812, −7.000000 R) verschwinden — Engine-SHA unverändert.
+
+**Anker:** Handoff-Kopf vor diesem Append = `89150dda7440d97452ed2db83a2088c99bacdb554d2b5b25b8cc6192b0deaba4` / 484.890 B / 8.333 CRLF. Engine/Adapter/Renderer-SHA unverändert (`53f28e1b…` / `983192b3…` / `500b5576…`).
+
+## H20.24 — UND-Regel festgesetzt (reihen-testbar) + Anker-Terminologie verbindlich getrennt (Anwender-Setzung/Klärung, 2026-09-13)
+
+**Status:** Anwender-Entscheid übernommen, Terminologie geklärt. Kein Einbrand, kein Lauf, kein Code. Engine/Adapter/Renderer-SHA unverändert (`53f28e1b…` / `983192b3…` / `500b5576…`).
+
+### A. E1 entschieden: UND gilt
+
+Der Z3-Trigger bleibt **konjunktiv** gemäß H20.19:
+
+```
+TRANSITION (Z -> Z3)  <=>  T1  UND  T2
+T1:  |px(k) - basis_bei_grenze(k)| / basis_bei_grenze(k) >= 0.006   (0,60 %)
+T2:  zwei Kerzen vollstaendig ausserhalb (Docht inklusive), dieselbe Seite, dieselbe Grenze
+```
+
+- Die **ODER-Formulierung des Mentors** (B > 0,60 % oder 2 Bars frei außen) wird **nicht** übernommen. Begründung: Anwender-Hoheit (H20.19 war ausdrücklich wörtlich gesetzt) und Schutz der live-Trades (H2 15 / +46.657566) — das weitere ODER kann Live-Trades mitblockieren.
+- **Markierung:** Die UND-Regel ist als **Reihenuntersuchungs-Gegenstand** ausgewiesen. In den Reihentests ist die Trigger-Form (UND vs. ODER) eine eigene Achse. Eine spätere Umstellung ist ausdrücklich zulässig und **nicht** als Invariante zu behandeln.
+- **Konsequenz für das Gate-Ziel:** Mit UND bleibt ein einzelner Docht > 0,60 % **ohne** zweite freie Kerze in Z2 (V019 darf evaluieren); erst die zweite vollständig außenliegende Kerze schaltet Z3. Die 7 SL-Totalverluste (391/433/498/533/1222/1315/1812, −7.000000 R) müssen durch die UND-Form nachweislich **vollständig** eliminiert werden — dies wird der Kern-Assert des Zero-Trust-Trockenlaufs.
+
+### B. Anker-Terminologie — verbindlich getrennt (Vier Bedeutungen)
+
+Der Begriff „Anker" war im Projekt überladen und wurde auch in H20.22/H20.23 in zwei verschiedenen Bedeutungen benutzt. Ab hier gilt diese Trennung:
+
+| # | Terminus | Bedeutung | **Bestandteil der Engine?** | Fundort |
+|---|---|---|---|---|
+| 1 | **Vergleichswert-Anker** (= „Pass-Through-Anker") | die **R-Zahl** als Sollwert (23 / +85.577150; H1 8 / +38.919584; H2 15 / +46.657566; ZB +7.000000) | **NEIN** | Harness/Renderer: `test/tmp_png_aug_sichttest.py` (`KONFIGURATION_V019.ziel_r_*`), Patch-/Prüfskripte |
+| 2 | **Reportzone H1/H2** | **Ergebnis-Partition** (Schnitt, über den die R-Zahl berechnet wird) — H1 = `entry_bar < box_end_bar` | **JA** | Engine: `box_end_datum = "2026-08-19"` (Z. 1915), `box_end_bar = searchsorted(ts, ...)` (Z. 2214), Loop `range(2, box_end-3)` (Z. 2613) |
+| 3 | **Phasen-Anker** (P9 = 848 / F1) | **gesetzter Start** der ersten Balance | **NEIN** (Engine) — **JA** (Adapter-Produktionspfad) | `backtest_lab/phasen_regime_adapter.py` (Literal `start_bar=848`) |
+| 4 | **Artefakt-Anker** | Provenienz-Notar (SHA256/Bytes), z. B. „Anker: Handoff-Kopf …" | **NEIN** (kein Laufzeitobjekt) | Handoff, Prüfskripte |
+
+### C. Direkte Antwort auf die Anker-Frage
+
+**Frage:** „Ein Anker ist der Vergleichswert = Reportzonen? Aber nicht Bestandteil der eigentlichen Engine?"
+
+**Antwort, in drei Sätzen:**
+
+1. **Vergleichswert und Reportzone sind NICHT dasselbe.** Der **Vergleichswert** ist die R-Zahl (Notar/Sollwert); die **Reportzone** ist der Schnitt (H1/H2/Gesamt), **über** den diese Zahl berechnet wird. Sie hängen zusammen (jede R-Zahl hat ein Scope), sind aber verschiedene Objekte.
+2. **Der Vergleichswert ist NICHT Bestandteil der Engine** — korrekt. Er liegt im Harness/Renderer als Sollwert/Assert. Die Engine **weiß nichts** von 23 / +85.577150; sie produziert nur die Trade-Liste.
+3. **Die Reportzonen H1/H2 SIND Bestandteil der Engine** — hier ist die Annahme zu korrigieren. H1/H2 ist keine Phase (H20.16), sondern eine **Kalender-Partition** aus `box_end_datum` + dem H1-Loop. Sie ist Engine-Code, kein Vergleichswert.
+
+**Damit gilt für den Pass-Through-Test:** Die Engine liefert **Trades + Partition** (Reportzonen), der Harness liefert **den Vergleichswert** (Sollwert-R). Der Test vergleicht also **nicht** „Anker gegen Engine", sondern **Engine-Ergebnis (sliced by Reportzonen) gegen Harness-Sollwert**. Die Taxonomie (Schicht B) darf weder den Sollwert noch die Partition berühren — nur das Gate davor.
+
+### D. Zusatzbefund (relevant für die Taxonomie-Grenze)
+
+Der `box_end_bar` ist **doppelt** in Gebrauch: als **Reportzonen-Grenze** (H1/H2-Partition) **und** als Motor-Grenze (`for k in range(2, box_end-3)` — der Motor handelt ausschließlich H1). H20.4/H20.16 halten fest: H2 wird nur gefahren, wenn der Harness `scan["box_end_bar"] = n` setzt. Das ist eine **Test-Harness-Konvention**, keine Engine-Phase. Für die Taxonomie bedeutet das: Der Automat läuft über `k ∈ [0, n)`; die H1/H2-Beschriftung ist **nachgelagerte Auswertung** und darf **kein** Gate-Argument sein.
+
+**Anker:** Handoff-Kopf vor diesem Append = `8130870ac7a121928e2fa79854f4ab8cdd5b18e5d5e6ca7f90a4447ea9071daf` / 493.261 B / 8.424 CRLF. Engine/Adapter/Renderer-SHA unverändert (`53f28e1b…` / `983192b3…` / `500b5576…`).
+
+## H20.25 — Arretierung E1–E10, E4-Supersession und kausale Zustandsübergangsmatrix (2026-09-13)
+
+**Status:** reine Spezifikation. Kein Sandbox-Lauf, kein Compiling, kein Test, kein Feature-Code. Engine (`test/tmp_kanten_engine_replay.py`), Adapter (`backtest_lab/phasen_regime_adapter.py`) und Renderer (`test/tmp_png_aug_sichttest.py`) bleiben **byte-identisch unberührt** (`53f28e1b…` / `983192b3…` / `500b5576…`).
+
+### 1. Verbindliche Setzung E1–E10 & Supersession-Register
+
+- **E1 (Transitions-Trigger):** Strikt **UND**: `Δ_rel >= 0,60 % ∧ C2(k)`. Das ODER ist endgültig verworfen.
+- **E2 (Zustand Z2 — Bedroht/Probe):** Signalisiert Kantenpenetration. V019 evaluiert den Reclaim kausal. Schließt eine Kerze zurück im Korridor, feuert V019 das Signal am Bar `k`; der Automat bucht `Z2 → Z1` (Resurrektion). Der Gate-Check am Signal-Bar `k` autorisiert die Orderflow-Absorption. In Z2 liegt **kein** Blind-Limit-Entry.
+- **E3 (Gate-Ebene):** Strikt auf **Signal-Ebene** (vor Trade-Generierung, AST-neutral zur Engine). Verhindert die Verzerrung von Concurrency-Slots und Cooldowns.
+- **E4 (SUPERSESSION Reclaim-Fenster):** Formale **Aufhebung** von H20.21 Q4 (3–5 Bars) und H20.23 §D. Der Automat konsumiert dynamisch `cfg.reclaim_grace_bars` (Engine-Default = 2; inklusives Fenster `bar_k .. bar_k + cfg.reclaim_grace_bars`), damit Execution und Zustandsbuchung strikt synchron bleiben. **Kein Literal-2, kein 3–5-Bars-Fenster.**
+- **E5 (Pass-Through-Anker):** Verbindlicher **Live-Anker** ist `V1_kausal = 23 Trades / +85,577150 R` (H1 8 / +38,919584 R · H2 15 / +46,657566 R · ZB-Delta +7,000000 R). Der Batch-Wert `24 / +88,116626 R` ist ein **nicht handelbares** Hindsight-Artefakt (Bar 1211).
+- **E6 (Paarwechsel):** Die sofortige Transition steuert rein das **Regime-Gate**. Die Segmentbildung (A1, A2) bleibt unberührt auf der arretierten MIN77-Hysterese (`_nah`).
+- **E7 (Referenzlinie):** Das kausale `basis_bei(k)` ist die **einzige** Referenzlinie für Durchstich, Reclaim und Abstandsmessung. Docht-Extrema sind verboten.
+- **E8 (Beidseitiger Bruch):** Genau **ein** Z3-Eintritt. Der Payload führt `TransitionReason.BOTH_SIDES`; keine doppelten Events, keine Kaskade.
+- **E9 (Reife-Gate):** Sperre bis `max(77 Bars, N=3)`. N=3 verkürzt das 77-Bar-Gate **niemals**; davor gilt `Z1_PROVISIONAL` (Handelsverbot).
+- **E10 (Re-Labeling & Historie):** Die 77-Bar-Reifezählung **läuft beim Re-Labeling weiter** (kein Neustart, solange die überlebende Kante intakt bleibt und die nachrückende Kante die Stabilitätsbedingungen erfüllt).
+
+### 2. Mathematische Zustandsübergangsmatrix: `f(Z_{k-1}, MarktEvent_k) -> Z_k`
+
+| Ausgangszustand (Z_{k-1}) | Markt-Ereignis (MarktEvent_k) | Folgezustand (Z_k) | Befugnis (Gate) | Orderflow-Bedeutung |
+|---|---|---|---|---|
+| **Z0 (WARMUP)** | Kein beidseitiges Paar mit N >= 2 | Z0 | Fail-Closed | Markt im Initial-Scan |
+| **Z0 (WARMUP)** | M(k) = (D, B) etabliert mit N >= 2 beidseitig | Z1 (PROVISIONAL) | Fail-Closed | Paar gebildet; Reife-Gate (k − k_start < 77) aktiv |
+| **Z1 (BALANCE)** | k − k_start >= 77 ∧ N >= 3 ∧ im Korridor | Z1 (MATURE) | **AUTHORIZED** | Vollwertige Balance; passives Quoting |
+| **Z1 (BALANCE)** | Durchstich: High_k > D(k) ∨ Low_k < B(k) | Z2 (BEDROHT) | **AUTHORIZED** | Kantenpenetration läuft; Reclaim-Prüfung aktiv |
+| **Z1 (BALANCE)** | Bestätigter Bruch: Δ_rel >= 0,60 % ∧ C2(k) | Z3 (TRANSITION) | Fail-Closed | Momentum-Ausbruch / Trend-Expansion |
+| **Z1 (BALANCE)** | Außen-Pivot etabliert (neue Außenkante jenseits M) | Z3 (TRANSITION) | Fail-Closed | Struktur-Bruch nach außen |
+| **Z1 (BALANCE)** | Kantenverfall (> 96 Bars) OHNE Nachfolger | Z3 (TRANSITION) | Fail-Closed | Liquidity Decay führt zum Kollaps |
+| **Z1 (BALANCE)** | Kantenverfall (> 96 Bars) MIT Nachfolger | Z1 (RE-LABEL) | **AUTHORIZED** | Re-Labeling; Zähler läuft weiter |
+| **Z2 (BEDROHT)** | Reclaim innerhalb grace_bars: Close zurück im Korridor | Z1 (BALANCE) | **AUTHORIZED** | Absorption bestätigt (Resurrektion); Trade feuert am Bar k |
+| **Z2 (BEDROHT)** | Bruch-Trigger erfüllt: Δ_rel >= 0,60 % ∧ C2(k) | Z3 (TRANSITION) | Fail-Closed | Absorption gescheitert; Flucht in Trend |
+| **Z2 (BEDROHT)** | Ablauf `cfg.reclaim_grace_bars` ohne Rückkehr | Z3 (TRANSITION) | Fail-Closed | Acceptance jenseits der Grenze; Handelsverbot |
+| **Z3 (TRANSITION)** | Kein neues stabiles Paar (N >= 2) | Z3 | Fail-Closed | No Man's Land; Price Discovery |
+| **Z3 (TRANSITION)** | Neues Paar M'(k) mit N >= 2 ∧ Breite >= 0,50 % | Z1 (PROVISIONAL) | Fail-Closed | Neue Balance gekeimt; Reife-Lag 77 Bars startet |
+
+### 3. Redaktionsvermerke des Schreibers (ohne Eingriff in die Matrix)
+
+Diese fünf Punkte sind **nicht** stillschweigend korrigiert, sondern zur Entscheidung ausgewiesen:
+
+- **R1 — Z0 → Z1 ohne Strukturband.** Die Zeile fordert nur `N >= 2`, nicht die Korridorbreite `>= 0,50 %` (H20.21 §A/§D). Damit wäre eine mikroskopische Aufspannung bereits „Balance". Vorschlag: Bedingung um `Breite >= 0,50 %` ergänzen (analog Z3 → Z1').
+- **R2 — „Close zurück im Korridor" (Z2 → Z1).** Nach E7 ist die Bezugsgröße `basis_bei` der **penetrierten** Grenze, nicht der Korridor als Ganzes. Präzisierung: `Close_k` zurück auf der Innenseite von `basis_bei_grenze(k)`.
+- **R3 — Lesart zu E7.** „Docht-Extrema sind verboten" gilt als **Referenzlinie**; der Durchstich prüft sehr wohl `High_k`/`Low_k` **gegen** `basis_bei` (Mentor §B). Beide Aussagen stehen nebeneinander, ohne sich zu widersprechen — die Formulierung sollte das trennen.
+- **R4 — Vollständigkeit (Selbstschleifen).** Ereignislose Bars (Z1 bleibt Z1, Z2 bleibt Z2) sowie die Zeilen `Z1_PROVISIONAL → Z2` (Penetration während der Reife) und `Z2 → Z2` sind nicht ausgewiesen. Für einen vollständigen Automaten sind sie als Ruhezeilen zu führen.
+- **R5 — `k_start` der Reifezählung.** Die Matrix nutzt `k_start` undefiniert. Nach E9/H20.21 beginnt die 77-Bar-Zählung **ab Paarbildung (N=2)**, nicht ab dem dritten Touch.
+
+**Anker:** Handoff-Kopf vor diesem Append = `dae8a00bc8b52c6016791afaddf76dfc9a2ad6cb84e7b8dd7a946b03b0b962f8` / 498.254 B / 8.471 CRLF. Engine/Adapter/Renderer-SHA unverändert (`53f28e1b…` / `983192b3…` / `500b5576…`).
+
+## H20.26 — R1–R5 geschärft: arretierte, vollständige Zustandsübergangsmatrix (2026-09-13)
+
+**Status:** reine Spezifikation. Kein Sandbox-Lauf, kein Compiling, kein Test, kein Feature-Code, keine Engine-Mutation. Engine/Adapter/Renderer bleiben byte-identisch unberührt (`53f28e1b…` / `983192b3…` / `500b5576…`). `H20.26` **überschreibt** die Matrix aus H20.25 §2 vollständig; H20.25 §1 (E1–E10, E4-Supersession) bleibt gültig.
+
+### 1. Auflösung der Redaktionsvermerke R1–R5 (verbindlich)
+
+- **R1 — Z0 → Z1 fordert jetzt das Strukturband.** Bedingung strikt:
+  `M(k) = (D, B)` mit `N >= 2` **beidseitig** ∧ `(D(k) − B(k)) / B(k) >= 0,0050` (0,50 %).
+  Begründung (MM): Ohne Strukturband würde in 0,15-%-Mikro-Rauschen gequotet — Spanne und Ausführungsrisiko fressen den Erwartungswert. Das Strukturband ist die **Existenzberechtigung** einer Balance.
+- **R2 — Reclaim-Bezugsgröße ist die penetrierte Wand, nicht „der Korridor".**
+  Decke: `Close_k <= basis_bei_Decke(k)` · Boden: `Close_k >= basis_bei_Boden(k)`.
+- **R3 — Docht und Referenzlinie getrennt.** Referenzlinie ist strikt `basis_bei(k)`. Das **Penetrations-Ereignis** misst die Docht-Extrema (`High_k > basis_bei_Decke(k)` bzw. `Low_k < basis_bei_Boden(k)`) **gegen** diese Linie; der **Reclaim** entscheidet am Kerzenkörper (`Close_k`).
+- **R4 — Ruhezeilen und Reife-Penetration ergänzt.** `Z1 → Z1`, `Z2 → Z2`, `Z1_PROVISIONAL → Z1_PROVISIONAL` (ereignislos) sowie `Z1_PROVISIONAL → Z2`. **Wichtig:** Nach Reclaim geht es aus `Z2` **nie** frühzeitig nach `Z1_MATURE`; das Ziel ist `Z1_MATURE` nur, wenn das Gate `max(77, N=3)` zu diesem Bar erfüllt ist, sonst `Z1_PROVISIONAL`.
+- **R5 — `k_start` definiert.** `k_start` = Bar der ersten **validen Paarbildung**: beide Seiten `N >= 2` **und** Breite `>= 0,50 %`. Die 77-Bar-Zählung beginnt dort (nicht ab dem dritten Touch).
+
+### 2. Arretierte Zustandsübergangsmatrix `f(Z_{k-1}, MarktEvent_k) -> Z_k` (vollständig)
+
+`D = basis_bei_Decke(k)`, `B = basis_bei_Boden(k)`, `breite = (D − B)/B`. `C2(k)` = zwei Kerzen vollständig außerhalb (Docht inkl., dieselbe Seite, dieselbe Grenze). Gate = `bar − k_start >= 77 ∧ touch_conf >= 3`.
+
+| Nr | Ausgang (Z_{k-1}) | Markt-Ereignis (MarktEvent_k) | Folge (Z_k) | Befugnis | Orderflow-Bedeutung |
+|---|---|---|---|---|---|
+| 1 | **Z0 WARMUP** | kein Paar mit N >= 2 beidseitig | Z0 | Fail-Closed | Initial-Scan |
+| 2 | **Z0 WARMUP** | M(k)=(D,B), N >= 2 beidseitig ∧ breite >= 0,50 % | **Z1_PROVISIONAL** | Fail-Closed | gültige Paarbildung; `k_start := k` |
+| 3 | **Z1_PROVISIONAL** | ereignislos (`B < px < D`) | Z1_PROVISIONAL | Fail-Closed | Reife läuft |
+| 4 | **Z1_PROVISIONAL** | Durchstich (`High_k > D` ∨ `Low_k < B`) | Z2 | Fail-Closed | Penetration **während** der Reife |
+| 5 | **Z1_PROVISIONAL** | Gate erfüllt (`bar − k_start >= 77 ∧ N >= 3 ∧ im Korridor`) | **Z1_MATURE** | **AUTHORIZED** | Balance vollwertig; passives Quoting |
+| 6 | **Z1_MATURE** | ereignislos (`B < px < D`) | Z1_MATURE | **AUTHORIZED** | Ruhezeile |
+| 7 | **Z1_MATURE** | Durchstich (`High_k > D` ∨ `Low_k < B`) | Z2 | **AUTHORIZED** | Penetration; V019 evaluiert den Reclaim |
+| 8 | **Z1_MATURE** | Bruch: `Δ_rel >= 0,60 % ∧ C2(k)` | **Z3** | Fail-Closed | Momentum-Ausbruch |
+| 9 | **Z1_MATURE** | Außen-Pivot etabliert (neue Außenkante jenseits M) | **Z3** | Fail-Closed | Struktur-Bruch nach außen |
+| 10 | **Z1_MATURE** | Kantenverfall (> 96 Bars) **ohne** Nachfolger | **Z3** | Fail-Closed | Liquidity-Decay-Kollaps (`DECAY_COLLAPSE`) |
+| 11 | **Z1_MATURE** | Kantenverfall (> 96 Bars) **mit** Nachfolger | Z1_MATURE (RE-LABEL) | **AUTHORIZED** | Liquiditätswand übergeben; 77-Zähler läuft weiter |
+| 12 | **Z2 BEDROHT** | ereignislos (noch innerhalb grace, keine Rückkehr) | Z2 | wie Vorgänger | Ruhezeile |
+| 13 | **Z2 BEDROHT** | Reclaim (R2) innerhalb `bar_k .. bar_k + cfg.reclaim_grace_bars` | **Z1_MATURE** (Gate erfüllt) **sonst Z1_PROVISIONAL** | wie Zielzustand | Absorption bestätigt (Resurrektion); V019-Trade am Bar k |
+| 14 | **Z2 BEDROHT** | Bruch: `Δ_rel >= 0,60 % ∧ C2(k)` | **Z3** | Fail-Closed | Absorption gescheitert; Flucht in Trend |
+| 15 | **Z2 BEDROHT** | Ablauf `cfg.reclaim_grace_bars` ohne Rückkehr | **Z3** | Fail-Closed | Acceptance jenseits der Grenze |
+| 16 | **Z3 TRANSITION** | kein neues stabiles Paar (N >= 2 ∧ breite >= 0,50 %) | Z3 | Fail-Closed | No Man's Land; Price Discovery |
+| 17 | **Z3 TRANSITION** | neues Paar M'(k), N >= 2 ∧ breite >= 0,50 % | **Z1_PROVISIONAL** | Fail-Closed | neue Balance; `k_start := k` |
+
+**Ereignis → Ursache (Payload):** `BRUCH_UND` · `AUSSEN_PIVOT` · `VERFALL_OHNE_NACHFOLGER` · `GRACE_ABLAUF` · bei gleichzeitigem Bruch beider Seiten genau **ein** Z3-Eintritt mit `TransitionReason.BOTH_SIDES` (E8).
+
+### 3. Typisierter Datenvertrag — ENTWURF (noch NICHT in den Adapter eingebrannt)
+
+Zielort ist `backtest_lab/phasen_regime_adapter.py`. **Kein Import des Replay-Harness**, keine Engine-Execution-Mutation, keine Logik — nur Wertedomäne (Enums, `Literal`, immutable `dataclass(slots=True)`), Stil bereits im Adapter vorhanden (`@dataclass(frozen=True, slots=True)`). Python 3.12 ⇒ `slots=True` zulässig.
+
+```python
+KantenSeite = Literal["OBEN", "UNTEN"]   # lokal, KEIN Harness-Import
+
+
+class MarktRegimeZustand(Enum):
+    """Vier Marktzustaende + ein Reife-Qualifier (H20.21/H20.26)."""
+    WARMUP = "Z0"
+    BALANCE_PROVISIONAL = "Z1_PROVISIONAL"
+    BALANCE_MATURE = "Z1_MATURE"
+    BALANCE_BEDROHT = "Z2"
+    TRANSITION = "Z3"
+
+
+class RegimeEvent(Enum):
+    """Kausales Markt-Ereignis eines Bars (Spalte 2 der Matrix)."""
+    KEINES = "KEINES"
+    PAAR_GEBILDET = "PAAR_GEBILDET"
+    GATE_ERFUELLT = "GATE_ERFUELLT"
+    DURCHSTICH = "DURCHSTICH"
+    RECLAIM = "RECLAIM"
+    BRUCH = "BRUCH"
+    AUSSEN_PIVOT = "AUSSEN_PIVOT"
+    VERFALL_MIT_NACHFOLGER = "VERFALL_MIT_NACHFOLGER"
+    VERFALL_OHNE_NACHFOLGER = "VERFALL_OHNE_NACHFOLGER"
+    GRACE_ABLAUF = "GRACE_ABLAUF"
+
+
+class TransitionReason(Enum):
+    """Buchungsgrund eines Z3-Eintritts (Payload, E8)."""
+    BRUCH_UND = "BRUCH_UND"
+    AUSSEN_PIVOT = "AUSSEN_PIVOT"
+    VERFALL_OHNE_NACHFOLGER = "VERFALL_OHNE_NACHFOLGER"
+    GRACE_ABLAUF = "GRACE_ABLAUF"
+    BOTH_SIDES = "BOTH_SIDES"
+
+
+@dataclass(frozen=True, slots=True)
+class RegimePaar:
+    """Aussenpaar M(k) = (Decke, Boden) inkl. Strukturband-Nachweis."""
+    decke_kid: int
+    boden_kid: int
+    decke_basis: float          # basis_bei(k) der Decke
+    boden_basis: float          # basis_bei(k) des Bodens
+    breite_pct: float           # (D - B) / B * 100.0
+
+
+@dataclass(frozen=True, slots=True)
+class RegimeZustandSnapshot:
+    """Unveraenderlicher Regime-Snapshot je Signal-Bar k (Gate-Argument)."""
+    bar: int
+    zustand: MarktRegimeZustand
+    ereignis: RegimeEvent
+    handel_freigegeben: bool                 # Zustand in {Z1_MATURE, Z2} UND Gate
+    paar: Optional[RegimePaar] = None
+    k_start: Optional[int] = None            # validale Paarbildung (R5)
+    reife_bar: Optional[int] = None          # k_start + 77
+    touch_conf: int = 0                      # Existenz 2 / Freigabe 3
+    transition_reason: Optional[TransitionReason] = None
+```
+
+**Vertrags-Invarianten (Prüfkriterien, noch kein Code):**
+- `handel_freigegeben` ist **genau dann** `True`, wenn `zustand ∈ {BALANCE_MATURE, BALANCE_BEDROHT}` **und** `bar − k_start >= 77` **und** `touch_conf >= 3`.
+- `transition_reason` ist **nur** gesetzt, wenn `zustand is TRANSITION`.
+- `paar is None` ⟺ `zustand ∈ {WARMUP, TRANSITION}`.
+- Der Snapshot trägt **keine** R-Zahlen und **keine** H1/H2-Beschriftung (Trennung Vergleichswert/Reportzone, H20.24).
+
+**Noch offen für den Einbrand:** (a) Namenskonvention der Zustands-Enum-Werte (Z0/Z1/… vs. sprechend), (b) ob `RegimePaar` die `basis_bei`-Werte speichert oder nur die Kids, (c) ob `reife_bar` redundant zu `k_start` ist (Ableitung vs. Feld), (d) Ort der Konstanten 0,50 % / 0,60 % / 77 / 96 (Adapter-Konstanten oder Config-Klasse).
+
+### 4. Interview-Antworten des Schreibers
+
+1. **Einarbeitung H20.26:** ja — erfolgt hiermit notariell (dieser Block).
+2. **Datenvertrag:** ja — Entwurf steht in §3. **Der Einbrand in `backtest_lab/phasen_regime_adapter.py` erfolgt erst auf ausdrückliche Freigabe** (Änderung an einer Bestandsdatei); bis dahin bleibt der Adapter byte-identisch (`983192b3…`).
+
+**Anker:** Handoff-Kopf vor diesem Append = `8da3e97cef1cc7dcd24dc7da2c171d17cfa1465aafda1f57dd1afb14b419ca46` / 504.592 B / 8.518 CRLF. Engine/Adapter/Renderer-SHA unverändert (`53f28e1b…` / `983192b3…` / `500b5576…`).
+
+## H20.27 — Datenvertrag arretiert: B1–B3/L1–L2 bereinigt, Einbrand append-only (2026-09-13)
+
+**Status:** Einbrand **erfolgt** (append-only, keine Bestandszeile verändert). Nur Syntaxprüfung (`py_compile`), keine Tests, kein Lauf. Engine unverändert.
+
+### 1. Auflösung der Blocker und Lücken (verbindlich)
+
+| # | Befund | Auflösung |
+|---|---|---|
+| **B1** | SSoT-Duplikat: `PLATEAU_REFERENZ_BARS = 77` existiert bereits (Adapter Z. 610); ein zweites Literal 77 wäre eine Sollbruchstelle. Zudem unterwanderte `reclaim_grace_bars = 2` den dynamischen Konsum aus E4. | `reife_gate_bars = PLATEAU_REFERENZ_BARS` (Bindung statt Duplikat); `reclaim_grace_bars` **entfällt vollständig** aus `RegimeKonfiguration` und wird zur Laufzeit dynamisch aus der Engine-`cfg` bezogen (E4). |
+| **B2** | `ist_trade_authorisiert` gab `Z2_BEDROHT` pauschal frei — ein Z2 **aus Z1_PROVISIONAL** (Matrix-Zeile 4, Fail-Closed) wäre damit fälschlich handelbar. | Property umbenannt zu **`ist_freigabekandidat`** (nur **notwendige** Bedingung). Maßgeblich ist ausschließlich das Snapshot-Feld **`handel_freigegeben`**, das bei Eintritt in Z2 die Herkunft **`aus_mature`** übernimmt. |
+| **B3** | Das Gate `max(77, N>=3)` war nicht darstellbar — `touch_conf` fehlte. | **`touch_conf: int = 0`** und **`handel_freigegeben: bool = False`** als native Snapshot-Felder. |
+| **L1** | `GRACE_ABLAUF` (H20.26 Matrix-Zeile 15) fehlte in beiden Enums. | Aufgenommen in **`TransitionReason`** und **`RegimeEvent`** (markttechnisches Äquivalent zur Acceptance: Ausbruch akzeptiert, Reclaim gescheitert). |
+| **L2** | `BOTH_SIDES`-Vorrang war nicht fixiert (Gefahr zweier Z3-Events, verletzt E8). | Vorrang-Invariante dokumentiert: Bei **simultanem** Decken- und Bodenbruch wird **ausschließlich** `BOTH_SIDES` emittiert; `BREAKOUT_OBEN`/`BREAKOUT_UNTEN` entfallen dann. |
+
+### 2. Feldnamen (verbindlich)
+
+Die präzisen, deskriptiven Bezeichner aus H20.26 §3 gelten: **`aktives_paar`** (nicht `paar`) und **`letzter_event`** (nicht `ereignis`) — vermeidet Kollisionen mit globalen Hilfsvariablen und reservierten Wörtern.
+
+### 3. Einbrand-Details
+
+- **Ort:** `backtest_lab/phasen_regime_adapter.py`, **append-only**. Präfix-Integrität maschinell geprüft: die ersten 36.255 Byte sind **bit-identisch** zum Vorzustand.
+- **Vorher:** 36.255 B / 816 LF / `983192b3d25a1a50dcd06aac3b9230fc31f7759e5297c933d286b4fa88033cfb`
+- **Nachher:** 40.284 B (+4.029 B) / 927 LF / `a4033a2f6b5d99f3912f9198ea28a85d00201200eafa7caf156f161cc2836d67`
+- **Notwendige Zusatzzeile im Anhang:** `from typing import Literal`. Die Bestandsimporte (Z. 65-68: `dataclasses`, `enum`, `math`, `typing`) führen `Literal` **nicht**. Die Zeile wurde **im Anhang** ergänzt, damit keine Bestandszeile angefasst werden musste (Alternative wäre eine Modifikation von Z. 68 gewesen — Widerspruch zur Append-only-Vorgabe).
+- **Neu angelegte Symbole (AST-verifiziert):** `KantenSeiteLiteral`, `MarktRegimeZustand`, `TransitionReason`, `RegimeEvent`, `RegimePaar`, `RegimeKonfiguration`, `RegimeZustandSnapshot`. Vor dem Einbrand waren alle sieben Namen **0-mal** belegt (Kollisionsprüfung).
+- **Off-by-one geprüft:** `ist_reif` mit `(bar_idx - k_start + 1) >= reife_gate_bars` ist identisch zu `reife_bar = k_start + 77 - 1` und zur Bestandskonvention `wirksam_ab = start + schwelle - 1` (Adapter Z. 793).
+- **Namensraum getrennt:** `breakout_move_pct = 0.60` (Untergrenze Break) ≠ Engine-`max_sweep_ueberdehnung_pct = 0.60` (Obergrenze Sweep, H20.22 K2).
+- **Z2-Reife-Schranke:** `ist_reif` ist der **Zeitanteil** des Gates; das vollständige Gate (`max(77, N>=3)`) wird über `touch_conf` + `k_start` + `handel_freigegeben` im Snapshot gebildet.
+
+### 4. Verifikation (Schritt 3 + Schritt 4)
+
+- **`py_compile`** auf `backtest_lab/phasen_regime_adapter.py` und `test/tmp_kanten_engine_replay.py`: **OK** (beide, keine Syntaxfehler).
+- **AST-Inspektion** (statisch, keine Ausführung): alle sechs Klassen als `ClassDef` vorhanden; Importliste ist `[dataclasses: dataclass, replace]`, `[enum: Enum]`, `[typing: Optional, Sequence, Tuple]`, `[typing: Literal]`; keine Engine-Importe; kein Seiteneffekt-Code (nur Enums/Dataclasses, `frozen=True, slots=True`).
+- **Engine-SHA unverändert:** `53f28e1b6971a64df59beaf3292b466fb37ac86b870278f238a1b385084fd006` / 200.433 B. Der Vertrag importiert **nichts** aus dem Harness (`KantenSeiteLiteral` ist lokal als `Literal` definiert).
+
+### 5. Offen (nächster Schritt, blockiert nichts)
+
+- **Zwei Laufzeitbindungen noch nicht fail-loud verdrahtet:** (a) `wall_live_bars = 96` im Vertrag ist derzeit ein Literal; die vom Anwender gewünschte Fail-Loud-Prüfung gegen die Engine-`cfg` ist **noch nicht** implementiert (Code/Verdrahtung nicht Teil dieses Schritts). (b) `struktur_band_pct`/`breakout_move_pct` sind Vertragswerte ohne Rückbindung an eine Engine-`cfg`.
+- **Kein Automat:** Der Vertrag ist reine Wertedomäne. Die Übergangsfunktion `f(Z_{k-1}, MarktEvent_k) -> Z_k` ist als Matrix (H20.26) spezifiziert, aber **nicht** implementiert — bewusst, sie ist der nächste, getrennt freizugebende Schritt.
+
+**Anker:** Handoff-Kopf vor diesem Append = `2c16eafd119959bbd25d826dda1f453e54d2d41fee543ee31a4453eb9020111a` / 513.342 B / 8.638 CRLF. Engine-SHA unverändert `53f28e1b…`; Adapter neu `a4033a2f…` (vorher `983192b3…`).
+
+## H20.28 — Option (a) spezifiziert: Drei Schwellen-Klassen, Fail-Loud-Bindung, f-Signatur (2026-09-13)
+
+**Status:** reine Spezifikation. Kein Sandbox-Lauf, kein Compiling, kein Test, kein Feature-Code, keine Engine-Mutation. Engine (`53f28e1b…`) und Renderer (`500b5576…`) unverändert; Adapter auf Stand `a4033a2f…` (unverändert gegenüber H20.27).
+
+### 1. Die drei Schwellen-Klassen (Faktenabgleich gegen den Bestand)
+
+Der Abgleich gegen `StraightEdgeHarnessKonfiguration` (Engine Z. 1879-1922) und den Adapter ergibt drei **verschiedene** Behandlungsklassen — „Fail-Loud-Bindung" gilt nur für die erste:
+
+| Klasse | Felder | Gegenstück | Behandlung |
+|---|---|---|---|
+| **1 — bindbar (Engine-cfg)** | `wall_live_bars = 96` · `touch_conf_handelbar = 3` · `min_wall_alter_bars = 24` | Engine Z. 1895 / 1886 / 1894 | **hart prüfen** (`ValueError`) |
+| **2 — bindbar (Adapter-SSoT)** | `reife_gate_bars = PLATEAU_REFERENZ_BARS` | Adapter Z. 610 + Import-Assert Z. 650-674 | bereits **Import-Zeit** gebunden |
+| **3 — nicht bindbar (neue Invarianten)** | `struktur_band_pct = 0.50` · `touch_conf_existenz = 2` · `breakout_move_pct = 0.60` | **kein** Engine-Pendant bzw. semantisch fremd | **dokumentieren**, nicht koppeln |
+
+- `touch_conf_existenz = 2` hat **kein** cfg-Feld: die Engine nutzt das Literal `touch_conf(k) >= 2` (Z. 2560/2572/2606). Nur Dokumentation.
+- `struktur_band_pct = 0.50` ist **neu** (0,12 % ist die Touch-Toleranz, nicht die Strukturbreite).
+- **Kopplungsverbot (verbindlich):** `breakout_move_pct = 0.60` (Break-**Untergrenze**) ist strikt zu trennen von `max_sweep_ueberdehnung_pct = 0.60` (Sweep-**Obergrenze**, Engine Z. 1887). Eine Bindung wäre ein Semantikfehler (H20.22 K2). Wird im Docstring festgeschrieben.
+- **Semantische Brücke (dokumentiert):** `min_touches_handelbar` (Engine) ↔ `touch_conf_handelbar` (Vertrag) sind **zwei Namen für dieselbe 3** — die Prüffunktion überbrückt sie.
+
+### 2. Z1 aufgenommen: `min_wall_alter_bars = 24`
+
+Ohne dieses Feld ist die Balance-**Etablierung** (`k − erster_pivot_bar >= 24`, Engine Z. 1894) im Automaten nicht statusrein abbildbar. Es wird Feld der `RegimeKonfiguration` **und** hart geprüft (Klasse 1).
+
+### 3. Architektur der Bindung (K1/K2 bestätigt)
+
+- **K1:** Die Prüfung ist eine **Methode auf der Dataclass `RegimeKonfiguration`** — nicht auf `PhasenRegimeAdapter` (der Regime-Vertrag liegt eigenständig, Adapter Z. 819 ff.).
+- **K2:** Signatur **strikt flach** (Primitive), gemäß Bestandsmuster `verifiziere_gegen_scan` („bewusst als flache Tupel (keine Engine-Typen) - der Adapter bleibt Engine-frei", Z. 404-406). Kein `engine_cfg`-Objekt, **kein** Engine-Import.
+
+```python
+def verifiziere_gegen_engine(
+    self, *, wall_live_bars: int, min_touches_handelbar: int,
+    min_wall_alter_bars: int,
+) -> None:
+    ...  # ValueError bei Abweichung (drei Vergleiche)
+```
+
+### 4. f-Signatur (Vorbereitung Option b — reine Spezifikation)
+
+Die Übergangsfunktion ist eine **zustandslose, deterministische pure function** (keine Klasseninstanz mit verdecktem Zustand, keine Engine-Globals):
+
+```python
+def naechster_regime_zustand(
+    *, vorher: RegimeZustandSnapshot, ereignis: RegimeEvent, bar_idx: int,
+    paar_k: Optional[RegimePaar], k_start: Optional[int], touch_conf: int,
+    cfg: RegimeKonfiguration,
+    reclaim_grace_bars: int,      # E4: dynamisch aus der Engine-cfg
+) -> RegimeZustandSnapshot: ...
+```
+
+### 5. Redaktionsvermerke (nicht stillschweigend übernommen)
+
+- **R1 — das Validierungs-Flag ist so nicht umsetzbar.** Der Vorschlag, `RegimeKonfiguration` ein privates `_engine_geprueft: bool = False` zu geben und nach der Prüfung zu setzen, scheitert an `frozen=True` (keine Post-Init-Mutation) **und** an `slots=True` (keine dynamischen Attribute). Ein `_`-Präfix ändert zudem den `__init__`-Parameternamen. **Alternativen:** (i) `verifiziere_gegen_engine` gibt eine **validierte Instanz** zurück (`replace(...)`) bzw. ein Token, das der Automat verlangt; (ii) ein modulweiter Guard, den der Harness setzt; (iii) die Prüfung bleibt Aufruf-Pflicht im Setup (dokumentiert). Empfehlung: (i) oder (iii).
+- **R2 — Aufrufer-Pflicht (Z2).** Eine Prüfmethode ohne Aufruf ist keine Sicherung. Die Bestandsmuster (`verifiziere_niveau_overrides` etc.) laufen beim **Import** (Adapter Z. 815-816); für den Regime-Vertrag ist das nicht möglich (die Engine-`cfg` liegt erst zur Laufzeit im Harness/Renderer vor). Der Aufruf erfolgt daher **nach der Scan-Initialisierung** — und ist bis zur Umsetzung von R1 nur dokumentiert, nicht erzwungen.
+- **R3 — Klassenzuordnung in der Vorlage.** Im vorgelegten Docstring-Beispiel ist die Zählung „1/2/3" gegenüber der Analyse verschoben (die Klasse-2-Bindung `reife_gate_bars` erscheint nicht als eigene Nummer). In H20.28 §1 ist die Zuordnung verbindlich korrigiert.
+
+### 6. Entscheidungsfragen (Textblock, keine Auswahl)
+
+1. **R1:** Welche der drei Alternativen (validierte Instanz / modulweiter Guard / dokumentierte Aufruf-Pflicht) gilt als verbindlich für den Nachweis „Engine-Schwellen geprüft"?
+2. **Aufrufstelle:** Harness (`tmp_png_aug_sichttest.py`) oder Prüfskript — und soll der Aufruf in H20.28 als Pflichtschritt für den Zero-Trust-Trockenlauf fixiert werden?
+3. **Klasse-3-Formulierung:** Reicht das Kopplungsverbot im Docstring, oder soll zusätzlich ein Fail-Loud-Assert im Vertrag stehen, dass `breakout_move_pct` **nicht** an `max_sweep_ueberdehnung_pct` gebunden wird?
+4. **`min_wall_alter_bars`-Semantik:** Es gibt zusätzlich `ruhezeit_roher_touch_bars = 192` (Engine Z. 1906, R21) und `tombstone_band_pct = 0.30`. Sollen diese beiden ebenfalls Vertragsfelder werden (nur `wall_live_bars` und `min_wall_alter_bars` sind bindbar im engeren Sinn)?
+5. **Einbrand (a):** `min_wall_alter_bars` + `verifiziere_gegen_engine` **append-only** in den Anhang — oder als **Ersatz** des in H20.27 eingebrannten `RegimeKonfiguration`-Blocks (dann wäre der Eingriff **nicht** mehr append-only, weil Z. 883-893 aus H20.27 geändert würden)?
+6. **Ablage:** Bleibt es bei reinem Text-H20.28, oder soll der Einbrand (a) mit demselben Freigabeschritt erfolgen?
+
+**Anker:** Handoff-Kopf vor diesem Append = `919782b6dd78d5e311a7a7cffbdd99b8e5566cbc9320fefbacebd269a3a257a1` / 518.730 B / 8.680 CRLF. Engine `53f28e1b…` / 200.433 B unverändert; Adapter `a4033a2f…` / 40.284 B unverändert; Renderer `500b5576…` / 123.343 B unverändert.
+
+## H20.29 — Option (a) eingebrannt: RegimeKonfiguration gehärtet + ValidierteRegimeKonfiguration (2026-09-13)
+
+**Status:** Einbrand **erfolgt** (Block-Ersatz, kein Append). Engine (`53f28e1b…`) und Renderer (`500b5576…`) unverändert. Nur `py_compile`, kein Lauf, keine Tests.
+
+### 1. Zeilenspanne korrigiert (Mentor-Vorlage war fehlerhaft)
+
+Die Vorlage nannte „Ersatz Z. 883–893". Diese Spanne trifft **nicht** `RegimeKonfiguration`, sondern die Felder von **`RegimePaar`** (`decke_kid` … `korridor_breite_pct`). Ein literaler Ersatz hätte die Klasse `RegimePaar` zerstört.
+
+- **Tatsächliche Lage:** `RegimeKonfiguration` = Zeilen **894–904** (11 Zeilen).
+- **Tatsächliche Grenze:** Präfix = Zeilen **1–893**, bit-identisch erhalten (maschinell geprüft: `prefix_bytes_identical True`).
+- **Verifikation:** AST bestätigt `RegimePaar` unversehrt (Felder `decke_kid`, `decke_basis`, `boden_kid`, `boden_basis`, Property `korridor_breite_pct`).
+
+### 2. Was geändert wurde (Block-Ersatz 894–904 → 78 neue Zeilen)
+
+| Änderung | Inhalt |
+|---|---|
+| **Neu** | Feld `min_wall_alter_bars: int = 24` (Z1, bindbar gegen Engine Z. 1894) |
+| **Neu** | Methode `verifiziere_gegen_engine(*, wall_live_bars, min_touches_handelbar, min_wall_alter_bars) -> ValidierteRegimeKonfiguration` — drei `ValueError`-Zweige, engine-frei (flache Primitive, Bestandsmuster `verifiziere_gegen_scan` Z. 404-406). |
+| **Neu** | Klasse **`ValidierteRegimeKonfiguration`** (frozen, slots) mit Feld `konfiguration` und Convenience-Property `cfg` — R1-Typ-Erzwingung. |
+| **Erweitert** | Docstring der `RegimeKonfiguration` dokumentiert die drei Schwellen-Klassen (H20.28 §1) und das Kopplungsverbot `breakout_move_pct` ⟂ `max_sweep_ueberdehnung_pct`. |
+| **Unverändert** | `struktur_band_pct`, `breakout_move_pct`, `reife_gate_bars`, `wall_live_bars`, `touch_conf_existenz`, `touch_conf_handelbar`; kein `reclaim_grace_bars` (E4). |
+
+### 3. Härtung gegen das `frozen`/`slots`-Flag-Problem (R1 gelöst)
+
+Das von der Vorlage vorgeschlagene `_engine_geprueft: bool = False` **wurde nicht umgesetzt** (wäre an `FrozenInstanceError` bzw. `slots` gescheitert). Stattdessen **Typ-Promotion:** `verifiziere_gegen_engine` gibt eine unveränderliche `ValidierteRegimeKonfiguration`-Hülle zurück. Option (b) wird als `cfg` **ausschließlich diesen Typ** akzeptieren.
+
+### 4. Bereinigung der Vorlage (zwei Artefakte)
+
+- **Zitationsmarker entfernt:** Die Vorlage enthielt `[cite: 1]`/`[cite: 2]` **innerhalb des Python-Codes**, teils **in f-Strings** (z. B. `f"Engine={wall_live_bars}"[cite: 2]`). Wörtliche Übernahme hätte die Fehlermeldungen verfälscht. Alle Marker wurden strikt entfernt.
+- **ASCII-Transliteration beibehalten:** Die Vorlage nutzte echte Umlaute („Brücke", „Hülle", „durchlauf"). Der eingebrannte Block folgt der **Bestandsstilistik des Adapters** (transliteriertes Deutsch: „Bruecke", „Huelle", „Pruefung") — konsistent mit dem H20.27-Block und dem Dateikopf (Z. 1-64).
+
+### 5. Verifikation (Schritt 2 + 3)
+
+- **Präfix-Integrität:** Zeilen 1–893 **bit-identisch** (Byte-Vergleich, `True`).
+- **`py_compile`** auf `backtest_lab/phasen_regime_adapter.py`: **OK**.
+- **AST-Inspektion:** `RegimeKonfiguration` mit 7 Feldern (`struktur_band_pct`, `breakout_move_pct`, `reife_gate_bars`, `wall_live_bars`, `min_wall_alter_bars`, `touch_conf_existenz`, `touch_conf_handelbar`) + Methode `verifiziere_gegen_engine`; `ValidierteRegimeKonfiguration` mit Feld `konfiguration` + Property `cfg`. `RegimePaar` unverändert.
+- **Datei:** vorher 40.284 B / 927 LF / `a4033a2f…` → nachher **43.279 B / 994 LF / `770eda2c75aaa135961ef0d235d850759678de62cd9e00e3b5db110c8ed28f14`**.
+- **Engine:** 200.433 B / `53f28e1b…` unverändert. **Renderer:** 123.343 B / `500b5576…` unverändert.
+
+### 6. Offen (bewusst, blockiert nichts)
+
+- **R2 — Aufruf noch nicht erzwungen.** Die Vorlage fordert den `fail-fast`-Aufruf im Setup des Renderers/Harness vor `_lauf`. Der Renderer wurde in diesem Schritt **nicht** angefasst (eigene Freigabe nötig). Bis dahin ist die Prüfung **dokumentiert, nicht erzwungen**.
+- **`ist_reif`-Signatur.** `RegimeZustandSnapshot.ist_reif(self, cfg: RegimeKonfiguration)` (H20.27) konsumiert derzeit noch die **ungeprüfte** Klasse. Für Option (b) ist zu entscheiden, ob sie auf `ValidierteRegimeKonfiguration` umgestellt wird (konsistent zur Typ-Erzwingung) — nicht in diesem Schritt geändert, um den Auftragsumfang nicht zu überschreiten.
+- **Klasse 3 ohne Assert:** Das Kopplungsverbot steht als **Dokumentation**; ein defensives Fail-Loud-Assert war in Frage 3 optional und wurde nicht umgesetzt.
+- **`ruhezeit_roher_touch_bars` / `tombstone_band_pct`:** wie beschlossen **nicht** aufgenommen (Domänengrenze: Engine-Keimung, nicht Regime).
+
+**Anker:** Handoff-Kopf vor diesem Append = `0ca72c2e59120280692f32b50a6a645ad030de604b7c84dba2ad116b70dc853d` / 525.251 B / 8.746 CRLF. Engine `53f28e1b…` / 200.433 B; Adapter **neu** `770eda2c…` / 43.279 B (vorher `a4033a2f…` / 40.284 B); Renderer `500b5576…` / 123.343 B.
+
+## H20.30 — Option (b) spezifiziert: Klassifikator + reine Übergangsfunktion, D1–D4 geschlossen (2026-09-13)
+
+**Status:** reine Spezifikation. Kein Sandbox-Lauf, kein Compiling, kein Test, kein Feature-Code, keine Engine-/Adapter-Mutation. Engine `53f28e1b…`, Adapter `770eda2c…`, Renderer `500b5576…` — alle unverändert.
+
+### 1. Antworten auf die drei Interview-Fragen
+
+**F1 — `ist_reif` auf `ValidierteRegimeKonfiguration`: ja**, aber als **Block-Modifikation** (Z. 990–994), nicht als Append. Zugriff bleibt einstufig: `cfg.reife_gate_bars` — deshalb erhält `ValidierteRegimeKonfiguration` **Property-Delegation** für die sieben Regime-Schwellen (nicht `cfg.cfg.…`).
+
+**F2 — Grace-Arithmetik: bestätigt** — `(bar_idx − durchstich_bar) > reclaim_grace_bars`; bei `= 2` liegen `k, k+1, k+2` innerhalb, erst `k+3` erzwingt `GRACE_ABLAUF`. Engine-Gegenprobe `np.any(cl[bar_k : bar_k+grace+1])` = genau drei Closes — deckungsgleich.
+**Aber:** Der Anker muss der **Engine-Sweep-Bar** sein (aus `_reclaim_stufe(seite, k, …)`), **nicht** der Bar, an dem der Automat die Penetration liest. Sonst driften Zustandsautomat und Execution — genau der E4-Fehler in neuer Form.
+
+**F3 — Ereignis-Zulieferung: ja** (pure transition). `bestimme_regime_event(...)` klassifiziert aus OHLCV + Kanten + `basis_bei(k)`; `naechster_regime_zustand` schaltet nur symbolisch. **Der frühere Entwurf hielt sich nicht daran** (Schritt 2 prüfte `Δ_rel ∧ C₂` in der Übergangsfunktion, die keine Preisdaten hat) — dieser Widerspruch ist aufgelöst.
+
+### 2. Verbindliche Ergänzungen (D1–D4 geschlossen)
+
+| # | Befund | Auflösung |
+|---|---|---|
+| **D1** | Kaskade deckte nur 13 der 17 Matrixzeilen ab; `RUHE` fiel durch alle Schritte → `None`-Vakuum. | **Explizite Fallback-Schlusszeile** (Schritt 9): Zustand erhalten, Gate neu evaluieren. Deckt Zeilen 1, 3, 6, 12, 16. |
+| **D2** | `OUTER_PIVOT_EXPANSION` existiert nur als `TransitionReason`; kein emittierbares Event → Matrixzeile 9 wäre toter Code. | **`AUSSEN_PIVOT_EXPANDIERT`** wird in `RegimeEvent` aufgenommen (Modifikation des H20.27-Enums, nicht Append). |
+| **D3** | `transition_reason` als Parameter = doppelte Buchführung, dem Ereignis widerspruchsfähig. | **Ableitung intern** (Tabelle §4). Kein Parameter mehr. |
+| **D4** | `min_wall_alter_bars = 24` wurde als Klasse-1-Schwelle aufgenommen, aber nie geprüft. | **Prüfung in der Paar-Validierung** (Schritt 1 und 7): beide Grenzlinien etabliert (`k − erster_pivot_bar >= 24`). |
+
+**Neue Befunde beim Schreiben:**
+
+- **D5 — `BOTH_SIDES` ist aus `BREAKOUT_BESTAETIGT` allein nicht ableitbar.** E8 verlangt bei simultanem Bruch **genau ein** Event mit `BOTH_SIDES`; ein einzelnes `RegimeEvent` trägt diese Information aber nicht, und `durchstich_seite` ist ein Einzelwert. **Vorschlag:** eigenes Event **`BREAKOUT_BEIDSEITIG`** (statt Seiten-Payload) — hält die Funktion rein und die E8-Vorrangregel explizit. **Offene Entscheidung.**
+- **D6 — Decay im Zustand Z2 ist in der Matrix nicht vorgesehen.** Die Zeilen 10/11 modellieren Kantenverfall nur für `Z1_*`. Tritt er in `Z2_BEDROHT` auf (Grace läuft, Außenkante verfällt), greift keine Zeile. Entweder analog behandeln (mit Nachfolger → Z2 halten; ohne → Z3 `DECAY_NO_SUCCESSOR`) oder als bewusste Matrixlücke dokumentieren. **Offene Entscheidung.**
+
+### 3. Korrigierte Kaskade — vollständige Matrixabdeckung (17/17)
+
+Reihenfolge = Priorität. `handel_freigegeben` ist immer die **einzige** Gate-Wahrheit und wird in jedem Zweig neu gesetzt.
+
+| Schritt | Bedingung | Ergebnis | Matrixzeile |
+|---|---|---|---|
+| **1** | `vorher.Z0` **und** valides Paar (`touch_conf >= 2` ∧ `breite >= 0,50 %` ∧ beide Linien `>= min_wall_alter_bars` etabliert) | `Z1_PROVISIONAL`, `k_start = bar_idx` | 2 |
+| **2** | `ereignis ∈ {BREAKOUT_BESTAETIGT, BREAKOUT_BEIDSEITIG (D5), AUSSEN_PIVOT_EXPANDIERT, DECAY_KOLLAPS}` **und** `vorher ∈ {Z1_PROVISIONAL, Z1_MATURE, Z2_BEDROHT}` | `Z3`, Grund per §4 | 8, 9, 10, 14 |
+| **3a** | `vorher.Z2` **und** `RECLAIM_BESTAETIGT` **und** `(bar_idx − durchstich_bar) <= grace` | `Z1_MATURE` wenn `aus_mature`, sonst `Z1_PROVISIONAL`; `handel_freigegeben = aus_mature`; Durchstichfelder leeren | 13 |
+| **3b** | `vorher.Z2` **und** `(bar_idx − durchstich_bar) > grace` | `Z3`, `transition_reason = GRACE_ABLAUF` | 15 |
+| **4** | `vorher ∈ {Z1_PROVISIONAL, Z1_MATURE}` **und** `ereignis ∈ {DURCHSTICH_OBEN, DURCHSTICH_UNTEN}` | `Z2`, `aus_mature = (vorher == Z1_MATURE)`, `handel_freigegeben = aus_mature`, `durchstich_bar = <Sweep-Bar>` | 4, 7 |
+| **5** | `vorher.Z1_PROVISIONAL` **und** `(bar_idx − k_start + 1) >= reife_gate_bars` **und** `touch_conf >= touch_conf_handelbar` | `Z1_MATURE`, `letzter_event = REIFE_ERREICHT`, `handel_freigegeben = True` | 5 |
+| **6** | `vorher.Z1_MATURE` **und** `RE_LABEL_ERFOLGT` | `Z1_MATURE` (Schlüssel bleibt), **`k_start` unverändert** (E10: Zähler läuft weiter) | 11 |
+| **7** | `vorher.Z3` **und** valides neues Paar (wie Schritt 1) | `Z1_PROVISIONAL`, `k_start = bar_idx` | 17 |
+| **8** | `vorher.Z3` (sonst) | `Z3` | 16 |
+| **9** | **Fallback** (kein voriger Zweig) | Zustand **erhalten**, `handel_freigegeben` neu berechnet | 1, 3, 6, 12 |
+
+**Gate-Formel (in jedem Zweig):** `handel_freigegeben = zustand ∈ {Z1_MATURE, Z2_BEDROHT} ∧ bar_idx ≥ k_start + reife_gate_bars − 1 ∧ touch_conf >= touch_conf_handelbar` — für `Z2` zusätzlich verschärft durch `aus_mature`.
+
+### 4. `transition_reason` — Ableitung (D3)
+
+| Ereignis | abgeleiteter Grund |
+|---|---|
+| `BREAKOUT_BESTAETIGT` | `BREAKOUT_OBEN` bzw. `BREAKOUT_UNTEN` (Seite aus der Grenze) |
+| `BREAKOUT_BEIDSEITIG` (D5) | **`BOTH_SIDES`** (E8-Vorrang: nie zusätzlich OBEN/UNTEN) |
+| `AUSSEN_PIVOT_EXPANDIERT` | `OUTER_PIVOT_EXPANSION` |
+| `DECAY_KOLLAPS` | `DECAY_NO_SUCCESSOR` |
+| `GRACE_ABLAUF` / Schritt 3b | `GRACE_ABLAUF` |
+| alle übrigen | `KEIN_GRUND` |
+
+### 5. Signaturen (reine Spezifikation, kein Code)
+
+```python
+def bestimme_regime_event(
+    *, high: float, low: float, close: float, bar_idx: int,
+    paar_k: Optional[RegimePaar], vorher: RegimeZustandSnapshot,
+    cfg: ValidierteRegimeKonfiguration,
+) -> RegimeEvent:
+    """Klassifikator mit Preisdaten. Nur hier leben Δ_rel, C2 und der Durchstich."""
+
+def naechster_regime_zustand(
+    *, vorher: RegimeZustandSnapshot, ereignis: RegimeEvent, bar_idx: int,
+    paar_k: Optional[RegimePaar], k_start: Optional[int], touch_conf: int,
+    cfg: ValidierteRegimeKonfiguration, reclaim_grace_bars: int,
+    durchstich_bar: Optional[int] = None,       # Sweep-Bar (F2)
+    durchstich_seite: Optional[KantenSeiteLiteral] = None,
+) -> RegimeZustandSnapshot:
+    """Reiner Uebergang (Schritte 1-9). Kein Preiszugriff, kein versteckter Zustand.
+    transition_reason wird intern abgeleitet (D3), nicht uebergeben."""
+```
+
+`letzter_event` trägt den **effektiven** Ausgang (z. B. `GRACE_ABLAUF`), nicht das Eingabe-Ereignis.
+
+### 6. Modifikations-Register (nicht append-only)
+
+Die Umsetzung von H20.30 verändert Bestandscode und ist deshalb **blockweise** mit Präfix-Integritätsnachweis zu fahren:
+
+| Symbol | Art | Ort |
+|---|---|---|
+| `ValidierteRegimeKonfiguration` (+7 Properties) | Erweiterung | Z. 957–971 |
+| `RegimeEvent` (+`AUSSEN_PIVOT_EXPANDIERT`, ggf. +`BREAKOUT_BEIDSEITIG`) | Enum-Erweiterung | Z. 861–874 |
+| `RegimeZustandSnapshot.ist_reif` (Typ → validiert) | Signaturänderung | Z. 990–994 |
+| `naechster_regime_zustand`, `bestimme_regime_event` | Neuanlage | Anhang |
+
+### 7. Offene Entscheidungen (Textblock, keine Auswahl)
+
+1. **D5:** Eigenes Event `BREAKOUT_BEIDSEITIG` — oder Seiten-Payload (z. B. `frozenset` der betroffenen Seiten) am Klassifikator-Rückgabewert?
+2. **D6:** Decay in Z2 — analog behandeln (mit/ohne Nachfolger) oder als bewusste Matrixlücke führen?
+3. **Reihenfolge Schritt 2 vor 3:** Bestätigt, dass der Bruch-Check **vor** der Z2-Reclaim-Auflösung läuft (kein Reclaim auf ein fallendes Messer)?
+4. **`bestimme_regime_event`-Rückgabe:** Ein einzelnes `RegimeEvent` (wie spezifiziert) — oder ein Tupel `(event, begruendende_kante)` für den Payload?
+5. **Reihenfolge der Umsetzung:** erst Modifikations-Register (§6) vollständig, dann Kaskade — oder umgekehrt?
+6. **Ablage:** H20.30 bleibt Text; jede Zeile des Modifikations-Registers braucht eine **eigene** Einbrand-Freigabe?
+
+**Anker:** Handoff-Kopf vor diesem Append = `544ddc44f5e8bcbb7359f5541b234123a2dc81fb0d776203b977aaa9bb408102` / 530.387 B / 8.794 CRLF. Engine `53f28e1b…` / 200.433 B; Adapter `770eda2c…` / 43.279 B; Renderer `500b5576…` / 123.343 B — alle unverändert.
+## H20.31 — Z3-Karte read-only: „Wo endet eine Balance WIRKLICH?" (Messung, kein Einbrand)
+
+**Datum:** 2026-09-13 · **Modus:** read-only (Engine-SHA hart geprüft, kein Patch, kein Einbrand)
+**Auftrag (Anwender):** Bürokratie stoppen; *zuerst messen*, ob die neue Z3-Regel die V019-Erfolge zerstört. Beispiel 14.08.: die Kanten-Erweiterung wäre nach der neuen Regel eine Transition — **ist es aber nicht**. Gesucht: die Stellen, an denen eine Balance **wirklich BEENDET** wird. GO erteilt.
+**Skript:** `test/_chk_regime_z3_karte.py` (v2) · **Rohprotokoll:** `test/_chk_regime_z3_karte_out.txt` (25.919 B, UTF-8/CRLF, 367 Zeilen)
+
+### 1. Auftrag und Methode
+
+Auf dem `edges`-Katalog (V_noseed) werden drei konkurrierende „Balance-Ende"-Detektoren gegeneinander gestellt:
+
+| Kürzel | Definition |
+|---|---|
+| **A T1+T2** | Anwender-Arretierung (H20.19): `(hi[k]-d)/d*100 >= 0,60 %` **UND** zwei Kerzen komplett außerhalb (`lo[k-1] > d` UND `lo[k] > d`, Docht inkl., dieselbe Seite/Grenze) — Decke; spiegelbildlich Boden. |
+| **C 2-BODY** | Engine-Regel: zwei **Körper** außerhalb via `min(op,cl)` (Decke) bzw. `max(op,cl)` (Boden). |
+| **B O1-PAARWECHSEL** | Wechsel der Ecken `M(k) = (äußerste OBEN-Kante, äußerste UNTEN-Kante)`; Art = EXPANSION / VERFALL_INNEN / NEU / LOST. |
+
+Zwei Liveness-Varianten für `_lebt` (beide ohne Lookahead):
+- `engine` : letzter Docht `b <= k`, `b >= k - 96` (exakt Engine Z. 2470-2473)
+- `confirm`: letzter **bestätigter** Docht `b + 2 <= k` (H20.18-Konvention)
+
+Gegenprobe-Vektoren: 7 Verlust-Bars (391/433/498/533/1222/1315/1812), Tageslabels (92 Bars/Tag), Fokus 14.08. (Bars 820–919).
+
+### 2. Selbstkorrektur: v1 war VOLLSTÄNDIG UNGÜLTIG (Lookahead)
+
+v1 hatte in `_lebt` den Filter `b <= k` **vergessen**. Dadurch wurden Zukunfts-Dochte als lebend gewertet: **K140** (Geburt Bar 1808, OBEN, `basis=70.8955`) erschien als Decke **ab Bar 134** — „Korridorbreite" 13,29 %. Alle v1-Zahlen sind damit verworfen. v2 prüft beide Varianten explizit; die Engine-Referenz `_lebt` (Z. 2462-2473: `bars = [b for b,_ in e.wicks if b <= k]`; `max(bars) >= k - cfg.wall_live_bars`) ist die verbindliche Lesart.
+
+### 3. Messwerte (identisch in beiden Liveness-Varianten)
+
+```
+Engine-SHA 53f28e1b… (UNVERÄNDERT) | Katalog V_noseed: 90 edges (seeds NICHT im Katalog)
+n = 1932 | box_end nativ = 1104 (19.08(00)) | Paarwechsel (O1): 88
+Trades box=1104: 14 | whole-month: 14
+```
+
+| Detektor | Treffer `engine` | Treffer `confirm` |
+|---|---|---|
+| A T1+T2 | 71 | 105 |
+| C 2-BODY | 125 | 183 |
+| B O1-WECHSEL | 88 | 88 |
+
+**Abschnitt 5 — Verlust-Bars im Kontext:**
+
+| Bar | Tag | Ecken | O1 | A | C |
+|---|---|---|---|---|---|
+| 391 | 07.08(23) | K36/K30 | – | – | – |
+| 433 | 07.08(65) | K52/K30 | **O1** | – | – |
+| 498 | 10.08(38) | K52/K55 | – | – | – |
+| 533 | 10.08(73) | K66/K55 | – | – | **JA** |
+| 1222 | 20.08(26) | K101/K99 | – | – | – |
+| 1315 | 21.08(27) | K109/K72 | – | – | – |
+| 1812 | 28.08(64) | K140/K132 | – | – | – |
+
+**Verlust-Abdeckung: A 0/7 (beide Varianten), C 1/7 (nur Bar 533), B 0/7 (±0).**
+Kein Detektor identifiziert die realen Balance-Enden.
+
+### 4. Kernbefund — Gate-Wirkung auf die Live-Trades (Abschnitt 7)
+
+Live-Set (whole-month, 14 Trades, ΣR = **−1,833078 R**):
+
+```
+201 -1.000000 | 394 -0.388491 | 500 -1.000000 | 677 -1.000000 | 894 -0.105562
+971 -0.444281 | 991 +2.455103 | 1025 +5.098744 | 1167 -0.448591 | 1175 -1.000000
+1222 -1.000000 | 1315 -1.000000 | 1481 -1.000000 | 1812 -1.000000
+```
+
+Geblockt = `k <= entry_bar <= k+P` (Z3 ab Bar `k`, Nachwirkdauer `P` Bars):
+
+| Variante | Detektor | P=0 | P=3 | P=6 |
+|---|---|---|---|---|
+| engine | A T1+T2 | **0/14** (0 R) | 2/14 (**+2,349541 R**) → 894, 991 | 2/14 (+2,349541 R) |
+| engine | C 2-BODY | **0/14** (0 R) | 2/14 (+2,349541 R) → 894, 991 | 2/14 (+2,349541 R) |
+| engine | B O1 | 1/14 (−1,000000 R) → 201 | 5/14 (+5,999694 R) → 201, 894, 991, 1025, 1167 | 9/14 (+3,166922 R) |
+| confirm | A T1+T2 | 2/14 (**+2,349541 R**) → 894, 991 | 2/14 (+2,349541 R) | 2/14 (+2,349541 R) |
+| confirm | C 2-BODY | 2/14 (+2,349541 R) | 3/14 (+1,349541 R) → +1175 | 3/14 (+1,349541 R) |
+| confirm | B O1 | 2/14 (+1,455103 R) → 201, 991 | 4/14 (+5,553848 R) → +1025, 1175 | 7/14 (+3,721075 R) |
+
+**Lesart:**
+
+1. Die harte Bedingung „**0 Live-Trades blockiert**" wird **nur** von der Kombination *Engine-Liveness (`b<=k`) + Detektor A oder C* und **nur bei P=0** erfüllt. Das ist trivial: P=0 bedeutet, die Transition wirkt keinen einzigen Bar nach — dann ist das Gate wirkungslos.
+2. Sobald die Transition **3 Bars** nachwirkt (réalistische Mindestdauer), blockieren A und C die Trades **894 (−0,105562 R)** und **991 (+2,455103 R)** → ΣR des Sets verschlechtert sich von **−1,833078 R auf −4,182619 R** (Δ = **−2,349541 R**). Das Gate zerstört also Netto-Erfolg, ohne einen einzigen Verlust zu verhindern.
+3. Detektor B (O1) greift härter: bei P=3 werden **+5,999694 R** (inkl. **1025 = +5,098744 R**) gesperrt.
+4. Die drei großen H2-Verluste **1222, 1315, 1812** (je −1,000000 R) werden von **keinem** Detektor bei **keinem** P erfasst.
+
+### 5. Fokus 14.08. — Anwender-Aussage ist verifiziert
+
+Ecken-Verlauf um den 14.08.:
+
+| Bar | Tag | Ecken |
+|---|---|---|
+| 820 | 13.08(84) | K84/K49 |
+| 842 | 14.08(14) | K84/K51 (`engine` ab 840) |
+| 843 | 14.08(15) | K86/K51 |
+| 848 | 14.08(20) | K86/K62 (`engine` ab 846) |
+| 860 | 14.08(32) | K86/K60 (`engine` ab 858) |
+| 863 | 14.08(35) | **K52/K60** (OBEN: VERFALL_INNEN) |
+| 895 | 14.08(67) | K81/K60 (`engine` ab 893, OBEN: EXPANSION) |
+
+Detektor-Treffer im Fenster: `engine` → **892/893** (`OBEN K52@65.1170`); `confirm` → **841/842** (`UNTEN K49@64.2680`) und **892–894** (OBEN K52). Bar 890 High = 65.4430, Bar 893 High = 65.6840, K52-Basis 65.1170 ⇒ (65.6840−65.1170)/65.1170 = **0,87 % ≥ 0,60 %**.
+
+**Ergebnis:** Der 14.08.-Vorgang ist eine **EXPANSION** (K52 → K81 an der Decke), kein Balance-Ende. Der einzige berührte Trade in diesem Bereich ist **894 (14.08(66), −0,105562 R)** — ein Nicht-Verlust. Damit ist die Anwender-Aussage bestätigt: **die Regel würde 14.08 fälschlich als Transition markieren.** Genau diese Fehlalarme erklären, warum das Gate die V019-Erfolge frisst.
+
+### 6. Offene Verifikationspunkte (nicht durch Messung gedeckt)
+
+1. **Trade-Set ≠ H20.29-Benchmark.** Der hier gemessene Satz umfasst **14 Trades / ΣR = −1,833078 R**; der Live-Anker `V1_kausal` (H20.29) sind **23 Trades / +85,577150 R**. Der Harness-Kontext dieses Skripts (Default-`StraightEdgeHarnessKonfiguration`, Katalog ohne Fensterende-Seeds) ist also **nicht** der Live-Kontext. Die **Richtungsaussage** (Gate blockiert Gewinner, nie Verluste) ist davon unberührt, die **Beträge** sind nicht auf `V1_kausal` übertragbar.
+2. **`box_end_bar`-Override wirkungslos.** `_se_trades` liest `scan["box_end_bar"]` (Z. 2434) und läuft `for k in range(2, box_end - 3)` (Z. 2613) — dennoch liefern `box=1104` und `box=1932` **je 14 Trades**, und das ganze Monat enthält Entries bei 1167/1175/1222/1315/1481/1812 (> 1104). Die Spalten „nativ" und „whole-month" in Abschnitt 3 sind daher **identisch/zahnlos**; die Box-Wirkung auf den Motor ist in diesem Aufrufpfad nicht abgebildet. Zu klären, ob das Skript den falschen Einstieg nutzt oder ob `_se_trades` die Box anders ableitet.
+3. **Z3-Dauer P ist modelliert, nicht gemessen.** Die Kaskade (`naechster_regime_zustand` / `bestimme_regime_event`) ist noch nicht eingebrannt; P ∈ {0,3,6} ist eine Annahme-Bandbreite, kein Engine-Fakt.
+
+### 7. Änderungen / Dateien / SHAs
+
+- **Neu (read-only):** `test/_chk_regime_z3_karte.py` (v2, 10.327 B), `test/_chk_regime_z3_karte_out.txt` (25.919 B, UTF-8/CRLF ohne BOM).
+- **Kein Einbrand.** Adapter, Engine, Renderer unverändert:
+  - Engine `test/tmp_kanten_engine_replay.py` — 200.433 B / `53f28e1b6971a64df59beaf3292b466fb37ac86b870278f238a1b385084fd006` ✅ (im Skript hart geprüft)
+  - Renderer `test/tmp_png_aug_sichttest.py` — 123.343 B / `500b55762001d6667af3d977324c81eb4ecbceacc2fa0d8b62c36c7e383250e0` ✅
+  - Adapter `backtest_lab/phasen_regime_adapter.py` — 43.279 B / `770eda2c75aaa135961ef0d235d850759678de62cd9e00e3b5db110c8ed28f14` ✅
+- **Werkzeug-Hinweis:** PowerShell-`>` erzeugt UTF-16LE. Ausgabe jetzt in-Python via `_Tee` (UTF-8, `newline='\r\n'`) — keine Redirect-Kodierungsfehler mehr.
+- Ausgabe-Methode bewusst ohne `atexit`-Puffer (dieser schrieb im Lauf nicht zuverlässig), sondern als stdout-Spiegel.
+
+### 8. Entscheidungsfragen (Textblock, keine Auswahl)
+
+1. **Gate-Konsequenz:** Wenn die echte Kaskade Z3 ≥ 3 Bars hält, blockiert das binäre Gate **991 (+2,455103 R)** und **1025 (+5,098744 R)** — sollen wir das Gate überhaupt einbranden, oder erst die Detektor-Präzision lösen?
+2. **Detektor-Wahl:** A (T1+T2) und C (2-BODY) liefern praktisch dasselbe Blockier-Profil (894/991). Soll C als Engine-nähere Variante A ablösen, oder bleiben beide als Vergleichsachsen?
+3. **Zusatzregel-Ziel:** Gesucht sind Regeln, die **1222/1315/1812** treffen (die drei unentdeckten H2-Verluste). Soll ich als Nächstes genau diese drei Bars forensisch aufschlüsseln (Ecken-/Segment-/Doppel-Touch-Kontext) statt weiterer Detektor-Iteration?
+4. **Bar-Persistenz statt Bar-Punkt:** Ist der Nachweis „P=0 ist trivial wirkungslos" Anlass, die Z3-Dauer **direkt zu messen** (Reihe der Ecken-Stabilität) und erst dann über ein Gate zu entscheiden?
+5. **`box_end`-Kontrakt:** Soll ich Punkt §6.2 (Override zahnlos) als eigenen kleinen read-only-Auftrag klären, oder ist das für die Z3-Entscheidung irrelevant?
+6. **Ablage:** H20.31 bleibt Text; das Skript `_chk_regime_z3_karte.py` bleibt als Werkzeug liegen oder wird in `test/` aufgeräumt?
+
+**Anker:** Handoff-Kopf vor diesem Append = `99d81bb78a75073b5bd439b94b64cffa2f3d566e0e580dbe343d2c6c0b05aa05` / 539.137 B / 8.896 CRLF. Engine `53f28e1b…` / 200.433 B; Adapter `770eda2c…` / 43.279 B; Renderer `500b5576…` / 123.343 B — alle unverändert.
+
+---
+
+## H20.32 — Versuch: Ausreißer-Definition über die Volumen-/Aktivitätsachse (A/B/C/D) → Negativbefund
+
+### 1. Ausgangslage und Fragestellung
+
+Bisherige Ausreißer-Untersuchung (H20.31-Umfeld) nutzte ausschließlich Geometrie: Korridor aus lebenden Randkanten (`basis_bei`, edges-only), Kissen/Vakuum als Abstand zum nächsten Kanten-Basiswert, Exkursion, Acceptance, ADX-/ATR-Pfad. Volumen floss nur als **Zeitreihe** ein (`vol_ratio`, `vol_avg`, Einzelbar-Spike).
+
+Offene Frage des Anwenders: Wurde das **Volumenprofil des bisher gehandelten Bereichs** (Histogramm, POC, Value Area, HVN/LVN) berücksichtigt? Antwort: **Nein.** Dieser Versuch schließt die Lücke vollständig.
+
+Ziel: Prüfen, ob sich **A** (echte Expansion *innerhalb* einer Balance) von **B/C/D** (Balance-Ende / Ausreißer-Kandidaten) über die Volumen-/Aktivitätsachse **sicher** trennen lässt — mit der ausdrücklichen Möglichkeit, dass dies **nicht** gelingt.
+
+### 2. Datenfenster (Auflage)
+
+- **Nur AUG26** = `2026-08-03 .. 2026-09-01` (n = 1932 Bars, 90 edges). **S1/S2 nicht geladen** (nur auf ausdrückliche Anweisung).
+- **D** (01.09. 10:00) liegt **außerhalb** August → nur Merkmalszeile über den freigegebenen EXT-Scan (2026-08-03 .. 2026-09-12), keine Populations-Perzentile.
+- **Datenvertrag (verifiziert):** `real_volume` ist über **alle 223.394 Zeilen = 0** (MIN = 0, MAX = 0). Es existiert **kein echtes Handelsvolumen**. `tick_volume` = **Tick-Aktivität** je Bar; die Engine verteilt sie **gleichverteilt über die Bar-Range**. Ein „Volumenprofil“ ist daher präzise ein **Aktivitätsprofil** — kein Trade-Volumen-POC. Diese Bezeichnung ist in allen Auswertungen verbindlich.
+
+### 3. Event-Anker (dynamisch, edges-only)
+
+| Ev | Fenster | Wand @ k−1 | Bruch | Leg | Tief | Exkursion |
+|---|---|---|---|---|---|---|
+| A | 836–864 | 64,2680 | 838 | 836→858 | 63,4850 | 1,218 % |
+| B_first | 1076–1160 | **64,7980** (K68, geb 614) | 1076 | 1076→1133 | 62,5480 | 3,472 % |
+| B_last | 1076–1160 | **63,1560** (K57, geb 1103) | 1106 | 1076→1133 | 62,5480 | 0,963 % |
+| C | 1780–1820 | 67,6000 | 1820 | 1812→1820 | 67,4860 | 0,169 % |
+| D | 1972–2088 | 66,4140 | 1972 | 1972→2040 | 63,2900 | 4,704 % |
+
+**Nebenbefund B:** B ist **kein einzelner Bruch, sondern eine Kaskade von drei Bodenbrüchen** — 64,7980 (K68) → 63,5070 (K60) → 63,1560 (K57) → Tief 62,5480. Die früher (in `_chk_breakout_legs.py`) handgewählte Wand 63,1560 war **nicht** der Korridor-Boden, sondern die vorletzte Kante der Kaskade. Beide Wandvarianten werden daher als `B_first`/`B_last` geführt.
+
+### 4. Messungen
+
+**Sweep 1 — Binned-Aktivitätsprofil (`_chk_volprofil_sweep.py`):** 7 Bin-Auflösungen × 6 Lookbacks × 3 VA-Fraktionen × 3 Profil-Ranges × 2 Messendpunkte = **756 Konfigurationen**. Metriken: Wand-Anteil, Wand-Z (HVN/LVN), POC-Lage (wand- und exkursionsnormiert), HHI, VA-Grenzen, VA-Breite, Peak-Anteil, VWAP-Lage, Delta-Norm, Exkursion.
+
+| Metrik | A vs B_first | A vs B_last | A vs C | A vs D |
+|---|---|---|---|---|
+| wand_share | überlappt 87 % | 87 % | 30 % | 87 % |
+| wand_z | 60 % | 79 % | 33 % | 58 % |
+| poc_pos | 29 % | 40 % | 11 % | 32 % |
+| hhi | 35 % | 28 % | 30 % | 21 % |
+| va_lo_rel | 91 % | 69 % | 63 % | 48 % |
+| va_hi_rel | 40 % | 46 % | 31 % | 31 % |
+| va_breite | 95 % | 94 % | 81 % | 72 % |
+| peak_share | 55 % | 48 % | 51 % | 42 % |
+| vwap_pos | 35 % | 24 % | 13 % | 41 % |
+| delta_norm | 42 % | 48 % | 45 % | 53 % |
+| **exc_pct** | **TRENNT** | **TRENNT** | **TRENNT** | **TRENNT** |
+
+→ **9 von 9** echten Aktivitäts-Metriken überlappen. Das einzige „TRENNT“ (`exc_pct`) ist die **geometrische Exkursion selbst** — also **zirkulär**, kein Diskriminator.
+
+**Wand-Aktivität (HVN/LVN):** A wandert mit dem Lookback LVN→HVN (96/192/384 = LVN, 768 = HVN); B/C/D ebenso nicht-stabil. Kein trennendes Bild.
+
+**POC-Drift (kausal, 60 Bins, 192 Bars):** Netto-Drift A −0,025 %, B +0,060 %, C +0,036 %, D −0,257 %. Alle Werte klein gegenüber der Leg-Bewegung → keine trennende Migration.
+
+**Sweep 2 — zusätzliche Achsen (`_chk_volprofil_sweep2.py`):** Vol-Slope, Vol-CV, Vol-Persistenz, Vol-Peaklage, H2/H1, Up/Down-Verhältnis, Spike-Zahl, Volumen am Tief, Delta-Norm, Quote unter Wand, Latenz Bruch→Tief, **Boden-Kaskade**. Bei n = 1 je Ereignis sind „TRENNT“-Meldungen Einzelbeobachtungen, **keine** Robustheit — sie werden deshalb nicht als Evidenz gewertet.
+
+**Populationsstudie August (`_chk_volprofil_pop3.py`, vektorisiert):** Alle **frischen Bodenbrüche** des August automatisch detektiert. Ergebnis: **31 Brüche** gesamt → **24** mit Exkursion ≥ 0,25 % → **22** ohne Ziel-Ereignisse → **14 vergleichbar** (Exkursion ≥ 1 %).
+
+Grundgesamtheit (n = 22, ohne Ziele):
+
+| Merkmal | p05 | p50 | p95 |
+|---|---|---|---|
+| exc_pct | 0,3015 | 1,0893 | 2,1661 |
+| reclaim_bars | 0,00 | 0,00 | 7,80 |
+| vol_h2_h1 | 0,6069 | 1,0162 | 1,6619 |
+| vol_low_ratio | 0,8754 | 1,0556 | 2,0547 |
+| delta_norm | −0,3707 | −0,1023 | 0,2713 |
+| vol_cv | 0,0006 | 0,1976 | 0,4309 |
+
+Perzentil-Lage der Ziel-Ereignisse (0 % = niedrigster Wert):
+
+| Merkmal | A | B_f | B_l | C | D* |
+|---|---|---|---|---|---|
+| exc_pct | 59 % | 95 % | 36 % | 95 % | 3,26 % |
+| reclaim_bars | **100 %** | 0 % | 95 % | 0 % | −1 |
+| **vol_h2_h1** | **0 %** | 5 % | 100 % | 9 % | 0,85 |
+| vol_low_ratio | 68 % | 0 % | 82 % | 5 % | – |
+| vol_cv | 91 % | 73 % | 95 % | 68 % | – |
+| vol_slope | 14 % | 18 % | 95 % | 14 % | – |
+| delta_norm | 59 % | 27 % | 77 % | 41 % | – |
+| vol_peak_pos | 45 % | 50 % | 64 % | 41 % | – |
+
+*D außerhalb August → nur Merkmalszeile.
+
+### 5. Ergebnis (Negativbefund)
+
+**Endgültiges Trenn-Verdikt (Referenzpopulation Exkursion ≥ 1 %, n = 14):**
+
+| Merkmal | A-Lage | B/C/D gleich? | Verdikt |
+|---|---|---|---|
+| **reclaim_bars** | oben außerhalb (22 vs p95 8,55) | 1/4 | **TRENNT** |
+| vol_h2_h1 | unten außerhalb (0,51 vs p05 0,62) | 2/4 | möglich |
+| exc_pct | im Kern | 1/4 | NEIN (zirkulär) |
+| alle übrigen 8 | im Kern | 3–4/4 | NEIN |
+
+**Der einzige robuste Diskriminator — `reclaim_bars` — ist keine Volumen-, sondern eine Zeit-/Struktur-Metrik** (Bars bis Rückeroberung der Bruchwand). Die Volumen-/Aktivitätsachse liefert **keinen** belastbaren Trenner.
+
+**Zweite, unabhängige Stichprobe** (breiterer Lauf 2025–2026, n = 292 vergleichbar, außerhalb der August-Auflage bereits verworfen): lieferte **dieselben zwei Kandidaten** (A auf 100. Perzentil `reclaim_bars`, 1. Perzentil `vol_h2_h1`). Das August-Ergebnis ist damit **nicht** august-spezifisch.
+
+**Composite-Regel** `exc ∈ [0,8; 1,8] % ∧ reclaim ≥ 10 Bars ∧ vol_h2_h1 ≤ 0,9`: **0 von 14** vergleichbaren August-Brüchen erfüllen sie; B_f/B_l/C/D alle „anders“. In dieser Stichprobe ist A eindeutig — jedoch **n = 14**, `reclaim_bars` bei H = 24 **rechtszensiert** (−1 = „kein Reclaim in 24 Bars“, nicht „nie“). → **Hypothese, keine validierte Regel.**
+
+### 6. Erkenntnis des Anwenders (bindend)
+
+> **Wir können keinen sicheren Ausbruch definieren, ohne auch die Winner zu zerstören.**
+
+Begründung aus der Messreihe: Jede Ausreißer-Definition, die C/D (und B) *sicher* ausschließt, ist entweder **zirkulär** (nutzt das Verlust-Ereignis selbst, z. B. `exc_pct`) oder entsteht **erst ex post** (Rückeroberung nach 22 Bars). Eine vorab anwendbare, trennscharfe Definition existiert in der Stichprobe nicht. Die Verschärfung, die die Ausreißer ausschließt, schneidet zugleich die Gewinner weg.
+
+**Beleg:** 756 Parameterkonfigurationen Aktivitätsachse → 0 belastbare Trenner. Der Versuch, den „sicheren“ (falschen) Ausbruch zu identifizieren, ist damit **positiv widerlegt** — nicht offen, sondern abgeschlossen.
+
+### 7. Entscheidung des Anwenders (bindend)
+
+> **Wir machen weiter mit reiner Kantenlogik** — die läuft in parallelen Seitwärtsphasen ganz gut.
+
+**Konsequenzen:**
+
+1. **Kein Einbrand** von Ausreißer-, Volumen- oder Profil-Gates. Ausbrüche bleiben **Geschäftskosten**.
+2. Das Ziel ist **nicht** die Verlustfilterung, sondern die **Definition von Balance-Start und Balance-Ende** (bereits in H20.31 verankert).
+3. `reclaim_bars` bleibt als **Beobachtungsgröße** erhalten (Zeit-/Struktur-Metrik), wird aber **nicht** als Filter verdrahtet.
+4. Die Aktivitätsachse bleibt als **dokumentierter Ausschluss** bestehen — sie ist Messbefund, nicht Lücke.
+
+### 8. Änderungen / Dateien / SHAs
+
+- **Neu (read-only), alle in `test/`:**
+  - `_chk_breakout_ext_map.py` + `_out.txt` (Bar-Zuordnung, Fenster-Übergang)
+  - `_chk_breakout_ext.py` + `_out.txt` (Finanzmathematik + Struktur A/C/D/E)
+  - `_chk_breakout_ext2.py` + `_out.txt` (leg-basierte Ausreißer-Analyse)
+  - `_chk_breakout_ext3.py` + `_out.txt` (Korridor-Evolution, Boden-Treppe)
+  - `_chk_breakout_afloor.py` (Boden-Treppe A-Umfeld)
+  - `_chk_volprofil_ext.py` + `_out.txt` (T0–T6 Aktivitätsbasis A/B/C/D)
+  - `_chk_volprofil_bwall.py` (B-Wandkandidaten)
+  - `_chk_volprofil_sweep.py` + `_out.txt` (756 Konfigurationen)
+  - `_chk_volprofil_sweep2.py` + `_out.txt` (Zusatzachsen)
+  - `_chk_volprofil_pop.py` + `_out.txt`, `_chk_volprofil_pop2.py` + `_out.txt`, `_chk_volprofil_pop3.py` + `_out.txt` (Populationsstudien)
+- **Kein Einbrand.** Engine, Adapter, Renderer unverändert:
+  - Engine `test/tmp_kanten_engine_replay.py` — 200.433 B / `53f28e1b6971a64df59beaf3292b466fb37ac86b870278f238a1b385084fd006` ✅ (in jedem Skript hart geprüft)
+  - Renderer `test/tmp_png_aug_sichttest.py` — 123.343 B / `500b55762001d6667af3d977324c81eb4ecbceacc2fa0d8b62c36c7e383250e0` ✅
+  - Adapter `backtest_lab/phasen_regime_adapter.py` — 43.279 B / `770eda2c75aaa135961ef0d235d850759678de62cd9e00e3b5db110c8ed28f14` ✅
+- **Fenster-Injektion** ausschließlich zur Laufzeit (`engine.FENSTER["EXT"]`, `["AUG26"]`, `["POP"]`) — SHA unverändert.
+
+### 9. Entscheidungsfragen (Textblock, keine Auswahl)
+
+1. **H20.32-Ablage:** Dieser Abschnitt ist als Text dokumentiert. Bleiben die elf read-only Skripte in `test/` liegen, oder sollen die Zwischenläufe (pop/pop2) entfernt und nur `_chk_volprofil_sweep.py`, `_chk_volprofil_pop3.py`, `_chk_volprofil_bwall.py` als Werkzeuge behalten werden?
+2. **Horizont H:** `reclaim_bars` ist bei H = 24 zensiert. Soll ich H ∈ {48, 96} nachmessen (nur zur Schärfung der Beobachtungsgröße, **ohne** Filter-Absicht)?
+3. **Boden-Kaskade:** Die Kaskade (A 6, B 34, C 1, D 31) ist eine dritte, volumenunabhängige Achse — soll sie als Beobachtungsgröße in die Balance-Start/-Ende-Definition aufgenommen werden?
+4. **B-Wandkonflikt:** Führe ich künftig `B_first` (Korridor-Boden 64,7980) als Referenz, oder bleibt die handgewählte 63,1560 (K57) daneben stehen?
+5. **Rückkehr zum Hauptstrang:** Soll ich als Nächstes die **Balance-Start-Definition** (Weg (a), lebende äußere Grenzkanten) ausarbeiten — parallel zur bereits konsolidierten Balance-Ende-Seite?
+6. **Leg-Label:** Das dritte September-Fenster (10.09. 08:00–11.09. 15:00) bleibt in diesem Abschnitt **E**; die Doppelvergabe „C“ im Anwendertext ist damit aufgelöst. Bestätigung offen.
+
+**Anker:** Handoff-Kopf vor diesem Append = `c14cd804e6ccfae726c6b2e553a1e3cbe0d5ebcdd88e255b718c7f1393c19dd1` / 549.301 B / 9.024 CRLF. Engine `53f28e1b…` / 200.433 B; Adapter `770eda2c…` / 43.279 B; Renderer `500b5576…` / 123.343 B — alle unverändert.
+
+
+---
+
+## H20.33 - Q29-Trendblockade (Antitrend-Filter): Spiegeltest, ZP-Nur-Fenster-Nachweis, V020-Governance
+
+### 1. Ausgangslage und Fragestellung
+
+Im neuen read-only Sichtbild `test/ext_sichttest_v2_uebersicht.png` (EXT,
+2026-08-03 .. 2026-09-12, n = 2750) faellt ein **Ungleichgewicht** auf: fast nur
+SHORT-Trades, quasi keine LONGs -- in einem **Aufwaertstrend** (+10,3 %), obwohl
+genuegend Bodenkanten vorhanden sind. Anwender-Frage: *"Wie kann das sein, wo Q29
+doch eines der Hauptthemen unserer V019-Injektionen war?"*
+
+Antwort: **Q29 wurde nie in der Engine repariert, sondern nur in einem schmalen
+Fenster (Bars 1033..1287) per AST-Patch umgangen.** Ueberall sonst steht der
+Originalfehler. Die native Engine ist damit ein **systematischer
+Kontra-Trend-Generator**.
+
+### 2. Befund: native Engine handelt 0 LONG / 19 SHORT (EXT)
+
+`test/_chk_longshort_asym.py` (reiner Scan + engine-nativer `_se_trades`-Lauf):
+
+| Richtung | Trades | Summe R |
+|---|---|---|
+| SHORT | 19 | -0,808847 |
+| **LONG** | **0** | +0,000000 |
+
+Blockierende Gates nach Richtung:
+
+| Gate | gesamt | SHORT | LONG |
+|---|---|---|---|
+| `quartil_liste` (Q29) | 216 | 37 | **179 (83 %)** |
+| `zyklus_liste` | 49 | 49 | 0 |
+| `blocker_liste` (M6) | 25 | 25 | 0 |
+
+Q29-Nachbau ueber alle Bars (`quartil_distanz_pct = 25`):
+
+| Richtung | passierbar | Anteil | Median-Distanz |
+|---|---|---|---|
+| SHORT | 1673 / 2750 | 60,8 % | 16,69 % |
+| **LONG** | **35 / 2750** | **1,3 %** | 80,77 % |
+
+### 3. Ursache: `_im_aussenquartil` ankert am Gesamt-Extrem ab Bar 0
+
+Engine Z. 2483-2490 (arretiert, `53f28e1b...`):
+
+```python
+ex_hi = float(np.max(hi[:k + 1]))     # <-- seit Bar 0, NICHT lokal
+ex_lo = float(np.min(lo[:k + 1]))
+spanne = ex_hi - ex_lo
+distanz = ((ex_hi - sweep_px) if richtung == "SHORT"
+           else (sweep_px - ex_lo)) / spanne * 100.0
+return distanz <= cfg.quartil_distanz_pct          # 25.0
+```
+
+Im Trend **friert genau ein Extrem ein** -- das gegenlaeufige. Damit ist Q29
+**kein Richtungs-Bug** (die Formel enthaelt kein `if richtung`), sondern ein
+**Antitrend-Filter**: er handelt immer *gegen* den laufenden Trend, am globalen
+Range-Extrem.
+
+### 4. Spiegeltest (Kernbeleg): derselbe Fehler, nur gespiegelt
+
+`test/_chk_q29_baerisch.py` -- dieselbe arretierte Engine, zwei Fenster:
+
+| Kennzahl | BULLISCH 2026-08-03..09-12 (+10,3 %) | BAERISCH 2026-03-01..08-01 (**-39,5 %**) |
+|---|---|---|
+| n | 2750 | 9987 |
+| `EX_HI` | 71,139 (Bar 1812, frisch) | **96,391 (Bar 2, eingefroren)** |
+| `EX_LO` | **56,547 (Bar 62, eingefroren)** | 54,751 (Bar 8994, frisch) |
+| Q29-Pass SHORT | **60,8 %** | **0,8 %** |
+| Q29-Pass LONG | **1,3 %** | **45,1 %** |
+| Trades SHORT | **19** | **1** |
+| Trades LONG | **0** | **125** |
+| Summe R | **-0,808847** | **-79,416472** |
+
+Die Zahlen sind ein **exaktes Spiegelbild** (60,8/1,3 vs. 0,8/45,1 und 19/0 vs.
+1/125). **Beide** Regime verlieren, weil der Motor sich strukturell auf die
+falsche Seite stellt: er fadet den Trend.
+
+**Umbenennung (verbindlich):** Der E-26-Begriff "Long-Blockade" war eine
+unvollstaendige Teilbeobachtung aus dem August-Blickwinkel. Korrekt ist
+**"Q29-Trendblockade (Antitrend-Filter)"**.
+
+`test/_chk_q29_trendvorzeichen.py` bindet die analytische Herleitung als
+Textprotokoll an denselben Befund.
+
+### 5. Warum V019 trotzdem +85,58 R zeigt: ZP-Nur-Fenster-Nachweis
+
+Der ZP-4-Patch `A_VC` (`test/tmp_png_aug_sichttest.py` Z. 838-848) **repariert
+Q29 tatsaechlich** -- er ersetzt `hi[:k+1]` durch `hi[_q0:k+1]` (Segmentstart).
+Er ist aber ueber `_zv(k)` **doppelt gegated**:
+
+```python
+_ZZ_START = ADAPTER_V019.segmente[1].start_bar   # 1033
+_ZZ_ENDE  = ADAPTER_V019.segmente[-1].end_bar    # 1287
+# _zv(k) = KONF.mode=="V019" and mehrsegmentig
+#          and 1033 <= k <= 1287 and not (848 <= k <= 1020)
+```
+
+Daraus folgt die **Q29-Landschaft der Engine**:
+
+| Bar-Bereich | Q29-Referenz | LONG |
+|---|---|---|
+| 0..847 | global (unpatched) | gesperrt |
+| 848..1020 (P9) | global | gesperrt |
+| 1021..1032 | global | gesperrt |
+| **1033..1287 (A1/A2)** | **ZP-4 lokal `hi[_q0:k+1]`** | teils offen |
+| 1288..2749 | global | gesperrt |
+
+**Nur in 1033..1287 ist Q29 repariert** -- genau das Fenster, aus dem die
+ZP-Injektionen die Zusatz-Trades erzeugen (14 -> 23, H20.31-Umfeld). Der alte
+`aug_sichttest_v019_*`-Satz lief **mit** Patchset (deshalb existieren dort LONGs);
+der neue `tmp_png_ext_sichttest*.py` laeuft **native** (deshalb 0 LONGs).
+
+**Konsequenz:** Q29 ist ein **Dreiteilungs-Fall** -- diagnostiziert (E-26),
+gemessen und unter `USD/Trade > 0` **verworfen** (E-27), und seither per
+"kein Einbrand"-Regel nicht in die Engine gewandert. Das ist keine Nachlaessigkeit,
+sondern die bewusste Bremse.
+
+### 6. Ehrliche Einschraenkung: "Q29 vollstaendig streichen" ist NICHT belegt
+
+Die These "Q29 ist redundant gegenueber `max_sweep_ueberdehnung_pct = 0.60`"
+ist im Bestand **widerlegt**:
+
+`MAXIMUS_BLOCK2` (Handoff Z. 761/768): `K4 (K3 + Q29 aus)` = **27 Trades /
++57,991740 R** gegenueber `K3` = 21 / +61,708758. **H1-Kosten "Q29 aus global"
+= -9,592201 R.** Ein Abschalten von Q29 **kostet** in H1 also 9,59 R -- Q29
+blockiert dort sehr wohl Reales.
+
+Gruende, warum Q29 **nicht** mit der Ueberdehnungsschranke redundant ist:
+
+1. **Andere Bezugsgroesse.** `max_sweep_ueberdehnung_pct` misst **kanten-relativ**
+   (`_dist(e) = (sweep_px - basis)/basis*100`); Q29 misst **range-relativ**.
+2. **Nachgelagerte Stufe.** Q29 wird *nach* der `_kandidat`-Kaskade geprueft --
+   es ist ein **zweiter** Filter, nicht eine Dublette.
+3. **Symmetrie-Risiko.** Ein reiner Ueberdehnungs-Ersatz ist richtungsneutral;
+   ob er in beiden Trendregimen traegt, ist **ungemessen**.
+
+**Verdikt:** "Q29 streichen und rein ueber Kanten-Ueberdehnung steuern" bleibt
+eine **Hypothese**, keine ratifizierte Entscheidung. Sie ist als Kernfrage an
+**H20.34** gebunden und muss dort symmetrisch gemessen werden (Q29 global /
+Q29 lokal / Q29 aus / Ueberdehnung-only), bevor V020 etwas einbrennt.
+
+### 7. Governance-Klausel V020 (verbindlich)
+
+1. Die Baseline `test/tmp_kanten_engine_replay.py` (**`53f28e1b...`**) bleibt
+   **byte-identisch** und ist die SSoT der V019-Messreihe.
+2. V020 entsteht **nicht** durch In-Place-Patch, sondern als **eigenstaendige
+   Datei** (`test/tmp_kanten_engine_v020_replay.py`) mit **eigenem SHA-Anker**
+   (analog V017 -> V018).
+3. Bis zum Einbrand gilt unveraendert: **kein Einbrand in Engine, Adapter
+   (`770eda2c...`) oder Renderer (`500b5576...`)**.
+4. Jede V020-Messung laeuft read-only gegen die neue Datei; die V019-Baseline
+   bleibt fuer Gegenproben unangetastet.
+
+### 8. Aenderungen / Dateien / SHAs (alle read-only, additiv in `test/`)
+
+| Artefakt | SHA256 | Bytes |
+|---|---|---|
+| `test/_chk_longshort_asym.py` | `a091d2a1c84c713234d81cceeae0806e4dad329dfa2423c674578956664a11de` | 4.373 |
+| `test/_chk_q29_trendvorzeichen.py` | `913ada077f906890a3d97b157f6ae7355e2e947d5bc50e5990700759a64c0139` | 2.067 |
+| `test/_chk_q29_baerisch.py` | `a59af3bbb29b1876220dd65dd4ef779e2f56023904e73e4353cddce3c8d90aa1` | 3.882 |
+| `test/tmp_png_ext_sichttest.py` | `3b3bd7e334f7843941405337814df653d92e249389f82b1d1a5dfe220025fc45` | 15.042 |
+| `test/tmp_png_ext_sichttest_v2.py` | `172dbf36dea2f075107ade11baa9eb9d3ef4352db2fdb2aa6171f1bd00384823` | 16.342 |
+
+PNG-Artefakte (read-only Sichtpruefung, EXT): `ext_sichttest_uebersicht.png`
+(10800x4800), `ext_sichttest_kantenkarte.png` (10800x3600),
+`ext_sichttest_v2_uebersicht.png`, `ext_sichttest_v2_kantenkarte.png`,
+`ext_sichttest_v2_anker_A..E.png` (4800x2200 je).
+
+**Unveraendert:** Engine `53f28e1b...` / 200.433 B; Adapter `770eda2c...` /
+43.279 B; Renderer `500b5576...` / 123.343 B.
+
+### 9. Entscheidungsfragen (Textblock, keine Auswahl)
+
+1. **Ablage:** Bleibt H20.33 als eigener Abschnitt; die Ladder/Topologie
+   (frueherer Plan-Stand "H20.33") rutscht damit auf **H20.34**?
+2. **ZP-Zerlegung:** Soll Schritt 3 die 23 `V1_kausal`-Trades read-only in
+   **native vs. ZP-injiziert** zerlegen (Fenster 1033..1287) und die
+   Behauptung "ohne Patchset existieren die 23 nicht" belegen?
+3. **Q29-These:** Wird "Q29 vollstaendig streichen" als **unbewiesen** in
+   H20.34 gefuehrt (mit den drei Widerlegungsgruenden aus Abschnitt 6) -- oder
+   soll diese Frage sofort gemessen werden?
+4. **Referenz-Vergleich:** Beim symmetrischen Vergleich (global / lokal /
+   Kanten-Topologie) -- ist **L960** noch zugelassen (Veto des Anwenders) oder
+   nur noch als reine Kontrollzeile ohne SSoT-Anspruch?
+5. **Begriff im Code:** Der Docstring von `_im_aussenquartil` nennt noch
+   "Niemandsland"/"Mitte der Range". Soll H20.34 die Umbenennung auf
+   "Trendblockade" vorschlagen (nur Text, kein Code)?
+
+**Anker:** Handoff-Kopf vor diesem Append = `6acdf0da63632ff1fe8f4bbc43f5fd7edab7d11be36d050ab5c955bfcc839b41`
+/ 560.819 B / 9.173 CRLF. H20.32 bleibt unveraendert.
+
+
+---
+
+## H20.34 - ZP-Trade-Zerlegung: 10 Injektionen, 1 entfallener Nativer, Retargeting-Attribution
+
+### 1. Ausgangslage und Fragestellung
+
+Antwort auf H20.33 Abschnitt 9, Frage 2. Der V019-Live-Anker
+(23 Trades / +85.577150 R) wurde read-only in seine Bestandteile zerlegt.
+Werkzeug: `test/_chk_zp_trade_zerlegung.py`; Primaerbeleg:
+`test/_chk_zp_trade_zerlegung_out.txt`. Der arretierte Renderer
+(`500b5576...`) wurde im Zero-Trust-Probe-Modus geladen
+(`--probe-praefix probe_zp_`), damit die versiegelten
+`aug_sichttest_v019_*`-Artefakte unberuehrt bleiben. Keine Mutation an
+Engine/Adapter/Renderer; alle Fail-Loud-Asserts des Renderers sind im
+Probe-Lauf durchgelaufen.
+
+Drei Laeufe desselben Prozesses: V0 (unpatch, ORIG `_se_trades`) |
+V1_basis (13 Renderer-Patches, DEFAULT_ADAPTER = 1 Segment P9) |
+V1_kausal (Basis + ZP-4/ZP-5, ADAPTER_V019_KAUSAL = 3 Segmente).
+
+### 2. Zerlegungsmatrix (Sollwerte exakt reproduziert)
+
+| Satz | Trades | R | H1 | H2 |
+|---|---|---|---|---|
+| V0 (nativ, unpatch) | 14 | +42.450970 | 8 / +38.919584 | 6 / +3.531386 |
+| V1_basis (v0.1) | 14 | +47.815697 | 8 / +38.919584 | 6 / +3.531386 |
+| V1_kausal (LIVE, primaer) | 23 | +85.577150 | 8 / +38.919584 | 15 / +46.657566 |
+| V1_batch (HINDSIGHT, nicht handelbar) | 24 | +88.116626 | 8 / +38.919584 | 16 / +49.197042 |
+
+Delta-Zerlegung (arithmetisch geschlossen, Rest < 1e-6):
+
+- V1_basis - V0 = +5.364727 R
+  = K73@980 neu +2.412991 | K59@853 entfaellt +1.000000 |
+    K67@1020 Basis-Retarget +1.951736
+- V1_kausal - V0 = +43.126180 R
+  = 10 Injektionen +40.173529 (93.2 %) | K59@853 entfaellt +1.000000 (2.3 %) |
+    K67@1020 Basis-Retarget +1.952652 (4.5 %)
+- V1_kausal - V1_basis = +37.761453 R
+  = +40.173529 (10 Injektionen) - 2.412991 (K73@980 faellt weg) + 0.000915
+
+KORREKTUR: Die Netto-Differenz `len(V1) - len(V1_basis) == 9` (Renderer-Assert
+Z. 1101) ist NICHT die Injektionszahl. Sie ist 10 neu minus 1 entfallen. Der
+Renderer fuehrt unter "Neu im V019-Lauf" genau 10 Eintraege (journal-belegt).
+
+### 3. Die 10 ZP-Injektionen
+
+| # | bar | kid | Richtung | R | Fenster |
+|---|---|---|---|---|---|
+| 1 | 903 | K67 | SHORT | +4.119775 | P9 848..1020 |
+| 2 | 980 | K67 | SHORT | +9.987676 | P9 |
+| 3 | 981 | K73 | SHORT | +2.695488 | P9 |
+| 4 | 1002 | K77 | LONG | +3.629016 | P9 |
+| 5 | 1075 | K62 | LONG | +1.475768 | ZP 1033..1287 |
+| 6 | 1122 | K73 | SHORT | +10.752473 | ZP |
+| 7 | 1172 | K82 | LONG | +5.502241 | ZP |
+| 8 | 1268 | K76 | SHORT | -1.000000 | ZP |
+| 9 | 1272 | K73 | SHORT | +1.254682 | ZP |
+| 10 | 1280 | K76 | SHORT | +1.756410 | ZP |
+
+Fenster-Summen: P9 (1..4) = 4 Trades / +20.431955 R;
+ZP (5..10) = 6 Trades / +19.741574 R; Gesamt 10 / +40.173529 R.
+Der eine entfallene Native: K59@853 SHORT -1.000000 R.
+
+### 4. Antwort auf Leitfrage 1: NICHT nur LONGs - Praemisse widerlegt
+
+| Richtung (Injektionen) | Trades | R | Anteil am Injekt-R |
+|---|---|---|---|
+| LONG | 3 | +10.607025 | 26.4 % |
+| SHORT | 7 | +29.566504 | 73.6 % |
+
+Die Injektionen sind ueberwiegend SHORTs. Die ZP-Maschinerie ist
+richtungsneutral, aber kein "Long-Reparatur-Werkzeug". Zwei der drei LONGs
+(K62@1075, K82@1172) liegen im lokal-Q29-reparierten ZP-Fenster; der dritte
+(K77@1002) traegt den P9-Override {67: (69.87, 'P9', 848, 1020)}.
+
+### 5. Retargeting-Analyse - Korrektur der Annahme
+
+Nicht gestuetzt ist die Aussage, die +85.577150 R stammten "zu einem
+signifikanten Teil aus nachtraeglichem Target-Management".
+
+- K67@1020: +1.050505 -> +3.003157, delta +1.952652 R = 4.53 % des
+  Gesamt-Deltas (+43.126180 R). Dominant bleibt die Injektion (93.2 %).
+- +1.951736 R (99.95 % des Retargets) liegen BEREITS in V1_basis.
+  V1_basis laeuft mit DEFAULT_ADAPTER (segmente = AKTIVE_DEFAULT_SEGMENTE,
+  nur P9, 1 Segment), das Laufzeit-Gate `_zv` ist dort beweisbar False
+  (erfordert len(segmente) > 1) - ZP-4/ZP-5 sind inert.
+- Nur +0.000915 R (0.002 % des Gesamt-Deltas) stammen vom ZP-Mechanismus.
+- Ursache des Retargets ist der Basis-Patch A_TP2 (Hook-2-TP2-Vertrag):
+  `hook_2_ziel` liefert fuer das P9-Segment PHASE mit `seg.ziel_preis_*`,
+  A_TP2 ersetzt `gegen_basis` durch dieses Segmentziel. Also Adapter-/
+  Hook-Kontrakt der Basis-Patches, NICHT ZP-4/ZP-5.
+
+Fazit: V019 ist zu 93 % ein Trade-Injektor und zu ~4.5 % ein
+Basis-Patch-/Exit-Effekt (Hook 2). Ein ZP-spezifisches Retargeting ist
+nicht belegt. Konsequenz fuer V020 bleibt dennoch: der TP2-Herkunftsvertrag
+(Hook 2: MAKRO/PHASE/BLOCKIERT) gehoert zum Kernregelwerk und ist dort
+explizit zu formalisieren.
+
+### 6. H1-Invariante (architektonische Stuetze)
+
+H1 = 8 Trades / +38.919584 R ist in allen vier Saetzen bit-identisch
+(V0, V1_basis, V1_kausal, V1_batch). Alle 10 Injektionen UND der eine
+entfallene Native liegen in H2 (entry_bar >= box_end = 644). Der native
+Kantenmotor ist in der stationaeren H1-Balance stabil; die gesamte
+Dynamik sitzt in H2 (Trend/Transition).
+
+### 7. Umbenennung (verbindlich, nur Text)
+
+"Q29-Trendblockade (Antitrend-Filter)" ersetzt E-26 "Long-Blockade".
+Der Docstring von `_im_aussenquartil` nennt weiterhin
+"Niemandsland"/"Mitte der Range" - Textkorrektur vorgeschlagen, kein
+Codeeingriff in dieser Phase.
+
+### 8. Antwort auf Leitfrage 2 (EXT-Fenster)
+
+Zurueckgestellt (Anwenderentscheidung): "Nach Bar 1287" existiert im
+AUG-Fenster (n=1288) nicht; ein Probelauf mit kuenstlich aufgeweichtem
+ZP-Fenster wuerde hypothetische PnL eines fuer V020 verworfenen Patchsets
+simulieren. Kein Nutzen fuer die generelle Kantenmechanik.
+
+### 9. Aenderungen / Dateien / SHAs (alle read-only, additiv in `test/`)
+
+| Artefakt | SHA256 | Bytes |
+|---|---|---|
+| `test/_chk_zp_trade_zerlegung.py` | `8a25fe36e612aa8ddaf7624c98a18a9d3b678b9c6e54ba076d4ade0eb1a933b5` | 6.675 |
+| `test/_chk_zp_trade_zerlegung_out.txt` | `1dccb3def255b5ed697dfa9c434f2f4b15b9b98bb31fe2af7061753b8f09bdea` | 5.343 |
+
+- `probe_zp_*.png`: 5 erzeugt, 5 durch das Skript entfernt (nicht im Bestand).
+- `test/_tmp_zp_renderer_journal.txt`: geloescht (Inhalt vollstaendig im
+  Primaerbeleg `_chk_zp_trade_zerlegung_out.txt` enthalten).
+- **Unveraendert:** Engine `53f28e1b...` / 200.433 B; Renderer `500b5576...` /
+  123.343 B; Adapter `770eda2c...` / 43.279 B; `aug_sichttest_v019_*`
+  (5 PNG, 12.09.2026 16:11).
+
+### 10. Entscheidungsfragen (Textblock, keine Auswahl)
+
+1. **Schritt 3:** Soll die strukturelle Analyse der 10 Injektionen (welche
+   Kanten-Primitiven ueberschrieben wurden) jetzt als reine Code-Inspektion
+   folgen?
+2. **Schritt 4:** Soll H20.35 die Architektur-Spezifikation fuer V020
+   (`test/tmp_kanten_engine_v020_replay.py`, neue Datei, eigener SHA)
+   vorbereiten?
+3. **Hook-2-Vertrag:** Wird der TP2-Herkunftsvertrag (MAKRO/PHASE/BLOCKIERT)
+   als eigenes Kapitel der V020-Spezifikation gefuehrt?
+4. **Offene H20.33-Fragen:** Bleiben H20.33 Abschnitt 9 Fragen 1, 3, 4, 5
+   offen, oder werden sie in H20.35 geschlossen?
+
+**Anker:** Handoff-Kopf vor diesem Append = `9b4d09f5a28a6355726906a54318fece090bed96e14689cb03b5595ddcaf922d`
+/ 569.787 B / 9.366 CRLF. H20.32 und H20.33 bleiben unveraendert.
+
+---
+
+## H20.34-Erratum - Praezisierung: 10 patch-induzierte Injektionen, davon 4 P9 / 6 ZP
+
+### 1. Anlass
+
+H20.34 Abschnitt 3 spricht von "10 ZP-Injektionen". Das ist begrifflich
+unscharf: Das Laufzeit-Gate `_zv(k)` (Renderer Z. 889-900) schliesst das
+P9-Fenster explizit aus (`and not (_P9_START <= kk <= _P9_ENDE)`).
+Fuer k in 848..1020 ist `_zv(k)` daher beweisbar False - die ZP-4-Regeln
+(A_UEB1/A_VC/A_M6L/A_SB) und die ZP-5-Dochte sind dort inert.
+
+### 2. Korrekte Klassifikation der 10 Injektionen
+
+| Gruppe | Bars | Trades | R | tragende Mechanik | `_zv(k)` |
+|---|---|---|---|---|---|
+| P9-Mechanik | 903, 980, 981, 1002 | 4 | +20.431955 | K67-Niveau-Override 69.87, Hook 1 (`hook_1_freigabe_kid`), Hook 3 / G4-Boden-Reclaim (K77@1002) | False |
+| ZP-Fenster | 1075, 1122, 1172, 1268, 1272, 1280 | 6 | +19.741574 | ZP-4 (A_UEB1/A_VC/A_M6L/A_SB) + ZP-5-Dochte | True |
+| Summe | - | 10 | +40.173529 | - | - |
+
+Die P9-Gruppe traegt mehr R als die ZP-Gruppe. Beide zusammen bilden das
+Injektions-Delta V1_kausal - V1_basis = +40.173529 R. Die 10 Eintraege sind
+deckungsgleich mit der Journal-Liste "Neu im V019-Lauf".
+
+### 3. Gueltigkeitsumfang
+
+- H20.34 Abschnitt 2 (Zerlegungsmatrix, Delta-Zerlegung) bleibt unveraendert.
+- H20.34 Abschnitt 3: Ueberschrift gedanklich "Die 10 patch-induzierten
+  Injektionen"; die Tabelle je Trade bleibt unveraendert, die Fenster-Spalte
+  ist bereits korrekt (P9 848..1020 / ZP 1033..1287).
+- H20.34 Abschnitt 4 (Richtungsbilanz) bleibt unveraendert: 3 LONG / 7 SHORT
+  gilt fuer die Gesamtheit der 10.
+- H20.34 Abschnitt 5 (Retargeting-Attribution) bleibt unveraendert.
+
+### 4. Konsequenz fuer V020 (bindend)
+
+V020 darf weder P9-Hardcodings (K67-Override 69.87, P9-Boden-Literal) noch
+das ZP-Fenster kennen. Die P9-Gruppe ist nur deshalb profitabel, weil der
+Adapter dem P9-Segment einen phasen-lokalen Niveau-Override und ein
+Boden-Literal mitgibt - beides sind verkrustete Engine-Schwellenwerte, die
+in einer nativen V020 durch markt-endogene Regeln zu ersetzen sind.
+
+**Anker:** Handoff-Kopf vor diesem Erratum-Append = `bf32a5451c861bd2e8396e02ec5432abbff0b4b8575a4eb218e34b6b065d7c3f`
+/ 576.922 B / 9.517 CRLF. H20.34 (Hauptteil) bleibt unveraendert.
+
+---
+
+## H20.35 - 3-Klassen-Taxonomie des V019-Patchsets: Hook-Verdrahtung, Schwellen-Lockerung, Daten-Injektion
+
+### 1. Ausgangslage und Fragestellung
+
+Antwort auf H20.34-Erratum. Schritt 3 des Plans: rein lesende Kartierung
+saemtlicher Eingriffe, die das Injektions-Delta
+V1_kausal - V1_basis = +40.173529 R (10 Trades, 4 P9 / 6 ZP) erzeugen.
+SSoT der Patches: `test/tmp_png_aug_sichttest.py` (500b5576...).
+Baseline-Engine: `test/tmp_kanten_engine_replay.py` (53f28e1b..., unveraendert).
+Kein Lauf in dieser Phase; alle Zeilenangaben sind Code-Inspektion.
+
+Die Eingriffe zerfallen in DREI kategorial verschiedene Klassen. Die
+Vermischung dieser Klassen war die Ursache der Begriffsunsicherheit.
+
+### 2. Klasse I - Hook-Verdrahtung (13 Basis-Patches, KEIN Schwellenwechsel)
+
+Gate: Bindung von `_hook` in den Engine-Globals (`ns`). In V0 (ORIG
+`_se_trades`) nicht gebunden; in V1_basis/V1_kausal gebunden.
+
+| Patch | Engine-Ziel (Z.) | Funktion | Baseline | Gepatcht |
+|---|---|---|---|---|
+| A_KANTEN | Insert vor 2475 | Grenze `_im_aussenquartil` | - | Helfer `_basis_wirksam`, `_seite_kanten`, `_freigabe_kid` |
+| A_LOOP | 2615-2616 | Motor-Loop | `kd = _kandidat(...)` | + `_freigabe_kid = _hook.hook_1_freigabe_kid(...)` |
+| A_POOL | 2579 | `_kandidat` | `key=e.basis_bei(k)` | `key=_basis_wirksam` + `kid != _freigabe_kid` |
+| A_DIST | 2549 | `_kandidat._dist` | `e.basis_bei(k)` | `_basis_wirksam(e,k)` |
+| A_KBASIS | 2638 | Motor-Loop | `kd.basis_bei(k)` | `_basis_wirksam(kd,k)` |
+| A_M6_BASIS_K | 2505 | `_blockiert_durch_aussenkante` | `kd.basis_bei(k)` | `_basis_wirksam(kd,k)` |
+| A_M6_BASIS | 2510 | ebd. | `e.basis_bei(k)` | `_basis_wirksam(e,k)` |
+| A_M6_RET | 2523 | ebd. | `aussen.basis_bei(k)` | `_basis_wirksam(aussen,k)` |
+| A_M6_SORT | 2514 | ebd. | `b > aussen.basis_bei(k)` | `_basis_wirksam` |
+| A_M6_SORT2 | 2519 | ebd. | `b < aussen.basis_bei(k)` | `_basis_wirksam` |
+| A_M6_OBEN | 2508-2509 | ebd. | `e is kd or not _existiert` | + `or e.kid == _freigabe_kid` |
+| A_M6_UNTEN | 2516-2517 | ebd. | analog | analog |
+| A_TP2 | 2676 | Motor-Loop (TP2) | `gegen_basis = geg.basis_bei(k)` | + Hook-2: BLOCKIERT -> continue, PHASE -> ziel_preis |
+
+Befund: KEIN einziger der 13 Patches aendert einen Schwellenwert. Alle
+verdrahten ausschliesslich die Delegation auf `_hook` (`_basis_wirksam` =
+`_hook.angewandte_basis`). Damit traegt der **K67-Niveau-Override 69.87**
+(Adapter Z. 379-396) in jede Basis-, Sortier- und Distanzrechnung ein.
+
+### 3. Klasse II - Schwellen-Lockerung (ZP-4, Gate `_zv(k)`)
+
+Gate: `_zv(k)` = mode V019 UND `len(_hook.segmente) > 1` UND
+`1033 <= k <= 1287` UND **nicht** `848 <= k <= 1020`. Fuer ganz P9 ist das
+Gate beweisbar False.
+
+| Patch | Engine-Ziel (Z.) | Baseline | Gepatcht | Institutionelle Bedeutung |
+|---|---|---|---|---|
+| A_UEB1 | 2586 `_kandidat` | `dist > cfg.max_sweep_ueberdehnung_pct` (0.60) -> `return None` | `dist > _ueb(k)` = 0.80 in der Zone | Ueberdehnungsschwelle +33 %; "ueberdehnter Sweep gilt noch als Reclaim" |
+| Companion `_reclaim_stufe_lok` | 2019/2051/2065 `_reclaim_stufe` | `cfg.max_sweep_ueberdehnung_pct` | `dataclasses.replace(...,=0.80)` bei `_zv` | dieselbe Lockerung auf dem Reclaim-Stufen-Pfad |
+| A_VC | 2483-2484 `_im_aussenquartil` | `np.max(hi[:k+1])` = global ab Bar 0 | `_q0 = _hook.aktive_phase_bei(k).start_bar`, dann `hi[_q0:k+1]` | Q29-Range segment-lokal statt global -> Trendblockade entschaerft (Kern H20.33) |
+| A_M6L | 2508 `_blockiert_durch_aussenkante` | `if e is kd or not _existiert(e,k): continue` | + `or (_zv(k) and not _lebt(e,k))` | dormante Aussenlinien sperren in der Zone nicht (wall_live_bars 96 ignoriert) |
+| A_SB | 2458-2460 `_existiert` | `if not e.ist_aktiv_bei(k): return False` | + `_ev = hi[k]>basis` (OBEN) / `lo[k]<basis` (UNTEN); `if not (_zv and _ev): return False` | gesweepte, eigentlich inaktive Linie zaehlt als existent |
+
+### 4. Klasse III - Daten-Injektion (ZP-5)
+
+Gate: nur V019 + Mehrsegment-Adapter; laeuft auf der laufeigenen
+`copy.deepcopy(scan)` VOR `_se_trades` (Renderer Z. 989-997).
+
+| Patch | Ort | Wirkung |
+|---|---|---|
+| `erweitere_segmentwand_dochte` | Renderer Z. 923-976 | Haengt Wicks `(kb, lo[kb])` bzw. `(kb, hi[kb])` an Segmentwaende, wenn `touch_band < dkl <= ueb`; loescht `schlaf_windows` im Segmentfenster; setzt `status="AKTIV"` |
+
+KORREKTUR zur Formulierung "erfundene Ticks": Die angehaengten Preise
+stammen aus den ECHTEN Arrays `hi`/`lo` und nur von Bars mit realem
+Durchstich. Es ist eine **Touch-Reklassifikation aus realem OHLC**, keine
+Tick-Fabrikation. Das Verbot in V020 stuetzt sich auf drei andere Gruende:
+(1) Schema-Bruch - Datenebene erzwingt eine Regel; (2) Lifecycle-Override -
+eigene Zustaende werden ueberschrieben statt befragt; (3) die Schleife
+laeuft bis `_s1 = end_bar`, ohne dass verifiziert ist, ob Wicks mit `b > k`
+das Verhalten bei `k` beeinflussen (moeglicher Lookahead, offener Pruefpunkt).
+
+### 5. P9-Mechanik (Bars 848-1020, `_zv(k) == False`)
+
+| Hebel | Ort | Wirkung |
+|---|---|---|
+| K67-Niveau-Override 69.87 | Adapter `angewandte_basis` / `niveau_override_bei` | phasen-lokaler Preis; erreicht die Engine via Klasse-I-Patches |
+| Hook 1 `hook_1_freigabe_kid` | Adapter Z. 443 | gibt eine Sperr-Kante frei (`_freigabe_kid`) |
+| Hook 3 / G4-Boden-Reclaim | engine-nativ Z. 2753-2838 (`globals().get("_hook")`) | erklaert K77@1002 LONG (Journal: "G4-PHASENBODEN") |
+
+Befund: G4 ist BEREITS engine-nativ vorhanden und war in V0 nur deshalb
+inaktiv, weil `_hook` in den Engine-Globals nicht gebunden ist. V019
+aktiviert es allein durch die Globals-Bindung - es ist kein neuer Code.
+
+### 6. Gate-Topologie (Zusammenfassung)
+
+| Bar-Bereich | `_zv(k)` | wirksame Klassen |
+|---|---|---|
+| 0..847 | - | V0-Mechanik (kein Hook) |
+| 848..1020 (P9) | **False** | Klasse I + Adapter-Override + G4 (native) |
+| 1021..1032 | False | nur Klasse I |
+| 1033..1287 (ZP) | **True** | Klasse I + II + III |
+| 1288..2749 (EXT) | False | nur Klasse I |
+
+### 7. Institutionelle Bewertung und V020-Konsequenzen (bindend)
+
+1. **Klasse III entfaellt in V020 ausnahmslos.** Die Absicht ("angestochene
+   Wand ist praesent") wird durch ein NATIVES, kausales Liveness-Praedikat
+   auf `hi`/`lo` ersetzt - nicht durch Scan-Mutation. Der R-Anteil von ZP-5
+   an den 6 ZP-Trades ist nicht isoliert (nur kontrafaktisch messbar).
+2. **Klasse II: Prinzipien ja, Zahlen nein.**
+   - Generell zu verankern: A_SB (durchstochene Kante zaehlt als existent),
+     A_M6L (dormante Linie sperrt nicht).
+   - A_VC: Anker wird generisch lokal, aber markt-endogen (Korridor/Ladder
+     `L_s(k)`) - weder Bar-0-global noch `segmente[1].start_bar`-Literal.
+   - A_UEB1: die Zahl 0.80 wird NICHT als globale Motor-Konstante
+     eingebrannt. `0.60` ist als "Korridor [0.478; 0.625] %" empirisch
+     kalibriert; global 0.80 waere +33 % Lockerung des gesamten
+     Trade-Populationsraums inkl. H1 - ungemessen und deshalb unzulaessig.
+3. **Klasse I und G4 zeigen den V020-Weg.** Die native Engine besitzt die
+   Pfade bereits; sie sind zu typisieren, ohne AST-Injektion direkt zu
+   verdrahten und von den globalen Fenster-Ankern zu entkoppeln.
+
+### 8. Aenderungen / Dateien / SHAs
+
+- Diese Sektion ist reine Dokumentation; kein Artefakt erzeugt oder geaendert.
+- **Unveraendert:** Engine `53f28e1b...` / 200.433 B; Renderer `500b5576...` /
+  123.343 B; Adapter `770eda2c...` / 43.279 B;
+  `test/_chk_zp_trade_zerlegung_out.txt` `1dccb3de...` / 5.343 B.
+
+### 9. Entscheidungsfragen (Textblock, keine Auswahl)
+
+1. **ZP-5-Isolation:** Soll der R-Anteil von Klasse III an den 6 ZP-Trades
+   ueber einen kontrafaktischen Lauf (Dochte-Patch aus) gemessen werden -
+   spaeter, read-only, gegen die neue V020-Datei?
+2. **Lookahead-Pruefung:** Soll geprueft werden, ob `erweitere_segmentwand_dochte`
+   Wicks mit `b > k` einfuegt und ob diese das Verhalten bei `k` veraendern?
+3. **V020-Vertraege:** Folgt als Naechstes der Entwurf der Interface-Signaturen
+   fuer `test/tmp_kanten_engine_v020_replay.py` (Klassenbindung ohne AST,
+   Beseitigung der globalen Fenster-Anker)?
+4. **A_UEB1-Zahl:** Wird die segment-lokale Schranke in V020 aus einer
+   markt-endogenen Groesse (Korridorbreite/Ladder) abgeleitet, oder bleibt
+   sie vorlaeufig ein frei waehlbarer Parameter ohne Sollwert-Pin?
+
+**Anker:** Handoff-Kopf vor diesem Append = `f213eb8dfa95b3ce5c2c01d9c6c203d9e4e7fcd195df6a4266897136ce5acae1`
+/ 579.167 B / 9.562 CRLF. H20.32, H20.33, H20.34 und H20.34-Erratum bleiben
+unveraendert.
+
+---
+
+## H20.36 - Typvertraege V020: Zwei-Protocol-Modell, endogener Marktrand, Entfall Klasse III
+
+### 1. Ausgangslage und Fragestellung
+
+Antwort auf H20.35 Abschnitt 9. Notarielle Arretierung der Textvorlage fuer
+`test/tmp_kanten_engine_v020_replay.py` VOR der physischen Dateianlage.
+SSoT-Baseline bleibt `test/tmp_kanten_engine_replay.py` (53f28e1b...,
+unveraendert); dieses Dokument ist reine Textvorlage, kein Lauf, kein
+Compile, keine Dateianlage.
+
+Ziel: vollstaendiger Entfall von (a) AST-Quelltext-Patches, (b)
+`globals()`-Bindung, (c) globalen Fensterankern (`hi[:k+1]` / `lo[:k+1]`).
+
+### 2. Zwei-Protocol-Modell (ISP, beide `@runtime_checkable`)
+
+| Protocol | Kategorie | Methoden | Zustand |
+|---|---|---|---|
+| `KantenWertedomaene` | reine Mathematik, zustandslos | `angewandte_basis`, `niveau_override_bei` | keiner |
+| `KantenRegimeHook` | Kontrollfluss / Trade-Entscheidung | `aktive_phase_bei`, `hook_1_freigabe_kid`, `hook_2_ziel`, `hook_3_boden_reclaim` | Regime |
+
+Beide Protocols werden per Konstruktor injiziert. Kein `globals().get(...)`.
+Der Adapter `phasen_regime_adapter.py` erfuellt sie bereits methodisch -
+kein Adapter-Umbau noetig.
+
+### 3. Kaltstart-/Degenerationsvertrag (bindend)
+
+Fuer den Fall, dass der endogene Marktrand nicht bestimmbar ist, gilt eine
+dreistufige Fallback-Leiter (alle Quellen strikt kausal, `<= k`):
+
+1. `L_s(k)` mit >= 1 lebender Kante ->
+   `Marktrand(decke=max(basis), boden=min(basis), quelle="lebende_kanten")`.
+   Bei genau 1 Kante ist die Spanne degeneriert (`decke == boden`).
+2. sonst aktives Segment -> `Marktrand(..., quelle="segment_fallback")`.
+3. sonst `Marktrand = None` -> `im_aeusseren_quartil` gibt **True** zurueck
+   und der Zaehler `quartil_undefiniert` wird inkrementiert.
+
+Begruendung: Die Baseline hat die Praezedenz gesetzt
+(`if spanne <= 0.0: return True`, Engine Z. 2486-2487). Eine nicht
+definierbare Geometrie darf keine kuenstliche Sperre erzeugen. Der Fall
+wird NICHT stillschweigend gemerged, sondern separat gezaehlt.
+
+MISSBRAUCHSSPERRE: Der Permissiv-Zweig darf nicht als Stellschraube zur
+Reproduktion von +85.577150 R dienen. Kalibriert wird ueber Q29-Passrate
+und Trade-Population, nicht ueber einen R-Pin.
+
+Rueckkopplung (explizite Systemeigenschaft, kausal): Es gilt die Kette
+Liveness `L_s(k)` -> Marktrand -> Quartilposition -> Trade. Der Rand ist
+damit pfadabhaengig; das ist beabsichtigt (ein Orderbuch atmet) und
+ausschliesslich aus Quellen `<= k` gespeist.
+
+### 4. Typvertrags-Textvorlage (SSoT fuer die Dateianlage)
+
+```python
+"""V020-Kanten-Engine -- typisierte Neuanlage (Textvorlage, ungeprueft).
+
+SSoT-Baseline: test/tmp_kanten_engine_replay.py (53f28e1b..., unveraendert).
+Kein AST-Patch; alle Hooks werden als typisierte Protocols per Konstruktor
+injiziert. Keine globals()-Bindung, keine Fenster-Anker (kein Bar-0-Range,
+kein Bar-Literal, kein ZP-Fenster, kein box_end_datum).
+"""
+from __future__ import annotations
+from dataclasses import dataclass
+from enum import Enum
+from typing import NamedTuple, Optional, Protocol, Sequence, Tuple, runtime_checkable
+
+
+class KantenSeite(str, Enum):
+    OBEN = "OBEN"
+    UNTEN = "UNTEN"
+
+
+class SignalRichtung(str, Enum):
+    LONG = "LONG"
+    SHORT = "SHORT"
+
+
+class Hook2ZielModus(str, Enum):
+    MAKRO = "MAKRO"          # Engine-TP2 unveraendert
+    PHASE = "PHASE"          # Segmentziel ersetzt gegen_basis
+    BLOCKIERT = "BLOCKIERT"  # kein Raum -> Trade ablehnen
+
+
+@dataclass(frozen=True, slots=True)
+class V020KantenKonfiguration:
+    """Alle Hyperparameter extern; KEINE Bar-Literale, KEINE Fensteranker."""
+    touch_band_pct: float = 0.12
+    min_touches_handelbar: int = 3
+    max_sweep_ueberdehnung_pct: float = 0.60   # geschuetzte Baseline
+    ueb_schranke_quelle: str = "korridor_endogen"  # NICHT 0.80 als Konstante
+    wall_live_bars: int = 96
+    min_wall_alter_bars: int = 24
+    quartil_distanz_pct: float = 25.0
+    sweep_mindestdurchstich_pct: float = 0.0
+    tp1_anteil_pct: float = 50.0
+    # bewusst FEHLEND: box_end_datum, Segment-Start/-End-Bars, Override-Preise
+
+
+class KantenReferenz(NamedTuple):
+    """Unveraenderliche Kantensicht zum Bar k (strikt kausal)."""
+    kid: int
+    seite: KantenSeite
+    basis_bei_k: float
+    erster_pivot_bar: int
+    letzter_sweep_bar: int
+    touch_n: int
+    ist_aktiv: bool            # Lifecycle-Zustand, NICHT mutiert
+    ist_prim_anker: bool
+
+
+class Marktrand(NamedTuple):
+    """Endogene Randgroesse aus L_s(k), strikt <= k."""
+    decke: float
+    boden: float
+    quelle: str                # "lebende_kanten" | "segment_fallback"
+
+
+class Hook2Ergebnis(NamedTuple):
+    modus: Hook2ZielModus
+    ziel_preis: Optional[float]
+
+
+class BodenReclaimSpec(NamedTuple):
+    phasen_id: str
+    boden_kid: int
+    deklarierter_boden_literal: float
+    tp2: float
+
+
+@runtime_checkable
+class KantenWertedomaene(Protocol):
+    """Reine Wertedomaene -- keine Marktzustandsentscheidung."""
+    def angewandte_basis(self, bar_idx: int, kid: int,
+                         basis_engine: float) -> float: ...
+    def niveau_override_bei(self, bar_idx: int, kid: int) -> Optional[float]: ...
+
+
+@runtime_checkable
+class KantenRegimeHook(Protocol):
+    """Entscheidungs-/Kontextschicht -- ersetzt AST- und globals()-Hooks."""
+    def aktive_phase_bei(self, bar_idx: int) -> Optional[object]: ...
+    def hook_1_freigabe_kid(self, bar_idx: int, sweep_px: float,
+                            richtung: SignalRichtung,
+                            seiten_kanten: Sequence[Tuple[int, float]]
+                            ) -> Optional[int]: ...
+    def hook_2_ziel(self, bar_idx: int,
+                    richtung: SignalRichtung) -> Hook2Ergebnis: ...
+    def hook_3_boden_reclaim(self,
+                             bar_idx: int) -> Optional[BodenReclaimSpec]: ...
+
+
+def marktrand_bei(lebende: Sequence[KantenReferenz],
+                  segment: Optional[object]) -> Optional[Marktrand]:
+    """Fallback-Leiter des endogenen Marktrands (siehe Abschnitt 3).
+
+    Args:
+        lebende: Kanten mit erster_pivot_bar + 2 <= k + 1 und Lifecycle aktiv.
+        segment: optionales aktives Segment (nur Fallback-Quelle).
+
+    Returns:
+        Marktrand aus lebenden Kanten, sonst aus dem Segment, sonst None.
+    """
+    ...
+
+
+def im_aeusseren_quartil(preis: float, rand: Optional[Marktrand],
+                         richtung: SignalRichtung, quartil_pct: float) -> bool:
+    """Ersetzt _im_aussenquartil -- ohne hi[:k+1]/lo[:k+1].
+
+    Args:
+        preis: Sweep-Extremum bei k (hi[k] bzw. lo[k]).
+        rand: endogener Marktrand (Abschnitt 3); None = undefiniert.
+        richtung: SHORT prueft Naehe zur Decke, LONG zur Boden.
+        quartil_pct: zulaessige Distanz zum Extrem in Prozent der Spanne.
+
+    Returns:
+        True, wenn die normierte Distanz <= quartil_pct; bei rand is None
+        oder degenerierter Spanne (decke == boden) ebenfalls True
+        (Permissiv-Modus, Zaehler quartil_undefiniert).
+    """
+    ...
+
+
+def existiert_nativ(ref: KantenReferenz, k: int,
+                    cfg: V020KantenKonfiguration, preis: float) -> bool:
+    """A_SB nativ: pivot + 2 UND (Lifecycle aktiv ODER realer Durchstich)."""
+    ...
+
+
+def lebt_kausal(ref: KantenReferenz, k: int,
+                cfg: V020KantenKonfiguration) -> bool:
+    """wall_live_bars, ausschliesslich aus realen Touches <= k."""
+    ...
+
+
+class V020KantenEngine:
+    """Native Engine -- Dependency Injection statt globals()/AST.
+
+    Args:
+        hook: Regime-Entscheidungsschicht; None = rein native Mechanik.
+        wertedomaene: optionale Wertedomaene (Override-Basis).
+        cfg: typisierte Konfiguration ohne Fensteranker.
+    """
+
+    def __init__(self,
+                 hook: Optional[KantenRegimeHook] = None,
+                 wertedomaene: Optional[KantenWertedomaene] = None,
+                 cfg: V020KantenKonfiguration = V020KantenKonfiguration()
+                 ) -> None:
+        self._hook = hook
+        self._wertedomaene = wertedomaene
+        self.cfg = cfg
+
+    def _basis_wirksam(self, kid: int, k: int, basis_engine: float) -> float:
+        """Override, falls Wertedomaene gebunden; sonst Engine-Basis."""
+        if self._wertedomaene is None:
+            return float(basis_engine)
+        return self._wertedomaene.angewandte_basis(k, kid, basis_engine)
+```
+
+### 5. Entfall Klasse III (ZP-5) -- ausnahmslos
+
+V020 enthaelt kein `erweitere_segmentwand_dochte`, kein `_zv(k)`, kein
+`0.80`-Literal, kein `end_bar`-Fenster und kein `box_end_datum`. Klasse III
+ist physisch nicht vorhanden - nicht "deaktiviert". Die Absicht
+("angestochene Wand ist praesent") wird ausschliesslich ueber
+`existiert_nativ` (A_SB, realer Durchstich aus `hi`/`lo`) abgebildet.
+
+### 6. Uebernommene Klasse-II-Prinzipien (ohne Zahlen-Pin)
+
+- `A_SB` -> `existiert_nativ`: durchstochene Kante zaehlt als existent.
+- `A_M6L` -> Innenlevel-Blocker ueberspringt dormante Linien generell.
+- `A_VC` -> `im_aeusseren_quartil` mit endogenem `Marktrand` (kein Bar-0,
+  kein `segmente[1].start_bar`-Literal).
+- `A_UEB1`: die Zahl 0.80 wird NICHT als Konstante eingebrannt;
+  `ueb_schranke_quelle` haelt die Herkunft explizit offen.
+
+### 7. Aenderungen / Dateien / SHAs
+
+- Reine Dokumentation; kein Artefakt erzeugt oder geaendert.
+- **Unveraendert:** Engine `53f28e1b...` / 200.433 B; Renderer `500b5576...` /
+  123.343 B; Adapter `770eda2c...` / 43.279 B.
+
+### 8. Entscheidungsfragen (Textblock, keine Auswahl)
+
+1. **Dateianlage:** Folgt jetzt Schritt 3 - physische Anlage von
+   `test/tmp_kanten_engine_v020_replay.py` (eigener SHA, Baseline unberuehrt)?
+2. **Verifikation:** Die im Plan genannte "Kalt-Verifikation der
+   Importierbarkeit" waere ein Ausfuehren von Code. Bleibt es beim Verbot,
+   oder wird sie als isolierter Backend-Check in `test/test.py` freigegeben?
+3. **Sollwert-Bindung:** Soll V020 vorlaeufig OHNE R-Pin gegen V0
+   (14 / +42.450970) und V1_kausal (23 / +85.577150) gestellt werden - als
+   Beobachtung, nicht als Fail-Loud-Assert?
+
+**Anker:** Handoff-Kopf vor diesem Append = `4fe32cdea521d7b1411ecf33e200695927f1271cc431c43baba9d30723327bf3`
+/ 587.741 B / 9.702 CRLF. H20.32 bis H20.35 bleiben unveraendert.
+
+---
+
+## H20.37 - Stufe A vollzogen: typisiertes V020-Fundament, neue Datei, py_compile-Befund
+
+### 1. Ausgangslage und Fragestellung
+
+Antwort auf H20.36 Abschnitt 8. Freigabe erteilt fuer die physische Anlage
+der neuen Datei `test/tmp_kanten_engine_v020_replay.py` mit vollwertigen
+Ruempfen (keine Ellipsen), Verifikation ausschliesslich statisch
+(`python -m py_compile`, Agents.md Abschnitt 4). Kein Trade-Code ausgefuehrt,
+kein Regressionstest.
+
+### 2. Ergebnis
+
+| Kennzahl | Wert |
+|---|---|
+| Datei | `test/tmp_kanten_engine_v020_replay.py` (neu, additiv) |
+| SHA256 | `1c7a807365ff2aee07c9440c694c50c5427c19d5a74deb5b89866c7d4b6e485a` |
+| Bytes | 19.194 |
+| Zeilen | 501 |
+| `py_compile` | OK (kein Syntaxfehler) |
+| Ellipsen-Ruempfe | 0 (auch die Protocols nutzen `raise NotImplementedError`) |
+| Baseline `53f28e1b...` | unveraendert |
+
+`__pycache__`-Rueckstand der neuen Datei wurde unmittelbar nach dem Check
+entfernt (Politik: keine `.pyc`-Artefakte im Arbeitsverzeichnis).
+
+### 3. Struktur Stufe A
+
+1. `baseline()` -- Lazy-Loader mit SHA-Guard (53f28e1b...), gecacht; kein
+   Top-Level-Import, damit der Modul-Import seiteneffektfrei ist.
+2. Typen: KantenSeite, SignalRichtung, Hook2ZielModus,
+   `@dataclass(frozen=True, slots=True) V020KantenKonfiguration`,
+   KantenReferenz, Marktrand, Hook2Ergebnis, BodenReclaimSpec.
+3. Protocols (beide `@runtime_checkable`): `KantenWertedomaene`
+   (zustandslos) und `KantenRegimeHook` (Kontrollfluss).
+4. Reine Kernfunktionen: `kantenreferenz_aus`, `marktrand_bei`,
+   `im_aeusseren_quartil` (Div-by-Zero-Schutz + Permissiv-Zweig),
+   `existiert_nativ` (A_SB nativ ueber realen Durchstich),
+   `lebt_kausal`, `etabliert_kausal`.
+5. `V020KantenEngine` -- DI per Konstruktor; `_basis_wirksam`, `_referenzen`,
+   `_marktrand` (3-Stufen-Leiter), `_quartil_pass` (Zaehler
+   `quartil_undefiniert` / `quartil_blockiert` in der Engine),
+   `_se_trades_v020` (Stufe B, `NotImplementedError`).
+
+### 4. Vertragserweiterung gegenueber H20.36 Abschnitt 4
+
+`KantenReferenz` fuehrt zusaetzlich `letzter_touch_bar: int`. Ohne dieses
+Feld ist `lebt_kausal` (k - letzter_touch <= wall_live_bars) nicht
+berechenbar. Das ist die Behebung einer Auslassung im Entwurf, keine
+inhaltliche Abweichung. Der Wert wird ausschliesslich aus realen
+Wicks mit Bar <= k gebildet (`-1`, wenn kein Kontakt).
+
+### 5. Nachweis der Anker- und Klassen-III-Freiheit
+
+Suchlauf ueber die Verbotsliste (`hi[:k`, `lo[:k`, `globals()`,
+`box_end_datum`, `_zv(`, `0.80`, `erweitere_segmentwand`) ergibt 6
+Treffer -- saemtlich in Docstrings, die die ABWESENHEIT erklaeren
+(Z. 8/9/102/189/277/366). Kein Code-Treffer. Klasse III ist physisch
+nicht vorhanden, nicht "deaktiviert".
+
+### 6. Offene Punkte fuer Stufe B (dokumentiert, nicht behoben)
+
+1. `existiert_nativ(ref, k, cfg, preis)` erwartet als `preis` das
+   SEITENRICHTIGE Extrem (OBEN: `hi[k]`, UNTEN: `lo[k]`). Die
+   ZP-4-Vorlage `A_SB` entschied ueber `e.seite` und las `hi[k]` bzw.
+   `lo[k]` je Zweig. Vorbedingung ist im Docstring zu schaerfen.
+2. Die Substitutionsmatrix ist NICHT vierzeilig. Die zehn Klasse-I-Patches
+   umfassen neben den sechs `basis_bei`-Stellen auch die Hook-1-Freigabe
+   (`A_LOOP` / `A_POOL`-Filter / `A_M6_OBEN` / `A_M6_UNTEN`), den
+   Hook-2-TP2-Vertrag (`A_TP2`, Baseline Z. 2676) und die G4-Bindung
+   (`globals().get("_hook")` -> `self._hook`, Baseline Z. 2762).
+   Gesamtumfang Stufe B: sieben Substitutionen.
+3. Der `Marktrand` ist je Bar VOR der Quartilpruefung zu berechnen
+   (Baseline Z. 2630). Das ist eine neue Vorbedingung im Motor, kein
+   Zeilentausch.
+4. V020 wird V0 NICHT byte-reproduzieren. Die Verallgemeinerung von
+   `A_SB` und `A_M6L` veraendert das Verhalten auch ausserhalb eines
+   ZP-Fensters. Das ist beabsichtigt (neue Engine, keine A/B-Identitaet)
+   und muss beim Vergleich beobachtend behandelt werden -- ohne R-Pin
+   (V0 14 / +42.450970 R; V1_kausal 23 / +85.577150 R).
+
+### 7. Aenderungen / Dateien / SHAs
+
+| Artefakt | SHA256 | Bytes |
+|---|---|---|
+| `test/tmp_kanten_engine_v020_replay.py` | `1c7a807365ff2aee07c9440c694c50c5427c19d5a74deb5b89866c7d4b6e485a` | 19.194 |
+
+- **Unveraendert:** Baseline `53f28e1b...` / 200.433 B; Renderer
+  `500b5576...` / 123.343 B; Adapter `770eda2c...` / 43.279 B.
+
+### 8. Entscheidungsfragen (Textblock, keine Auswahl)
+
+1. **Substitutionsmatrix:** Soll die siebenzeilige Mapping-Tabelle
+   (Abschnitt 6.2) als Textvorlage vor dem Schreiben von Stufe B
+   vorgelegt werden -- oder direkt im Schreibvorgang umgesetzt?
+2. **`existiert_nativ`-Precondition:** Bleibt die Signatur
+   `(ref, k, cfg, preis)` mit dokumentierter Vorbedingung, oder wird sie
+   auf `(ref, k, cfg, hi_k, lo_k)` erweitert (Aenderung des Stufe-A-SHA)?
+3. **G4-Bindung:** Soll der G4-Block (Baseline Z. 2753-2838) in Stufe B
+   mit ueberfuehrt werden (DI via `self._hook`), oder als eigene
+   Stufe C behandelt werden?
+4. **Stufe-B-SHA:** Wird nach Stufe B ein neuer Abschnitt H20.38 mit dem
+   dann gueltigen Datei-SHA angelegt (H20.37 bleibt als Stufe-A-Stand
+   gueltig)?
+
+**Anker:** Handoff-Kopf vor diesem Append = `0711c465844ba8347f6d872cd96a41bae69e360308209fcaf934d46c6649f439`
+/ 598.103 B / 9.960 CRLF. H20.32 bis H20.36 bleiben unveraendert.
+
+---
+
+## H20.38 - Substitutionsmatrix Stufe B (Motor) + Pflicht-Errata zu Stufe A
+
+### 1. Ausgangslage und Fragestellung
+
+Antwort auf H20.37 Abschnitt 8. Vor der physischen Umsetzung des Motors
+`_se_trades_v020` wird die Verdrahtung gegen die Baseline (Z. 2409-2845)
+notariell fixiert. Bei der Vorbereitung wurden ZWEI DEFEKTE in Stufe A
+(SHA 1c7a8073) gefunden, die hier verbindlich korrigiert werden, BEVOR der
+Motor geschrieben wird. Der Stufe-A-Stand bleibt als historischer
+Meilenstein gueltig (H20.37); die Korrektur erzeugt in H20.39 einen neuen
+Datei-SHA.
+
+### 2. Die 7-Punkte-Substitutionsmatrix (ueberarbeitet)
+
+| # | Baseline-Bereich (Z.) | Baseline-Konstrukt | V020-Substitution | Zweck |
+|---|---|---|---|---|
+| 1 | 2505, 2510, 2523, 2549, 2579, 2638 | `e.basis_bei(k)` | `self._basis_wirksam(e.kid, k, e.basis_bei(k))` | Basis ueber `KantenWertedomaene` |
+| 2 | 2450-2460, 2508, 2556 | `_existiert(e, k)` | `existiert_nativ(ref, k, self.cfg, preis)` | A_SB nativ (realer Durchstich) |
+| 3 | 2508 (M6-Blocker) | nur `_existiert`-Gate | `+ if not lebt_kausal(ref, k, self.cfg): continue` | A_M6L generell (dormante sperren nicht) |
+| 4 | 2483-2484, 2630 | `_im_aussenquartil(hi, lo, k, richtung)` | `self._quartil_pass(preis, rand, richtung)` | endogener Marktrand statt Bar-0-Range |
+| 5 | 2615, 2579-2581, 2508, 2516 | keine Freigabe-ID | `_freigabe_kid = self._hook.hook_1_freigabe_kid(...)` | Freigabe gesperrter Linien |
+| 6 | 2676 (TP2) | `gegen_basis = geg.basis_bei(k)` | `hook_res = self._hook.hook_2_ziel(...)` | A_TP2: MAKRO / PHASE / BLOCKIERT |
+| 7 | 2762 (G4) | `globals().get("_hook")` | `self._hook.hook_3_boden_reclaim(k)` | DI statt ungebundener Globals |
+
+### 3. PFLICHT-ERRATUM 1: Segment-Fallback in `_marktrand` ist defekt
+
+Befund (belegt, `phasen_regime_adapter.py`):
+- `PhasenKanteInfo` (Z. 79-100) besitzt NUR `kid`, `provenienz_basis`,
+  `touch_bars`. Es gibt KEINE Methode `basis_bei(k)`.
+- Der Adapter-Docstring sagt es explizit (Z. 86-87): "die Hook-Pruefung
+  nutzt ausschliesslich `basis_bei(k)`" - gemeint ist die ENGINE-Kante
+  (`_SEEdgeH`), nicht das Segment-Stammdatum.
+
+Der Stufe-A-Code `V020KantenEngine._marktrand` ruft
+`_decke.basis_bei(k)` / `_boden.basis_bei(k)` auf. Das ist ein
+**AttributeError** zur Laufzeit, sobald der Fallback-Zweig
+(`not lebende` UND gebundener Hook UND aktives Segment) betreten wird.
+
+KORREKTUR (verbindlich): Der Segment-Rand wird ueber einen
+`kid -> Engine-Kante`-Katalog aufgeloest, den ausschliesslich der Motor
+besitzt (`alle = list(scan["edges"]) + list(scan["seeds"])`).
+Signatur wird:
+```python
+def _marktrand(self, referenzen: Sequence[KantenReferenz], k: int,
+               kanten_index: Dict[int, Any]) -> Optional[Marktrand]:
+```
+Aufl??sung: `_ek = kanten_index.get(int(_decke.kid))`; ist `_ek` None, gilt
+der Segment-Rand als NICHT bestimmbar (Stufe 3, permissiv + Zaehler).
+Die statische `provenienz_basis` wird NICHT als Ersatz herangezogen
+(H20.35 Abschnitt 7: keine statische Provenienz als Rechenbasis).
+
+### 4. PFLICHT-ERRATUM 2: Typ-Identitaet der Hook-2/Hook-3-Rueckgaben
+
+Befund (belegt, `phasen_regime_adapter.py`):
+- Der Adapter definiert EIGENE Typen: `Hook2ZielModus(Enum)` (Z. 71, ohne
+  `str`-Mixin), `Hook2Ergebnis` (Z. 153), `BodenReclaimSpec` (Z. 166).
+- Stufe A definiert KOPIEN davon (`class Hook2ZielModus(str, Enum)` usw.).
+
+Folge: Ein Identitaetsvergleich `hook_res.modus is Hook2ZielModus.BLOCKIERT`
+gegen die V020-Kopie ist IMMER False, weil es verschiedene Enum-Klassen
+sind. **Kein Crash, sondern stiller Semantikverlust**: BLOCKIERT/PHASE
+wuerden ignoriert und TP2 fiele still auf den Engine-Wert zurueck.
+
+KORREKTUR (verbindlich, zwei gleichwertige Wege - Empfehlung: der zweite):
+1. V020 laedt `Hook2ZielModus` / `Hook2Ergebnis` / `BodenReclaimSpec`
+   read-only aus `backtest_lab/phasen_regime_adapter.py` (Lazy-Loader analog
+   `baseline()`), statt sie zu duplizieren.
+2. ODER der Motor vergleicht AUSSCHLIESSLICH ueber den Wert:
+   `hook_res.modus.value == "BLOCKIERT"` bzw. `== "PHASE"`. Das ist robust
+   gegen jede Hook-Implementierung mit gleichnamigem Wert und bleibt
+   DI-offen (H20.36-Zwei-Protocol-Modell).
+
+Fuer `BodenReclaimSpec` gilt dukle Typisierung (Attributzugriff
+`spec.boden_kid` usw.) - keine `isinstance`-Pruefung gegen die V020-Kopie.
+
+### 5. Marktrand-Vorbedingung (bestaetigt, mit Korrektur)
+
+Ja: der endogene Rand wird EXAKT EINMAL pro Bar k im aeusseren Bar-Loop
+VOR der Richtungs-Schleife berechnet und ist richtungsneutral (decke fuer
+SHORT, boden fuer LONG - dieselbe Groesse, wie die Baseline mit dem
+globalen Range verfuhr):
+
+```python
+rands: Dict[int, Optional[Marktrand]] = {}
+for k in range(2, box_end - 3):
+    refs = self._referenzen(alle, k)
+    rands[k] = self._marktrand(refs, k, kanten_index)
+    for richtung in ("SHORT", "LONG"):
+        ...
+        if not self._quartil_pass(sweep_px, rands[k], richtung):
+            continue
+```
+
+Hinweis: Die Berechnung ist bewusst EAGER (auch fuer Bars ohne Kandidat).
+Sie ist rein (keine Mutation) und damit verhaltensneutral; der Preis ist
+Laufzeit (siehe Abschnitt 7).
+
+### 6. G4-Block (Baseline Z. 2753-2838)
+
+Wird mit Stufe B ueberfuehrt, aber als GESCHLOSSENER Sub-Block mit einer
+einzigen Eintrittspforte:
+```python
+if self._hook is not None:
+    _spec = self._hook.hook_3_boden_reclaim(_k)
+    if _spec is None:
+        continue
+```
+Ohne Hook oder mit `None` wird der Block neutral uebersprungen - exakt die
+zweistufige Inertheit der Baseline, nur ohne `globals()`. Keine Stufe C.
+
+### 7. Offene Risiken und Messpunkte (kein R-Pin)
+
+1. **Semantikwechsel des Rands (Kernrisiko):** Die Baseline nutzte rohe
+   Preisextrema (`hi[:k+1]` / `lo[:k+1]`). V020 nutzt die Basen der
+   LEBENDEN Kanten. Das ist ein anderer Range. V020 wird V0 daher NICHT
+   byte-reproduzieren - beabsichtigt. Beobachtend zu messen gegen V0
+   (14 / +42.450970 R) und V1_kausal (23 / +85.577150 R).
+2. **Laufzeit:** `_referenzen(alle, k)` ueber 73 Kanten je Bar ergibt
+   rund 200.000 Konversionen (mit `basis_bei`, `touch_conf`,
+   `ist_aktiv_bei`). Akzeptabel, aber zu beobachten; spaeter ggf.
+   Cache je Bar statt Doppelberechnung pro Richtung.
+3. **`_marktrand`-Precondition:** `existiert_nativ` erwartet als `preis`
+   das SEITENRICHTIGE Extrem (OBEN: `hi[k]`, UNTEN: `lo[k]`). Im
+   `_marktrand`-Filter wird die Liveness ueber `erster_pivot_bar + 2`
+   und `lebt_kausal` geprueft - KEIN Durchstich-Praedikat. Das ist
+   beabsichtigt (der Rand kennt keine Richtung).
+
+### 8. Aenderungen / Dateien / SHAs
+
+- Reine Dokumentation; kein Artefakt in diesem Schritt geaendert.
+- `test/tmp_kanten_engine_v020_replay.py` bleibt vorlaeufig auf
+  `1c7a807365ff2aee07c9440c694c50c5427c19d5a74deb5b89866c7d4b6e485a`
+  (Stufe-A-Stand, enthaelt die zwei Defekte; Korrektur in H20.39).
+- **Unveraendert:** Baseline `53f28e1b...` / 200.433 B; Renderer
+  `500b5576...` / 123.343 B; Adapter `770eda2c...` / 43.279 B.
+
+### 9. Entscheidungsfragen (Textblock, keine Auswahl)
+
+1. **Erratum-2-Weg:** Reuse der Adapter-Typen (Weg 1) oder Wertvergleich
+   (Weg 2)? Empfehlung: Weg 2 - er haelt V020 frei von Adapter-Importen
+   und bleibt fuer jedes Hook-Objekt offen.
+2. **Korrekturzeitpunkt:** Die zwei Defekte jetzt sofort in der Stufe-A-
+   Datei beheben (neuer SHA, H20.37 wird als ueberholt markiert), oder
+   gemeinsam mit dem Motor in Stufe B (H20.39)?
+3. **Lebende Kanten:** Zaehlt der Rand nur `scan["edges"]` oder
+   `edges + seeds`? Empfehlung: nur `edges` - Seeds sind ereignisgetriebene
+   Schluessellinien und wuerden den Rand verzerren.
+4. **Segment-Rand bei unbekanntem kid:** Permissiv (Stufe 3 + Zaehler)
+   oder harter Abbruch (Fail-Loud)?
+
+**Anker:** Handoff-Kopf vor diesem Append = `766b42b73cb919c4316fc1d1e86813046e00a11bd24c5686967ea4ba40f87c04`
+/ 603.403 B / 10.069 CRLF. H20.32 bis H20.37 bleiben unveraendert.
+
+---
+
+## H20.39 - Stufe B vollzogen: Motor `_se_trades_v020`, 7 Substitutionen, 3 Errata
+
+### 1. Ausgangslage und Fragestellung
+
+Antwort auf H20.38 Abschnitt 9. Der Motor wurde in
+`test/tmp_kanten_engine_v020_replay.py` implementiert (die Stufe-A-Fassung
+`1c7a8073` ist damit ueberholt; H20.37 bleibt als historischer Meilenstein
+gueltig). Verifikation ausschliesslich statisch. Baseline `53f28e1b` bleibt
+unberuehrt.
+
+### 2. Ergebnis
+
+| Kennzahl | Wert |
+|---|---|
+| Datei | `test/tmp_kanten_engine_v020_replay.py` |
+| SHA256 | `e79c5c29482398d8237469a79a234c7200f8718e840252cc33d2bea37f3865af` |
+| Bytes | 40.567 |
+| Zeilen | 928 |
+| `py_compile` | OK |
+| Ellipsen-Ruempfe | 0 |
+| Baseline `53f28e1b...` | unveraendert |
+
+`__pycache__`-Rueckstand sofort entfernt (Politik).
+
+### 3. Die 7 Substitutionen (umgesetzt)
+
+| # | Ort im Motor | Umsetzung |
+|---|---|---|
+| 1 | `_basis(e, kk)` | `self._basis_wirksam(e.kid, kk, e.basis_bei(kk))` -- genutzt in `_dist`, Pool-Sort, Blockersetzer, `_gegenkante`, Logstrings |
+| 2 | `_existiert(e, kk, refs, preis)` | `existiert_nativ(ref, kk, self.cfg, preis)` (A_SB nativ) |
+| 3 | `_blockiert_durch_aussenkante` | ueberspringt dormante Linien via `lebt_kausal` (A_M6L generell) |
+| 4 | Motor-Loop | `rand_k = self._marktrand(...)`, dann `self._quartil_pass(sweep_px, rand_k, richtung)` |
+| 5 | Motor-Loop + `_kandidat` | `hook_1_freigabe_kid` je (k, Richtung); Pool-Filter und Blockersetzer-Skip |
+| 6 | nach `gegen_basis` | `hook_2_ziel` mit Wertvergleich (K2) |
+| 7 | G4-Block | `self._hook.hook_3_boden_reclaim` statt `globals().get("_hook")` |
+
+### 4. Pflicht-Errata (eingearbeitet)
+
+- **K1** (`_marktrand`): Signatur `(referenzen, k, kanten_index)`. Der
+  Segment-Rand wird ueber `{kid: _SEEdgeH}` aufgeloest. Nicht aufloesbare
+  Segmentkanten -> Stufe 3 (permissiv + Zaehler `quartil_undefiniert`).
+  `provenienz_basis` bleibt ausserhalb jeder Rechnung.
+- **K2** (Hook 2): Vergleich ausschliesslich ueber
+  `getattr(modus, "value", None) in ("BLOCKIERT", "PHASE")`. Damit ist die
+  Klassenduplizierung des Adapters wirkungslos. `BodenReclaimSpec` wird
+  duck-typisiert gelesen.
+- **K3** (`_quartil_pass`): zaehlt nur `quartil_undefiniert`;
+  `quartil_blockiert` zaehlt der Motor (Baseline-Konvention, kein
+  Doppelzaehlen).
+
+### 5. Zwei zusaetzliche Fehler, die beim Schreiben gefunden wurden
+
+1. **Fehlender numpy-Import** (kritisch, aber von `py_compile` NICHT
+   erfasst): Der Refactor nutzt `np.max` / `np.min` fuer das
+   Cluster-Extremum. Ohne `import numpy as np` waere das ein `NameError`
+   erst zur Laufzeit. Behoben und durch Import-Nachweis belegt.
+2. **Konstanten-Reihenfolge:** `V3_TP_MINDIST_PCT` (1.5) wurde vor die
+   Engine-Klasse gezogen (vorher hinter der Klasse definiert).
+
+### 6. Bewusste Divergenzen und offene Punkte (nicht "mitgeloest")
+
+- **D1:** `_gegenkante` nutzt die wirksame Basis. V019 liess diese Stelle
+  roh (`basis_bei`). Vereinheitlicht -- bewusste Abweichung von V019.
+- **R1 (Residualanker):** `poc_start = 0` bleibt als Balance-Beginn und ist
+  NICHT Teil der 7 Substitutionen. Damit ist die Aussage "keine globalen
+  Fensteranker" praezise nur fuer Q29/A_VC haltbar, nicht fuer den POC.
+- **M1 (Mutation):** Der Motor mutiert Kantenobjekte des uebergebenen
+  `scan` (`letzter_signal_bar`, `letzter_sweep_bar`, `cluster_hoch/tief`).
+  Der Aufrufer MUSS eine `deepcopy` uebergeben.
+- **G1 (Zwei-Konfigurationen):** Engine-Interna nutzen die
+  Baseline-`StraightEdgeHarnessKonfiguration` (`cfg`); die V020-Gates nutzen
+  `self.cfg` (`V020KantenKonfiguration`). Beide sind getrennt zu halten.
+- **V1 (Verhalten):** V020 ist NICHT byte-identisch zu V0. Die
+  Verallgemeinerung von A_SB/A_M6L und der endogene Rand aendern die
+  Trade-Population. Beobachtend zu messen (kein R-Pin): V0
+  14 / +42.450970 R; V1_kausal 23 / +85.577150 R.
+
+### 7. Statische Verifikation (Befund)
+
+- `py_compile`: OK.
+- Ellipsen-Ruempfe: 0.
+- Symbol-Abgleich (textuell): alle `self.*`-Referenzen
+  (`_basis_wirksam`, `_marktrand`, `_quartil_pass`, `_referenzen`,
+  `_hook`, `_wertedomaene`, `cfg`, `stats`) sind definiert; alle
+  Modulaufrufe (`existiert_nativ`, `lebt_kausal`, `marktrand_bei`,
+  `im_aeusseren_quartil`, `kantenreferenz_aus`) existieren.
+- `pyflakes` / `ruff` sind in der venv NICHT installiert -- eine
+  semantische Uebersetzungspruefung ist damit nur durch das Symbol-Inventar
+  abgedeckt, nicht durch einen Linter.
+
+### 8. Aenderungen / Dateien / SHAs
+
+| Artefakt | SHA256 | Bytes |
+|---|---|---|
+| `test/tmp_kanten_engine_v020_replay.py` | `e79c5c29482398d8237469a79a234c7200f8718e840252cc33d2bea37f3865af` | 40.567 |
+
+- **Ueberholt:** Stufe-A-SHA `1c7a8073...` (H20.37) -- historisch gueltig,
+  funktional ersetzt.
+- **Unveraendert:** Baseline `53f28e1b...` / 200.433 B; Renderer
+  `500b5576...` / 123.343 B; Adapter `770eda2c...` / 43.279 B.
+
+### 9. Entscheidungsfragen (Textblock, keine Auswahl)
+
+1. **Erstlauf:** Wird der Motor jetzt freigegeben (read-only gegen AUG,
+   deepcopy, keine Baseline-Mutation) mit rein BEOBACHTENDER Ausgabe
+   (Trades, R, `quartil_undefiniert`, Randquelle-Verteilung -- ohne
+   Fail-Loud-Assert)?
+2. **R1 (POC-Anker):** Soll `poc_start = 0` in einem eigenen Schritt durch
+   eine endogene Balance-Grenze ersetzt werden, oder bleibt er als
+   bewusster Residualanker stehen?
+3. **D1:** Bleibt die Vereinheitlichung von `_gegenkante` auf die wirksame
+   Basis bestehen, oder wird V019-Treue hergestellt (roh)?
+4. **Linter:** Soll `pyflakes` (oder `ruff`) als reines Analysewerkzeug in
+   der venv installiert werden, damit kuenftige Module semantisch geprueft
+   werden koennen?
+5. **Aufrufer:** Folgt als Naechstes ein read-only
+   Beobachtungs-Harness (`_chk_v020_erstlauf.py`) mit SHA-Guard auf
+   `e79c5c29...`, oder wird der Aufruf in `test/test.py` verankert?
+
+**Anker:** Handoff-Kopf vor diesem Append = `e4e22c5932401c46a056ad2c3db57e187d0f8aed5e42299c4dd9338511410bbb`
+/ 611.364 B / 10.224 CRLF. H20.32 bis H20.38 bleiben unveraendert.
+
+## H20.40 - V020-Erstlauf (Stufe B): A/A2/B gegen AUG, LONG-Attribution, Randquellen
+
+### 1. Ausgangslage und Fragestellung
+
+Antwort auf H20.39 Abschnitt 9, Frage 1 (Erstlauf) und Frage 5 (Aufrufer).
+Der V020-Motor (`e79c5c29...`) wurde GENAU EINMAL read-only gegen das
+AUG-Fenster ausgefuehrt. Beobachtend, kein R-Pin, keine Fail-Loud-Asserts,
+keine Baseline-Mutation (je Modus eine eigene `copy.deepcopy(scan)`).
+Werkzeug: `test/_chk_v020_erstlauf.py`; Primaerbeleg:
+`test/_chk_v020_erstlauf_out.txt`.
+
+Drei Modi:
+
+- **A**  = `hook=None`, `wertedomaene=None` -> V020-Regeln pur.
+- **A2** = `hook=None`, `wertedomaene=ADAPTER_V019_KAUSAL` -> isoliert den
+  Niveau-Override-Effekt (kein Hook, keine Freigabe, kein Zielvertrag).
+- **B**  = `hook=ADAPTER_V019_KAUSAL`, `wertedomaene=ADAPTER_V019_KAUSAL`
+  -> voller DI-Betrieb (V020-Aequivalent zum V019-Live-Anker).
+
+Konvention: `scan["box_end_bar"] = n` ist Pflicht (sonst iteriert der Motor
+nur bis Bar 641). `FENSTER AUG`: n=1288, box_end_nativ=644, edges=59,
+seeds=14, adapter_segmente=3. SHA-Guards im Lauf: V020 `e79c5c29` /
+Baseline `53f28e1b` / Adapter `770eda2c` -- alle OK.
+
+### 2. Ergebnis-Matrix
+
+| Satz | Trades | R | H1 | H2 | LONG | SHORT |
+|---|---|---|---|---|---|---|
+| A (pur) | 29 | +23.389914 | 14 / +27.327383 | 15 / -3.937470 | 10 / -5.207062 | 19 / +28.596976 |
+| A2 (wd) | 29 | +26.118413 | 14 / +27.327383 | 15 / -1.208971 | 10 / -5.207062 | 19 / +31.325475 |
+| B (hook+wd) | 33 | +56.549174 | 14 / +27.327383 | 19 / +29.221791 | 10 / -1.119762 | 23 / +57.668937 |
+| V0 (nativ, Referenz) | 14 | +42.450970 | 8 / +38.919584 | 6 / +3.531386 | 4 / +10.178594 | 10 / +32.272376 |
+| V1_kausal (LIVE, Referenz) | 23 | +85.577150 | 8 / +38.919584 | 15 / +46.657566 | 7 / +20.785619 | 16 / +64.791532 |
+
+Die V0/V1_kausal-Richtungsbilanzen stammen aus
+`test/_chk_zp_trade_zerlegung_out.txt` (H20.34-Beleg), nicht aus einem
+neuen Lauf.
+
+**Erste Kernaussage (H1):** H1 = 14 / +27.327383 R ist ueber A, A2 und B
+bit-identisch -- aber NICHT identisch zu V0/V1 (8 / +38.919584 R). Anders
+als das ZP-Patchset (H1-Invariante, H20.34 Abschnitt 6) bricht die
+V020-Verallgemeinerung die H1-Invarianz auf: -11.592201 R durch
++9 neue H1-Trades (-6.717018 R) und -3 entfallene native H1-Trades
+(+4.875183 R).
+
+### 3. LONG-Attribution (Auflösung der Q29-Blockade)
+
+| entry | kid | Richtung | R in A | R in A2 | R in B |
+|---|---|---|---|---|---|
+| 362 | K23 | LONG | -0.429390 | -0.429390 | -0.429390 |
+| 379 | K21 | LONG | -1.000000 | -1.000000 | -1.000000 |
+| 581 | K14 | LONG | -0.389474 | -0.389474 | -0.389474 |
+| 617 | K11 | LONG | -0.405682 | -0.405682 | -0.405682 |
+| 640 | K1  | LONG | -1.000000 | -1.000000 | -1.000000 |
+| 644 | K4  | LONG | -1.000000 | -1.000000 | -1.000000 |
+| 653 | K3  | LONG | -1.000000 | -1.000000 | -1.000000 |
+| 681 | K45 | LONG | -1.000000 | -1.000000 | -1.000000 |
+| 1003 | K77 | LONG | fehlt | fehlt | +3.629016 |
+| 1029 | K60 | LONG | -0.458284 | -0.458284 | fehlt |
+| 1077 | K62 | LONG | +1.475768 | +1.475768 | +1.475768 |
+| **Summe** | | | **10 / -5.207062** | **10 / -5.207062** | **10 / -1.119762** |
+
+Befund:
+
+1. **Blockade geloest.** V0 hatte 4 LONG / +10.178594 R
+   (K5@399 +5.697713, K1@640 -1.000000, K3@653 -1.000000,
+   K45@681 +6.480880). V020 hat in allen drei Modi 10 LONG. Der in H20.33
+   diagnostizierte Antitrend-Filter greift nicht mehr.
+2. **Keine LONG-Reparatur.** Die 10 LONGs sind in A/A2 mit -5.207062 R
+   netto negativ, in B mit -1.119762 R noch negativ. Die acht gemeinsamen
+   nativen LONGs tragen -6.224546 R.
+3. **Der einzige profitable native LONG entfaellt.** K5@399 (+5.697713 R)
+   wird von V020 nicht mehr erzeugt.
+4. **Positives LONG-R kommt nur aus dem Adapter.** B enthaelt genau zwei
+   positive LONGs: K77@1003 (+3.629016, P9-G4-Boden-Reclaim) und
+   K62@1077 (+1.475768, Adapter-Freigabe). In A/A2 fehlt K77@1003; dort
+   bleibt nur K62@1077 positiv, und K60@1029 (-0.458284) kommt hinzu.
+
+Fazit: Die Signatur "Q29-Trendblockade" ist aufgeloest. Eine native
+LONG-Heilung ist damit NICHT belegt -- sie war bereits in V019 ein reiner
+Adapter-/Hook-Effekt. Die LONG-Dominanz in V019 kommt aus den Injektionen,
+nicht aus dem Kantenmotor.
+
+### 4. Randquellen und Gate-Zaehler
+
+`_marktrand`-Quellen (Read-only-Nebenprobe, k=2..1284 -> 1283 Bars):
+
+| Modus | undefiniert | lebende_kanten | segment_fallback |
+|---|---|---|---|
+| A | 4 | 1279 | 0 |
+| B | 4 | 1279 | 0 |
+
+Der Segment-Fallback wurde nie erreicht; die 4 undefinierten Bars liefen
+permissiv durch (Stufe 3), ohne die Gates zu erreichen
+(`quartil_undefiniert = 0` im Motor).
+
+Motor-Zaehler:
+
+| Zaehler | A | A2 | B |
+|---|---|---|---|
+| quartil_undefiniert | 0 | 0 | 0 |
+| quartil_blockiert | 42 | 42 | 42 |
+| blocker | 84 | 84 | 83 |
+| kein_raum | 22 | 22 | 37 |
+| kein_gegner | 0 | 0 | 0 |
+| zyklus_blockiert | 33 | 33 | 26 |
+| f3 | 0 | 0 | 0 |
+| frisch_blockiert | 94 | 94 | 94 |
+| concurrency_blockiert | 0 | 3 | 0 |
+
+### 5. Abweichung zu V0 (native Baseline)
+
+Gemeinsame Schluessel (entry, kid): 11 von 14 V0-Trades
+(231/K20, 245/K20, 531/K20, 565/K20, 640/K1, 653/K3, 681/K45, 714/K16,
+762/K51, 855/K59, 1021/K67). Vergleich der R-Werte auf diesen 11: 10x
+bit-identisch, **1x abweichend** -- K45@681: V0 +6.480880 -> V020
+-1.000000 (Delta -7.480880; gilt in A, A2 UND B). Der V020-Setup-Bar ist
+680 statt 679.
+
+Entfallen (3): K5@399 +5.697713, K16@491 -0.475084, K16@510 -0.347446
+(Summe +4.875183). Neu in V020 (18): 9 H1-Trades (-6.717018 R) und
+9 H2-Trades. Zurueckzufuehren auf die generalisierten A_SB/A_M6L-Regeln
+(generell statt ZP-fenstergebunden), den endogenen Marktrand, die wirksame
+Basis (Substitution #1, D1) und `existiert_nativ`.
+
+### 6. Abweichung zu V1_kausal (Modus B als V019-Aequivalent)
+
+Mengen-Diff (Schluessel entry/kid):
+
+- Gemeinsam: **18** Trades, davon **17 R-bit-identisch**.
+- Nur B: **15** Trades -- 9 H1 (115/K16, 221/K15, 247/K16, 362/K23,
+  379/K21, 433/K33, 528/K31, 581/K14, 617/K11) und 6 H2 (644/K4, 706/K12,
+  711/K16, 714/K33, 728/K15, 729/K31).
+- Nur V1_kausal: **5** Trades -- 399/K5 (+5.697713), 491/K16 (-0.475084),
+  510/K16 (-0.347446), 715/K16 (-1.000000), **1173/K82 (+5.502241)**.
+- Einzige R-Divergenz auf gemeinsamen Schluesseln: K45@681
+  (B -1.000000 vs V1_kausal +6.480880, Delta -7.480880).
+
+R-Rekonstruktion B - V1_kausal = -29.027976 R:
+
+- B-only 15 Trades: -12.169671 R
+- V1_kausal-only 5 Trades (entfallen): -9.377424 R
+- K45@681 Retarget: -7.480880 R
+- Summe: -29.027975 R (Rundung der 6-Dezimalwerte)
+
+**Zentrale Beobachtung (Adaequanz-Nachweis):**
+
+- **Alle 4 P9-Injektionen** werden in B exakt reproduziert
+  (K67@903 +4.119775, K67@980 +9.987676, K73@981 +2.695488,
+  K77@1002 +3.629016).
+- **5 der 6 ZP-Fenster-Injektionen** werden in B exakt reproduziert
+  (K62@1075 +1.475768, K73@1122 +10.752473, K76@1268 -1.000000,
+  K73@1272 +1.254682, K76@1280 +1.756410).
+- **Der einzige fehlende Injekt** ist K82@1172 (+5.502241) -- genau die
+  ZP-5-Docht-Injektion, d. h. die Klasse-III-Dateninjektion, die V020
+  per Beschluss nicht kennt.
+- Die entfallenden Trades K59@853 (-1.000000) und K60@1029 (-0.458284)
+  sind in V1_kausal ebenfalls nicht enthalten -- hier stimmt B mit V019
+  ueberein.
+- Die verbleibenden 6 B-only-H2-Trades (644/706/711/714/728/729,
+  Summe -5.452653 R) sind echte V020-native Zusatztrades ohne
+  V019-Pendant.
+
+Damit ist belegt: V020/B reproduziert die V019-Mechanik ohne ZP-4-Gate,
+ohne ZP-5-Dochte und ohne Klasse III -- mit Ausnahme des Dochts K82@1172.
+Die ZP-4-Injektionen waren also keine "Schwellen-Lockerung mit
+Spezialwirkung", sondern die native Konsequenz derselben Regeln, sobald
+der Kantenraum endogen und die Gates generell gelesen werden.
+
+### 7. Beobachtete R-Divergenzen (offene Punkte)
+
+1. **K45@681** (alle Modi -1.000000 statt +6.480880). Verdacht: die
+   wirksame Basis in `_gegenkante` (D1) bzw. Substitution #1 aendert das
+   Zielniveau des K45-Setups. Groesster Einzelposten der B-V1-Differenz
+   (-7.480880 R).
+2. **K67@903/980**: A fehlen sie; A2 +1.633441 / +4.542254; B
+   +4.119775 / +9.987676 (= V1_kausal). Der Hook-Zielvertrag (Hook 1/2)
+   verlaengert die Ziele, der Override allein oeffnet die Trades.
+3. **K73@1122**: A +2.192513, A2 fehlt (concurrency 3), B +10.752473
+   (= V1_kausal). In A2 blockiert die durch K67@903/980 belegte
+   Concurrency den Trade; der Hook hebt die Blockade wieder auf.
+
+### 8. Aenderungen / Dateien / SHAs
+
+| Artefakt | SHA256 | Bytes |
+|---|---|---|
+| `test/_chk_v020_erstlauf.py` | `620da91226b20160d6e88137f5c3c2c5772850933cb722438bfd46f7cea08c30` | 6.620 |
+| `test/_chk_v020_erstlauf_out.txt` | `dd772f04342652c8f9598fc6fdd7e97f7aaa4f831b8b59e5595699d8f7140be9` | 5.562 |
+
+- `__pycache__`-Rueckstand geprueft: **keine** V020-/Erstlauf-`.pyc`
+  (der Lauf nutzt `exec(compile(...))` bzw. `__main__`; keine Reste).
+- **Unveraendert:** V020-Motor `e79c5c29...` / 40.567 B; Baseline
+  `53f28e1b...` / 200.433 B; Renderer `500b5576...` / 123.343 B; Adapter
+  `770eda2c...` / 43.279 B; `aug_sichttest_v019_*` (5 PNG).
+- Alle Ausgaben read-only/additiv in `test/`.
+
+### 9. Entscheidungsfragen (Textblock, keine Auswahl)
+
+1. **K45@681:** Soll die Einzelursache (D1/wirksame Basis vs.
+   Substitution #1 vs. Setup-Bar 679->680) als naechster Schritt
+   isoliert werden (read-only Einzel-Trade-Trace), oder wird die
+   Divergenz vorerst nur protokolliert?
+2. **K82@1172:** Wird der verbleibende V019-V020-Unterschied von
+   +5.502241 R (Klasse-III-Docht) als endgueltig hingenommen, oder soll
+   eine regelbasierte, NICHT injizierende Ersatzregel fuer diese
+   Docht-Situation spezifiziert werden?
+3. **H1-Bruch:** Wird der Verlust der H1-Invarianz (8 -> 14 Trades,
+   -11.592201 R) als bewusste V020-Eigenschaft arretiert, oder ist die
+   H1-Stabilitaet ein zu erhaltendes Regressionskriterium?
+4. **R1 (POC-Anker):** Bleibt `poc_start = 0` Residualanker (wie H20.39),
+   oder wird er nun endogenisiert?
+5. **D1:** Bleibt die Vereinheitlichung auf die wirksame Basis bestehen
+   (Punkt 7.1 koennte davon abhaengen)?
+6. **Linter:** Soll `pyflakes`/`ruff` in der venv installiert werden
+   (semantische Pruefung statt Symbol-Inventar)?
+7. **Aufrufer:** Wird `_chk_v020_erstlauf.py` als arretiertes
+   Beobachtungs-Harness gefuehrt (SHA `620da912...`), oder erfolgt die
+   Verankerung in `test/test.py`?
+
+**Anker:** Handoff-Kopf vor diesem Append = `5bfbfbdc18241becfe69c2cdc399ab030e56eb103d02edad036d13dfa8cc57b6`
+/ 617.448 B / 10.348 CRLF. H20.34 bis H20.39 bleiben unveraendert.
+
+## H20.41 - K45-Trace: S2 (A_SB) als Doppelursache, S3/S4 falsifiziert, 0,002-USD-Marginalitaet
+
+### 1. Ausgangslage und Fragestellung
+
+Antwort auf H20.40 Abschnitt 9, Frage 1 (Autorisierung erteilt). Der
+Arretierungsanker H20.40 sprach von "K45@681": Das ist der ENTRY-Bar
+(identisch in beiden Spuren). Die DIVERGENZ sitzt am SIGNAL-Bar
+679 (V0) vs. 680 (V020). Der Trace klaert, an welchem Gate das
+Signal-Kippen entsteht. Verifikation rein lesend, kein Monkeypatch,
+keine Baseline-Mutation.
+
+### 2. Werkzeug und Methode
+
+| Artefakt | SHA256 | Bytes |
+|---|---|---|
+| `test/_chk_k45_trace.py` | `4428d1f86f6ec8d514c94d47fa5e3fedf37da3bed9817d4983c2570753a7120e` | 27.030 |
+| `test/_chk_k45_trace_out.txt` | `d4a02f688b44790e4c81e3e7d56eec464094e92ab4fb5d98fd8f835b3bd6a327` | 13.209 |
+
+Methode: reine Gate-Rekonstruktion mit austauschbaren Kernpraedikaten
+(V0-Spur vs. V020-A-Spur), Fenster k=676..684, Loop zur State-Treue
+ueber k=2..684. Zwei Fail-Loud-Asserts sind durchgelaufen:
+
+- **V0:** 10 rekonstruierte Setups == 10 echte `_se_trades`-Setups.
+- **V020-A:** 17 rekonstruierte Setups == 17 echte `_se_trades_v020`.
+- `V3_TP_MINDIST_PCT` wird als Konstante gelesen (kein 1.5-Literal).
+- `__pycache__`-Rueckstand sofort entfernt (keine k45-`.pyc`).
+
+### 3. Die Kausalkette (alle Zahlen aus dem Primaerbeleg)
+
+**Bar 679 (V0 handelt, V020 nicht):**
+
+| Groesse | V0 | V020-A |
+|---|---|---|
+| Kandidat kd | K45 (basis 63.1560) | K3 (basis 62.9670) |
+| Kandidaten-Pool | 1 `[K45]` | 14 `[K3,K1,K5,...,K45]` |
+| K45 pool_idx | 0 | 1 |
+| Blocker | - | **K48 (62.5770)** |
+| Distanz kd<->Blocker | - | 0.619 % <= 0.75 % |
+| Quartil | PASS (dist 6.954 %) | **BLOCK** (Blocker greift zuerst) |
+| Reclaim-Stufe | 2 (STUFE_2_KERZE_2) | 0 |
+| Ergebnis | **Trade, entry_bar 681** | **kein Trade** |
+
+**Bar 680 (V020 handelt mit verschobenem Stop):**
+
+| Groesse | V0 | V020-A |
+|---|---|---|
+| Kandidat kd | K45 (pool 2 `[K45,K4]`) | K45 (pool 14) |
+| Gate | -- | Quartil PASS (dist 17.133 %, endogen) |
+| Reclaim-Stufe | 1 | 1 |
+| Zyklus | **1 (ZYKLUS-SPERRE, 679-Trade belegt entry 681)** | 0 |
+| SL-Fenster | `min(lo[679:681]) = 62.8420` | `min(lo[680:681]) = 63.0670` |
+| SL | **62.7920** | **63.0170** |
+| entry / poc / tp2 | 63.1810 / 64.9451 / 66.4590 | 63.1810 / 64.9451 / 66.4590 |
+| risk | 0.3890 | **0.1640** |
+| Exits | TP1@702, TP2@733 | **SL/SL@682** |
+| R | **+6.480880** | **-1.000000** |
+
+Der Ausloeser: `lo[682] = 63.0150`. Der V020-Stop 63.0170 liegt 0.0020 USD
+darueber und wird getroffen; der V0-Stop 62.7920 liegt 0.2230 USD
+darunter und ueberlebt. `entry`, `poc` und `tp2` sind bit-identisch
+(op[681] = 63.1810 in beiden Faellen).
+
+### 4. Ursache: S2 (A_SB / `existiert_nativ`) -- doppelwirksam
+
+1. **Pool-Flutung:** Bei k=679 (lo=62.8420) erklaert S2 jede schlafende
+   UNTEN-Linie mit `basis > 62.8420` fuer "existiert" (realer Durchstich).
+   Die Baseline verlangt `ist_aktiv_bei(k)` und verwirft sie. Pool: 1 -> 14.
+2. **Kandidaten-Verdraengung:** Die UNTEN-Sortierung ist aufsteigend; die
+   aeusserste Linie landet auf pos 0 -> K3 (62.9670) statt K45 (63.1560).
+3. **Blocker-Erzeugung:** Auch K48 (62.5770) wird erst durch S2 existent
+   (`62.5770 < 62.8420`). Distanz zu K3 = 0.619 % <= 0.75 %
+   (`max_seed_distanz_pct`) -> BLOCKER. **K48 ist lebend** -- A_M6L hat
+   hier nichts entfernt.
+4. **Bar-Versatz:** Erst bei k=680 verliert K3 seinen Durchstich
+   (lo[680]=63.0670 > 62.9670), K45 rueckt auf pos 0 und feuert mit
+   `stufe=1`. Das verkuerzte Cluster-Fenster hebt den Stop auf 63.0170.
+
+Damit ist S2 kein harmloser Reaktivierer, sondern ein
+**Orderbuch-Verzerrer mit zwei Wirkungen** (Pool-Flutung UND
+Blocker-Erzeugung) -- exakt die in H20.40 als "bidirektional"
+prognostizierte Eigenschaft.
+
+### 5. Negativbefunde (falsifiziert)
+
+- **S4 (endogener Rand) NICHT kausal:** Beide Pruefungen PASS
+  (V0 dist 6.954 %, V020-A dist 17.133 %, beide <= 25 %). Der endogene
+  Rand ist restriktiver (Spanne 2.860 vs. global 4.228), aber nicht
+  ausschlaggebend.
+- **S3 (A_M6L) NICHT kausal:** Der einzige relevante Blocker K48 ist
+  lebend; `lebt_kausal` hat nichts entfernt. Der Blocker-Loop hat K48
+  passieren lassen.
+- **Reclaim-Stufe ist Folge, nicht Ursache:** `stufe=2` (679) vs.
+  `stufe=1` (680) ist reine Konsequenz des Bar-Versatzes.
+
+### 6. Marginalitaets-Warnung (bindend fuer die Interpretation)
+
+Die 7.480880 R Differenz haengen an **0.0020 USD** (lo[682] = 63.0150 vs.
+V020-SL 63.0170). Die Divergenz ist mechanisch eindeutig kausal, aber
+quantitativ extrem fragil. Daraus darf KEINE "stabile" Regel abgeleitet
+werden; die Robustheit ist ein separates Kriterium.
+
+### 7. Architektur-Konsequenz fuer V020
+
+- S2 darf **nicht** unkonditioniert global gelten: Eine inaktive,
+  schlafende Kante ist einer etablierten Wand NICHT gleichberechtigt.
+- S2 muss entweder auf den Kandidaten-Pool beschraenkt, oder an eine
+  zusaetzliche Bedingung (Liveness des Etablierten) gebunden werden.
+- Der `_lebt`-Skip im Blocker (A_M6L) ist NICHT das Problem und kann
+  bleiben.
+- Die Hypothese "S2 hat in H1 ueber den Pool toxische Setups in pos 0
+  gespuelt und ueber den Blocker tragfaehige Kanten (K5@399) gesperrt"
+  ist die Leithypothese der H1-Ablation (Abschnitt 9).
+
+### 8. Entscheidungen (Textblock, beantwortet)
+
+1. **Notarisierung H20.41:** erteilt -- dieser Abschnitt.
+2. **Trace-Dateien:** bleiben als arretiertes Analyse-Paar bestehen
+   (`4428d1f8...` / `d4a02f68...`).
+3. **H1-Ablation:** direkt als naechster Schritt.
+4. **Zusatzlauf zur Trennung Pool/Blocker:** ja, Matrix auf 6 Laeufe
+   erweitert (Abschnitt 9).
+
+### 9. H1-Ablations-Matrix (autorisierte Zieldefinition)
+
+Jeder Lauf: eigene `copy.deepcopy(scan)` (M1), read-only, Filter
+`entry_bar < 644`. Vier unabhaengige Schalter: S2 im Pool, S2 im Blocker,
+S3 im Blocker, S4 im Quartil.
+
+| Lauf | S2 Pool | S2 Blocker | S3 Blocker | S4 Quartil | Zweck |
+|---|---|---|---|---|---|
+| H1-0 | AN | AN | AN | endogen | Status quo (14 / +27.327383) |
+| H1-B | AUS | AUS | AN | endogen | S2 total aus |
+| H1-BP | AUS | AN | AN | endogen | isoliert Pool-Verdraengung |
+| H1-M | AN | AN | AUS | endogen | isoliert A_M6L |
+| H1-Q | AN | AN | AN | global | Null-Eichpunkt S4 |
+| H1-V0 | AUS | AUS | AUS | global | Baseline-Kontrolle (8 / +38.919584) |
+
+**Null-Eichung:** H1-Q bildet `hi[:k+1]`/`lo[:k+1]` EXAKT wie Baseline
+Z. 2483-2490 nach. H1-Q == H1-0 waere der Beweis, dass S4 in H1 inert ist.
+
+**Vollstaendigkeit der S2-Zerlegung:** Pool-Effekt = H1-BP - H1-0;
+Blocker-Effekt = H1-B - H1-BP. Ein 7. Lauf ist nicht noetig.
+**Warnung:** Die Zerlegung ist NICHT additiv -- der Kandidat kd bestimmt,
+welche Blocker ueberhaupt geprueft werden (Diskretheit der Trade-Menge).
+Die Matrix liefert Mengen-Differenzen (Attribution), keine Summenzerlegung.
+
+**Pflicht-Anker (Fail-Loud):** H1-0 muss 14 / +27.327383 und H1-V0
+8 / +38.919584 reproduzieren. Ohne diese zwei Anker ist die Ablation
+wertlos (Zero-Trust-Prinzip, identisch zur K45-Rekonstruktion).
+
+**Reichweite/Begruendung:** H1 besitzt maximal Bar 639 (K1, entry 640);
+`entry_bar < 644 <=> bar <= 642`. Ein Lauf mit `box_end_bar = 647`
+erfasst jeden moeglichen H1-Trade (Loop `range(2, box_end-3)` -> max
+k=643) und ist gegenueber dem Vollauf causal identisch (der Scan selbst
+bleibt der native `_se_scan` mit box_end=644; nur das Trade-Loop-Ende
+wird gesetzt).
+
+### 10. Aenderungen / Dateien / SHAs
+
+- **Neu (arretiert):** `test/_chk_k45_trace.py` `4428d1f8...` / 27.030 B;
+  `test/_chk_k45_trace_out.txt` `d4a02f68...` / 13.209 B.
+- **Unveraendert:** V020-Motor `e79c5c29...` / 40.567 B; Baseline
+  `53f28e1b...` / 200.433 B; Adapter `770eda2c...` / 43.279 B;
+  `_chk_v020_erstlauf.py` `620da912...`; `_chk_v020_erstlauf_out.txt`
+  `dd772f04...`.
+- Alle Ausgaben read-only/additiv in `test/`; keine PNG, keine
+  DB-Mutation.
+
+### 11. Entscheidungsfragen (Textblock, keine Auswahl)
+
+1. **H1-Ablations-Werkzeug:** Wird die parametrisierte Rekonstruktion aus
+   `_chk_k45_trace.py` (nachgewiesen == beide echten Motoren) fuer
+   `test/_chk_h1_ablation.py` wiederverwendet, oder soll das Skript
+   eigenstaendig neu aufgebaut werden?
+2. **Reichweite:** Lauf mit `box_end_bar = 647` (effizient, belegt
+   ausreichend) oder Vollauf bis `n = 1288` mit Filterung?
+3. **Zaehler:** Sollen je Lauf auch die Gate-Zaehler
+   (`blocker`, `quartil_blockiert`, `frisch_blockiert`, `zyklus_blockiert`)
+   mitlaufen, um die Mechanik zu belegen?
+4. **S2-Regelentscheidung:** Soll die in Abschnitt 7 skizzierte
+   S2-Neufassung (Pool-only bzw. Liveness-Bindung) erst NACH der
+   H1-Ablation spezifiziert werden?
+
+**Anker:** Handoff-Kopf vor diesem Append = `47c4dceb54e0ec101ca5f3a7faced9b0423b56908e96ea1fec24abf54413f05c`
+/ 628.092 B / 10.570 CRLF. H20.34 bis H20.40 bleiben unveraendert.
+
+## H20.42 - H1-Ablation: S3 (A_M6L) ist der Hauptstoerer, S2-Blocker inert, S4 permissiv
+
+### 1. Ausgangslage und Fragestellung
+
+Antwort auf H20.41 Abschnitt 11 (Fragen 1-4), Freigabe erteilt. Die
+6-Lauf-Ablation trennt die vier Schalter auf dem H1-Fenster
+(`entry_bar < 644`). Verifikation rein lesend, kein Monkeypatch, keine
+Mutation der arretierten Motoren; je Lauf eine eigene deepcopy.
+
+### 2. Werkzeug und Methode
+
+| Artefakt | SHA256 | Bytes |
+|---|---|---|
+| `test/_chk_h1_ablation.py` | `f5dc0f302abe24e3ee39a8d1afc45fed32a13ac290b7299e228ed5f30f757227` | 28.941 |
+| `test/_chk_h1_ablation_out.txt` | `fd166e8a374787b382d206476e37d240bb755732d1c75dbfa7abfdb66ed116cd` | 15.234 |
+
+Reichweite `box_end_bar = 647` (kausal identisch zum Vollauf). Der
+Quartil-Callable wird explizit in `main` gebaut und injiziert (kein
+Methodenkopplung an die Schalter-Datenklasse). Fuenf Fail-Loud-Anker
+sind durchgelaufen:
+
+1. **H1-Reinheit:** `ADAPTER_V019_KAUSAL.angewandte_basis(k, kid,
+   basis_bei(k)) == basis_bei(k)` fuer ALLE 59 edges + 14 seeds und alle
+   `k <= 643`. Damit ist bewiesen, dass im H1-Fenster kein Adapter-Override
+   wirkt (58.420 Einzelpruefungen).
+2. **Rekonstruktion H1-0 == echter V020-Motor** (Vollsignatur inkl.
+   entry_bar/sl/tp2/exit2_bar), nicht nur die Trade-Menge.
+3. **Rekonstruktion H1-V0 == echter Baseline-Motor** (Vollsignatur).
+4. **Totale:** H1-0 = 14 / +27.327383 R; H1-V0 = 8 / +38.919584 R.
+5. **Zaehler:** `blocker=42`, `quartil_blockiert=6`, `frisch_blockiert=69`,
+   `zyklus_blockiert=8` der Rekonstruktion == echter Motor.
+
+### 3. Lauf-Matrix
+
+| Lauf | S2-Pool | S2-Blocker | S3 | S4 | Trades | R | Delta vs. H1-0 |
+|---|---|---|---|---|---|---|---|
+| H1-0 | AN | AN | AN | endogen | 14 | +27.327383 | - |
+| H1-B | AUS | AUS | AN | endogen | 12 | +29.327383 | +2.000000 |
+| H1-BP | AUS | AN | AN | endogen | 12 | +29.327383 | +2.000000 |
+| H1-M | AN | AN | AUS | endogen | 16 | +33.202566 | +5.875183 |
+| H1-Q | AN | AN | AN | global | 9 | +30.044402 | +2.717018 |
+| H1-V0 | AUS | AUS | AUS | global | 8 | +38.919584 | +11.592201 |
+
+### 4. Zaehler je Lauf
+
+| Lauf | blocker | quartil_block | frisch_bl | zyklus_bl | kein_raum |
+|---|---|---|---|---|---|
+| H1-0 | 42 | 6 | 69 | 8 | 13 |
+| H1-B | 17 | 1 | 22 | 7 | 11 |
+| H1-BP | 17 | 1 | 22 | 7 | 11 |
+| H1-M | 28 | 6 | 69 | 21 | 18 |
+| H1-Q | 42 | 34 | 69 | 8 | 2 |
+| H1-V0 | 6 | 29 | 22 | 15 | 1 |
+| ECHTER | 42 | 6 | 69 | 8 | 13 |
+
+### 5. Befunde
+
+**Befund 1 (Falsifikation): S2-Blocker ist in H1 exakt inert.**
+H1-B == H1-BP in JEDER Kennzahl: identische 12 Trades (Vollsignatur),
+identische R-Summe, identische fuenf Zaehler. Der S2-Blocker-Schalter
+aendert in H1 nichts. Die H20.41-Aussage "S2 erzeugt kuenstliche Blocker"
+gilt nur fuer H2 (K48@679), nicht fuer H1.
+
+**Befund 2 (Hauptursache): S3 (A_M6L) verursacht 50.7 % des Schadens.**
+H1-M (S3 aus) enthaelt K5@399 (+5.697713), K16@491 (-0.475084) und
+K16@510 (-0.347446) -- genau die drei entfallenen V0-Trades
+(H1-V0 subset H1-M: nur-REF = 0). H1-B (S2 aus, S3 an) enthaelt K5@399
+NICHT. Der Verlust des Kern-Gewinners ist damit vollstaendig S3
+zuzuschreiben, nicht S2.
+
+**Befund 3: Kein einziger dR-Fall in H1.**
+In ALLEN 11 Vergleichen ist `gemeinsam-dR = 0 (+0.000000 R)`. Es gibt in
+H1 keinen K45-Typ-Fall (gleicher Key, abweichendes R). Die
+0.002-USD-Cluster-Verschiebung ist ein H2-Randphaenomen und NICHT
+H1-generisch. Die Kategorie-(c)-Ausgabe (R_TOL = 1e-9, sortiert nach
+|dR|) ist in H1 leer.
+
+**Befund 4: S4 (endogener Rand) ist in H1 permissiv, nicht restriktiv.**
+`quartil_blockiert` faellt von 34 (global, H1-Q) auf 6 (endogen, H1-0).
+Der endogene Rand laesst im H1-Fenster 5 zusaetzliche, durchweg
+verlierende Trades zu (361/K23, 378/K21, 432/K33, 580/K14, 616/K11;
+4 davon LONG), Summe -2.717018 R. Die in H20.40/Abschnitt gepflegte
+Erwartung "endogener Rand wirkt in H1 restriktiv" ist widerlegt.
+
+### 6. Trade-Attribution der -11.592201 R
+
+**Die 9 V020-only-Trades** (H1-0 ohne H1-V0), R-Summe -6.717018:
+
+| bar | kid | Richtung | R | Verursacher |
+|---|---|---|---|---|
+| 114 | K16 | SHORT | -1.000000 | S2 (Pool) |
+| 220 | K15 | SHORT | -1.000000 | S2 UND S3 (konjunktiv) |
+| 246 | K16 | SHORT | -1.000000 | S2 (Pool) |
+| 361 | K23 | LONG | -0.429390 | S4 |
+| 378 | K21 | LONG | -1.000000 | S4 |
+| 432 | K33 | SHORT | -0.492472 | S4 |
+| 527 | K31 | SHORT | -1.000000 | S3 |
+| 580 | K14 | LONG | -0.389474 | S4 |
+| 616 | K11 | LONG | -0.405682 | S4 |
+
+**Die 3 V0-only-Trades** (H1-V0 ohne H1-0), R-Summe +4.875183 --
+ausnahmslos S3:
+
+| bar | kid | Richtung | R |
+|---|---|---|---|
+| 398 | K5 | LONG | +5.697713 |
+| 490 | K16 | SHORT | -0.475084 |
+| 509 | K16 | SHORT | -0.347446 |
+
+**Zell-exklusive Zusatztrades** (nur in einem Einzelschalter-Lauf):
+223/K15 (-1.000000, nur bei S2 aus AND S3 an) und 429/K25
+(-1.000000, nur bei S2 an AND S3 aus AND S4 an).
+
+### 7. Arithmetik (OAT-Zerlegung) und Ehrlichkeits-Vorbehalt
+
+Einzelschalter-Effekte, gemessen von H1-0 aus:
+
+| Schalter | Delta R | Anteil am Gesamtschaden |
+|---|---|---|
+| S3 (A_M6L) | +5.875183 | 50.7 % |
+| S4 (endogener Rand) | +2.717018 | 23.4 % |
+| S2 (A_SB) | +2.000000 | 17.3 % |
+| Summe der Einzeleffekte | +10.592201 | 91.4 % |
+| Interaktionsrestglied | +1.000000 | 8.6 % |
+| **Gesamt (H1-V0 - H1-0)** | **+11.592201** | **100 %** |
+
+**Rangfolge der H1-Stoerer: S3 > S4 > S2.**
+
+**Wichtige Praezisierung (Korrektur zu H20.41/H20.42-Entwurf):** Das
+Restglied von exakt `+1.000000 R` ist KEIN einzelner Trade und NICHT
+sauber dem Paar "S2 geschnitten S3" zuzuordnen. Es entsteht aus dem
+Zusammenwirken von drei zell-spezifischen Trades:
+
+- 220/K15 (-1.000000) existiert nur bei S2 AN UND S3 AN -- wird also in
+  beiden Einzelablationslaeufen entfernt und dort doppelt
+  gutgeschrieben.
+- 223/K15 (-1.000000) existiert nur im Lauf H1-B (S2 aus, S3 an).
+- 429/K25 (-1.000000) existiert nur im Lauf H1-M (S2 an, S3 aus).
+
+Die OAT-Summe ueberschaetzt deshalb um +1.0 (220/K15 doppelt) und
+unterschaetzt um -2.0 (223/K15 und 429/K25 fehlen in H1-V0) -- netto
+Restglied +1.0 (arithmetisch geschlossen, Rest < 1e-6).
+
+**Methodische Grenze (offen):** Die 6 Laeufe sind eine
+EIN-FAKTOR-ZU-GLEICH-ZEIT-Sonde, kein vollstaendiger 2^3-Faktorplan.
+Es fehlen die Zellen (S2 aus,S3 aus,S4 an), (S2 aus,S3 an,S4 aus) und
+(S2 an,S3 aus,S4 aus). Solange diese fehlen, ist eine EINDEUTIGE
+Interaktionszerlegung (z. B. Shapley) nicht berechenbar. Die oben
+angegebene Trade-Zuordnung ist mechanisch hergeleitet (Zell-Praesenz je
+Trade), aber nicht alternativenfrei.
+
+### 8. Errata zu H20.41 (verbindlich)
+
+- **H20.41 Abschnitt 4, Punkt 3:** "Auch K48 wird erst durch S2 existent
+  -> BLOCKER" gilt fuer H2 (K48@679) und ist fuer H1 gegenstandslos:
+  S2-Blocker ist in H1 beweisbar inert (H1-B == H1-BP).
+- **H20.41 Abschnitt 7, Punkt 3:** "Der `_lebt`-Skip im Blocker (A_M6L)
+  ist NICHT das Problem und kann bleiben" ist FALSIFIZIERT. A_M6L ist in
+  H1 der groesste Einzelstoerer (50.7 %) und zerstoert K5@399.
+- **H20.41 Abschnitt 7, Punkt 4 (Leithypothese):** "S2 hat in H1 ueber
+  den Pool toxische Setups gespuelt und ueber den Blocker tragfaehige
+  Kanten gesperrt" -- der Blocker-Teil ist falsifiziert; S2 wirkt in H1
+  ausschliesslich pool-seitig (2 Trades, +2.0 R). Der Hauptstoerer ist S3.
+- **H20.41 Abschnitt 9:** H1-BP ist als reine Attributionssonde zu
+  kennzeichnen und fuer das Regelwerk zu VERWERFEN (kein kohaerentes
+  Regelmodell). Sie hat hier nur den Inertheits-Beweis geliefert.
+
+### 9. Architektur-Konsequenz (regime-adaptiv, endogen)
+
+Die drei Mechanismen sind regimeabhaengig und duerfen NICHT
+unkonditioniert global gelten:
+
+- **S3 (A_M6L):** Der `lebt_kausal`-Skip ist in der Konsolidierung
+  schaedlich (dormante Aussenwande sind die realen Liquidity-Grenzen).
+  Bindung an einen ENDOGENEN Trend-/Regime-Indikator (z. B. Spanne des
+  Marktrands, Kantendichte) -- NICHT an `aktive_phase_bei` des Adapters,
+  das waere ein Rueckfall in die exogene Segmentabhaengigkeit (H20.36).
+- **S4 (endogener Rand):** Die 25-%-Quartilschranke ist gegen eine
+  endogene, mikroskopisch kleine Spanne nicht kalibriert. Sie muss relativ
+  zur Spanne normiert oder mit einem absoluten Mindestabstand versehen
+  werden.
+- **S2 (A_SB):** Pool-Flutung bleibt auch in H1 wirksam (2 Trades). Die
+  Durchstich-Reaktivierung sollte an eine Bestaetigung (Liveness/Alter)
+  gebunden werden; der Blocker-Pfad kann unveraendert bleiben.
+
+### 10. Dateien / SHAs
+
+- **Neu (arretiert):** `test/_chk_h1_ablation.py` `f5dc0f30...` / 28.941 B;
+  `test/_chk_h1_ablation_out.txt` `fd166e8a...` / 15.234 B.
+- **Unveraendert:** V020-Motor `e79c5c29...` / 40.567 B; Baseline
+  `53f28e1b...` / 200.433 B; Adapter `770eda2c...` / 43.279 B;
+  `_chk_k45_trace.py` `4428d1f8...`; `_chk_v020_erstlauf.py` `620da912...`.
+- `__pycache__`: keine h1_ablation-/k45-Reste. Keine PNG, keine
+  DB-Mutation.
+
+### 11. Entscheidungsfragen (Textblock, keine Auswahl)
+
+1. **Faktorplan-Vervollstaendigung:** Werden die drei fehlenden Zellen
+   (S2/S3/S4) nachgemessen, um eine eindeutige Interaktionszerlegung zu
+   erhalten, oder genuegt die OAT-Rangfolge S3 > S4 > S2 als
+   Entscheidungsgrundlage?
+2. **H2-Matrix:** Wird die identische 6-Lauf-Matrix auf H2
+   (`entry_bar >= 644`, `box_end_bar = 1288`) gespiegelt -- mit den
+   Fail-Loud-Ankern H2-0 = 15 / -3.937470 und H2-V0 = 6 / +3.531386?
+3. **H1-Kreuzanker in der H2-Sonde:** Soll der H2-Lauf zusaetzlich
+   beweisen, dass sein H1-Teil exakt H1-0 reproduziert (kausale
+   Konsistenz des Vollaufs)?
+4. **Reform-Reihenfolge:** Wird das Regime-Modell (Abschnitt 9) als
+   zusammenhangende Spezifikation H20.43 vorbereitet, oder zuerst die
+   H2-Messung abgewartet?
+5. **Trend-Indikator:** Welche endogene Groesse soll die S3-Konditionierung
+   tragen (Marktrand-Spanne, Kantendichte, Range-Expansion)?
+
+**Anker:** Handoff-Kopf vor diesem Append = `4eb268b752a0a6bf2d0716f751976eb5ad03a43a7854ebb30ea184260c9117b9`
+/ 636.990 B / 10.756 CRLF. H20.34 bis H20.41 bleiben unveraendert.
+## H20.43 - H2-Ablation: Polaritaetsumkehr zwischen Balance (H1) und Trend (H2)
+
+### 1. Ausgangslage und Fragestellung
+
+Antwort auf H20.42 Abschnitt 11 (Fragen 2-5), Freigabe erteilt. Die
+H1-Ablation hat den H1-Bruch vollstaendig zerlegt (Rangfolge
+S3 > S4 > S2). Offen war die H2-Polaritaet: Im V020-Vollauf
+(H20.40, Modus A) liefert H2 15 / -3.937470 R statt der Baseline
+6 / +3.531386 R. Die identische 6-Lauf-Matrix wird auf den VOLLAUF
+gespiegelt (box_end_bar = 1288; Partition nach entry_bar < 644 bzw.
+>= 644). Verifikation rein lesend, kein Monkeypatch, keine Mutation der
+arretierten Motoren; je Lauf eine eigene deepcopy.
+
+Abgrenzung: Gemessen wird ausschliesslich der NATIVE Motor
+(hook=None, wertedomaene=None == Modus A). Der Adapter-Override
+(Modus A2/B) wurde bereits im Erstlauf isoliert und ist NICHT Teil der
+Matrix.
+
+### 2. Werkzeug und Methode
+
+| Artefakt | SHA256 | Bytes |
+|---|---|---|
+| `test/_chk_h2_ablation.py` | `cb5a6d62091207d5babb024d04be31087668dc74d99afca0897ec4d35076bfa1` | 39.511 |
+| `test/_chk_h2_ablation_out.txt` | `f9b793c07b6990e275ca141eb07a98ce10e602dd4ed10c9e0f0fc8f71e5cb596` | 25.848 |
+
+Reichweite `box_end_bar = 1288` (Vollauf). Der Quartil-Callable wird
+explizit in `main` gebaut und injiziert. Fuenf Fail-Loud-Anker sind
+durchgelaufen:
+
+1. **H1-Reinheit:** `ADAPTER_V019_KAUSAL.angewandte_basis(k, kid,
+   basis_bei(k)) == basis_bei(k)` fuer ALLE 59 edges + 14 seeds und alle
+   `k <= 643`. Beweis, dass im H1-Fenster kein Adapter-Override wirkt.
+2. **Rekonstruktion H2-0 == echter V020-Motor** (Vollsignatur inkl.
+   entry_bar/sl/tp2/exit2_bar, Vollauf); **H2-V0 == echter
+   Baseline-Motor** (Vollsignatur).
+3. **Kausale Konsistenz:** H1-Teil von H2-0 == 14 / +27.327383 R
+   (identisch zu H20.42).
+4. **Totale:** H2-0 = 15 / -3.937470 R (H2) bei 29 / +23.389914 R
+   (Vollauf); H2-V0 = 6 / +3.531386 R (H2) bei 14 / +42.450970 R
+   (Vollauf).
+5. **Zaehler:** `blocker=84`, `quartil_blockiert=42`, `frisch_blockiert=94`,
+   `zyklus_blockiert=33` der Rekonstruktion == echter Vollauf.
+
+### 3. Lauf-Matrix (Vollauf, mit H1/H2-Zerlegung)
+
+| Lauf | S2-Pool | S2-Blocker | S3 | S4 | Trades | R (total) | H1 n/R | H2 n/R |
+|---|---|---|---|---|---|---|---|---|
+| H2-0 | AN | AN | AN | endogen | 29 | +23.389914 | 14 / +27.327383 | 15 / -3.937470 |
+| H2-B | AUS | AUS | AN | endogen | 24 | +32.847680 | 12 / +29.327383 | 12 / +3.520297 |
+| H2-BP | AUS | AN | AN | endogen | 24 | +32.847680 | 12 / +29.327383 | 12 / +3.520297 |
+| H2-M | AN | AN | AUS | endogen | 28 | +27.844729 | 16 / +33.202566 | 12 / -5.357837 |
+| H2-Q | AN | AN | AN | global | 21 | +26.089448 | 9 / +30.044402 | 12 / -3.954953 |
+| H2-V0 | AUS | AUS | AUS | global | 14 | +42.450970 | 8 / +38.919584 | 6 / +3.531386 |
+
+### 4. Vier-Kategorien-Partition
+
+| Lauf | H1_KERN (bar<644, entry<644) | H2_KERN (bar>=644, entry>=644) | GRENZ_UEB (bar<644, entry>=644) | GRENZ_RUECK |
+|---|---|---|---|---|
+| H2-0 | 14 / +27.327383 | 14 / -2.937470 | 1 / -1.000000 | 0 |
+| H2-B | 12 / +29.327383 | 11 / +4.520297 | 1 / -1.000000 | 0 |
+| H2-BP | 12 / +29.327383 | 11 / +4.520297 | 1 / -1.000000 | 0 |
+| H2-M | 16 / +33.202566 | 12 / -5.357837 | 0 | 0 |
+| H2-Q | 9 / +30.044402 | 11 / -2.954953 | 1 / -1.000000 | 0 |
+| H2-V0 | 8 / +38.919584 | 6 / +3.531386 | 0 | 0 |
+
+**GRENZ_UEBERTRITT** ist in H2-0/H2-B/H2-BP/H2-Q exakt EIN Trade:
+`bar=643 -> entry=644, K4 LONG, r=-1.000000`. **GRENZ_RUECK ist
+strukturell leer** (alle Laeufe). Die H2-Partition ist damit nicht
+trivial (H2_KERN != H2-Totale).
+
+### 5. Zaehler je Lauf
+
+| Lauf | blocker | quartil_block | quartil_undef | frisch_bl | zyklus_bl | kein_raum | kein_gegner | conc |
+|---|---|---|---|---|---|---|---|---|
+| H2-0 | 84 | 42 | 0 | 94 | 33 | 22 | 0 | 0 |
+| H2-B | 38 | 13 | 0 | 40 | 32 | 14 | 0 | 0 |
+| H2-BP | 38 | 13 | 0 | 40 | 32 | 14 | 0 | 0 |
+| H2-M | 56 | 44 | 0 | 94 | 52 | 35 | 0 | 0 |
+| H2-Q | 84 | 95 | 0 | 94 | 32 | 2 | 0 | 0 |
+| H2-V0 | 24 | 68 | 0 | 40 | 38 | 1 | 0 | 0 |
+| ECHTER | 84 | 42 | 0 | 94 | 33 | 22 | 0 | 0 |
+
+### 6. Befunde
+
+**Befund 1 (Polaritaetsumkehr): Alle drei Schalter kippen ihr Vorzeichen.**
+Die H1-Rangfolge (S3 > S4 > S2) wird im H2-Fenster vollstaendig
+umgedreht: S2 wird zum alles rettenden Haupthebel (+7.457766 R bei
+Abschaltung), S3 kippt ins leicht Nuetzliche (-1.420367 R), S4 ist
+nahezu inert (-0.017484 R). Es liegt kein einheitlicher V020-Effekt vor,
+sondern eine regimeabhaengige Vorzeichenumkehr.
+
+**Befund 2 (Invarianz): S2-Blocker ist auch in H2 exakt inert.**
+H2-B == H2-BP in JEDER Kennzahl: identische 24 Trades (Vollsignatur),
+identische R-Summe (beide H1 12/+29.327383, H2 12/+3.520297), identische
+Zaehler (blocker 38, quartil_block 13, frisch 40, zyklus 32). Damit ist
+S2-Blocker ueber BEIDE Fenster (H1: H20.42; H2: hier) beweisbar inert.
+Der S2-Hebel liegt ausschliesslich im Kandidaten-Pool.
+
+**Befund 3 (Mechanik): S2 wirkt in H2 ueber genau einen Kern-Trade.**
+Mit S2 AN wird K45 bei k=680 gefuehrt (entry=681, sl=63.0170,
+STUFE_1_IN_BAR) -> -1.000000. Mit S2 AUS wird K45 bei k=679 gefuehrt
+(entry=681, sl=62.7920, STUFE_2_KERZE_2) -> +6.480880. Bei identischem
+entry=681 und tp2=66.4590 kippt das Ergebnis ueber sl/stufe. Der
+Nettoeffekt des Schalters setzt sich aus 5 entfallenden (-1.976886 R)
+und 2 hinzutretenden (+5.480880 R) Trades zusammen.
+
+**Befund 4 (S4-Wirkungslosigkeit): Die Zaehler-Differenz ist kein
+Wirkungsmass.** Der globale Rand sperrt in H2 deutlich mehr
+(`quartil_blockiert` 42 im endogenen vs. 95 im globalen Lauf), aber die
+R-Konsequenz ist mit -0.017484 R praktisch null (3 nur-REF-Trades, kein
+nur-AKT, kein gemeinsam-dR). S4 ist in H2 wirkungslos, obwohl die
+Schranke mechanisch greift.
+
+**Befund 5 (Kein dR-Fall):** In H2 existiert kein einziger Fall
+gleicher Key mit abweichendem R (alle `gemeinsam-dR = 0`). Wie in H1 ist
+die Kategorie (c) leer; alle Unterschiede sind reine An-/Abwesenheiten.
+
+### 7. Trade-Attribution H2
+
+**S2 (H2-B vs. H2-0), Gesamtdelta +7.457766 R:**
+
+| Kategorie | n | R-Summe |
+|---|---|---|
+| nur-REF (in H2-0, nicht H2-B) | 5 | -1.976886 |
+| nur-AKT (in H2-B, nicht H2-0) | 2 | +5.480880 |
+
+nur-REF: 680/K45 LONG (-1.000000), 710/K16 SHORT (-0.452653),
+711/K33 SHORT (-1.000000), 728/K31 SHORT (-1.000000),
+1075/K62 LONG (+1.475768).
+nur-AKT: 679/K45 LONG (+6.480880), 714/K16 SHORT (-1.000000).
+
+**S3 (H2-M vs. H2-0), Gesamtdelta -1.420367 R:**
+
+| Kategorie | n | R-Summe |
+|---|---|---|
+| nur-REF | 5 | +0.447195 |
+| nur-AKT | 2 | -0.973172 |
+
+nur-REF: 643/K4 LONG (-1.000000), 727/K15 SHORT (-1.000000),
+728/K31 SHORT (-1.000000), 1122/K73 SHORT (+2.192513),
+1272/K73 SHORT (+1.254682).
+nur-AKT: 1039/K60 LONG (-0.483006), 1052/K60 LONG (-0.490166).
+
+**S4 (H2-Q vs. H2-0), Gesamtdelta -0.017484 R:**
+
+| Kategorie | n | R-Summe |
+|---|---|---|
+| nur-REF | 3 | +0.017484 |
+| nur-AKT | 0 | +0.000000 |
+
+nur-REF: 705/K12 SHORT (-1.000000), 1028/K60 LONG (-0.458284),
+1075/K62 LONG (+1.475768).
+
+### 8. H1-Kreuzkontrolle (Reproduktion H20.42)
+
+| Lauf | H1 n / R | dR(H1) | Soll (H20.42) | Status |
+|---|---|---|---|---|
+| H2-0 | 14 / +27.327383 | - | - | Referenz |
+| H2-B | 12 / +29.327383 | +2.000000 | +2.000000 | OK |
+| H2-BP | 12 / +29.327383 | +2.000000 | +2.000000 | OK |
+| H2-M | 16 / +33.202566 | +5.875183 | +5.875183 | OK |
+| H2-Q | 9 / +30.044402 | +2.717018 | +2.717018 | OK |
+| H2-V0 | 8 / +38.919584 | +11.592201 | +11.592201 | OK |
+
+Die H1-Partition des Vollaufs reproduziert die H20.42-Einzeldeltas
+vollstaendig (5/5) und damit die H1-Rangfolge S3 > S4 > S2. Damit ist die
+State-Isolation und die Kausalitaet des Vollaufs gegen die H1-Ablation
+bewiesen.
+
+### 9. H1-vs-H2-Rangfolge und OAT-Arithmetik
+
+| Lauf | dR(H1) | dR(H2) | dR(total) |
+|---|---|---|---|
+| H2-B | +2.000000 | +7.457766 | +9.457766 |
+| H2-BP | +2.000000 | +7.457766 | +9.457766 |
+| H2-M | +5.875183 | -1.420367 | +4.454816 |
+| H2-Q | +2.717018 | -0.017484 | +2.699535 |
+| H2-V0 | +11.592201 | +7.468855 | +19.061056 |
+
+Rangfolge |dR(H2)|: H2-V0 (+7.468855) > H2-B (+7.457766) =
+H2-BP (+7.457766) > H2-M (-1.420367) > H2-Q (-0.017484).
+Rangfolge |dR(H1)|: H2-V0 (+11.592201) > H2-M (+5.875183) >
+H2-Q (+2.717018) > H2-B (+2.000000) = H2-BP (+2.000000).
+
+**H2-Rangfolge S3 > S4 > S2 ist NICHT reproduziert:** die Reihenfolge
+ist S2 (+7.457766) > S3 (-1.420367) > S4 (-0.017484) -- exakt die
+Inversion der H1-Reihenfolge.
+
+**OAT-Restglied H2:** Summe der Einzeleffekte
++7.457766 (S2) + (-1.420367) (S3) + (-0.017484) (S4) = +6.019915;
+Gesamt (H2-V0 - H2-0) = +7.468855; Restglied = +1.448940. Die 6 Laeufe
+bleiben eine EIN-FAKTOR-ZU-GLEICHZEIT-Sonde, kein vollstaendiger
+2^3-Faktorplan (methodische Grenze wie in H20.42 Abschnitt 7 bleibt
+notariell bestehen).
+
+### 10. Spannen-Perzentile (diagnostisch, KEINE Schwelle)
+
+Endogene Spanne (decke - boden, lebende Kanten):
+
+| Fenster | n | p10 | p25 | median | p75 | p90 |
+|---|---|---|---|---|---|---|
+| H1 k<644 | 636 | 1.34500 | 1.62200 | 1.95800 | 2.25100 | 2.84000 |
+| H2 k>=644 | 641 | 1.53900 | 2.01100 | 2.24900 | 3.24300 | 3.88200 |
+
+Verhaeltnis endogen/global (globale kausale Spanne 0..k):
+
+| Fenster | n | p10 | p25 | median | p75 | p90 |
+|---|---|---|---|---|---|---|
+| H1 k<644 | 636 | 0.38422 | 0.43607 | 0.54608 | 0.77501 | 0.91497 |
+| H2 k>=644 | 641 | 0.20652 | 0.26986 | 0.31481 | 0.51915 | 0.82048 |
+
+**Referenzpunkt K45@k=680:** decke=65.4370, boden=62.5770,
+endogen=2.8600, global=4.2280, Verhaeltnis=0.67644,
+quelle=lebende_kanten (n=1, nicht kalibrierbar).
+
+Befund: Das Median-Verhaeltnis endogen/global faellt von 0.54608 (H1)
+auf 0.31481 (H2), WAEHREND die absolute Spanne steigt (med 1.95800 ->
+2.24900). Die starre 25-%-Quartilschranke misst in H2 eine andere
+relative Marktgeometrie als in H1. Kein Schwellenwert wird hieraus
+abgeleitet (Kalibrierung offen).
+
+### 11. Dateien / SHAs
+
+- **Neu (arretiert):** `test/_chk_h2_ablation.py` `cb5a6d62...` /
+  39.511 B; `test/_chk_h2_ablation_out.txt` `f9b793c0...` / 25.848 B.
+- **Unveraendert:** V020-Motor `e79c5c29...` / 40.567 B; Baseline
+  `53f28e1b...` / 200.433 B; Adapter `770eda2c...` / 43.279 B;
+  `_chk_h1_ablation.py` `f5dc0f30...` / 28.941 B;
+  `_chk_v020_erstlauf.py` `620da912...`.
+- `__pycache__`: keine h2_ablation-/h1_ablation-/k45-Reste. Keine PNG,
+  keine DB-Mutation, kein Caching-Refactoring.
+
+### 12. Entscheidungsfragen (Textblock, keine Auswahl)
+
+1. **S2-Pool-Haertung:** Wird die Durchstich-Reaktivierung im
+   Kandidaten-Pool an Liveness (`lebt_kausal`) UND Reife
+   (`min_wall_alter_bars`) gebunden, waehrend der Blocker-Pfad
+   unveraendert bleibt (Invarianz-Beweis H20.42/H20.43)?
+2. **Regime-Modell zuerst:** Wird S3 im Regime-Zustandstraeger des
+   H20.44-Modells verankert (keine isolierte S3-Sonderregel
+   vorziehen), nachdem die Polaritaet S3: H1 +5.875183 / H2 -1.420367
+   belegt ist?
+3. **S4-Normierung:** Wird S4 als relatives Band mit absolutem
+   USD-Mindestabstand formuliert (kein reines Perzentil), gestuetzt auf
+   den Verhaeltnis-Einbruch 0.54608 -> 0.31481?
+4. **S2-Sonde:** Wird die Dreikanal-Sonde (`_exist_pool` geschaerft;
+   `_exist_blocker` und `_sk` unveraendert) mit 33-Trade-Regression
+   (Modus B) und Bar-674..684-Dump als naechster Messschritt
+   autorisiert?
+5. **Liveness-Dynamik:** Bleibt `wall_live_bars = 96` in der ersten
+   S2-Reform fest (Trennung der Variablen), und wird erst bei
+   nachgewiesenem Versagen an Bar 679 dynamisiert?
+
+**Anker:** Handoff-Kopf vor diesem Append = `2ec9ef77254d13bb691a4b74425b0156cf323ffcb23605c82381140dbcf21f8e`
+/ 647.130 B / 10.972 CRLF. H20.34 bis H20.42 bleiben unveraendert.
+
+## H20.44 - S2-Sonde: Kanal-1-Haertung verifiziert, B1 als neuer Modus-B-SSoT
+
+### 0. Status
+
+Reines Mess-Notariat (Befunde) + visuelle Verifikation. Keine Engine-Mutation,
+kein Feature/Bugfix. Die Sonde ist read-only mit SHA-Guards auf
+Baseline/V020/Adapter (der Handoff wird bewusst NICHT gelesen, um Code/Doku zu
+trennen). Alle Zahlen stammen aus `test/_chk_s2_sonde_out.txt`.
+
+### 1. Provenienz und Determinitaet
+
+| Artefakt | SHA256 | Bytes |
+|---|---|---|
+| `test/_chk_s2_sonde.py` (mit Fix Z. 597) | `b7431972154012d09ad98a82c58bda5d4572bc8580d387638ecdcb725f9a7791` | 37.210 |
+| `test/_chk_s2_sonde_out.txt` | `c32bf3335a5c31230d9c30c075a603763018f6b1b8c2d36cbbf2b807c2370f9f` | 680.358 / 2.937 Z. |
+| `test/SESSION_HANDOFF.md` (Kopf vor diesem Append) | `2be37be8257dd62e5d0d18463d1b56685e5589bb5971508856012bdce58eda19` | 658.844 / 11.227 CRLF |
+
+- **Fix (Z. 597):** `letzter_trade[int(kd.kid)] = setups[-1]` (Q21
+  Retest-Zyklus) war in der ersten Sondenvorlage verloren; ohne ihn feuerte
+  `zyklus_blockiert` nie und die Rekonstruktion ueberzaehlte (reko=49 statt 29,
+  Duplikate je Kid, u. a. K59 bei 855/858/859/861/862).
+- **Selbstkontrolle nach Fix:** `realA=29 / reko=29 / nurREAL=0 / nurREKO=0`.
+- **Determinismus:** zwei vollstaendige Laeufe (Exit 0, `Fehler=False`)
+  erzeugen **byte-identische** Ausgabe -> der Protokoll-SHA `c32bf333...` ist
+  reproduzierbar und an den Skript-SHA `b7431972...` gebunden.
+- `test/_tmp_s2diag.py` entfernt; `test/__pycache__`, `backtest_lab/__pycache__`
+  entfernt.
+
+### 2. Anker 1-6 (alle hart bestanden)
+
+1. **Durchstich-Aequivalenz OK:** Faktorisierung == `existiert_nativ` fuer
+   alle Linien und alle k; 93.659 Pruefungen, davon 19.590
+   Reaktivierungs-Durchstiche.
+2. **A0 == echter `_se_trades_v020`(hook=None):** Vollsignatur (12 Felder je
+   Trade) identisch.
+3. **B0 == echter `_se_trades_v020`(hook=wd=ADAPTER):** Vollsignatur identisch.
+4. **Modus-B-Klammern (B0) == Literale:** total `33 / +56.549174`; H1
+   `14 / +27.327383`; H2 `19 / +29.221791`; LONG `10 / -1.119762`; SHORT
+   `23 / +57.668937`; Zaehler OK (8 Schluessel, `blocker=83`);
+   `K82@1172` abwesend (Klasse-III-Docht, tolerierte Ausnahme).
+5. **A0-Klammern == H2-0:** total `29 / +23.389914`; H1 `14 / +27.327383`;
+   H2 `15 / -3.937470` (Rekonstruktion UND echter Motor identisch).
+6. Konfigurationsgleichheit `cfg.wall_live_bars == kcfg.wall_live_bars == 96`;
+   `min_wall_alter_bars == 24/24`.
+
+### 3. Lauf-Matrix
+
+| Lauf | Modus | Kanal 1 | Trades | R | H1 n/R | H2 n/R |
+|---|---|---|---|---|---|---|
+| A0 | A | AUS (nativ) | 29 | +23.389914 | 14 / +27.327383 | 15 / -3.937470 |
+| **A1** | A | **AN (geschaerft)** | **26** | **+33.870794** | 13 / +28.327383 | 13 / +5.543411 |
+| B0 | B | AUS (nativ) | 33 | +56.549174 | 14 / +27.327383 | 19 / +29.221791 |
+| **B1** | B | **AN (geschaerft)** | **30** | **+67.030055** | 13 / +28.327383 | 17 / +38.702671 |
+
+Partition stets `entry_bar < 644` = H1, `>= 644` = H2.
+Kanal-1-Delta, identisch in beiden Modi: **dN -3 / dR +10.480880**
+(H1 -1 / +1.000000; H2 -2 / +9.480880).
+
+### 4. Trade-Delta (modussymmetrisch)
+
+`A0 -> A1` und `B0 -> B1` sind **feldgleich**:
+
+```
+NUR_REF 4 (Summe der entfernten R-Werte = -4.000000):
+  bar=246 entry=247 K16 SHORT r=-1.000000 sl=65.9770 tp2=63.6190 STUFE_1_IN_BAR
+  bar=680 entry=681 K45 LONG  r=-1.000000 sl=63.0170 tp2=66.4590 STUFE_1_IN_BAR
+  bar=711 entry=714 K33 SHORT r=-1.000000 sl=65.8100 tp2=62.5770 STUFE_3_KERZE_3
+  bar=728 entry=729 K31 SHORT r=-1.000000 sl=66.3750 tp2=62.5770 STUFE_1_IN_BAR
+NUR_AKT 1 (+6.480880):
+  bar=679 entry=681 K45 LONG  r=+6.480880 sl=62.7920 tp2=66.4590 STUFE_2_KERZE_2
+GEMEINSAM_dR 0 (+0.000000)
+```
+
+Befund: Kanal 1 entfernt **vier -1.00-R-Sofortausstopper** und aktiviert
+**einen +6.480880-R-Gewinner**. Die K16@246 (H1) ist die einzige
+H1-Wirkung; die uebrigen drei sind H2.
+
+### 5. Bar-679-Mechanik (Dreikanal)
+
+```
+[A1/B1] bar=679 LONG seite=UNTEN sweep=62.8420 freigabe=None
+        kd_alt=K3 kd_neu=K45 blk_alt=K48 blk_neu=-
+  K48 UNTEN basis=62.5770 aktiv=1 alter=22 lebt=1 etab=0
+      -> dist(K45)=0.9169 % > max_seed_distanz_pct=0.75 % -> kein Blocker
+  K3  UNTEN basis=62.9670 aktiv=0 alter=665 lebt=0 etab=1 schlaf=670-684
+      ds=1 pool_alt=1 r_alt=0 pool_neu=0
+  K45 UNTEN basis=63.1560 aktiv=1 alter=36  lebt=1 etab=1
+      ds=1 pool_alt=1 r_alt=1 pool_neu=1 r_neu=0
+  Kanal-3: |_sk|=19 seite_kid=None seite_kid_in_sk=False
+```
+
+Wirkkette: die reaktivierte, **tote** K3 (`aktiv=0, lebt=0`) faellt im
+geschaerften Pool heraus (`reif` erfuellt, `lebt_kausal` verletzt) -> K45
+(aktiv, lebend) wird Rang 0 -> K48 liegt mit **0.9169 % > 0.75 %** ausserhalb
+des seed-Distanz-Gates -> kein Blocker -> `entry=63.1810, sl=62.7920,
+tp2=66.4590` -> **+6.480880**. Kanal 3 unterscheidet an dieser Stelle nicht
+(K3, K45, K48 alle in `_sk`).
+
+### 6. dR-Konvention (verbindlich)
+
+```
+dR = -Summe(NUR_REF) + Summe(NUR_AKT) + Summe(GEMEINSAM_dR)
+```
+
+Das Vorzeichen von `NUR_REF` ist die **Summe der entfernten R-Werte**
+(hier -4.000000); ihre Entfernung ist eine **positive Entlastung**
+(-Summe = +4.000000). Damit exakt:
+
+```
+dR = +4.000000 + 6.480880 + 0.000000 = +10.480880
+```
+
+Die Aggregatdrift `+10.480880` (Summe ueber Trades) vs. `+10.480881`
+(Summe der Einzel-Trade-R) ist ein **Float-Residuum der Ordnung 1e-6** und
+wird als solches dokumentiert, nicht als Widerspruch.
+
+### 7. Hypothesen-Attribution
+
+**H-A (A1 == H2-B-Klammern): FALSIFIZIERT, oekonomisch uebertroffen.**
+
+| Groesse | A1 ist | Ziel H2-B | Status |
+|---|---|---|---|
+| total | 26 / +33.870794 | 24 / +32.847680 | +2 Trades / +1.023114 R |
+| H1 | 13 / +28.327383 | 12 / +29.327383 | +1 Trade / -1.000000 R |
+| H2 | 13 / +5.543411 | 12 / +3.520297 | +1 Trade / +2.023114 R |
+| K45@679 | +6.480880 sl=62.7920 STUFE_2 | +6.480880 | **OK** |
+
+Ursache: H2-B ist die **grobe Amputation** (Reaktivierung komplett aus,
+`s2_pool=AUS` -> `_exist_pool = ist_aktiv and pivot+2<=k+1`). A1 ist die
+**chirurgische** Variante (Reaktivierung nur bei `reif and lebt_kausal and
+hat_durchstich`). A1 (26) liegt damit zwischen H2-0/A0 (29, nativ) und H2-B
+(24, reaktivierungsfrei).
+
+**H-B (B1 == B0 in Vollsignatur und Zaehlern): literal FALSIFIZIERT,
+strukturell unvermeidlich; oekonomisch bestaetigt.**
+`Vollsignatur B1 == B0: False`. Zaehler: `blocker 83 -> 59`,
+`quartil_blockiert 42 -> 38`, `frisch_blockiert 94 -> 40`,
+`zyklus_blockiert 26 -> 27`, `kein_raum 37 -> 33`.
+
+**Grund:** `_pool_bauen(..., schaerfen, ...)` speist in **beiden** Modi den
+Kandidaten-Pool. Ergebnisinvarianz von Modus B bei einer Kanal-1-Aenderung
+ist damit **logisch ausgeschlossen**. Entlastend: `_exist_blocker` (Kanal 2)
+und `_sk`/Hooks (Kanal 3) sind **quelltextlich unangetastet**, und das
+Trade-Delta ist **modusgleich**. Es gibt im AUG-Fenster (n=1288) **keine
+nachweisbare** Hook-Interaktion der Kanal-1-Haertung.
+
+**Formale Korrektur zu H20.43 Abschnitt 8:** Die dortige Aussage "Kanal 2
+`_exist_blocker` unveraendert" bleibt gueltig. Jede Lesart, die daraus
+**Ergebnisinvarianz von Modus B** ableitet, ist **widerlegt** und wird
+hiermit zurueckgezogen.
+
+### 8. S3-Nichtlinearitaet (0.75-%-Gate) - SSoT
+
+`A_M6L` ist **nicht-monoton**. Code-Kern:
+`if s3_blocker and not _lebt_wicks(e, kk): continue` (dormante Linien werden
+im Blocker-Scan uebersprungen). Erwartung erster Ordnung (mehr Blocker bei
+AUS) ist **widerlegt**: H1-0 (AN) = 14 Trades, H1-M (AUS) = 16 Trades, mit
+`nur-REF 2 / nur-AKT 4` und `bar=398 K5 LONG entry=399 r=+5.697713`.
+
+**Mechanismus:** `_blockiert` waehlt `aussen` als aeusserste Linie (OBEN max,
+UNTEN min) und gatet danach `0 < dist <= max_seed_distanz_pct (0.75 %)`.
+Die Einbeziehung einer **dormanten** Aussenkante verschiebt `aussen` weiter
+nach aussen, wodurch `dist > 0.75 %` verletzt wird -> `return None` ->
+**Blockade entfaellt**. Die Formulierung "dormante Aussenkanten sperren den
+Blocker-Pool" ist damit **falsch herum**; richtig ist: die Einbeziehung
+dormanter Kanten kann die Blocker-Auswahl ueber das 0.75-%-Gate
+hinaustreiben und eine Blockade entschaerfen.
+
+Konsequenz: kein analytisches Vorzeichenargument fuer S3 moeglich;
+Kalibrierung zwingend **empirisch**.
+
+### 9. Beschluesse
+
+1. **Kanal-1-Semantik verbindlich:** `_exist_pool` gilt als:
+   `ist_aktiv -> pivot+2 <= k+1`; sonst Reaktivierung nur bei
+   `reif (min_wall_alter_bars) and lebt_kausal and hat_durchstich` (streng,
+   ohne Band). Kein Rueckfall auf die reaktivierungsfreie H2-B-Amputation.
+2. **Kein Modus-Gating.** Kanal 1 ist universelle Marktphysik; Modus B
+   profitiert von derselben Filterhaertung.
+3. **B1 (`30 / +67.030055`) ist der neue kanonische SSoT-Benchmark fuer
+   Modus B.** B0 (`33 / +56.549174`, `blocker=83`) bleibt als historischer
+   Regressionsanker erhalten (append-only, nichts ueberschreiben).
+4. **Die 2 Ueberschuss-Trades in A1** sind qualifizierte, profitable
+   Reaktivierungen - legitime Marktchancen, kein Schrott.
+5. **Kosmetik der Sonde unangetastet** (`TOLERIERT_TOT`, `pool`-Reassignment,
+   doppelte `max_gleichzeitig_je_richtung`-Bloecke, redundante A0-Berechnung).
+   Keine Refactorings, keine Hash-Invalidierung - historischer Beweis bleibt
+   byte-genau.
+6. **S3/S4 (H20.45):** Regimetraeger 2-dimensional
+   (relative Spanne `(decke-boden)/mid` + Mittellinien-Drift via robustem
+   Schaetzer/Theil-Sen ueber 24 Bars `[k-23..k]`), **Schmitt-Trigger** mit
+   `theta_ret < theta_ent`, Schwellen kausal-endogen aus rollierenden
+   Perzentilen der eigenen Traeger-Historie (keine Fixkonstanten).
+   **Dormanzanteil nicht als Primaersignal** (Zirkularitaet).
+   **S4 wird in H20.45 mitgekoppelt** (gemeinsame Zustands->Aktor-Tabelle).
+   Akzeptanzanker: BALANCE bei k=398 (K5 feuert), TREND bei k=679
+   (K45 = +6.480880, K48 kein Blocker).
+   **Aktorzuordnung (evidenzbasiert, aus H1/H2-Ablation):**
+   BALANCE = `s3_blocker AUS` (dormante einbezogen; K5@399 feuert),
+   TREND = `s3_blocker AN` (dormante uebersprungen). Die Labels
+   "A_M6L aktiv/inaktiv" werden vermieden (sprachlich ambig).
+   **Kausalitaetskonvention:** Das Driftfenster ist `[k-23..k]` (24 Bars,
+   Bar k eingeschlossen), weil `hi[k]`/`lo[k]` bei Signalbildung bekannt sind
+   (`_lebt_wicks`: `b <= kk`; `sweep = hi[k]`/`lo[k]`).
+
+### 10. STALE-MARKER (verbindlich)
+
+> **Geltungsbereich der bisherigen Ablationszahlen.**
+> Alle Effektgroessen aus **H20.42 (H1-Ablation)** und **H20.43 (H2-Ablation)**
+> - Einzeldeltas S2 +2.000000 (H1) / +7.457766 (H2), S3 +5.875183 (H1) /
+> -1.420367 (H2), S4 +2.717018 / -0.017484, OAT-Restglied H2 +1.448940,
+> H2-0 == A0, die Spannen-Perzentile - sind auf dem **ungeschaerften**
+> Kanal-1-Pool (Baseline A0/B0) gemessen.
+> Fuer **A1/B1 sind sie NICHT linear fortschreibbar.** Kanal 1 wirkt
+> nichtlinear in k: der Ausschluss *einer* Linie aendert die Kaskaden-Rangfolge
+> und damit alle stromabwoertigen Gates (belegt: `blocker` 83 -> 59,
+> `frisch_blockiert` 94 -> 40 bei unveraendertem Kanal 2/3).
+> Jede H20.45-Kalibrierung auf A1/B1 muss die Ablationszahlen **neu messen**,
+> nicht uebertragen.
+
+### 11. Offene Luecke (transparent ausgewiesen)
+
+Die Sonde gibt nur total/H1/H2 aus. Ein **LONG/SHORT-Split fuer A1 und B1**
+liegt **nicht** vor. Es ist **kein** voreiliger Mini-Lauf vor der
+Notarisierung erfolgt. Der Split wird im naechsten Verifikationszyklus
+nachgetragen. (Bekannt und gueltig nur fuer B0: LONG `10 / -1.119762`,
+SHORT `23 / +57.668937`.)
+
+### 11b. Visuelle Verifikation (Render, additiv)
+
+Read-only Plotter `test/_render_aug_sep_b1.py`: EXT-Fenster
+(03.08.-12.09., n=2750), AUG-Fenster per **hartem Zeitstempel-Assert**
+eingebettet (`ts_ext[460..1747] == ts_aug`; `off=460 = 1104-644`,
+`np.array_equal` ohne Fallback). B1-Setups via
+`_chk_s2_sonde._rekonstruiere(...)` (1:1 zum Sondenlauf, Anker
+`30 / +67.030055` hart geprueft). Nur handlungsrelevante Kanten
+(Setup-Kids + eliminierte) statt aller Linien. SL-TP2-Range je Trade,
+Label `K<kid> <entry>` (kausaler Preis, **kein** TP1-Preishorizont;
+TP1 ist nur Teil-Schliessung an `exit1_bar`). Rotes X an `bar` der
+4 eliminierten Verluste.
+
+Kanten-Shim `_OffKante` verschiebt nur die Docht-Bars um `off`; Geometrie
+(`_edge_profil`, `_zeichne_kanten`, `_zeichne_touches`) unveraendert aus
+`tmp_png_ext_sichttest_v2.py`.
+
+**Provenienz-Hinweis (Zero-Trust):** Die zur Begutachtung vorgelegte
+Textvorlage war nicht lauffaehig; waehrend der Ausfuehrung waren zwei
+Korrekturen noetig: (1) Entfernen eines stdout-`_Tee` ohne `.buffer`
+(Import der Module haengt `sys.stdout` um), (2) `_StdoutStub` (fd-freier
+`BytesIO`) als Import-Kapsel, weil der GC des zweiten `TextIOWrapper` den
+echten stdout-Puffer schloss (`ValueError: I/O operation on closed file`).
+Der **ausgefuehrte** Skript-SHA ist daher `9bb464eb...` (nicht identisch mit
+der begutachteten Vorlage). Zwei Fehlversuche brachen vor jedem Schreibzugriff
+ab; genau **eine** erfolgreiche Renderung (Exit 0, `Fehler=False`).
+
+Render-Protokoll: `RENDER B1 | Universum=EXT n=2750 | AUG-Ursprung Bar 460`;
+`B1: 30 Trades / +67.030055 R`; `B0: 33 / +56.549174`;
+`ELIMINIERT 4 (-4.000000) | NEU 1 (+6.480880)`;
+ELIM `K16@246, K45@680, K33@711, K31@728`; NEU `K45@679`.
+
+### 12. Dateien / SHAs
+
+- **Neu (arretiert, Sonde):** `test/_chk_s2_sonde.py` `b7431972...` /
+  37.210 B; `test/_chk_s2_sonde_out.txt` `c32bf333...` / 680.358 B.
+- **Neu (arretiert, Render):** `test/_render_aug_sep_b1.py` `9bb464eb...` /
+  14.529 B; `test/render_aug_sep_b1_uebersicht.png` `dbd203f8...` /
+  1.145.745 B (10200x3900); `test/render_aug_sep_b1_nahtstelle.png`
+  `f00887d0...` / 316.590 B (5200x2400); `test/render_aug_sep_b1_out.txt`
+  `306e41d2...` / 481 B.
+- **Unveraendert:** V020-Motor `e79c5c29...` / 40.567 B; Baseline
+  `53f28e1b...` / 200.433 B; Adapter `770eda2c...` / 43.279 B;
+  `_chk_h1_ablation.py` `f5dc0f30...`; `_chk_h1_ablation_out.txt`
+  `fd166e8a...`; `_chk_h2_ablation.py` `cb5a6d62...`;
+  `_chk_h2_ablation_out.txt` `f9b793c0...`; `_chk_v020_erstlauf.py`
+  `620da912...`; `_chk_v020_erstlauf_out.txt` `dd772f04...`;
+  `_chk_k45_trace.py` `4428d1f8...`; `_chk_k45_trace_out.txt` `d4a02f68...`.
+- `tmp_png_ext_sichttest_v2.py` unveraendert. Keine DB-Mutation, kein
+  Caching-Refactoring. Neue `.pyc` nur im Altbestand
+  `test/trash/pycache_test/` (nicht von diesem Lauf).
+
+### 13. Entscheidungsfragen (Textblock, keine Auswahl)
+
+1. **Schmitt-Trigger-Aktorseite:** Wird die Zuordnung BALANCE =
+   `s3_blocker AUS` / TREND = `s3_blocker AN` (Abschnitt 9.6) festgeschrieben
+   - und welche Zuweisung gilt fuer S4 (relatives Band + USD-Mindestabstand)?
+2. **Gate-Richtung:** Wie wird die Nicht-Monotonie im H20.45-Text
+   abgesichert (kein Vorzeichenargument, nur Messung)?
+3. **Schwellen-Endogenitaet:** Rollierendes Perzentil der Traeger-Historie -
+   welches (p25/p50/p75), von **relativer** oder **absoluter** Spanne, und
+   welche Mindesthistorie?
+4. **Hysterese-Breite:** `theta_ret < theta_ent` als feste Perzentil-Differenz
+   (z. B. p40/p60) oder als Mindest-Totband in Bars?
+5. **Startup-Regime:** Ab welchem k hat der Traeger genug Historie (24 Bars?)
+   - und welcher Zustand gilt davor (Default BALANCE/TREND)?
+6. **Validierungsanker:** Reichen k=398 (K5) und k=679 (K45) als
+   Akzeptanzkriterien, oder wird zusaetzlich die H1-Rangfolge S3 > S4 > S2 als
+   Pflichtkriterium gesetzt?
+7. **B1-Split:** Wird der LONG/SHORT-Split fuer A1/B1 im naechsten
+   Verifikationszyklus nachgemessen und als Erratum-Append nachgetragen?
+
+**Anker:** Handoff-Kopf vor diesem Append = `2be37be8257dd62e5d0d18463d1b56685e5589bb5971508856012bdce58eda19`
+/ 658.844 B / 11.227 CRLF. H20.34 bis H20.43 bleiben unveraendert.
+Engine `53f28e1b...` / 200.433 B; Adapter `770eda2c...` / 43.279 B;
+V020 `e79c5c29...` / 40.567 B - alle unveraendert.
+
+## H20.45 - Falsifikation der S3-Regime-Kopplung (r_cum/T1 verworfen, B1 bleibt SSoT)
+
+### 0. Status
+
+Reines Mess- und Falsifikations-Notariat. Keine Engine-Mutation, kein
+Feature/Bugfix, keine Baseline-Mutation. Alles rein lesend, mit SHA-Guards
+auf Baseline/V020/Adapter (der Handoff wird bewusst NICHT gelesen, um
+Code/Doku zu trennen). Alle Zahlen stammen aus
+`test/_chk_regime_sonde_v2_out.txt` (Teil 2) und
+`test/_chk_regime_actor_sonde_out.txt` (Teil 3).
+
+### 1. Ausgangslage und Fragestellung
+
+H20.44 Abschnitt 9.6 hat ein 2-dimensionales Regime-Modell (relative
+Spanne + Mittellinien-Drift) mit Schmitt-Trigger vorgesehen, dessen
+Schwellen kausal-endogen aus rollierenden Perzentilen folgen sollen. Die
+Part-1-Sonde (H20.45 Teil 1, ueberholt) zeigte, dass unter den
+vereinbarten Regeln (Vorzeichenwechsel, selbst-inkludierende Referenz)
+KEIN Kandidat qualifiziert. Teil 2 korrigiert das Messdesign
+(Validierungssatz, Zwei-Fenster-Z-Score, einseitiger Schmitt). Teil 3
+misst erstmals die OEKONOMIE der S3-Kopplung als Aktor.
+
+Frage: Traegt eine endogene S3-Regime-Kopplung einen Netto-Vorteil
+gegenueber dem statischen Zustand (S3 global AN bzw. AUS)?
+
+### 2. Werkzeug, Methode und Determinismus
+
+| Artefakt | SHA256 | Bytes |
+|---|---|---|
+| `test/_chk_regime_sonde_v2.py` | `eb296c6346034c6ae723d35a03e831ef08f106e96c8c4c8f9686287bc4209223` | 17.204 |
+| `test/_chk_regime_sonde_v2_out.txt` | `fa1cb3615fd0c3f4dac8b1449c700fe0dc8e80023df6feb33323a3780df11b07` | 16.388 |
+| `test/_chk_regime_actor_sonde.py` | `9e5bcc0789e520173d4c46ecb6e308035ab68a7b397e0ff77132bded9d855681` | 34.060 |
+| `test/_chk_regime_actor_sonde_out.txt` | `e34af9578ad9e424d96349df288a0807693fed569a668fd2deb8a468a42cfba0` | 5.535 |
+
+- **Determinismus:** beide Sonden zweimal vollstaendig gefahren; Ausgaben
+  jeweils byte-identisch (Exit 0). Kein RNG, keine Motormutation.
+- **Provenienz-Hinweis:** Die in der Aktor-Protokolldatei gedruckte
+  Groessenangabe "5.382 B" ist der LF-Zwischenstand vor der
+  CRLF-Normalisierung; arretierter Endstand ist 5.535 B (`e34af957...`).
+- Teil 1 (`_chk_regime_sonde.py` `94b7009e...` / 10.769 B; `_out`
+  `82cfd877...` / 3.007 B) bleibt als ueberholter Messstand append-only
+  erhalten, ist aber NICHT SSoT.
+
+**Fail-Loud-Anker Teil 3 (alle bestanden):**
+A0 == echter `_se_trades_v020(hook=None)` und B0 == echter
+`_se_trades_v020(hook=wd=ADAPTER)`, jeweils in Vollsignatur. Zwoelf
+Klammer-Asserts exakt reproduziert:
+A0 `29 / +23.389914` (H1 14/+27.327383, H2 15/-3.937470);
+B0 `33 / +56.549174` (H1 14/+27.327383, H2 19/+29.221791);
+A1 `26 / +33.870794` (H1 13/+28.327383, H2 13/+5.543411);
+B1 `30 / +67.030055` (H1 13/+28.327383, H2 17/+38.702671).
+
+**Traeger (Teil 2, fixiert):** `r_cum = (decke-boden)/(max(hi[:k+1])-
+min(lo[:k+1]))`; Zwei-Fenster-Z-Score `W_SIG=64`, `W_REF=256`,
+`GUARD=24`, `W_MIN_REF=64`; einseitiger Schmitt `theta_ent=+0.6745`,
+`theta_ret=0.0`, Default BALANCE. Anker-Rohwerte reproduziert:
+endo 2.0900/2.8600, mid 64.5090/64.0070, r_cum 0.54870/0.67644;
+Referenzfenster an beiden Ankern voll besetzt (256/256).
+
+### 3. Teil-2-Verdikt: genau EIN Kandidat ueberlebt
+
+Validierungssatz (Beschluss 0) = 65 Bars [220..1272].
+z an den Ankern: z(398)=+0.018, z(679)=+2.296, z(680)=+2.296.
+Guard-Band hebt die Ankertrennung gegenueber Teil 1 von dz=+1.309 auf
+dz=+2.278 (Teil 1 war durch Referenz-Selbstkontamination unterschaetzt).
+
+| Kandidat | dz(679-398) | Marge679 | Verdikt |
+|---|---|---|---|
+| `r_cum` / T1_fix_in_z | +2.278 | +1.621 | **TAUGLICH** |
+| `r_r64` / T1_fix_in_z | +0.649 | +0.453 | falsifiziert (dz < 1.0, flackert) |
+| `r_r256` / T1_fix_in_z | +1.031 | +0.317 | falsifiziert (Marge < 0.6745) |
+| `m4b` (Close-Displacement) | -0.504 | -2.560 | falsifiziert (antikorreliert) |
+
+Weitere Teil-2-Befunde:
+- Der rollierende Schwellenmodus T2 (p75/p50 der z-Historie) ist fuer
+  ALLE Kandidaten falsifiziert: theta_ent(398) = -0.807 (das
+  Referenzfenster 119..374 stammt aus einer Niedrig-Spannen-Phase). Die
+  Schwelle muss auf dem standardisierten Traeger stehen (fix-in-z).
+- z-Gueltigkeit: r_cum/r_r64/r_r256 je 1190 Bars, m4b 1101.
+- Der Ersatz-Kandidat M4b (Close-Displacement) ist antikorreliert
+  (z(398)=-1.382, z(679)=-1.886). Damit ist die 2-D-Traeger-Hypothese
+  empirisch widerlegt (Theil-Sen-drift UND Displacement tot): der
+  Traeger ist 1-dimensional.
+- Zustaende: BALANCE 1043 / TREND 245; erster TREND bei k=95.
+- Ankerzustaende: k398=BALANCE(z=+0.018), k617=BALANCE(z=-0.380),
+  k630=TREND(+2.869), k643=TREND(+3.237), k679=TREND(+2.296),
+  k1075=BALANCE(+0.136), k1272=BALANCE(-0.191).
+- Der BALANCE->TREND-Uebergang liegt in [617, 630], also 14..27 Bars
+  VOR der exogenen Box-Grenze 644 (endogen-erwartungskonform, kein
+  Kalender-Artefakt).
+
+### 4. Teil-3: Lauf-Matrix (Kanal 1 stets GESCHAERFT ausser A0/B0)
+
+| Lauf | Modus | S3-Aktor | Trades | R | H1 n/R | H2 n/R |
+|---|---|---|---|---|---|---|
+| A0 | A | AN | 29 | +23.389914 | 14 / +27.327383 | 15 / -3.937470 |
+| B0 | B | AN | 33 | +56.549174 | 14 / +27.327383 | 19 / +29.221791 |
+| A1 | A | AN | 26 | +33.870794 | 13 / +28.327383 | 13 / +5.543411 |
+| B1 | B | AN | 30 | +67.030055 | 13 / +28.327383 | 17 / +38.702671 |
+| A_aus | A | AUS | 24 | +38.298782 | 15 / +34.202566 | 9 / +4.096216 |
+| A_reg | A | REGIME | 25 | +36.773866 | 14 / +34.677650 | 11 / +2.096216 |
+| B_aus | B | AUS | 26 | +62.141672 | 15 / +34.202566 | 11 / +27.939106 |
+| B_reg | B | REGIME | 27 | +60.616757 | 14 / +34.677650 | 13 / +25.939106 |
+
+Aktorzuordnung (H20.44 Abschnitt 9.6): BALANCE -> `s3_blocker AUS`,
+TREND -> `s3_blocker AN`.
+
+**LONG/SHORT-Split (schliesst die offene Luecke aus H20.44 Abschnitt 11):**
+
+| Lauf | LONG n/R | SHORT n/R |
+|---|---|---|
+| B1 | 10 / +6.361118 | 20 / +60.668937 |
+| B_aus | 10 / +13.058831 | 16 / +49.082841 |
+| B_reg | 11 / +12.058831 | 16 / +48.557925 |
+| A1 | 10 / +2.273818 | 16 / +31.596976 |
+| A_aus | 10 / +8.971531 | 14 / +29.327250 |
+| A_reg | 11 / +7.971531 | 14 / +28.802335 |
+
+(Bekannt aus H20.44 nur fuer B0: LONG 10/-1.119762, SHORT 23/+57.668937.)
+
+**H1-Kreuzinvarianz (unabhaengige Bestaetigung der Adapter-Inertheit
+k<=643):** A1 == B1 (13/+28.327383), A_aus == B_aus (15/+34.202566),
+A_reg == B_reg (14/+34.677650).
+
+### 5. Falsifikations-Verdikt
+
+**Modusabhaengigkeit: die Kopplung verbessert Modus A und verschlechtert
+Modus B.**
+
+    Modus A: A1  26/+33.870794 -> REGIME 25/+36.773866   dR = +2.903072
+    Modus B: B1  30/+67.030055 -> REGIME 27/+60.616757   dR = -6.413298
+    Netto ueber beide Modi: -3.510226 R
+
+Im kanonischen Modus B (B1 = SSoT-Benchmark, H20.44 Abschnitt 9.3) ist die
+Kopplung eine Regression.
+
+**Dominanz durch die Konstante:** der endogene Akteur liegt in BEIDEN
+Modi unter einem statischen Zustand.
+- Modus A: A_aus `+38.298782` > A_reg `+36.773866` > A1 `+33.870794`.
+- Modus B: B1 `+67.030055` > B_aus `+62.141672` > B_reg `+60.616757`.
+Modus A will `AUS`, Modus B will `AN` -- kein einheitlicher endogener
+Aktor schlaegt beide eingefrorenen Enden.
+
+**AUS -> REGIME ist in beiden Modi nahezu identisch (-1.524916 bzw.
+-1.524915).** Diese Symmetrie ist beobachtet, aber in diesem Notariat
+NICHT attribuiert (offen).
+
+**Mechanik (Trade-Delta, GEMEINSAM_dR stets 0.000000):**
+
+    A1 -> A_reg: NUR_REF 4 (+1.447195) | NUR_AKT 3 (+4.350267) | dR +2.903072
+      NUR_REF: 220/K15 -1.000000 | 527/K31 -1.000000 |
+               1122/K73 +2.192513 | 1272/K73 +1.254682
+      NUR_AKT: 398/K5 +5.697713 | 429/K25 -1.000000 | 509/K16 -0.347446
+
+    B1 -> B_reg: NUR_REF 6 (+10.763565) | NUR_AKT 3 (+4.350267) | dR -6.413298
+      NUR_REF: 220/K15 -1.000000 | 527/K31 -1.000000 |
+               1122/K73 +10.752473 | 1268/K76 -1.000000 |
+               1272/K73 +1.254682 | 1280/K76 +1.756410
+      NUR_AKT: 398/K5 +5.697713 | 429/K25 -1.000000 | 509/K16 -0.347446
+
+Zerlegung nach Fenstern:
+- H1-Anteil identisch in beiden Modi: **+6.350267** (K5@399 gerettet).
+- H2-Anteil Modus A: **-3.447195**; Modus B: **-12.763565**.
+
+**Ursache: eine einzige H2-Traeger-Luecke.** In B_reg verschwindet
+1122/K73 (+10.752473). Die Regel ist modus-agnostisch, der Fehlerpreis
+ist es nicht: derselbe Trade ist in Modus A nur +2.192513 wert (Adapter
+TP2-Differenz). Daraus folgt strukturell, dass kein einzelner
+(theta_ent, theta_ret)-Satz fuer beide Modi optimal sein KANN.
+
+**Fragilitaets-Vermerk (analog H20.41 Abschnitt 6):** B1-H2 = +38.702671;
+ohne 1122/K73 verbleiben +27.950198, d.h. **27.78 % des B1-H2-Profits
+haengen an EINEM Trade**. Die Fragilitaet ist adapter-erzeugt (Modus B),
+nicht marktinharent.
+
+### 6. Positive Rest-Erkenntnisse
+
+1. **Design-Ziel erreicht (beide Modi):** K5@399 LONG +5.697713 feuert in
+   A_reg UND B_reg. Der H1-Kern-Gewinner ist durch S3-AUS gerettet.
+   Die H20.42-Diagnose (S3 ist im H1-Fenster der groesste Einzelstoerer)
+   ist damit regime-bestuetigt und mechanisch reproduziert (+6.350267 in
+   beiden Modi) -- ein ECHTER Regimeeffekt, kein Rauschen.
+2. **Ziel-Anker K45@679 erhalten:** in Modus B/REGIME
+   r=+6.480880, sl=62.7920, STUFE_2_KERZE_2. Beide Akzeptanzanker aus
+   H20.44 Abschnitt 9.6 sind erfuellt.
+3. **Traeger `r_cum`/T1 ist als H1-Primärsignal brauchbar**; er versagt
+   nur an der H2-Schwanzkante.
+4. **H20.44 Abschnitt 11 geschlossen** (LONG/SHORT-Split fuer A1/B1).
+5. **2-D-Traeger endgueltig tot** (Theil-Sen-drift und
+   Close-Displacement), Träger ist 1-dimensional.
+
+### 7. Beschluss (verbindlich)
+
+1. **H20.45 wird als NEGATIVES Ergebnis notarisiert.** Die S3-Regime-
+   Kopplung ueber `r_cum`/T1 wird zur Festschreibung VERWORFEN.
+   Begruendung: (a) Netto-Regression im kanonischen Modus B
+   (-6.413298 R, 30 -> 27 Trades); (b) Dominanz durch eine Konstante in
+   beiden Modi; (c) Ursache strukturell verortet (Traeger-Luecke am
+   H2-Schwanz, modusabhaengiger Fehlerpreis); (d) 2-D-Traeger bereits
+   widerlegt, kein Rescue ueber eine zweite Dimension.
+2. **S3 bleibt global `AN`.** B1 (`30 / +67.030055`) bleibt die alleinige
+   kanonische SSoT fuer Modus B; B0 (`33 / +56.549174`) bleibt
+   historischer Regressionsanker.
+3. **Kein Hysterese-Sweep.** Ein Optimieren von (theta_ent, theta_ret)
+   auf dem 65-Bar-Validierungssatz mit dem dominanten Einzeltrade
+   1122/K73 waere In-Sample-Data-Snooping bei n~1 (Unterbestimmtheit,
+   nicht Kalibrierung). Mit W_SIG/W_REF/GUARD bestuenden vier freie
+   Parameter -- ausgeschlossen.
+4. **Ein neuer Traeger-FAMILIEN-Versuch** (nicht Schwellen-Sweep) waere
+   ein separat vorzuregistrierendes H20.46, nicht Teil von H20.45.
+
+### 8. STALE-MARKER (verbindlich)
+
+> Der Traeger `r_cum` mit fix-in-z-Schwelle (Teil 2) ist ab diesem
+> Beschluss **NUR DIAGNOSTISCH**. Er ist KEIN Aktor, KEINE SSoT und
+> darf nicht an die S3-Weiche gekoppelt werden. Alle Teil-2-Zustandsfolgen
+> (BALANCE/TREND) sind beschreibend, nicht handlungsleitend.
+
+### 9. Dateien / SHAs
+
+- **Neu (arretiert):** `test/_chk_regime_sonde_v2.py` `eb296c63...` /
+  17.204 B; `test/_chk_regime_sonde_v2_out.txt` `fa1cb361...` / 16.388 B;
+  `test/_chk_regime_actor_sonde.py` `9e5bcc07...` / 34.060 B;
+  `test/_chk_regime_actor_sonde_out.txt` `e34af957...` / 5.535 B.
+- **Ueberholt, append-only erhalten:** `test/_chk_regime_sonde.py`
+  `94b7009e...` / 10.769 B; `test/_chk_regime_sonde_out.txt`
+  `82cfd877...` / 3.007 B.
+- **Unveraendert:** V020-Motor `e79c5c29...` / 40.567 B; Baseline
+  `53f28e1b...` / 200.433 B; Adapter `770eda2c...` / 43.279 B;
+  `_chk_s2_sonde.py` `b7431972...`; `_chk_s2_sonde_out.txt` `c32bf333...`;
+  `_chk_h1_ablation.py` `f5dc0f30...`; `_chk_h2_ablation.py` `cb5a6d62...`;
+  `_chk_k45_trace.py` `4428d1f8...`; `_render_aug_sep_b1.py` `9bb464eb...`.
+- `__pycache__` (test/ und backtest_lab/) entfernt. Keine PNG, keine
+  DB-Mutation, kein Caching-Refactoring, kein Motoreingriff.
+
+### 10. Entscheidungsfragen (Textblock, keine Auswahl)
+
+1. **S3-Endzustand:** Wird `S3 = global AN` dauerhaft festgeschrieben
+   (B1 als SSoT), und wird die S3-Variable damit aus der offenen
+   Reformliste gestrichen?
+2. **H20.46-Vorregistrierung:** Soll ein neuer Traeger-FAMILIEN-Ansatz
+   (z. B. Zwei-Zeit-Skalen-Struktur oder ein nicht-Spannen-Träger)
+   formal als H20.46 vorregistriert werden -- oder bleibt die Weiche
+   bis auf Weiteres geschlossen?
+3. **DuckDB-Loader:** Zeitfenster = "August + September 2026" oder
+   "S1 komplett"? Der erste Schritt ist eine read-only Inventur
+   (`docs/ZEITBASIS_KANON.md` + bestehender Loader-/`_se_scan`-Pfad)
+   und die daraus abgeleitete Reproduktionsanker-Spezifikation; ein
+   AUG-Bit-Identitaetsbeweis ist Pflicht-Vorbedingung, bevor irgendein
+   Fenster als universal gilt.
+4. **Fragilitaets-Vermerk:** Soll der 1122/K73-Abhaengigkeit (27.78 %
+   des B1-H2) ein eigener Robustheits-Audit (z. B. Leave-one-out auf
+   B1-H2) folgen?
+
+**Anker:** Handoff-Kopf vor diesem Append = `bc2cb72507143ba87e6806a8bca400fec665c2676ab88d32955420650b50e828`
+/ 674.759 B / 11.532 CRLF. H20.34 bis H20.44 bleiben unveraendert.
+
+## H20.46 - Fensterabhaengigkeit des SE-Scans: Kaltstart-Dominanz, rechter Rand nicht final, Adapter AUG-kodiert
+
+### 0. Status
+
+Reines Mess- und Falsifikations-Notariat, inklusive eines expliziten
+ERRATUMS gegen eine eigene Vorab-Charakterisierung. Keine Engine-Mutation,
+kein Feature/Bugfix, keine Baseline-/DB-Mutation. Alles rein lesend, mit
+SHA-Guards auf Baseline/V020/Adapter. Zahlen aus
+`test/_chk_augsep_probe_out.txt` und `test/_chk_truncation_out.txt`.
+
+### 1. Ausgangslage und Fragestellung
+
+Offene Frage aus H20.45: Ist der Motor auf universelle Zeitraeume
+(Juli/September) erweiterbar? Anwenderfenster: erster Handelstag August
+2026 (2026-08-03) bis 2026-09-12. Vorgabe war, dass das bestehende
+AUG-Fenster (n=1288) bit-identisch reproduziert wird. Drei Fragen:
+(a) Ist das neue Fenster ein Praefix? (b) Blickt der Scan in die Zukunft?
+(c) Ist Modus B (Adapter) portierbar?
+
+### 2. Werkzeug, Methode und Determinismus
+
+| Artefakt | SHA256 | Bytes |
+|---|---|---|
+| `test/_chk_augsep_probe.py` | `f3b51b5d95fb223d0e7c49829e3a52ebf68812ec867b0958cd55791663ed9c9f` | 11.681 |
+| `test/_chk_augsep_probe_out.txt` | `1006c8e9fafe0ab9a128d4f7b511949ae896e17ff9d34cb4c9e085ade0f7b88f` | 4.469 |
+| `test/_chk_truncation.py` | `15aad447c16ede16d931a09d07e89b88444c55f9d01a01526830dd0a3d451af8` | 8.949 |
+| `test/_chk_truncation_out.txt` | `0320c212fb0a8a9e93b1d2472416dbda5e13709abaabf952841a5ba7c357be1c` | 3.767 |
+
+- Read-only: Der `FENSTER`-Eintrag bzw. `_lade_fenster` wird ausschliesslich
+  in der geladenen Modul-INSTANZ ersetzt; keine Datei-Mutation.
+- **Determinismus:** `_chk_augsep_probe` einmal, `_chk_truncation` zweimal
+  gefahren; Ausgaben jeweils byte-identisch (Exit 0).
+
+### 3. ERRATUM (verbindlich, Selbstkorrektur)
+
+1. **Truncation v1 war falsch designt.** In v1 war `box_end_bar` an das
+   Datenende gekoppelt (fuer T < 644 wanderte die Box mit), sodass sowohl
+   Trade-Schleife als auch Box variierten. Die daraus abgeleitete Deutung
+   ("Intra-Fenster-Look-Ahead kontaminiert das August-Fenster") ist
+   **FALSIFIZIERT**. v2 fixiert `box_end_bar` je Experiment und variiert
+   nur das Datenende (Experiment A) bzw. nur den Start (Experiment B).
+2. **Die AI-Charakterisierung "globaler Look-Ahead, das August-Fenster war
+   in sich kontaminiert" wird hiermit zurueckgezogen.** Messung (Abschnitt
+   4) zeigt: der abgeschlossene Trade-Block ist gegen das Datenende stabil.
+3. **Erratum zu H20.44 Abschnitt 11b.** Der dortige Render "B1 im
+   EXT-Fenster" war eine VISUALISIERUNG des AUG-Scans (Kanten per
+   `_OffKante`-Shim um +460 verschoben), **kein Rescan**. Er belegt KEINE
+   Fenster-Invarianz. Der echte Rescan (Abschnitt 6) liefert ein anderes
+   Bild.
+
+### 4. BEFUND A - Zukunftseinfluss ist NICHT global
+
+Methode: fixes `box_end_bar = BOX`, Datenframe `[:T]`, T >= BOX; verglichen
+werden Trades mit `entry < BOX` gegen T=1288 (Referenz).
+
+| BOX | T=BOX | T=1288 | dN | dR | Set-Diff |
+|---|---|---|---|---|---|
+| 644 | 14 / +27.327383 | 14 / +27.327383 | 0 | +0.000000 | 0 |
+| 800 | 23 / +18.874730 | 23 / +18.874730 | 0 | +0.000000 | 0 |
+| 1000 | 24 / +17.874730 | 24 / +17.874730 | 0 | +0.000000 | 0 |
+| 1200 | 28 / +25.028735 | 28 / +22.135232 | 0 | +2.893504 | 6 |
+
+**Kernbefund:** Fuer BOX 644/800/1000 ist die abgeschlossene Trade-Menge
+byte-identisch -- OBWOHL die Kantenzahl (28 -> 59), die Tombstones (10 ->
+17) und `WAR_AUSSEN_IDS` (23 -> 47) mit dem Datenende deutlich wachsen.
+Es gibt **keinen globalen Look-Ahead** auf abgeschlossene Trades.
+
+**Lokalisierter Zukunftseinfluss (rechter Rand):** Nur BOX=1200 zeigt eine
+Abweichung, und zwar exakt an den drei spaeten Trades 1021/K67, 1077/K62,
+1123/K73 (R-Werte aendern sich; Set-Diff 6). Diese sind zum Signalzeitpunkt
+nicht final -- ihr Ergebnis haengt davon ab, ob das Fenster dort endet.
+Das ist reine Kausalitaets-Logik, kein Bug.
+
+### 5. BEFUND B - Der dominante Effekt ist der Kaltstart (Historie)
+
+Methode: gleiches Kalendersegment (AUG, 08-10..08-28), aber unterschiedliche
+Vorgeschichte. AUG-Scan (Start 08-10, kalt) vs. S1-Scan (Start 02-05, warm;
+AUG liegt bei Offset 12001, per `np.array_equal` bestaetigt).
+
+| Lauf | Vorgeschichte | H1-Trades im AUG-Segment |
+|---|---|---|
+| AUG (nativ) | keine (Kaltstart) | 14 |
+| S1 (warm) | 12.001 Bars | 24 |
+
+Set-Differenz **32** (nur-AUG 11, nur-S1 21). Die AUG-SSoT (14/+27.327383)
+ist damit ein **Kaltstart-Artefakt**: Mit Vorgeschichte entstehen im
+identischen Kalendersegment 24 andere Trades. Erwartungskonform, da
+Kanten-Genese Warm-up braucht und der `letzter_trade`/`getradete`-Zustand
+beim Kaltstart leer ist.
+
+**Hauptursache der AUG-vs-EXT-Differenz aus `_chk_augsep_probe` ist damit
+die HISTORIE, nicht die September-Zukunft.**
+
+### 6. BEFUND C - Fensterstruktur und Adapter
+
+**Praefix-Frage (Beweis):** Fenster 08-03..09-12 ergibt n=2750.
+`ts_ext[460:1748] == ts_aug` (Offset 460 = 5 Handelstage x 92).
+`searchsorted(ts_ext, "2026-08-19") = 1104 = 460 + 644` (Kanon K6).
+=> AUG ist **KEIN Praefix**, sondern ein Binnensegment bei Offset 460.
+Der Praefix-Anker gilt nur fuer die **Roh-OHLC-Zeitachse**, nicht fuer
+Scan/Trades.
+
+**Rescan des Binnensegments.** A0/B0 auf dem EXT-Frame (box_end = 1748)
+gegen das native AUG:
+
+| Lauf | AUG nativ | EXT-Binnensegment |
+|---|---|---|
+| A0 | 29 / +23.389914 | 20 / -6.915273 |
+| B0 | 33 / +56.549174 | 11 / -4.974594 |
+
+**Vollauf EXT (box_end = n = 2750):**
+
+| Lauf | total | H1 | H2 | nur-Sep |
+|---|---|---|---|---|
+| A0 | 65 / -26.573010 | 19 / -9.740870 | 46 / -16.832139 | 39 / -13.657737 |
+| B0 | 17 / -10.974594 | 17 / -10.974594 | **0 / +0.000000** | 0 |
+
+**Adapter (Modus B) ist AUG-gebunden:** Im EXT-Frame liefert B0 **null**
+H2-Trades. Ursache: die Adapter-Segmente P9 848-1020, A1 1033-1173,
+A2 1174-1287 sind **AUG-Frame-Bar-Indizes** und treffen im EXT-Frame die
+falschen Kalendertage. Modus B ist ohne datumsbasierte Rekalibrierung nicht
+portierbar. Bekraeftigt H20.45 (Modus B bleibt AUG-gebunden).
+
+### 7. SSoT-Status A1/B1 (Klarstellung)
+
+A1 (`26 / +33.870794`) und B1 (`30 / +67.030055`) bleiben gueltige
+**historische Labor-SSoT fuer das AUG-Fenster** -- mit eiserner institutioneller
+Fussnote:
+
+> **Nicht Praefix-faehig, nicht auf andere Zeitraeume uebertragbar.
+> Der Kaltstart praegt das Ergebnis; ein laengeres Fenster liefert im
+> identischen Segment andere Trades. Historische AUG-Referenz, kein
+> universelles Gesetz.**
+
+Sie werden NICHT geloescht (Reproduzierbarkeit des manuellen AUG-Trade-Satzes),
+aber auch nicht als universeller Benchmark zitiert.
+
+### 8. Beschluss (verbindlich)
+
+1. **Kein globaler Look-Ahead.** Die Hypothese einer globalen
+   Fensterkontamination ist falsifiziert; die AI-Vorabcharakterisierung
+   wird zurueckgezogen (Abschnitt 3).
+2. **Kaltstart ist der dominante Fenstereffekt.** Universelle Fenster
+   benoetigen Warm-up-Historie; AUG ist ein Kaltstart-Sonderfall.
+3. **Rechter Rand:** Trades im letzten Entscheidungsfenster sind nicht
+   final -- bei der Fensterplanung ist ein Vorlauf-Puffer einzuplanen.
+4. **Modus B bleibt AUG-gebunden** (H20.45). Nur der native Modus A ist
+   Kandidat fuer universelle Zeitraeume.
+5. **Fensterstart 08-10** (AUG-Anfang, Praefix-faehig) ist dem Start 08-03
+   vorzuziehen; fuer 08-03 muss der Offset 460 gefuehrt werden.
+6. **Kein Loader-Umbau** ohne Warm-up-Spezifikation und datumsbasierte
+   Adapter-Segmente (H20.47-Kandidat).
+
+### 9. Dateien / SHAs
+
+- **Neu (arretiert):** `test/_chk_augsep_probe.py` `f3b51b5d...` / 11.681 B;
+  `test/_chk_augsep_probe_out.txt` `1006c8e9...` / 4.469 B;
+  `test/_chk_truncation.py` `15aad447...` / 8.949 B;
+  `test/_chk_truncation_out.txt` `0320c212...` / 3.767 B.
+- **Unveraendert:** V020-Motor `e79c5c29...` / 40.567 B; Baseline
+  `53f28e1b...` / 200.433 B; Adapter `770eda2c...` / 43.279 B;
+  `_chk_regime_sonde_v2.py` `eb296c63...` / 17.204 B;
+  `_chk_regime_actor_sonde.py` `9e5bcc07...` / 34.060 B.
+- `__pycache__` (test/ und backtest_lab/) entfernt. Keine PNG, keine
+  DB-Mutation, kein Motoreingriff.
+
+### 10. Entscheidungsfragen (Textblock, keine Auswahl)
+
+1. **Warm-up-Spezifikation:** Soll als naechstes (read-only) die minimale
+   Warm-up-Laenge bestimmt werden, ab der das AUG-Segment stabil ist
+   (z. B. Scan auf [08-01..08-28], [07-15..08-28], [02-05..08-28] mit je
+   festem box_end = Segmentanfang + 644)?
+2. **Adapter-Portierung:** Wird der Adapter auf datumsbasierte Segmente
+   (`searchsorted` auf BKZ) umgestellt (eigenes Work-Package), oder bleibt
+   er endgueltig AUG-only?
+3. **Fensterkonvention:** Wird fuer universelle Laeufe eine feste
+   Warm-up-Vorlaufregel festgeschrieben (Start = Analysebeginn minus N
+   Bars), damit Kaltstart-Artefakte strukturell ausgeschlossen sind?
+
+**Anker:** Handoff-Kopf vor diesem Append = `d6e5598b8d5b61db281397cb0a4faf1f1f8d60553b6f4b8ee299e99c00ddf79f`
+/ 687.848 B / 11.789 CRLF. H20.34 bis H20.45 bleiben unveraendert.
+
+## H20.47 - Warm-up-Plateau falsifiziert: Mittelwert-Basis ist nicht stationaer, Runner `run_lab.py` uebergeben
+
+### 0. Status
+
+Reines Mess- und Falsifikations-Notariat plus Werkzeuguebergabe. Keine
+Engine-Mutation, kein Adapter-Eingriff, keine DB-Mutation, keine
+Baseline-/V020-Aenderung (SHA-Guards bestanden). Lauf bei Stufe N=80
+gestoppt (Nutzerentscheid: mathematischer Beweis lag vor); N=130/N=190
+abgebrochen, N=500 verworfen.
+
+### 1. Ausgangslage und Fragestellung
+
+Offene Frage aus H20.46 Abschnitt 10.1: Ab welcher minimalen Vorgeschichte
+N (BKZ-Handelstage) schwingt das AUG-Segment stabil ein? Erwartung war ein
+abnehmender Kaltstart-Effekt mit einem endlichen Warm-up-Plateau.
+
+### 2. Design (freigegeben)
+
+- Fenster W_k = [S_k, 2026-08-28) -- rechter Rand ueber alle Laeufe
+  kalenderidentisch (H20.46: nur der rechte Rand ist legitimer
+  Zukunftseinfluss).
+- Kalenderanker per `searchsorted` auf BKZ (Kanon K6), keine
+  Bar-Konstanten: i0 = '2026-08-10', i1 = '2026-08-19' (H1-Box),
+  i2 = Fensterende. Fuer ALLE Laeufe gilt i1-i0 = 644, i2-i0 = 1288.
+  Damit ist die Analyse-Bar-Zahl konstant und die Zukunfts-Abdeckung
+  konstant -- es variiert ausschliesslich der linke Rand.
+- Ein Scan je Fenster (teuer), zwei Trade-Laeufe (billig): BOX
+  (`box_end_bar = i1`) und VOLL (`box_end_bar = i2`).
+- Trade-Key kalenderinvariant: (entry_rel, richtung, r, sl, exit1_rel,
+  exit2_rel), alle Indizes relativ zu i0.
+- Konvergenz exakt: dN = 0 UND |dR| <= 1e-9 UND Set-Diff = 0.
+- Modus A ausschliesslich (`hook=None`). Adapter (Modus B) NICHT
+  importiert (bleibt AUG-gebunden, H20.46 Abschnitt 6).
+- BKZ-Handelstag-Leiter: N in {0, 5, 10, 20, 40, 80, 130, 190, 250, 375,
+  500}. Startdaten: 08-10, 08-03, 07-27, 07-13, 06-15, 04-20, 02-11,
+  2025-11-17, ...
+
+### 3. MESSUNG (Protokoll `_chk_warmup_probe_out.txt`)
+
+| N | Start (BKZ) | n | edges | seeds | r21 | tomb | warA | BOX N / R | VOLL N / R | H2 N / R |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 0 | 2026-08-10 | 1.288 | 59 | 14 | 34 | 17 | 47 | 14 / **+27.327383** | 29 / +23.389914 | 15 / -3.937470 |
+| 5 | 2026-08-03 | 1.748 | 88 | 23 | 51 | 29 | 75 | 13 / **-3.740870** | 20 / -0.225687 | 7 / +3.515184 |
+| 10 | 2026-07-27 | 2.208 | 104 | 19 | 79 | 37 | 82 | 13 / **-7.644452** | 20 / -4.129269 | 7 / +3.515184 |
+| 20 | 2026-07-13 | 3.128 | 131 | 22 | 99 | 37 | 115 | 13 / **-11.795156** | 20 / -8.279972 | 7 / +3.515184 |
+| 40 | 2026-06-15 | 4.937 | 153 | 21 | 317 | 50 | 147 | 16 / **-11.451236** | 29 / -3.486979 | 13 / +7.964257 |
+| 80 | 2026-04-20 | 8.607 | 259 | 47 | 484 | 93 | 293 | 13 / **-9.001946** | 29 / -13.468717 | 16 / -4.466771 |
+
+Set-Diff BOX gegen N=80: 24 bzw. 25 von ~13 Trades -- **rund zwei Drittel
+der Trades sind nicht gemeinsam**. Das Vorzeichen kippt am Kaltstart von
++27,3 R auf durchgehend negative Werte.
+
+### 4. BEFUND - kein Warm-up-Plateau
+
+Ueber den gesamten gemessenen Bereich **kein Einschwingen**. Die AUG-SSoT
+(H1 14/+27.327383) ist der **Nullpunkt einer monoton driftenden Groesse**,
+nicht ihr Grenzwert. Interpretation als "Kaltstart-Fehler, der mit Warm-up
+verschwindet" ist **falsifiziert**: es gibt keinen Zustand, gegen den
+konvergiert wird.
+
+**KRITISCHER HINWEIS ZUR URTEILSKRAFT (Selbstkorrektur):** Das Skript
+weist fuer N=80 formal "PLATEAU-STABIL" aus. Dieses Urteil ist **VAKUOS**:
+N=80 ist die laengste gemessene Stufe und hat 0 laengere Vergleichsstufen
+(`all()` ueber leere Menge = True). Ein Plateau ist damit **nicht
+nachgewiesen**, sondern nur die Referenzdefinition. Die N_min=80-Angabe
+des Skripts ist ein Artefakt des Stopps, kein Messergebnis. Bei Fortsetzung
+der Leiter (N=130/190) ist mit weiterer Drift zu rechnen.
+
+### 5. URSACHE (im Code belegt, nicht geraten)
+
+`tmp_kanten_engine_replay.py`, `_akzeptiere` (Z. 2222-2228):
+
+    if not e.ist_prim_anker:            # Q13: Anker friert ein
+        e.basis = float(np.mean([p for _, p in e.wicks]))
+
+Die Kantenbasis ist ein **ungedaempfter laufender Mittelwert ueber ALLE
+jemals akzeptierten Dochte**. Jede zusaetzliche Historie verschiebt jede
+Kante und damit das gesamte Trade-Universum rueckwirkend. Ein solches
+System kann per Konstruktion **kein** Zeit- oder Warm-up-Plateau haben.
+Passend dazu wachsen die globalen Zustaende monoton mit N:
+edges 59 -> 259, r21_log 34 -> 484, tombstones 17 -> 93,
+WAR_AUSSEN_IDS 47 -> 293.
+
+### 6. LAUFZEIT / KOSTEN (Messung)
+
+Auslastung ist quadratisch, weil Kantenzahl E ~ 0,03*n mitwaechst
+(Scan und Trade-Loop sind beide O(n*E)):
+
+| n | 1.288 | 4.937 | 8.607 | ~18.000 | ~47.500 |
+|---|---|---|---|---|---|
+| Laufzeit | 2,8 s | 92 s | 321 s | ~35 min | ~2 h |
+
+Der DB-Loader ist trivial (0,0-0,1 s); die Kosten liegen vollstaendig in
+Scan und Trade-Loop. **N=500 (~2 h) wurde als konzeptionell ungeeignet
+verworfen** -- ein 2-Stunden-Lauf auf einem nachweislich nicht-stationaeren
+Mittelwert liefert keine neue Erkenntnis.
+
+### 7. WERKZEUG: `test/run_lab.py` (uebergeben, verifiziert)
+
+Universeller Modus-A-Runner, read-only:
+`--start/--end` (beliebiger BKZ-Zeitraum), `--box-end` (Kalendergrenze via
+`searchsorted`), `--warmup-tage N` (Vorlauf mitgeladen, nicht ausgewertet),
+`--param FELD=WERT` (mehrfach, jedes Feld von
+`StraightEdgeHarnessKonfiguration` ODER `V020KantenKonfiguration`),
+`--json`. Ausgabe: `run_lab_out.txt` (Kennzahlen + Trade-Liste) und
+`run_lab_trades.tsv`.
+
+Verifikation (3 Laeufe, exit 0):
+
+| Lauf | Ergebnis | Beweis |
+|---|---|---|
+| AUG-Box, Kaltstart | 14 / +27.327383, edges=59 seeds=14 r21=34 tomb=17 warA=47 | SSoT exakt reproduziert |
+| AUG-Box, `--warmup-tage 5` | Ladefenster 08-03, i0=460, box_end=1104, 13 / -3.740870 | deckungsgleich mit Probe N=5 |
+| 2026-03-02..03-20, `num_bins=80` | n=1292, 40 Trades, -25.504922 | beliebiges Fremdfenster laeuft |
+
+Damit ist die zuvor nur als Sonde vorhandene Faehigkeit als **Werkzeug**
+verfuegbar: beliebige Zeitraeume und Parameter sind ab jetzt ohne
+Einzel-Sonden fahrbar. Adapter (Modus B) bleibt unberuehrt und AUG-only.
+
+### 8. BESCHLUSS (verbindlich)
+
+1. **Warm-up-Hypothese falsifiziert.** Es existiert kein Plateau; die
+   `basis = mean(wicks)`-Konstruktion ist die Ursache (Abschnitt 5).
+2. **N=500 endgueltig gestrichen.** Kosten-Nutzen-Verhaeltnis bei
+   nachgewiesener Nicht-Stationaritaet unvertretbar.
+3. **Lauf bei N=80 eingefroren.** Messstand arretiert (N=0..80); die
+   N_min=80-Angabe wird ausdruecklich als vakuos gekennzeichnet
+   (Abschnitt 4) und NICHT als Architektur-Regel uebernommen.
+4. **`run_lab.py` freigegeben** als universelles Modus-A-Werkzeug.
+5. **Kantenbasis-Fix: Option (a) `basis = Pivot-Docht bei Geburt`**
+   (fixiert am Ursprung, institutionelles Level) ist die gewaehlte
+   Zielarchitektur. **Noch NICHT implementiert** -- erst Notariat (dieser
+   Abschnitt), dann Vorher-Sweep, dann isolierter Architektur-Schritt.
+6. Iterative Mittelwert-Varianten (erste/letzte K Dochte) sind als
+   Retail-Halbloesungen verworfen.
+7. Adapter bleibt AUG-only und unangetastet.
+
+### 9. Dateien / SHAs
+
+- **Neu (arretiert):** `test/_chk_warmup_probe.py`
+  `6eb414d9fbf8614d5353deeb8dd24e607e520a85d2e9ce4851a6e3c2696dba5d` /
+  17.537 B; `test/_chk_warmup_probe_out.txt`
+  `1cb4231b2ed24810617fa56229dcbaf538cff86456a512aa826803213651d2eb` /
+  4.367 B; `test/run_lab.py`
+  `66da72c988cd855e4a43cf0622fd9e73ba89221714bc4c0e9539cc15762c9290` /
+  14.059 B; `test/run_lab_out.txt`
+  `7db825917cc9a539559b68be1d1fe17313c5560176a38fb7e5e0cb00564f239e` /
+  5.473 B; `test/run_lab_trades.tsv`
+  `291be3ee0f7e641198463fb976412daf542dd9256043a3a62372aa1cd4310cd0` /
+  3.770 B.
+- **Unveraendert:** Baseline
+  `53f28e1b6971a64df59beaf3292b466fb37ac86b870278f238a1b385084fd006` /
+  200.433 B; V020 `e79c5c29...` / 40.567 B; Adapter `770eda2c...` /
+  43.279 B.
+- `__pycache__` (test/ und backtest_lab/) entfernt. Keine PNG, keine
+  DB-Mutation, kein Motoreingriff.
+
+### 10. Entscheidungsfragen (Textblock, keine Auswahl)
+
+1. **Vorher-Sweep:** Welche Benchmark-Fenster soll H20.48 mit `run_lab.py`
+   messen (Vorschlag: 2026-03, 2026-05, 2026-07, 2026-08 als autonome
+   Fenster ohne Warm-up, je Kaltstart) -- und welche Parameter-Achse
+   (Vorschlag: `touch_band_pct` in {0.10, 0.12, 0.14, 0.16})?
+2. **Option (a) Spezifikation:** Soll die stationaere Basis als
+   unveraenderliche Kapselung spezifiziert werden (Ursprungs-Docht-Preis
+   `p_origin` und `geburts_bar` als `frozen` Felder, kein spaeteres
+   Update), bevor irgendein Engine-Bytes geaendert wird?
+3. **Rueckwaerts-Vertraeglichkeit:** Der Fix aendert die DNA aller Trades.
+   Soll die AUG-SSoT (`14/+27.327383`) als **historischer Morphing-Stand**
+   eingefroren und ausdruecklich als "nicht reproduzierbar unter Option
+   (a)" markiert werden -- oder soll sie ersetzt werden?
+
+**Anker:** Handoff-Kopf vor diesem Append = `570b7867ebb3bbd81af97825bfef22c54f51635615c3a0a890066d606788aac7`
+/ 696.851 B / 11.971 CRLF. H20.34 bis H20.46 bleiben unveraendert.
+
+## H20.48 - Status-Quo-Sweep: 86-R-Kluft und die doppelte Nicht-Stationaritaet
+
+### 0. Status
+
+Reine Vorher-Baseline-Vermessung (read-only) vor jedem Engine-Eingriff.
+Kein Motor-/Adapter-/DB-Eingriff, keine Baseline-/V020-Aenderung
+(SHA-Guards bestanden). Der Sweep ist der Vergleichsmassstab, den der
+Kantenbasis-Fix (Option a, H20.47 Abschnitt 8.5) schlagen muss.
+
+### 1. Fragestellung
+
+Wie stark zerfaellt die aktuelle (morphing-basierte) Engine ueber
+verschiedene Kalenderfenster und Parameterstufen? Ziel war eine
+belastbare Ist-Baseline VOR der DNA-Aenderung.
+
+### 2. Design (freigegeben)
+
+- Vier autonome Monatsfenster 2026, je Kaltstart (Warm-up = 0),
+  Ende exklusiv, `box_end_bar = n` (Vollauf):
+  MRZ 2026-03-02..03-27, MAI 2026-05-04..05-29,
+  JUL 2026-07-06..07-31, AUG 2026-08-03..08-28.
+- Parameter-Achse `touch_band_pct` in {0.10, 0.12, 0.14, 0.16}
+  -> 4 x 4 = 16 Laeufe.
+- Modus A (`hook=None`); Adapter NICHT importiert.
+- Werkzeug: `run_lab.py`-Helfer (Loader/Scan/Trade-Loop) in einem
+  read-only Sweep-Skript; SHA-Guards aktiv.
+
+### 3. MESSUNG (Protokoll `_chk_statusquo_sweep_out.txt`)
+
+| Fenster | n | 0.10 | 0.12 | 0.14 | 0.16 | Spanne |
+|---|---|---|---|---|---|---|
+| MRZ 03-02..03-27 | 1.752 | -18.354 | -20.031 | -23.894 | -20.367 | 5,54 |
+| MAI 05-04..05-29 | 1.738 | +54.026 | +38.212 | +51.883 | +35.787 | 18,24 |
+| JUL 07-06..07-31 | 1.748 | -31.829 | -29.497 | -26.981 | -27.313 | 4,85 |
+| AUG 08-03..08-28 | 1.748 | -9.595 | -6.226 | -5.162 | -1.931 | 7,66 |
+
+Profit-Faktor je Fenster (min..max ueber bands):
+MRZ 0.3475..0.5458 | MAI 2.0902..2.5399 | JUL 0.0979..0.1875 |
+AUG 0.4742..0.8818.
+
+### 4. BEFUND 1 - Die 86-R-Kluft
+
+Inter-Fenster-Spanne bei praktisch identischer Bar-Zahl (n ~ 1740):
+MAI +54.026 gegen JUL -31.829 = **85,855 R**. Der Profit-Faktor
+springt von 2,5399 (MAI) auf 0,0979 (JUL) -- Faktor **25,9**.
+Das ist keine Edge, sondern Kalenderabhaengigkeit.
+
+### 5. BEFUND 2 - Parameter sind NICHT das Problem
+
+Innerhalb eines Fensters variiert `touch_band_pct` nur schwach
+(Spanne 4,85..18,24 R), ZWISCHEN den Fenstern massiv (85,855 R).
+Die Geometrie der Kanten dominiert, nicht der Bandparameter.
+
+### 6. BEFUND 3 - Doppelte Nicht-Stationaritaet (Praezisierung H20.47 §5)
+
+`_SEEdgeH.basis_bei` (L2135-2147) zeigt zwei getrennte Traeger:
+
+    def basis_bei(self, k: int) -> float:
+        if self.ist_prim_anker:
+            return self.basis                      # (1) MEAN
+        px = [p for b, p in self.wicks if b + 2 <= k]
+        if px:
+            return float(min(px) if self.seite == "OBEN" else max(px))  # (2) EXTREMUM
+        return float(self.wicks[0][1])
+
+- Traeger (1) `self.basis` = laufender Mittelwert (`_akzeptiere` L2230)
+  -> steuert das CLUSTER-BAND-MATCHING `_ist_im_band(px, c.basis)`
+  (L2244) und damit die KANTEN-GENESE.
+- Traeger (2) = laufendes Extremum (min/max ueber alle Dochte)
+  -> signalzeitliche Basis aller Nicht-Prim-Kanten.
+
+Beide wachsen monoton mit der Historie. H20.47 §5 (Nicht-Stationaritaet,
+kein Plateau) bleibt unveraendert gueltig -- der Ursachenpfad ist
+zweigleisig. Fuer den Fix folgt: das BAND-MATCHING muss mitfixiert
+werden, sonst migriert die Nicht-Stationaritaet nur in die Kanten-Genese.
+
+### 7. Implementierungs-Isolierung (Vorarbeit zu Option a)
+
+Vollstaendige Aufrufer-Sichtung der Produktivdateien ergab:
+- `backtest_lab/phasen_regime_adapter.py`: **null** direkte `basis_bei`-
+  Aufrufe; er empfaengt `basis_engine` als Parameter (L380/L396) ->
+  keine typisierte Anpassung noetig.
+- `tmp_kanten_engine_v020_replay.py`: ruft nur `e.basis_bei(k)` auf
+  (L259, L490/492, L577) -> erbt den Fix automatisch.
+- `tmp_kanten_engine_replay.py`: definiert `basis_bei` (L2135) und liest
+  `e.basis`/`c.basis` an ~12 Stellen im `_se_scan`.
+
+Minimale Aenderungsmenge = 3 Stellen (alle im `_se_scan`/`basis_bei`):
+(1) `_akzeptiere` L2230 Mittelwert-Update ueberspringen;
+(2) Prim-Anker-Freeze L2278 ueberspringen;
+(3) `basis_bei` L2143-2147 -> `return self.basis`.
+Da dann `e.basis == p_origin` gilt, erben alle Leser automatisch den
+fixen Ursprung -- keine Caller-Aenderung.
+
+### 8. BESCHLUSS (verbindlich)
+
+1. **86-R-Kluft arretiert** als Vorher-Baseline. Das System erklaert den
+   Kalendermonat, nicht den Markt.
+2. **Parameter sind nicht die Ursache** (Abschnitt 5).
+3. **Doppelte Nicht-Stationaritaet dokumentiert** (Abschnitt 6).
+4. **Isolierung belegt**: Adapter/V020 brauchen keine Aenderung; der Fix
+   sitzt an der Quelle (Abschnitt 7).
+5. **Bauform noch offen**: Patch-by-String (Praezedenz
+   `_tmp_make_v017cand.py`) ODER additive Kopie v021. Baseline-SHAs
+   bleiben in jedem Fall unangetastet.
+6. **Kalibrierungs-Nachlauf vorbereitet**: faellt die Trade-Zahl unter
+   URSPRUNG um mehr als 60 % ein, laeuft das Grid ueber
+   `touch_band_pct` in {0.15, 0.20, 0.25, 0.30, 0.40} (bis 0,40 %).
+
+### 9. Dateien / SHAs
+
+- **Neu (arretiert):** `test/_chk_statusquo_sweep.py`
+  `85cce7a04735169537440bb3693bbccdb33ff352f548237abf86cec552394a44` /
+  7.095 B; `test/_chk_statusquo_sweep_out.txt`
+  `f7f7f62cea031ab3ee48207909ade31b1e4ed77ee2cafa36cf9ce4f820ac3aeb` /
+  2.739 B; `test/_chk_statusquo_sweep.tsv`
+  `856c286c5d1a52a1795a32782091f2162b783275ddf0cdfdd5dca2a3c0e1bea2` /
+  1.320 B.
+- **Unveraendert:** Baseline `53f28e1b...` / 200.433 B; V020
+  `e79c5c29...` / 40.567 B; Adapter `770eda2c...` / 43.279 B;
+  `run_lab.py` `66da72c9...` / 14.059 B.
+- `__pycache__` entfernt. Keine PNG, keine DB-Mutation.
+
+### 10. Entscheidungsfragen (Textblock, keine Auswahl)
+
+1. **Bauform:** Patch-by-String (Laufzeit-Variante, Baseline-Datei
+   unberuehrt) ODER additive Kopie `tmp_kanten_engine_v021_replay.py`
+   mit `basis_modus`-Flag?
+2. **Ticket-Fenster der Verifikation:** Soll der Nachher-Sweep exakt die
+   vier Fenster/Baender dieses Abschnitts wiederholen (Vergleichbarkeit),
+   oder direkt das erweiterte Grid {0.15, 0.20, 0.25, 0.30, 0.40}?
+3. **Kill-Kriterium:** Ab welchem Trade-Einbruch gilt URSPRUNG als
+   gescheitert (Vorschlag: > 60 % Einbruch in mindestens 3 von 4
+   Fenstern -> Kalibrierung erzwingen, sonst verwerfen)?
+
+**Anker:** Handoff-Kopf vor diesem Append = `b6aa805fd28ed42ca45d49cc9bdcf84139d5371d2f2a74f5ae91735bcbfa686a`
+/ 705.865 B / 12.146 CRLF. H20.34 bis H20.47 bleiben unveraendert.
+
+## H20.49 - Falsifikation H20.48: fuenf Logikfehler (U1-U5) statt Regime
+
+**Datum:** 2026-09-13 | **Modus:** Analyse (read-only, kein Eingriff in Motoren)
+**Motoren-SHA (unveraendert):** Baseline `53f28e1b69...` 200433 B |
+V020 `e79c5c2948...` 40567 B | Adapter `770eda2c75...` 43279 B
+**Handoff vor diesem Block:** SHA256
+`d92547ec00b224008c6a3751713eebec68b9bf797d3941700eb8c88e75a9b93d`, 712226 B,
+12284 CRLF.
+
+### §1 Auftrag
+
+Anwender-Befund: "wir machen zurzeit riesenfehler - in jedem monat - ganze
+serien von fails; entries sind schon fragwuerdig und gegenkanten ebenfalls
+daneben". Konkret benannt: **am 20.05.2026 ein BUY, wo ein SHORT haette
+stehen muessen**.
+
+Sichtpruefung Mai/Juni/Juli wurde einzeln erstellt (drei PNG) inklusive
+cumR-Statistik; zusaetzlich Tiefendiagnose und Kontrolllaeufe.
+
+### §2 Messgrundlage (alle Artefakte in test/, read-only)
+
+| Artefakt | SHA256 | Bytes |
+|---|---|---|
+| `_render_mai_jun_jul.py` | `930a77daded836d1...` | 16430 |
+| `render_mai_sichttest.png` | `2c132f8189c3b2e8...` | 1394697 |
+| `render_jun_sichttest.png` | `244dbe6c7cf4a29a...` | 1282766 |
+| `render_jul_sichttest.png` | `644a63c2c06c2873...` | 1523147 |
+| `render_mai_jun_jul_out.txt` | `79527950a1bccd17...` | 3548 |
+| `_chk_mai_juli_gegenkante.py` | `b7aea6a66a1dfdb4...` | 7557 |
+| `_chk_mai_juli_gegenkante_out.txt` | `210b38e23abe8091...` | 31089 |
+| `_chk_engine_kontrolle.py` | `6286535817ec680d...` | 11637 |
+| `_chk_engine_kontrolle_out.txt` | `826fd60fffe95b74...` | 20940 |
+
+Reproduktion der Sollwerte (Selbstkontrolle im Renderer, sonst Abbruch):
+
+| Monat | n | Bars | Trades | SumR |
+|---|---|---|---|---|
+| MAI 05-01..06-01 | 1922 | 0..1921 | 58 | +40.023743 |
+| JUN 06-01..07-01 | 2009 | 0..2008 | 56 | -26.883881 |
+| JUL 07-01..08-01 | 2100 | 0..2099 | 68 | -11.395066 |
+| GESAMT | | | 182 | **+1.744796** |
+
+### §3 U1 (REGRESSION) - V020-Gate-Entkernung: Trade-Explosion 4-14x
+
+Identisches Fenster, identische Config, **Baseline `_se_trades`** gegen
+**V020 `_se_trades_v020`**:
+
+| Monat | Baseline n | Baseline SumR | V020 n | V020 SumR | Faktor |
+|---|---|---|---|---|---|
+| MAI | 12 | -5.959839 | 58 | +40.023743 | **4,83x** |
+| JUN | 15 | -11.995304 | 56 | -26.883881 | **3,73x** |
+| JUL | 5 | -3.396430 | 68 | -11.395066 | **13,60x** |
+
+Ursache = die drei entkernten Substitutionen:
+
+* **S2 `existiert_nativ`** ersetzt das Baseline-AKTIV-Gate
+  (`e.ist_aktiv_bei(k)`) durch "oder echter Durchstich" ->
+  **schlafende Linien werden wieder handelbar**.
+* **S3 A_M6L** "dormante Linie sperrt nicht" -> **M6-Innenlevel-Blockade
+  verliert die Wirkung**.
+* **S4 endogener `Marktrand`** statt `hi[:k+1]`/`lo[:k+1]`: bei nur EINER
+  lebenden Kante ist die Spanne **degeneriert** (`decke == boden`) ->
+  `im_aeusseren_quartil` gibt **permissiv True** -> **Q29 deaktiviert**.
+
+Auf AUG (Modus B) hat der **Adapter** (Overrides, `slow_bars`,
+H1-Einfrieren) die Loecher zugedeckt; in Modus A (`hook=None`) liegt die
+Mechanik nackt. **Dies ist die Antwort auf "die Engine funktioniert nicht
+mehr": es ist ein Regressionsschaden der V020-Verallgemeinerung, kein
+Marktphaenomen.**
+
+### §4 U2 - Signal im Rauschen (der 20.05.-Fund)
+
+Tag-Bar 1196 (MAI). Einziger Trade im Umfeld: **#39 K6 LONG**,
+`bar=1214`, `entry_bar=1215`, `entry=73.1770`, `basis=73.1280`,
+`sweep=73.1030`, `sl=73.0530`, `R=+0.7988`.
+
+Signal-Bar 1214 (2026-05-20 04:30): O 73.9870 / H 74.0380 / **L 73.1030** /
+**C 73.1830** -> **Koerper -0.8040 USD (-1,09 %), Range 0.9350 USD**.
+
+Ablauf: `lo[1214]` durchsticht K6 um **0.0250 USD = 0.0342 %**; `cl[1214]`
+liegt **0.0550 USD = 0.0752 %** darueber -> `_reclaim_stufe` =
+`STUFE_1_IN_BAR` -> **LONG**, Entry `open[1215]`.
+
+`touch_band_pct = 0.12 % (0.088 USD)`: der Durchstich liegt **vollstaendig
+im Rauschband** und ist von einem normalen Touch nicht unterscheidbar;
+`sweep_mindestdurchstich_pct = 0.0` erlaubt einen Durchstich **ab 0 %**.
+Der Ausloeser ist damit **~1/10 der Bewegung der ausloesenden Kerze**.
+`_reclaim_stufe` liest **weder Koerperrichtung noch Durchstichtiefe
+relativ zur Volatilitaet**.
+
+Der zugehoerige SHORT war regelkonform blockiert: M6-Blocker unerreichte
+Aussenwand **K26 = 74.1770** (0,26 % ueber der Kandidatenkante **K4 =
+73.9840**, `hi[1214] = 74.0380` <= `max_seed_distanz_pct` 0.75 %). Die
+Blockade ist korrekt - **die LONG-Freigabe ist es nicht.**
+
+### §5 U3 - Gegenkante = Extremum, eingefroren
+
+`_gegenkante` waehlt fuer LONG `max(basis)` der OBEN-Kanten, fuer SHORT
+`min(basis)` der UNTEN-Kanten - also **die am weitesten entfernte Linie**.
+Deren `basis_bei(k)` ist fuer Nicht-Anker ein **laufendes Extremum der
+bestaetigten Dochte**; bei einer 2-Docht-Linie damit **konstant**.
+
+Beleg JUL: LONG-Gegenkante ist durchgehend **K35** (OBEN, `ist_prim_anker
+= False`, 2 Dochte), `basis_bei(k) = 62.6740` ueber **alle 22 LONG-Trades
+ueber ~1560 Bars** (Feld `basis` = 62.6990). Der Markt laeuft in dieser
+Zeit 62 -> 55 -> 58; das Ziel bewegt sich nicht. Analog MAI (K29 =
+72.6220 / K108 = 87.9720), JUN (K81 = 63.3520 / K14 = 76.8490).
+
+### §6 U4/U5 - Nenner ohne Untergrenze und MTM-Exit
+
+**U4:** `risk = |sl - entry|`, `sl = Sweep-Docht +/- 0.05 USD`
+(`V3_SL_BUFFER_USD`), **ohne Untergrenze**. Beobachtet:
+MAI min 0.1040 / median 0.3115 | JUN 0.0770 / 0.3025 |
+**JUL 0.0470 / 0.2140 USD**. Ein normales M15-Rauschen von 0.2 USD ist
+damit **1 R**.
+
+**U5:** `_c_loese_trade` bucht nicht ausgestoppte Positionen zum
+`close[-1]` als `grund = "ENDE"` und rechnet sie als **realisierten** R
+(MAI 4, JUN 2, JUL 4 Trades).
+
+| Monat | Legacy | ENDE-bereinigt | Delta |
+|---|---|---|---|
+| MAI | +40.023743 | +27.477570 | -12.546172 |
+| JUN | -26.883881 | -38.343302 | -11.459421 |
+| JUL | -11.395066 | **-33.631564** | **-22.236498** |
+
+**U5 beschoenigt jeden Monat**; nach Bereinigung waechst die MAI/JUL-Kluft
+von 51,4 R auf **61,1 R**.
+
+### §7 Kontrolle A - Risiko-Klammer (ATR(14) M15, Wilder, BKZ)
+
+`R_eff = R * risk / max(risk, floor)`; ATR14-Median: MAI 0.3521 |
+JUN 0.3054 | JUL 0.2210 USD.
+
+| Monat | Legacy | 1,0*ATR | 1,5*ATR | geklemmt (1,5*ATR) |
+|---|---|---|---|---|
+| MAI | +40.023743 | +21.213546 | +11.605850 | 49/58 |
+| JUN | -26.883881 | -21.612145 | -17.993643 | 47/56 |
+| JUL | -11.395066 | -8.832484 | -10.219857 | 53/68 |
+
+**Die Klammer allein saniert nichts:** der beste Einzeltrade traegt auch
+danach 182 % des SumR. U4 ist ein **Metrik**-, kein Mechanikfehler.
+
+### §8 U-L4/U-L5 - Konzentration und Payoff-Degeneration
+
+| Monat | Trades | SumR | bester Trade | Anteil | SumR ohne ihn |
+|---|---|---|---|---|---|
+| MAI | 58 | +40.023743 | K103 +51.668268 | **129,1 %** | **-11.644525** |
+| JUN | 56 | -26.883881 | K170 +10.014019 | -37,2 % | -36.897899 |
+| JUL | 68 | -11.395066 | K38 +10.155643 | -89,1 % | -21.550709 |
+
+Payoff bimodal: 2. Haelfte endet **88-98 %** auf SL = -1.000 R; die
+Gegenseite sind Spruenge +5..+70 R. Kein kontinuierlicher Ausgang.
+Zusaetzlich Richtungsschiefe: JUN 46 LONG / 10 SHORT, JUL 42 LONG /
+26 SHORT, MAI 25 LONG / 33 SHORT (0 Sweep-Seiten-Inkonsistenzen).
+
+### §9 Falsifikation von H20.48
+
+Die in H20.48 gemessene "86-R-Kluft" (MAI +54.026 vs. JUL -31.829) und die
+These der **"doppelten Nicht-Stationaritaet"** werden **falsifiziert**:
+die Kluft ist **Artefakt** aus U2/U3 (Signal- und Zielfehler), U4
+(ungebremster Nenner) und U5 (MTM-Buchung). Die Parameter-Spanne
+(intra-monatlich 4,85-18,24 R) ist dagegen irrelevant klein.
+
+### §10 Korrektur eigener Fehlaussagen (Protokoll-Hygiene)
+
+Zwei Aussagen aus der Vordiagnose waren **falsch** und werden hiermit
+zurueckgezogen:
+
+1. "JUL SHORT-TP2 konstant 55.0240 in allen 68 Trades" -> tatsaechlich
+   **4 distinct**: 57.4460 (Trades 1-14), 57.0430 (#22), 55.0240 (#33 ff.).
+2. "JUN #19: `poc` liegt ueber `entry`" -> tatsaechlich
+   `poc = 67.8341 < entry = 67.8820`; die Engine-Invariante
+   `sl > entry > poc > tp2` gilt (68.3790 > 67.8820 > 67.8341 > 63.3520).
+3. Mechanismus nicht "Prim-Anker-Freeze/Cluster-Uebernahme", sondern
+   `basis_bei` = **laufendes Extremum einer 2-Docht-Linie** (U3).
+
+### §11 Konsequenz - V021-Schaltervertrag (Freigabe Anwender, 13.09.2026)
+
+Legacy-Hebel (U3/U4/U5) mit Default = Legacy-Verhalten:
+
+    basis_modus:        Literal["MITTEL","URSPRUNG"]           = "MITTEL"
+    gegenkante_modus:   Literal["EXTREM","NAECHSTE"]           = "EXTREM"
+    fensterrand_exit:   bool                                   = True
+    min_risk_usd:       float                                  = 0.0
+    atr_risiko_faktor:  float                                  = 0.0
+    atr_periode:        int                                    = 14
+
+Regression-Hebel (U1) mit Default = **Baseline-Semantik** (stoppt die
+Trade-Explosion 4-14x sofort; V020-Permissivitaet bleibt bit-genau
+reproduzierbar umschaltbar):
+
+    existenz_modus:     Literal["BASELINE","NATIV"]            = "BASELINE"
+    m6l_modus:          Literal["BASELINE","DORMANT_PERMISSIV"]= "BASELINE"
+    rand_modus:         Literal["GLOBAL","ENDOGEN"]            = "GLOBAL"
+
+Alle Defaults = **Legacy-/Baseline-Verhalten** (bit-identisch zu Baseline);
+jeder Hebel einzeln messbar. Reihenfolge: **erst Notariat H20.49, dann
+V021-Bau** (additive Kopie, keine Baseline-Mutation).
+
+### §12 Offen
+
+* U2 braucht einen **volatilitaetsnormierten Durchstich** (z. B.
+  `durchstich >= x*ATR` und/oder Koerperrichtungs-Zwang) - noch nicht
+  spezifiziert.
+* Label-Filter `|R| >= 2.0` in den Sichtpruefungs-PNG wird **erst nach
+  V021** nachgezogen (kein Rechenaufwand auf Fehldaten-Stand).
+* Die Risiko-Klammer ist als **ehrlicher Nenner** spezifiziert, nicht als
+  Sanierung; die Ursachen U1/U2/U3 sind mechanisch zu beheben.
+
+## H20.50 - Provenienz geklaert, Trade-Loop-Mutation, Spur "major Segmentwaende"
+
+### 0. Status
+
+Reine Klaerungsmessung (read-only) im Anschluss an H20.49. Kein Motor-,
+Adapter-, Renderer- oder DB-Eingriff. Alle arretierten SHAs bestaetigt
+(Baseline 53f28e1b / V020 e79c5c29 / Adapter 770eda2c / Handoff-Kopf
+2ca528c7). Modus A (hook=None); Adapter ausser zur Provenienz-Inspektion
+NICHT importiert. Neue Belegartefakte: `_chk_recovery_proof.py`
+(5bd6dc65, 6.539 B) / `_chk_trade_loop_idempotenz.py` (7e501fc8, 6.501 B)
+plus `_out`-Protokolle.
+
+### 1. Anlass
+
+Der Anwender stellte die Grundsatzfrage, ob die gesamte Logik verworfen und
+neu begonnen werden soll, und aeusserte den Verdacht: "major Ober- und
+Unterkanten werden nicht korrekt erkannt und gesetzt". Dieser Abschnitt
+beantwortet beides mit Belegen.
+
+### 2. Provenienz der H1/H2-Anker (Klaerung der H20.49-Frage)
+
+Bisher war offen, ob die AUG-SSoT 14/+27.327383 aus der Baseline oder aus
+dem V020-Motor stammt. Beleg durch Code-Inspektion UND Lauf:
+
+| Groesse | Wert | Erzeuger | Beleg |
+|---|---|---|---|
+| AUG-Box-SSoT | 14 / +27.327383 | V020 `_se_trades_v020(hook=None)` | `_chk_warmup_probe.py` L154-155 |
+| V0 nativ | 14 / +42.450970 | Baseline `_se_trades` | `_chk_recovery_proof_out.txt` |
+| V1_kausal (LIVE) | 23 / +85.577150 | Renderer `--mode V019` (Adapter-Pfad) | `_chk_zp_trade_zerlegung_out.txt` |
+
+Kernfolge: Die SSoT "AUG-Kaltstart" ist V020-A, NICHT die Baseline. Die
+Baseline reproduziert V0 nativ BIT-EXAKT (VOLL 14/+42.450970, H1
+8/+38.919584, H2 6/+3.531386). V1_kausal stammt aus dem V019-/Adapter-Pfad.
+
+### 3. NEUER BEFUND - der Trade-Loop ist NICHT idempotent
+
+`_se_trades` schreibt IN-PLACE auf die `_SEEdgeH`-Objekte des geteilten
+Scans (Baseline L2732-2733, L2736-2739):
+
+    kd.letzter_signal_bar = k
+    kd.letzter_sweep_bar  = k        # -> F3-Filter (L2646) sperrt 2. Lauf
+    kd.cluster_hoch / kd.cluster_tief = ...
+
+Der F3-Filter lautet `if k <= kd.letzter_sweep_bar: continue` (L2646).
+Folgen (MAI-Vollmonat, `_chk_trade_loop_idempotenz_out.txt`):
+
+    BASELINE:  1. Lauf 35 / +38.318126  ->  2. Lauf 11 / -5.626439
+    V020:      1. Lauf 58 / +40.023743  ->  2. Lauf 23 / +9.796224
+    Mutierte Felder: letzter_sweep_bar (23 bzw. 32 Kanten),
+                     letzter_signal_bar, cluster_hoch, cluster_tief
+
+Nicht mutiert bleiben: basis_bei-Ausgabe, erster_pivot_bar,
+promoviert_ab_bar, ist_prim_anker, wicks. Die H20.49-Aussage "der
+Trade-Loop mutiert nicht" gilt also nur fuer diese Felder und war
+unvollstaendig.
+
+### 4. KONTAMINATION der H20.49-Baseline (Korrektur)
+
+Die in H20.49 Abschnitt 5 (U1) genannte Baseline 12/-5.959839 (MAI)
+entsteht NUR, wenn die Baseline NACH V020 auf DEMSELBEN Scan-Objekt laeuft:
+
+    V020 zuerst, dann Baseline : BL = 12 / -5.959839  (= H20.49-Zahl)
+    Baseline zuerst, dann V020 : V020 = 37 / -18.038700
+    FAIR (je frische deepcopy): BL 35 / +38.318126 | V020 58 / +40.023743
+
+Die H20.49-Baseline (12/15/5) ist damit KONTAMINIERT und wird hiermit
+korrigiert. Gueltig sind ausschliesslich Laeufe auf einer frischen
+`copy.deepcopy(scan)` je Trade-Lauf.
+
+### 5. Fair-Vergleich Modus A (je frische deepcopy; Split H1/H2 bei 644)
+
+| Fenster | Baseline `_se_trades` | V020-A `_se_trades_v020` | n-Faktor |
+|---|---|---|---|
+| AUG BOX(644) | 8 / +38.919584 | 14 / +27.327383 | 1.75x |
+| AUG VOLL(1288) | 14 / +42.450970 | 29 / +23.389914 | 2.07x |
+| MAI | 35 / +38.318126 | 58 / +40.023743 | 1.66x |
+| JUN | 28 / -11.421155 | 56 / -26.883881 | 2.00x |
+| JUL | 21 / -4.325355 | 68 / -11.395066 | 3.24x |
+
+Die V020-Ueberhandelung bleibt gerichtet, ist aber nicht 4.8x/3.7x/13.6x
+(H20.49, kontaminiert), sondern 1.66x-3.24x.
+
+### 6. Verdacht des Anwenders BESTAETIGT - major Segmentwaende
+
+Zwei Mechaniken tragen die "major" Ober-/Unterkanten:
+
+(a) `basis_bei` (Baseline L2135-2147) liefert fuer NICHT-Prim-Linien
+    `min(px)` (OBEN) bzw. `max(px)` (UNTEN) = das laufende EXTREMUM, obwohl
+    der Klassen-Docstring "laufendes Mittel" sagt und `e.basis` (L2230)
+    tatsaechlich `np.mean(wicks)` ist. Die im Handel wirksame Basis ist
+    damit das Docht-Extremum, nicht das Mittel. V020-Substitution #1 leitet
+    `e.basis_bei(k) -> self._basis_wirksam(...)` (V020 L425-438); bei
+    `wertedomaene=None` faellt sie auf `basis_bei` (Extremum) zurueck.
+
+(b) `erweitere_segmentwand_dochte()` (Renderer `test/tmp_png_aug_sichttest.py`
+    L923-976; ZP-5, E-34n/10+11) erweitert die Segmentwand-Kante
+    (decke/boden) mit echten hi/lo-Durchstichen innerhalb der segment-lokalen
+    Ueberdehnungsschranke, entfernt die Schlaf-Fenster des eigenen Segments
+    und setzt `status="AKTIV"`. Aufruf nur bei `mode=="V019"` und
+    mehrsegmentigem Adapter, auf der lauf-eigenen `sc_copy` (L989, L992-997).
+
+V020 erklaert ausdruecklich "kein `erweitere_segmentwand_dochte`" (L10).
+Damit werden die major Segmentwaende in V020 nicht mehr gebaut; im
+adapterlosen Modus A (MAI/JUN/JUL, kein Adapter) faellt die wirksame Basis
+auf das 2-Docht-Extremum zurueck. Das ist mechanisch genau der vom Anwender
+vermutete Ausfall - und er erklaert, warum V1_kausal (V019-Pfad, mit
+Segmentwand-Aufbau) H1 8/+38.919584 und H2 15/+46.657566 traegt, V020-A
+dagegen nicht.
+
+WICHTIG: Die Logik ist NICHT verloren. Sie liegt vor in
+`test/tmp_png_aug_sichttest.py` L923 (`erweitere_segmentwand_dochte`),
+in den V019-Sonden `_chk_v019_kausal_vergleich.py`, `_chk_v019_s1_2026.py`,
+`_chk_v019_zp5_extrahieren.py` sowie im Adapter
+`backtest_lab/phasen_regime_adapter.py` (`PhasenKanteInfo`,
+`angewandte_basis`).
+
+### 7. Antwort auf die Grundsatzfrage: NICHT wegwerfen
+
+1. Die Baseline ist byte-identisch (53f28e1b) und reproduziert V0 nativ
+   bit-exakt (14/+42.450970).
+2. Der H1-Kern ist exakt erhalten: V1_kausal H1 8/+38.919584 == Baseline H1
+   8/+38.919584.
+3. Die "gute" H2-Performance (+46.657566) ist der V019-/Adapter-Pfad - genau
+   der Teil, der bei einem Neuanfang verloren ginge.
+4. Die Regression ist die V020-Verallgemeinerung (S2/S3/S4) plus der Wegfall
+   des Segmentwand-Aufbaus (6a/6b), nicht die Basis.
+
+### 8. Auftrag fuer morgen - Analyse an Beispielen MAI/JUN/JUL
+
+Ziel: den Ausfall der major Ober-/Unterkanten an je 2-3 konkreten Beispielen
+belegen und die verlorene V018/V019-Logik rekonstruieren.
+
+1. Beispielwahl: je Monat die Kanten mit den meisten Dochten (major) und die
+   Gegenkanten der groessten Einzeltrades (U-L4-Kandidaten: MAI K103
+   +51.668268, JUN K170 +10.014019, JUL K38 +10.155643).
+2. Soll/Ist je major Kante: `e.basis` (Mittel) gegen `basis_bei(k)` (Extremum)
+   gegen die V019-Segmentwand nach `erweitere_segmentwand_dochte`.
+3. Dual-Lauf je Monat: Modus A pur gegen Modus A + Segmentwand-Aufbau
+   (analog `erweitere_segmentwand_dochte`, aber ohne AUG-Adapter).
+   Kriterium: Rueckgewinn der H1/H2-Trennung.
+4. Erst danach V021-Bau (additiv) mit den 9 Schaltern aus H20.49 Abschnitt 11,
+   ergaenzt um einen 10. Vertragspunkt "Read-only-Scan-Garantie"
+   (per-Lauf-Kapselung bzw. Pflicht-deepcopy), da der Trade-Loop
+   nachweislich in-place mutiert.
+
+### 9. Offene Entscheidungsfragen (bitte beantworten)
+
+F1. Handoff-Korrektur: Sind die H20.49-Zahlen aus Abschnitt 5 (U1) als
+    kontaminiert zu kennzeichnen (fair: 35/28/21) und der
+    Nicht-Idempotenz-Befund als eigener Vertragspunkt aufzunehmen?
+F2. Soll `existenz_modus="NATIV"` byte-genau das heutige V020-Verhalten
+    reproduzieren (Beweisziel 58/56/68 + SumR)?
+F3. ATR(14) im Scan (`scan["atr"]`, kausal, einmal) oder im Trade-Loop?
+    Empfehlung: im Scan.
+F4. Read-only-Scan-Garantie als harter V021-Vertragspunkt (per-Lauf-
+    Kapselung/Pflicht-deepcopy) oder nur als dokumentierte Konvention?
+F5. Segmentwand-Aufbau (`erweitere_segmentwand_dochte`-Aequivalent) als
+    eigener V021-Schalter `segmentwand_modus: Literal["AUS","AN"]="AUS"`,
+    adapterfrei (reine Engine), fuer die MAI/JUN/JUL-Analyse vorbereiten?

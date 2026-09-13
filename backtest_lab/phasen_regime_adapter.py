@@ -814,3 +814,181 @@ ADAPTER_V019_KAUSAL: PhasenRegimeAdapter = PhasenRegimeAdapter(
                                     AUTO_VERSCHMELZUNG_SCHWELLE))
 ADAPTER_V019_KAUSAL.verifiziere_niveau_overrides()
 ADAPTER_V019_KAUSAL.verifiziere_boden_literale()
+
+
+# --- v0.25: Typisierter 4-Zustands-Marktregime-Datenvertrag (H20.27) ---------
+# Reine Wertedomaene ohne Import der Replay-Engine. Implementiert die arretierte
+# Zustandsmatrix H20.26/H20.27 (Z0..Z3) zur Makro-Regime-Filterung.
+# APPEND-ONLY: die Zeilen 1-816 dieser Datei bleiben unveraendert.
+from typing import Literal  # noqa: E402  (Bestandsimporte Z. 65-68 ohne Literal)
+
+KantenSeiteLiteral = Literal["OBEN", "UNTEN"]
+
+
+class MarktRegimeZustand(Enum):
+    """Zustaende des 4-Zustands-Marktregime-Automaten (SSoT H20.26/H20.27)."""
+
+    Z0_WARMUP = "Z0_WARMUP"
+    Z1_PROVISIONAL = "Z1_PROVISIONAL"
+    Z1_MATURE = "Z1_MATURE"
+    Z2_BEDROHT = "Z2_BEDROHT"
+    Z3_TRANSITION = "Z3_TRANSITION"
+
+    @property
+    def ist_freigabekandidat(self) -> bool:
+        """Notwendige (nicht hinreichende) Vorbedingung fuer Neugeschaeft.
+
+        Massgeblich fuer die Trade-Autorisierung ist strikt das Feld
+        ``RegimeZustandSnapshot.handel_freigegeben``; ein Z2_BEDROHT aus
+        Z1_PROVISIONAL bleibt Fail-Closed (H20.26 Zeile 4 vs. Zeile 7).
+        """
+        return self in (MarktRegimeZustand.Z1_MATURE,
+                        MarktRegimeZustand.Z2_BEDROHT)
+
+
+class TransitionReason(Enum):
+    """Spezifische Ursache fuer den Uebergang nach Z3_TRANSITION."""
+
+    KEIN_GRUND = "KEIN_GRUND"
+    BREAKOUT_OBEN = "BREAKOUT_OBEN"
+    BREAKOUT_UNTEN = "BREAKOUT_UNTEN"
+    BOTH_SIDES = "BOTH_SIDES"                  # Vorrang: schliesst OBEN/UNTEN aus
+    OUTER_PIVOT_EXPANSION = "OUTER_PIVOT_EXPANSION"
+    DECAY_NO_SUCCESSOR = "DECAY_NO_SUCCESSOR"
+    GRACE_ABLAUF = "GRACE_ABLAUF"              # Acceptance nach Kantenbruch
+
+
+class RegimeEvent(Enum):
+    """Kausale Marktereignisse am Bar k."""
+
+    INITIALIZE = "INITIALIZE"
+    PAAR_GEBILDET = "PAAR_GEBILDET"
+    REIFE_ERREICHT = "REIFE_ERREICHT"
+    DURCHSTICH_OBEN = "DURCHSTICH_OBEN"
+    DURCHSTICH_UNTEN = "DURCHSTICH_UNTEN"
+    RECLAIM_BESTAETIGT = "RECLAIM_BESTAETIGT"
+    BREAKOUT_BESTAETIGT = "BREAKOUT_BESTAETIGT"
+    RE_LABEL_ERFOLGT = "RE_LABEL_ERFOLGT"
+    DECAY_KOLLAPS = "DECAY_KOLLAPS"
+    GRACE_ABLAUF = "GRACE_ABLAUF"
+    RUHE = "RUHE"
+
+
+@dataclass(frozen=True, slots=True)
+class RegimePaar:
+    """Eingefrorener Zustand des aktiven Grenz-Kantenpaars M(k)."""
+
+    decke_kid: int
+    decke_basis: float
+    boden_kid: int
+    boden_basis: float
+
+    @property
+    def korridor_breite_pct(self) -> float:
+        """Relative Breite des Korridors bezogen auf den Boden."""
+        if self.boden_basis <= 0.0:
+            return 0.0
+        return (self.decke_basis - self.boden_basis) / self.boden_basis * 100.0
+
+
+@dataclass(frozen=True, slots=True)
+class RegimeKonfiguration:
+    """SSoT-Bruecke fuer Schwellen: bindet an Bestandskonstanten ohne Duplikate.
+
+    Drei Schwellen-Klassen (H20.28):
+    1. Bindbar gegen Engine-cfg: ``wall_live_bars``, ``touch_conf_handelbar``,
+       ``min_wall_alter_bars``.
+    2. Bindbar gegen Adapter-SSoT: ``reife_gate_bars`` (Import-Zeit).
+    3. Nicht-bindbar / Neue Invarianten: ``struktur_band_pct``,
+       ``touch_conf_existenz``, ``breakout_move_pct`` -- letzteres SEMANTISCH
+       GETRENNT von ``max_sweep_ueberdehnung_pct`` (Obergrenze Sweep; H20.22 K2,
+       H20.28 Klasse 3). Kein Bindungs-Parameter, kein Kopplungs-Assert.
+    """
+
+    struktur_band_pct: float = 0.50
+    breakout_move_pct: float = 0.60
+    reife_gate_bars: int = PLATEAU_REFERENZ_BARS     # SSoT Z. 610
+    wall_live_bars: int = 96                          # Engine-cfg Invariante
+    min_wall_alter_bars: int = 24                     # Engine-cfg Invariante (Z1)
+    touch_conf_existenz: int = 2                      # Literal im Replay (Klasse 3)
+    touch_conf_handelbar: int = 3                     # == min_touches_handelbar
+    # reclaim_grace_bars entfaellt: wird dynamisch aus Engine-cfg konsumiert (E4)
+
+    def verifiziere_gegen_engine(
+        self,
+        *,
+        wall_live_bars: int,
+        min_touches_handelbar: int,
+        min_wall_alter_bars: int,
+    ) -> "ValidierteRegimeKonfiguration":
+        """Fail-Loud-Abgleich der bindbaren Schwellen gegen die Engine-cfg.
+
+        Engine-frei: konsumiert flache Primitive (Bestandsmuster wie
+        ``verifiziere_gegen_scan``, Z. 404-406), importiert nichts aus dem
+        Harness und mutiert weder sich selbst noch die Engine.
+
+        Args:
+            wall_live_bars: ``cfg.wall_live_bars`` der Engine (Liveness 96).
+            min_touches_handelbar: ``cfg.min_touches_handelbar`` der Engine (3).
+            min_wall_alter_bars: ``cfg.min_wall_alter_bars`` der Engine (24).
+
+        Returns:
+            Unveraenderliche ``ValidierteRegimeKonfiguration``-Huelle. Der
+            Automat akzeptiert als ``cfg`` ausschliesslich diesen Typ.
+
+        Raises:
+            ValueError: Abweichung einer bindenden Schwelle.
+        """
+        if int(wall_live_bars) != self.wall_live_bars:
+            raise ValueError(
+                f"wall_live_bars Mismatch: Adapter={self.wall_live_bars}, "
+                f"Engine={wall_live_bars}")
+        if int(min_touches_handelbar) != self.touch_conf_handelbar:
+            raise ValueError(
+                f"min_touches_handelbar Mismatch: Adapter="
+                f"{self.touch_conf_handelbar}, Engine={min_touches_handelbar}")
+        if int(min_wall_alter_bars) != self.min_wall_alter_bars:
+            raise ValueError(
+                f"min_wall_alter_bars Mismatch: Adapter="
+                f"{self.min_wall_alter_bars}, Engine={min_wall_alter_bars}")
+        return ValidierteRegimeKonfiguration(konfiguration=self)
+
+
+@dataclass(frozen=True, slots=True)
+class ValidierteRegimeKonfiguration:
+    """Typ-sichere Huelle einer erfolgreich gegen die Engine geprueften Konfiguration.
+
+    Erzwingt den Aufruf von ``RegimeKonfiguration.verifiziere_gegen_engine``
+    typseitig: die Uebergangsfunktion (Option b) konsumiert ausschliesslich
+    diesen Typ, nicht die ungepruefte ``RegimeKonfiguration``.
+    """
+
+    konfiguration: RegimeKonfiguration
+
+    @property
+    def cfg(self) -> RegimeKonfiguration:
+        """Kurzform fuer den Lesezugriff im Automaten."""
+        return self.konfiguration
+
+
+@dataclass(frozen=True, slots=True)
+class RegimeZustandSnapshot:
+    """Unveraenderlicher Zustands-Snapshot des Regime-Automaten am Bar k."""
+
+    bar_idx: int
+    zustand: MarktRegimeZustand
+    aktives_paar: Optional[RegimePaar]
+    k_start: Optional[int]
+    letzter_event: RegimeEvent
+    touch_conf: int = 0
+    handel_freigegeben: bool = False                  # Einzige Gate-Wahrheit
+    aus_mature: bool = False                          # Herkunft bei Z2_BEDROHT
+    transition_reason: TransitionReason = TransitionReason.KEIN_GRUND
+    durchstich_bar: Optional[int] = None
+    durchstich_seite: Optional[KantenSeiteLiteral] = None
+
+    def ist_reif(self, cfg: RegimeKonfiguration) -> bool:
+        """Prueft den Zeitanteil des Gates (reife_bar = k_start + Gate - 1)."""
+        if self.k_start is None:
+            return False
+        return (self.bar_idx - self.k_start + 1) >= cfg.reife_gate_bars

@@ -1,0 +1,296 @@
+========================================================================================================
+SETUP C - ATTRIBUTION DER NICHT-KAUSALEN CLUSTER-A-SELEKTION (vorlauf_bars <= 1)
+========================================================================================================
+Kausal handelbar = erster Volumen-Durchstoss je (Phase, Richtung) = 'alle RAW'.
+Cluster A (vorlauf <= 1) nutzt die 2-Close-Bestaetigung (brk_idx), die zum
+Einstiegszeitpunkt (Open der Folge-Bar) noch NICHT bekannt ist.
+Fenster: MAI26, JUN26, JUL26, AUG26 | Horizonte: N48/N96 | Trailing: N300
+Config: suppression=True | stop_puffer=0.15 | raw_vol_mult=1.5 | sl_pct_ref=0.45
+
+--- FENSTER MAI26 (2026-05-01 .. 2026-06-01, ende-exklusiv) ---
+  Segmente: 21 | RAW-Kandidaten: 19 | davon Cluster A: 8
+  1) Verteilung vorlauf_bars: v=0:5 | v=1:3 | v=2:3 | v=3:1 | v=5:1 | v>5:6
+  2) Kennzahlen je vorlauf_bars-Wert:
+        N48  vorlauf=0   n= 5 zens= 0 gew= 5  sum=   +0.42R  mean=+0.08R  WR= 40.0%  PF= 1.17  MDD= -1.82R
+        N48  vorlauf=1   n= 3 zens= 0 gew= 3  sum=  +12.13R  mean=+4.04R  WR=100.0%  PF=  inf  MDD= +0.00R
+        N48  vorlauf=2   n= 3 zens= 0 gew= 3  sum=   +7.53R  mean=+2.51R  WR= 66.7%  PF= 8.53  MDD= -1.00R
+        N48  vorlauf=3   n= 1 zens= 0 gew= 1  sum=   +0.92R  mean=+0.92R  WR=100.0%  PF=  inf  MDD= +0.00R
+        N48  vorlauf=5   n= 1 zens= 0 gew= 1  sum=   +0.45R  mean=+0.45R  WR=100.0%  PF=  inf  MDD= +0.00R
+        N48  vorlauf=6   n= 1 zens= 0 gew= 1  sum=  +11.27R  mean=+11.27R  WR=100.0%  PF=  inf  MDD= +0.00R
+        N48  vorlauf=36  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N48  vorlauf=61  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N48  vorlauf=101 n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N48  vorlauf=107 n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N48  vorlauf=158 n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N96  vorlauf=0   n= 5 zens= 0 gew= 5  sum=   -0.12R  mean=-0.02R  WR= 40.0%  PF= 0.96  MDD= -2.00R
+        N96  vorlauf=1   n= 3 zens= 0 gew= 3  sum=  +14.57R  mean=+4.86R  WR= 33.3%  PF=11.43  MDD= -1.40R
+        N96  vorlauf=2   n= 3 zens= 0 gew= 3  sum=   +4.70R  mean=+1.57R  WR= 66.7%  PF= 5.70  MDD= -1.00R
+        N96  vorlauf=3   n= 1 zens= 0 gew= 1  sum=   +1.91R  mean=+1.91R  WR=100.0%  PF=  inf  MDD= +0.00R
+        N96  vorlauf=5   n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N96  vorlauf=6   n= 1 zens= 0 gew= 1  sum=  +15.40R  mean=+15.40R  WR=100.0%  PF=  inf  MDD= +0.00R
+        N96  vorlauf=36  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N96  vorlauf=61  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N96  vorlauf=101 n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N96  vorlauf=107 n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N96  vorlauf=158 n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+      TR300  vorlauf=0   n= 5 zens= 0 gew= 5  sum=   +1.13R  mean=+0.23R  WR= 60.0%  PF= 1.61  MDD= -1.00R
+      TR300  vorlauf=1   n= 3 zens= 0 gew= 3  sum=  +17.35R  mean=+5.78R  WR=100.0%  PF=  inf  MDD= +0.00R
+      TR300  vorlauf=2   n= 3 zens= 0 gew= 3  sum=   +2.68R  mean=+0.89R  WR= 66.7%  PF=11.14  MDD= -0.26R
+      TR300  vorlauf=3   n= 1 zens= 0 gew= 1  sum=   +0.56R  mean=+0.56R  WR=100.0%  PF=  inf  MDD= +0.00R
+      TR300  vorlauf=5   n= 1 zens= 0 gew= 1  sum=   +0.50R  mean=+0.50R  WR=100.0%  PF=  inf  MDD= +0.00R
+      TR300  vorlauf=6   n= 1 zens= 0 gew= 1  sum=   +8.69R  mean=+8.69R  WR=100.0%  PF=  inf  MDD= +0.00R
+      TR300  vorlauf=36  n= 1 zens= 0 gew= 1  sum=   -0.88R  mean=-0.88R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+      TR300  vorlauf=61  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+      TR300  vorlauf=101 n= 1 zens= 0 gew= 1  sum=   -0.70R  mean=-0.70R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+      TR300  vorlauf=107 n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+      TR300  vorlauf=158 n= 1 zens= 0 gew= 1  sum=   +0.39R  mean=+0.39R  WR=100.0%  PF=  inf  MDD= +0.00R
+
+--- FENSTER JUN26 (2026-06-01 .. 2026-07-01, ende-exklusiv) ---
+  Segmente: 23 | RAW-Kandidaten: 17 | davon Cluster A: 8
+  1) Verteilung vorlauf_bars: v=0:5 | v=1:3 | v=3:1 | v=4:1 | v>5:7
+  2) Kennzahlen je vorlauf_bars-Wert:
+        N48  vorlauf=0   n= 5 zens= 0 gew= 5  sum=   -3.26R  mean=-0.65R  WR= 20.0%  PF= 0.18  MDD= -3.00R
+        N48  vorlauf=1   n= 3 zens= 0 gew= 3  sum=   +6.74R  mean=+2.25R  WR= 66.7%  PF= 7.74  MDD= -1.00R
+        N48  vorlauf=3   n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N48  vorlauf=4   n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N48  vorlauf=13  n= 2 zens= 0 gew= 2  sum=   +0.96R  mean=+0.48R  WR= 50.0%  PF= 1.96  MDD= +0.00R
+        N48  vorlauf=18  n= 1 zens= 0 gew= 1  sum=   +3.23R  mean=+3.23R  WR=100.0%  PF=  inf  MDD= +0.00R
+        N48  vorlauf=30  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N48  vorlauf=84  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N48  vorlauf=91  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N48  vorlauf=303 n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N96  vorlauf=0   n= 5 zens= 0 gew= 5  sum=   -3.70R  mean=-0.74R  WR= 20.0%  PF= 0.08  MDD= -3.00R
+        N96  vorlauf=1   n= 3 zens= 0 gew= 3  sum=  +17.14R  mean=+5.71R  WR= 66.7%  PF=18.14  MDD= +0.00R
+        N96  vorlauf=3   n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N96  vorlauf=4   n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N96  vorlauf=13  n= 2 zens= 0 gew= 2  sum=   -2.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= -1.00R
+        N96  vorlauf=18  n= 1 zens= 0 gew= 1  sum=   +2.56R  mean=+2.56R  WR=100.0%  PF=  inf  MDD= +0.00R
+        N96  vorlauf=30  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N96  vorlauf=84  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N96  vorlauf=91  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N96  vorlauf=303 n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+      TR300  vorlauf=0   n= 5 zens= 0 gew= 5  sum=   -2.28R  mean=-0.46R  WR= 20.0%  PF= 0.22  MDD= -2.15R
+      TR300  vorlauf=1   n= 3 zens= 0 gew= 3  sum=   +6.10R  mean=+2.03R  WR= 66.7%  PF= 7.10  MDD= -1.00R
+      TR300  vorlauf=3   n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+      TR300  vorlauf=4   n= 1 zens= 0 gew= 1  sum=   -0.76R  mean=-0.76R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+      TR300  vorlauf=13  n= 2 zens= 0 gew= 2  sum=   -0.31R  mean=-0.16R  WR= 50.0%  PF= 0.52  MDD= +0.00R
+      TR300  vorlauf=18  n= 1 zens= 0 gew= 1  sum=   +2.68R  mean=+2.68R  WR=100.0%  PF=  inf  MDD= +0.00R
+      TR300  vorlauf=30  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+      TR300  vorlauf=84  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+      TR300  vorlauf=91  n= 1 zens= 0 gew= 1  sum=   -0.33R  mean=-0.33R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+      TR300  vorlauf=303 n= 1 zens= 0 gew= 1  sum=   -0.18R  mean=-0.18R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+
+--- FENSTER JUL26 (2026-07-01 .. 2026-08-01, ende-exklusiv) ---
+  Segmente: 21 | RAW-Kandidaten: 16 | davon Cluster A: 4
+  1) Verteilung vorlauf_bars: v=0:1 | v=1:3 | v=3:1 | v=4:1 | v=5:2 | v>5:8
+  2) Kennzahlen je vorlauf_bars-Wert:
+        N48  vorlauf=0   n= 1 zens= 0 gew= 1  sum=   +1.95R  mean=+1.95R  WR=100.0%  PF=  inf  MDD= +0.00R
+        N48  vorlauf=1   n= 3 zens= 0 gew= 3  sum=   +0.85R  mean=+0.28R  WR= 66.7%  PF= 1.85  MDD= -1.00R
+        N48  vorlauf=3   n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N48  vorlauf=4   n= 1 zens= 0 gew= 1  sum=   +3.71R  mean=+3.71R  WR=100.0%  PF=  inf  MDD= +0.00R
+        N48  vorlauf=5   n= 2 zens= 0 gew= 2  sum=   +0.57R  mean=+0.29R  WR= 50.0%  PF= 1.57  MDD= +0.00R
+        N48  vorlauf=7   n= 2 zens= 0 gew= 2  sum=   +2.25R  mean=+1.13R  WR= 50.0%  PF= 3.25  MDD= +0.00R
+        N48  vorlauf=28  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N48  vorlauf=33  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N48  vorlauf=43  n= 1 zens= 0 gew= 1  sum=   +7.76R  mean=+7.76R  WR=100.0%  PF=  inf  MDD= +0.00R
+        N48  vorlauf=55  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N48  vorlauf=58  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N48  vorlauf=192 n= 1 zens= 0 gew= 1  sum=   +1.03R  mean=+1.03R  WR=100.0%  PF=  inf  MDD= +0.00R
+        N96  vorlauf=0   n= 1 zens= 0 gew= 1  sum=   +1.60R  mean=+1.60R  WR=100.0%  PF=  inf  MDD= +0.00R
+        N96  vorlauf=1   n= 3 zens= 0 gew= 3  sum=   +0.47R  mean=+0.16R  WR= 66.7%  PF= 1.47  MDD= -1.00R
+        N96  vorlauf=3   n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N96  vorlauf=4   n= 1 zens= 0 gew= 1  sum=   +5.78R  mean=+5.78R  WR=100.0%  PF=  inf  MDD= +0.00R
+        N96  vorlauf=5   n= 2 zens= 0 gew= 2  sum=   +1.62R  mean=+0.81R  WR= 50.0%  PF= 2.62  MDD= +0.00R
+        N96  vorlauf=7   n= 2 zens= 0 gew= 2  sum=   +2.45R  mean=+1.23R  WR= 50.0%  PF= 3.45  MDD= +0.00R
+        N96  vorlauf=28  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N96  vorlauf=33  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N96  vorlauf=43  n= 1 zens= 0 gew= 1  sum=   +7.22R  mean=+7.22R  WR=100.0%  PF=  inf  MDD= +0.00R
+        N96  vorlauf=55  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N96  vorlauf=58  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N96  vorlauf=192 n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+      TR300  vorlauf=0   n= 1 zens= 0 gew= 1  sum=   -0.23R  mean=-0.23R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+      TR300  vorlauf=1   n= 3 zens= 0 gew= 3  sum=   +1.74R  mean=+0.58R  WR= 66.7%  PF= 9.54  MDD= -0.20R
+      TR300  vorlauf=3   n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+      TR300  vorlauf=4   n= 1 zens= 0 gew= 1  sum=   +0.72R  mean=+0.72R  WR=100.0%  PF=  inf  MDD= +0.00R
+      TR300  vorlauf=5   n= 2 zens= 0 gew= 2  sum=   +1.14R  mean=+0.57R  WR= 50.0%  PF= 5.32  MDD= +0.00R
+      TR300  vorlauf=7   n= 2 zens= 0 gew= 2  sum=   -0.55R  mean=-0.28R  WR=  0.0%  PF= 0.00  MDD= -0.21R
+      TR300  vorlauf=28  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+      TR300  vorlauf=33  n= 1 zens= 0 gew= 1  sum=   -0.76R  mean=-0.76R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+      TR300  vorlauf=43  n= 1 zens= 0 gew= 1  sum=   +1.17R  mean=+1.17R  WR=100.0%  PF=  inf  MDD= +0.00R
+      TR300  vorlauf=55  n= 1 zens= 0 gew= 1  sum=   -0.63R  mean=-0.63R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+      TR300  vorlauf=58  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+      TR300  vorlauf=192 n= 1 zens= 0 gew= 1  sum=   +0.99R  mean=+0.99R  WR=100.0%  PF=  inf  MDD= +0.00R
+
+--- FENSTER AUG26 (2026-08-01 .. 2026-09-01, ende-exklusiv) ---
+  Segmente: 19 | RAW-Kandidaten: 16 | davon Cluster A: 3
+  1) Verteilung vorlauf_bars: v=0:2 | v=1:1 | v=3:1 | v=4:1 | v>5:11
+  2) Kennzahlen je vorlauf_bars-Wert:
+        N48  vorlauf=0   n= 2 zens= 0 gew= 2  sum=   +1.04R  mean=+0.52R  WR= 50.0%  PF= 2.04  MDD= -1.00R
+        N48  vorlauf=1   n= 1 zens= 0 gew= 1  sum=   +1.90R  mean=+1.90R  WR=100.0%  PF=  inf  MDD= +0.00R
+        N48  vorlauf=3   n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N48  vorlauf=4   n= 1 zens= 0 gew= 1  sum=   +1.64R  mean=+1.64R  WR=100.0%  PF=  inf  MDD= +0.00R
+        N48  vorlauf=6   n= 1 zens= 0 gew= 1  sum=   +1.74R  mean=+1.74R  WR=100.0%  PF=  inf  MDD= +0.00R
+        N48  vorlauf=8   n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N48  vorlauf=9   n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N48  vorlauf=10  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N48  vorlauf=11  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N48  vorlauf=23  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N48  vorlauf=43  n= 1 zens= 0 gew= 1  sum=   +2.13R  mean=+2.13R  WR=100.0%  PF=  inf  MDD= +0.00R
+        N48  vorlauf=45  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N48  vorlauf=59  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N48  vorlauf=67  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N48  vorlauf=101 n= 1 zens= 0 gew= 1  sum=   -0.20R  mean=-0.20R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N96  vorlauf=0   n= 2 zens= 0 gew= 2  sum=   +0.84R  mean=+0.42R  WR= 50.0%  PF= 1.84  MDD= +0.00R
+        N96  vorlauf=1   n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N96  vorlauf=3   n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N96  vorlauf=4   n= 1 zens= 0 gew= 1  sum=   +2.16R  mean=+2.16R  WR=100.0%  PF=  inf  MDD= +0.00R
+        N96  vorlauf=6   n= 1 zens= 0 gew= 1  sum=   +0.13R  mean=+0.13R  WR=100.0%  PF=  inf  MDD= +0.00R
+        N96  vorlauf=8   n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N96  vorlauf=9   n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N96  vorlauf=10  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N96  vorlauf=11  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N96  vorlauf=23  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N96  vorlauf=43  n= 1 zens= 0 gew= 1  sum=   +4.18R  mean=+4.18R  WR=100.0%  PF=  inf  MDD= +0.00R
+        N96  vorlauf=45  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N96  vorlauf=59  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N96  vorlauf=67  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+        N96  vorlauf=101 n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+      TR300  vorlauf=0   n= 2 zens= 0 gew= 2  sum=   -0.13R  mean=-0.07R  WR= 50.0%  PF= 0.85  MDD= -0.91R
+      TR300  vorlauf=1   n= 1 zens= 0 gew= 1  sum=   +1.61R  mean=+1.61R  WR=100.0%  PF=  inf  MDD= +0.00R
+      TR300  vorlauf=3   n= 1 zens= 0 gew= 1  sum=   +0.10R  mean=+0.10R  WR=100.0%  PF=  inf  MDD= +0.00R
+      TR300  vorlauf=4   n= 1 zens= 0 gew= 1  sum=   +0.46R  mean=+0.46R  WR=100.0%  PF=  inf  MDD= +0.00R
+      TR300  vorlauf=6   n= 1 zens= 0 gew= 1  sum=   +1.62R  mean=+1.62R  WR=100.0%  PF=  inf  MDD= +0.00R
+      TR300  vorlauf=8   n= 1 zens= 0 gew= 1  sum=   +0.14R  mean=+0.14R  WR=100.0%  PF=  inf  MDD= +0.00R
+      TR300  vorlauf=9   n= 1 zens= 0 gew= 1  sum=   +0.48R  mean=+0.48R  WR=100.0%  PF=  inf  MDD= +0.00R
+      TR300  vorlauf=10  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+      TR300  vorlauf=11  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+      TR300  vorlauf=23  n= 1 zens= 0 gew= 1  sum=   -0.95R  mean=-0.95R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+      TR300  vorlauf=43  n= 1 zens= 0 gew= 1  sum=   +0.17R  mean=+0.17R  WR=100.0%  PF=  inf  MDD= +0.00R
+      TR300  vorlauf=45  n= 1 zens= 0 gew= 1  sum=   -0.77R  mean=-0.77R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+      TR300  vorlauf=59  n= 1 zens= 0 gew= 1  sum=   -0.61R  mean=-0.61R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+      TR300  vorlauf=67  n= 1 zens= 0 gew= 1  sum=   -1.00R  mean=-1.00R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+      TR300  vorlauf=101 n= 1 zens= 0 gew= 1  sum=   -0.49R  mean=-0.49R  WR=  0.0%  PF= 0.00  MDD= +0.00R
+
+========================================================================================================
+3) ATTRIBUTION: Cluster A (vorlauf <= 1, NICHT kausal) vs. Cluster B (> 1) vs. gesamt
+========================================================================================================
+   'gesamt' = alle RAW = kausal handelbar (erster Volumen-Durchstoss je Phase+Richtung).
+   'A' setzt Bruchwissen voraus, das zum Einstiegszeitpunkt nicht existiert.
+
+ Modus Menge          n  zens      sum R      WR      PF       MDD  Anteil an gesamt
+--------------------------------------------------------------------------------------------------------
+   N48 A (<=1)       23     0     +21.76   56.5%    3.31     -2.64    52.1%
+   N48 B (>1)        45     0     +19.98   33.3%    1.68     -7.24    47.9%
+   N48 gesamt        68     0     +41.74   41.2%    2.08     -8.66   100.0%
+   N48 DELTA A-ges                -19.98                          (-47.9%; negativ = A kleiner als der kausale Pool)
+--------------------------------------------------------------------------------------------------------
+   N96 A (<=1)       23     0     +29.80   43.5%    3.40     -5.49    62.2%
+   N96 B (>1)        45     0     +18.09   26.7%    1.55    -10.87    37.8%
+   N96 gesamt        68     0     +47.90   32.4%    2.06    -10.09   100.0%
+   N96 DELTA A-ges                -18.09                          (-37.8%; negativ = A kleiner als der kausale Pool)
+--------------------------------------------------------------------------------------------------------
+ TR300 A (<=1)       23     0     +25.28   56.5%    4.56     -1.86    87.6%
+ TR300 B (>1)        45     0      +3.56   40.0%    1.18     -7.90    12.4%
+ TR300 gesamt        68     0     +28.85   45.6%    2.07     -8.10   100.0%
+ TR300 DELTA A-ges                 -3.56                          (-12.4%; negativ = A kleiner als der kausale Pool)
+--------------------------------------------------------------------------------------------------------
+
+========================================================================================================
+4) SCHWELLEN-SWEEP cluster_a_max_vorlauf (bitgenau ueber setup_c_profil._kern_lauefe)
+========================================================================================================
+   k=999 entspricht 'alle RAW' (= kausale Grundgesamtheit).
+
+  N48:
+    k<=0    n=13 zens= 0 gew=13  sum=   +0.14R  mean=+0.01R  WR= 38.5%  PF= 1.02  MDD= -4.32R
+    k<=1    n=23 zens= 0 gew=23  sum=  +21.76R  mean=+0.95R  WR= 56.5%  PF= 3.31  MDD= -2.64R
+    k<=2    n=26 zens= 0 gew=26  sum=  +29.28R  mean=+1.13R  WR= 57.7%  PF= 3.81  MDD= -2.64R
+    k<=3    n=30 zens= 0 gew=30  sum=  +27.21R  mean=+0.91R  WR= 53.3%  PF= 3.03  MDD= -3.60R
+    k<=5    n=36 zens= 0 gew=36  sum=  +32.57R  mean=+0.90R  WR= 55.6%  PF= 3.11  MDD= -3.60R
+    k<=999  n=68 zens= 0 gew=68  sum=  +41.74R  mean=+0.61R  WR= 41.2%  PF= 2.08  MDD= -8.66R
+    [Check] Partition vorlauf<=1 == k<=1: OK  (Partition +21.76R | Sweep +21.76R)
+  N96:
+    k<=0    n=13 zens= 0 gew=13  sum=   -1.38R  mean=-0.11R  WR= 38.5%  PF= 0.83  MDD= -4.41R
+    k<=1    n=23 zens= 0 gew=23  sum=  +29.80R  mean=+1.30R  WR= 43.5%  PF= 3.40  MDD= -5.49R
+    k<=2    n=26 zens= 0 gew=26  sum=  +34.50R  mean=+1.33R  WR= 46.2%  PF= 3.58  MDD= -5.49R
+    k<=3    n=30 zens= 0 gew=30  sum=  +33.42R  mean=+1.11R  WR= 43.3%  PF= 3.04  MDD= -4.58R
+    k<=5    n=36 zens= 0 gew=36  sum=  +40.96R  mean=+1.14R  WR= 44.4%  PF= 3.11  MDD= -4.00R
+    k<=999  n=68 zens= 0 gew=68  sum=  +47.90R  mean=+0.70R  WR= 32.4%  PF= 2.06  MDD=-10.09R
+    [Check] Partition vorlauf<=1 == k<=1: OK  (Partition +29.80R | Sweep +29.80R)
+  TR300:
+    k<=0    n=13 zens= 0 gew=13  sum=   -1.51R  mean=-0.12R  WR= 38.5%  PF= 0.74  MDD= -3.07R
+    k<=1    n=23 zens= 0 gew=23  sum=  +25.28R  mean=+1.10R  WR= 56.5%  PF= 4.56  MDD= -1.86R
+    k<=2    n=26 zens= 0 gew=26  sum=  +27.96R  mean=+1.08R  WR= 57.7%  PF= 4.79  MDD= -1.32R
+    k<=3    n=30 zens= 0 gew=30  sum=  +26.63R  mean=+0.89R  WR= 56.7%  PF= 3.84  MDD= -1.64R
+    k<=5    n=36 zens= 0 gew=36  sum=  +28.68R  mean=+0.80R  WR= 58.3%  PF= 3.76  MDD= -1.64R
+    k<=999  n=68 zens= 0 gew=68  sum=  +28.85R  mean=+0.42R  WR= 45.6%  PF= 2.07  MDD= -8.10R
+    [Check] Partition vorlauf<=1 == k<=1: OK  (Partition +25.28R | Sweep +25.28R)
+
+========================================================================================================
+5) TOP-TREIBER der Cluster-A-Summe (N96, sortiert nach |r|)
+========================================================================================================
+  MAI26  vorlauf=1  down  entry_idx=889     +15.97R  ZEIT_EXIT_CLOSE
+  JUN26  vorlauf=1  down  entry_idx=378     +12.54R  ZEIT_EXIT_CLOSE
+  JUN26  vorlauf=1  down  entry_idx=427      +5.60R  ZEIT_EXIT_CLOSE
+  AUG26  vorlauf=0  up    entry_idx=203      +1.84R  ZEIT_EXIT_CLOSE
+  JUL26  vorlauf=0  up    entry_idx=154      +1.60R  ZEIT_EXIT_CLOSE
+  MAI26  vorlauf=0  down  entry_idx=936      +1.59R  ZEIT_EXIT_CLOSE
+  MAI26  vorlauf=0  up    entry_idx=610      +1.29R  ZEIT_EXIT_CLOSE
+  MAI26  vorlauf=0  down  entry_idx=677      -1.00R  INITIAL_SL_INTRABAR
+  MAI26  vorlauf=0  down  entry_idx=983      -1.00R  INITIAL_SL_INTRABAR
+  MAI26  vorlauf=0  up    entry_idx=1075     -1.00R  INITIAL_SL_INTRABAR
+  MAI26  vorlauf=1  down  entry_idx=1751     -1.00R  INITIAL_SL_INTRABAR
+  JUN26  vorlauf=1  up    entry_idx=427      -1.00R  INITIAL_SL_INTRABAR
+
+========================================================================================================
+6) KAUSALE VERGLEICHSARME (vollstaendig handelbar, kein Zukunftswissen)
+========================================================================================================
+   'alle RAW'  : erster Volumen-Durchstoss je (Phase, Richtung), Entry Open(trigger+1)
+   'CONFIRMED' : Entry erst Open(brk_idx+2) - close[j] UND close[j+1] bereits bekannt
+   'RETEST'    : Pullback an die gebrochene Kante (F6/F7/F8), Entry Open(trigger+1)
+
+ Modus Variante                    n      sum R      WR      PF       MDD
+--------------------------------------------------------------------------------------------------------
+   N48 alle RAW (kausal)          68     +41.74   41.2%    2.08     -8.66
+   N48 RAW-A (nicht kausal)       23     +21.76   56.5%    3.31     -2.64
+   N48 CONFIRMED (kausal)         80      +5.10   38.8%    1.13     -7.97
+   N48 RETEST                     28      -6.66   17.9%    0.71    -14.77
+--------------------------------------------------------------------------------------------------------
+   N96 alle RAW (kausal)          68     +47.90   32.4%    2.06    -10.09
+   N96 RAW-A (nicht kausal)       23     +29.80   43.5%    3.40     -5.49
+   N96 CONFIRMED (kausal)         80      +8.75   35.0%    1.18    -10.78
+   N96 RETEST                     28      -6.95   10.7%    0.72    -16.00
+--------------------------------------------------------------------------------------------------------
+ TR300 alle RAW (kausal)          68     +28.85   45.6%    2.07     -8.10
+ TR300 RAW-A (nicht kausal)       23     +25.28   56.5%    4.56     -1.86
+ TR300 CONFIRMED (kausal)         80      +2.45   38.8%    1.09     -4.30
+ TR300 RETEST                     28      -0.27   17.9%    0.98    -10.12
+--------------------------------------------------------------------------------------------------------
+
+========================================================================================================
+7) STATUS-ZENSUS RAW (alle erfassten Signale, nicht nur gueltige)
+========================================================================================================
+   KEIN_DURCHSTOSS/KEIN_VOLUMEN = bis brk_idx kein Volumen-Durchstoss; live waere das
+   Phasenende unbekannt (Scan liefe weiter) -> Rest-Unsicherheit der 'alle RAW'-Referenz.
+  MAI26: KEIN_DURCHSTOSS=18 | KEIN_VOLUMEN=3 | SIGNAL=19
+  JUN26: KEIN_DURCHSTOSS=15 | KEIN_VOLUMEN=12 | SIGNAL=17
+  JUL26: KEIN_DURCHSTOSS=15 | KEIN_VOLUMEN=9 | SIGNAL=16
+  AUG26: KEIN_DURCHSTOSS=12 | KEIN_VOLUMEN=8 | SIGNAL=16
+
+  GESAMT: KEIN_DURCHSTOSS=60 | KEIN_VOLUMEN=32 | SIGNAL=68
+  -> 92 von 160 (Phase, Richtung)-Faellen ohne handelbares RAW-Signal (57.5%)
+
+========================================================================================================
+8) FAZIT (automatisch aus den Messwerten abgeleitet)
+========================================================================================================
+  N48:
+    Cluster A sum=+21.76R (23 Trades) | alle RAW sum=+41.74R (68 Trades) | A-Anteil 52.1%
+    davon vorlauf=1: +21.61R (10 Trades) = 99.3% der Cluster-A-Summe
+    Risikokennzahlen: A PF=3.31 MDD=-2.64R | alle RAW PF=2.08 MDD=-8.66R
+  N96:
+    Cluster A sum=+29.80R (23 Trades) | alle RAW sum=+47.90R (68 Trades) | A-Anteil 62.2%
+    davon vorlauf=1: +31.18R (10 Trades) = 104.6% der Cluster-A-Summe
+    Risikokennzahlen: A PF=3.40 MDD=-5.49R | alle RAW PF=2.06 MDD=-10.09R
+  TR300:
+    Cluster A sum=+25.28R (23 Trades) | alle RAW sum=+28.85R (68 Trades) | A-Anteil 87.6%
+    davon vorlauf=1: +26.80R (10 Trades) = 106.0% der Cluster-A-Summe
+    Risikokennzahlen: A PF=4.56 MDD=-1.86R | alle RAW PF=2.07 MDD=-8.10R

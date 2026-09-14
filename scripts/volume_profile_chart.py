@@ -57,7 +57,7 @@ from scripts.volume_profile_core import (  # noqa: E402
 # Modus waehlt nur das Hauptband - siehe volume_profile_core.MODI).
 _KURZ_MODUS: Dict[str, str] = {
     "zone": "Zonen-Value-Area (94 %)",
-    "balance": "Balance-Band (Huelle der Segment-VAs)",
+    "balance": "Balance-Band (Huelle der Segment-VAs, nicht zusammenhaengend)",
 }
 _TITEL_MODUS: Dict[str, str] = {"zone": "ZONEN", "balance": "BALANCE"}
 
@@ -211,6 +211,15 @@ def zeichne_zonen_chart(
                 alpha=0.12, lw=0.8, zorder=2,
             )
         )
+        # Kleintext an der Bandkante: im Modus balance ist die Abdeckung eine
+        # Huellen-Abdeckung aus dem Rohprofil (NICHT zusammenhaengend - die
+        # Luecken zwischen den Berg-Value-Areas tragen kein Volumen).
+        if band.abdeckung_ist_huelle and np.isfinite(band.abdeckung):
+            ax.annotate(
+                f"Huelle {band.abdeckung:.3f}*",
+                (x1, band.vah), xytext=(3, 2), textcoords="offset points",
+                fontsize=4.5, color=_COL_ZONE, va="bottom", ha="left", zorder=7,
+            )
         if np.isfinite(p.atr) and p.atr > 0:
             breiten_atr.append(band.breite / p.atr)
         if p.konsens.eindeutig:
@@ -274,6 +283,11 @@ def zeichne_zonen_chart(
     st = [p.konsens.streu_atr for p in zeigen if np.isfinite(p.konsens.streu_atr)]
     if st:
         stat.append(f"POC-Streuung: median {np.median(st):.2f} ATR")
+    if stil.modus == "balance":
+        stat.append(
+            "Abdeckung: Huellen-Abdeckung (Rohprofil, nicht zusammenhaengend) - "
+            "Kleintext *"
+        )
     ax.text(
         0.5, 0.99, "\n".join(stat), transform=ax.transAxes, fontsize=7.5,
         va="top", ha="center", family="monospace",
@@ -281,19 +295,23 @@ def zeichne_zonen_chart(
                   edgecolor="gray", alpha=0.94),
         zorder=20,
     )
-    ax.legend(
-        handles=[
-            Line2D([0], [0], color=_COL_ZONE, lw=6, alpha=0.3,
-                   label=f"{_KURZ_MODUS[stil.modus]} (VAL..VAH)"),
-            Line2D([0], [0], color=_COL_POC, lw=1.4, label="POC (groesstes Segment)"),
-            Line2D([0], [0], color=_COL_POC_U, lw=1.2, ls=(0, (2, 2)),
-                   label="POC unsicher + Band der Konsens-Parametersaetze"),
-            Line2D([0], [0], color=_COL_NEST, lw=0.7, ls=(0, (4, 3)),
-                   label="POC weiterer Segmente"),
-            Line2D([0], [0], color=_COL_PREIS, lw=1.0, label="Preis (high/low)"),
-        ],
-        loc="upper left", fontsize=7.5, framealpha=0.9,
-    )
+    handles: List[Line2D] = [
+        Line2D([0], [0], color=_COL_ZONE, lw=6, alpha=0.3,
+               label=f"{_KURZ_MODUS[stil.modus]} (VAL..VAH)"),
+        Line2D([0], [0], color=_COL_POC, lw=1.4, label="POC (groesstes Segment)"),
+        Line2D([0], [0], color=_COL_POC_U, lw=1.2, ls=(0, (2, 2)),
+               label="POC unsicher + Band der Konsens-Parametersaetze"),
+        Line2D([0], [0], color=_COL_NEST, lw=0.7, ls=(0, (4, 3)),
+               label="POC weiterer Segmente"),
+        Line2D([0], [0], color=_COL_PREIS, lw=1.0, label="Preis (high/low)"),
+    ]
+    if stil.modus == "balance":
+        handles.append(
+            Line2D([0], [0], color=_COL_ZONE, lw=0.0,
+                   label="* Abdeckung je Fenster aus dem Rohprofil "
+                         "(Luecken zwischen den Berg-VAs = kein Volumen)")
+        )
+    ax.legend(handles=handles, loc="upper left", fontsize=7.5, framealpha=0.9)
     fig.tight_layout()
     fig.savefig(out_png, dpi=stil.dpi)
     plt.close(fig)
@@ -374,11 +392,16 @@ def _zeichne_grid_seite(
         ax.tick_params(labelsize=6.0)
         ax.grid(alpha=0.25, axis="x")
         band_atr = band.breite / p.atr if p.atr > 0 else float("nan")
+        # Kleintext am Panel: im Modus balance ist die Abdeckung eine
+        # Huellen-Abdeckung aus dem Rohprofil (nicht zusammenhaengend).
+        band_txt = f"Band ({stil.modus})"
+        if band.abdeckung_ist_huelle and np.isfinite(band.abdeckung):
+            band_txt = f"Band ({stil.modus}*) Huelle {band.abdeckung:.3f}"
         ax.set_title(
             f"{p.label} | POC {band.poc:.3f}"
             f"{'' if p.konsens.eindeutig else '  SPANNE ' + _fmt(p.konsens.streu_atr, '.2f') + ' ATR'}\n"
             f"lobe2 {_fmt(seg.lobe2_ratio, '.2f')} | Segmente {seg.n_segmente} | "
-            f"Band ({stil.modus}) "
+            f"{band_txt} "
             f"{'-' if not np.isfinite(band_atr) else f'{band_atr:.1f}'} ATR | "
             f"Bars {p.bar_start}..{p.bar_ende}",
             fontsize=6.5,
@@ -392,10 +415,16 @@ def _zeichne_grid_seite(
     n_unsicher = sum(1 for p in zeigen if not p.konsens.eindeutig)
     seiten_txt = "" if n_seiten <= 1 else f" | Seite {seite}/{n_seiten}"
     gesamt_txt = "" if gesamt is None or n_seiten <= 1 else f" (gesamt {gesamt})"
+    huelle_txt = (
+        " | * Abdeckung = Huellen-Abdeckung aus dem Rohprofil "
+        "(nicht zusammenhaengend)"
+        if stil.modus == "balance"
+        else ""
+    )
     fig.suptitle(
         f"FENSTERPROFILE (rel. Volumen, Maximum = 1) | {_stamm(stil)} | "
         f"Fensterart={zeigen[0].window_kind} | Fenster {n}{gesamt_txt}"
-        f"{seiten_txt} | POC unsicher {n_unsicher}",
+        f"{seiten_txt} | POC unsicher {n_unsicher}{huelle_txt}",
         fontsize=9.5, y=0.999,
     )
     fig.legend(

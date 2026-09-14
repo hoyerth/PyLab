@@ -24,7 +24,7 @@ Modus (es gibt nur EINE Engine)
 -------------------------------
 BEIDE Baender werden immer mitgerechnet (sie stecken im Vertrag
 ``Segmentierung``); ``modus`` waehlt nur, welches Band als Hauptband gemeldet,
-gespeichert und gezeichnet wird:
+gehalten und gezeichnet wird:
 
     --modus=zone       Zonen-VA ab POC (Default)
     --modus=balance    Huelle der Segment-VAs - mit ``--window=day`` ist das
@@ -395,7 +395,8 @@ def report_text(
         Reporttext als String.
     """
     gueltig = [p for p in profile if p.gueltig]
-    band_name = band_von(None, config.modus).name
+    band_leer = band_von(None, config.modus)
+    band_name = band_leer.name
     titel = (
         "VOLUMENPROFILE - FENSTERWEISE (POC / ZONEN-VA 94 % / SEGMENTE)"
         if config.modus == "zone"
@@ -406,6 +407,17 @@ def report_text(
         linie,
         titel,
         f"Hauptband: {config.modus} = {band_name}",
+        f"Abdeckung: {band_leer.abdeckung_name}",
+    ]
+    if band_leer.abdeckung_ist_huelle:
+        txt.append(
+            "  ACHTUNG: das Band ist die Huelle der Segment-Value-Areas. "
+            "Zwischen den Bergen liegende Bereiche gehoeren zu keinem Berg und "
+            "tragen kein Volumen dieses Bandes - die Abdeckung ist deshalb "
+            "NICHT zusammenhaengend (sie sagt nur, wie viel Volumen zwischen "
+            "kleinster Berg-VAL und groesster Berg-VAH liegt)."
+        )
+    txt += [
         f"Instrument: {config.symbol} {config.timeframe} | Zeitraum: "
         f"{config.start} .. {config.ende} (ende-exklusiv, BKZ)",
         f"Fensterart: {config.window_kind} | min_bars={effektive_min_bars(config)}"
@@ -469,10 +481,17 @@ def report_text(
         )
         if abdeck.size:
             txt.append(
-                f"  Band-Abdeckung ({config.modus}): "
+                f"  Abdeckung ({config.modus}): {band_leer.abdeckung_name} | "
                 f"median={np.median(abdeck):.4f} "
                 f"min={abdeck.min():.4f} max={abdeck.max():.4f}"
             )
+            if band_leer.abdeckung_ist_huelle:
+                txt.append(
+                    "    (aus dem ROHPROFIL zwischen kleinster Berg-VAL und "
+                    "groesster Berg-VAH; die Luecken zwischen den Berg-Value-"
+                    "Areas liegen mit im Bereich und tragen kein Volumen "
+                    "dieses Bandes - der Wert ist NICHT zusammenhaengend)"
+                )
         if st.size:
             n_eind = int(sum(1 for p in gueltig if p.konsens.eindeutig))
             txt.append(
@@ -509,6 +528,12 @@ def tsv_levels(config: VolumeProfilConfig, profile: Sequence[FensterProfil]) -> 
         f"smooth={config.smooth_win} va_pct={config.va_pct} "
         f"va_zone_pct={config.va_zone_pct} modus={config.modus}",
         f"# rolle: {rolle_txt} | SEGMENT = einzelner Volumen-Berg",
+        f"# va_abdeckung: {band_von(None, config.modus).abdeckung_name}"
+        + (
+            " (Luecken zwischen den Berg-VAs gehoeren keinem Berg)"
+            if config.modus == "balance"
+            else ""
+        ),
         "# atr: mittlere Bar-Spanne (high-low) des Fensters",
         "# poc_streu: POC-Spanne ueber die Konsens-Parametersaetze, in ATR",
         "label\twindow_kind\tbar_start\tbar_ende\tts_start\tts_ende\tn_bars\t"

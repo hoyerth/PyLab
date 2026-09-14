@@ -15,10 +15,8 @@ Altbestand, der stillschweigend weiterverwendet werden koennte. Deshalb:
     ProfilSpeicherHalter    haelt mehrere Speicher, Schluessel = ``run_id``
     HALTER                  prozessweiter Standard-Halter fuer den Live-Einsatz
 
-Die frueher hier vorhandene DuckDB-Ablage (``ProfilStore`` mit den Tabellen
-``volume_profiles``/``volume_profile_nests``/``volume_profile_runs``) liegt als
-Referenz in ``scripts/archiv/volume_profile_store_db.py`` und ist nicht mehr
-Teil der Engine.
+Eine Ablage der Profile in einer Datei oder Datenbank gibt es NICHT - auch
+nicht als Archivvariante. Es gibt nur diese Laufzeit-Haltung.
 
 Zeitbasis (docs/ZEITBASIS_KANON.md)
 -----------------------------------

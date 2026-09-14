@@ -324,7 +324,9 @@ class Band:
         vah: Obere Kante des Bandes.
         abdeckung: Anteil des GESAMTVOLUMENS, der zwischen ``val`` und ``vah``
             liegt (0..1; nan, wenn nicht bestimmbar). Bei ``zone`` die direkt
-            erreichte Abdeckung, bei ``balance`` aus dem rohen Profil gerechnet.
+            erreichte Abdeckung, bei ``balance`` aus dem rohen Profil gerechnet
+            und damit NICHT zusammenhaengend (siehe
+            ``abdeckung_ist_huelle``/``abdeckung_name``).
         modus: ``zone`` oder ``balance``.
         name: Lesbarer Name des Modus.
     """
@@ -342,6 +344,36 @@ class Band:
         if not (np.isfinite(self.val) and np.isfinite(self.vah)):
             return float("nan")
         return float(self.vah - self.val)
+
+    @property
+    def abdeckung_ist_huelle(self) -> bool:
+        """True, wenn ``abdeckung`` eine Huellen-Abdeckung ist (``balance``).
+
+        Im Modus ``balance`` ist das Band die HUELLE der Segment-Value-Areas
+        (``val`` = kleinste Berg-VAL, ``vah`` = groesste Berg-VAH). Die
+        Abdeckung wird deshalb aus dem ROHPROFIL zwischen den beiden Kanten
+        gerechnet - die Luecken zwischen den einzelnen Berg-Value-Areas liegen
+        mit im Bereich und tragen kein Volumen dieses Bandes. Die Abdeckung ist
+        daher NICHT zusammenhaengend (typisch ~0,93-0,99) und NICHT
+        vergleichbar mit der aufgesammelten Value Area des Modus ``zone``.
+
+        Returns:
+            True im Modus ``balance``, sonst False.
+        """
+        return self.modus == "balance"
+
+    @property
+    def abdeckung_name(self) -> str:
+        """Benennung der Abdeckung passend zum Modus (Report/Chart/Titel).
+
+        Returns:
+            ``"Huellen-Abdeckung (Rohprofil, nicht zusammenhaengend)"`` im
+            Modus ``balance``, sonst
+            ``"Band-Abdeckung (Anteil am Gesamtvolumen)"``.
+        """
+        if self.abdeckung_ist_huelle:
+            return "Huellen-Abdeckung (Rohprofil, nicht zusammenhaengend)"
+        return "Band-Abdeckung (Anteil am Gesamtvolumen)"
 
 
 def band_von(seg: Optional[Segmentierung], modus: str = "zone") -> Band:

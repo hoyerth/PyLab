@@ -428,7 +428,12 @@ def report_text(
         f"va_pct={config.va_pct} (Berg-VA) va_zone_pct={config.va_zone_pct} "
         f"(Gesamt-VA ab POC) valley_rel={config.valley_rel} "
         f"min_mountain_pct={config.min_mountain_pct}",
-        f"Volumenfilter: vol_min={config.vol_min} vol_quantil={config.vol_quantil}",
+        f"Segmentzahl-Treiber: valley_rel={config.valley_rel} (Talschwelle) - "
+        f"groesser = mehr Berge/POCs, kleiner = weniger; "
+        f"Gegenprobe min_mountain_pct={config.min_mountain_pct} "
+        f"(verwirft nur kleine Berge)",
+        f"Volumenfilter: vol_min={config.vol_min} vol_quantil={config.vol_quantil} "
+        f"(wirkt auf das Profil, nicht auf die Zahl der Berge)",
         f"POC-Unsicherheit: Toleranz={config.streu_toleranz_atr} ATR ueber "
         f"bins={list(config.konsens_bins)} x smooth={list(config.konsens_smooth)}",
         linie,
@@ -479,6 +484,12 @@ def report_text(
             f"min={seg_n.min():.0f} max={seg_n.max():.0f} "
             f"| Summe={int(seg_n.sum())}"
         )
+        n_mehr = int((seg_n > 1).sum())
+        txt.append(
+            f"  Fenster mit mehr als 1 Segment: {n_mehr} von {len(gueltig)} "
+            f"({100.0 * n_mehr / len(gueltig):.1f} %) - nur diese Fenster "
+            f"tragen mehr als einen POC"
+        )
         if abdeck.size:
             txt.append(
                 f"  Abdeckung ({config.modus}): {band_leer.abdeckung_name} | "
@@ -528,6 +539,9 @@ def tsv_levels(config: VolumeProfilConfig, profile: Sequence[FensterProfil]) -> 
         f"smooth={config.smooth_win} va_pct={config.va_pct} "
         f"va_zone_pct={config.va_zone_pct} modus={config.modus}",
         f"# rolle: {rolle_txt} | SEGMENT = einzelner Volumen-Berg",
+        f"# Segmentzahl-Treiber: valley_rel={config.valley_rel} (groesser = mehr "
+        f"Berge/POCs, kleiner = weniger); min_mountain_pct="
+        f"{config.min_mountain_pct} verwirft nur kleine Berge",
         f"# va_abdeckung: {band_von(None, config.modus).abdeckung_name}"
         + (
             " (Luecken zwischen den Berg-VAs gehoeren keinem Berg)"

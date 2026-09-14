@@ -54,6 +54,8 @@ class SegmentConfig:
     Attributes:
         db_path: DuckDB-Datei (Default = zentrale Produktions-DB unter
             ``data/market_data.duckdb``, aufgeloest relativ zu diesem Modul).
+        symbol: Symbol (Default ``SILVER`` = Baseline).
+        timeframe: Timeframe (Default ``M15`` = Baseline).
         start: Fenster-Start (ISO-Datum, inklusive).
         ende: Fenster-Ende (ISO-Datum, exklusive).
         tol: 2-Close-Ausbruchs-Toleranz (Baseline ``TOL``).
@@ -73,6 +75,8 @@ class SegmentConfig:
     db_path: Path = (
         Path(__file__).resolve().parent.parent / "data" / "market_data.duckdb"
     )
+    symbol: str = "SILVER"
+    timeframe: str = "M15"
     start: str = "2026-08-10"
     ende: str = "2026-08-28"
 
@@ -156,18 +160,26 @@ class SegmentResult:
 # =============================================================================
 
 
-def load_data(db_path: Path, start: str, ende: str) -> pd.DataFrame:
+def load_data(
+    db_path: Path,
+    start: str,
+    ende: str,
+    symbol: str = "SILVER",
+    timeframe: str = "M15",
+) -> pd.DataFrame:
     """Liest OHLCV-Bars strikt aus DuckDB (``read_only=True``).
 
     SQL und Zeitbehandlung 1:1 aus der Baseline (Z. 320-335):
     ``time AT TIME ZONE 'UTC'`` (BKZ-Garantie), Entnaivisierung nach UTC,
-    numerische ``idx``-Spalte. Symbol/Timeframe sind wie in der Baseline fest
-    auf ``SILVER``/``M15`` verdrahtet (keine funktionale Verwässerung).
+    numerische ``idx``-Spalte. Symbol/Timeframe sind parametrisiert; die
+    Defaults (``SILVER``/``M15``) reproduzieren die Baseline bitgenau.
 
     Args:
         db_path: Pfad zur DuckDB-Datei.
         start: Fenster-Start (ISO-Datum, inklusive).
         ende: Fenster-Ende (ISO-Datum, exklusive).
+        symbol: Symbol (Default ``SILVER``).
+        timeframe: Timeframe (Default ``M15``).
 
     Returns:
         DataFrame mit Spalten ``ts/open/high/low/close/tick_volume/idx``,
@@ -175,15 +187,25 @@ def load_data(db_path: Path, start: str, ende: str) -> pd.DataFrame:
 
     Raises:
         FileNotFoundError: Wenn ``db_path`` nicht existiert.
+        ValueError: Wenn Symbol/Timeframe leer sind (SQL-Injektions-Schutz:
+            nur ``[A-Za-z0-9_]`` erlaubt).
     """
     if not db_path.exists():
         raise FileNotFoundError(f"DuckDB-Datei nicht gefunden: {db_path}")
+    sym: str = str(symbol).strip()
+    tf: str = str(timeframe).strip()
+    if not sym or not tf:
+        raise ValueError("symbol und timeframe duerfen nicht leer sein.")
+    if not (sym.replace("_", "").isalnum() and tf.replace("_", "").isalnum()):
+        raise ValueError(
+            f"symbol/timeframe nur alphanumerisch: {symbol!r}/{timeframe!r}"
+        )
     con = duckdb.connect(str(db_path), read_only=True)
     d = con.execute(
         f"""
         SELECT time AT TIME ZONE 'UTC' AS ts, open, high, low, close, tick_volume
         FROM ohlcv_bars
-        WHERE symbol='SILVER' AND timeframe='M15'
+        WHERE symbol='{sym}' AND timeframe='{tf}'
           AND time AT TIME ZONE 'UTC' >= DATE '{start}'
           AND time AT TIME ZONE 'UTC' <  DATE '{ende}'
         ORDER BY time

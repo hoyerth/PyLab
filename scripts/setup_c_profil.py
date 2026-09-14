@@ -94,6 +94,14 @@ Report-Namensraum (``reports/setup_c/setup_c_<label>.txt``). Alle uebrigen
 Schalter (--ohne-suppression, --mit-regime-gate, --ema-trailing, ...) gelten
 unveraendert auch fuer freie Zeitraeume.
 
+Anderes Instrument / Timeframe (Silber-Artefakte bleiben unberuehrt):
+    python -m scripts.setup_c_profil --symbol=Brent --timeframe=M15 ^
+        --start=2026-05-01 --ende=2026-06-01 --bezeichnung=MAI26_BRENT
+``--symbol`` (Default ``SILVER``) waehlt das DB-Instrument; jedes andere
+Symbol erhaelt einen Grossbuchstaben-Suffix am Fenster-/Report-Label
+(``Brent`` -> ``_BRENT``), damit Silber- und Brent-Artefakte getrennt
+bleiben. ``--timeframe`` (Default ``M15``) waehlt die Kerzen-Zeitbasis.
+
 Gate-Modus (optional, Luecke-1-Integration; §2.16-A.4): ``--mit-regime-gate``
 aktiviert das Gated-Portfolio exakt wie im OOS abgenommen (§2.16-F.1:
 TREND -> RAW-A@96 + RAW-B@96 nur Bruchrichtung; SHAKEOUT/UNKLAR -> strikt
@@ -145,6 +153,8 @@ __all__ = [
     "bericht_fenster",
     "fenster_spanne",
     "loese_zeitraeume",
+    "symbol_suffix",
+    "haenge_symbol_suffix",
     "ist_iso_datum",
     "normiere_bezeichnung",
     "bezeichnung_aus_zeitraum",
@@ -309,31 +319,76 @@ def fenster_spanne(fenster: str, cfg: "TrendConfig") -> Tuple[str, str]:
     return FENSTER_DEFS[fenster]
 
 
+def symbol_suffix(symbol: str) -> str:
+    """Label-Suffix fuer ein vom Baseline-Symbol abweichendes Instrument.
+
+    Verhindert, dass Laeufe anderer Instrumente die Silber-Artefakte unter
+    ``reports/setup_c/`` ueberschreiben (Hausregel: ein Namensraum je
+    Instrument).
+
+    Args:
+        symbol: Instrumentsname (z. B. ``Brent``).
+
+    Returns:
+        ``""`` fuer ``SILVER`` (Baseline), sonst ``"_<SYMBOL>``
+        (z. B. ``_BRENT``).
+    """
+    sym: str = str(symbol).strip().upper()
+    if sym in ("", "SILVER"):
+        return ""
+    return "_" + re.sub(r"[^A-Z0-9]+", "", sym)
+
+
+def haenge_symbol_suffix(label: str, suffix: str) -> str:
+    """Haengt den Instrumenten-Suffix an - ausser er ist schon vorhanden.
+
+    Idempotenz-Schutz gegen doppelte Kennungen (z. B. ``--bezeichnung=
+    MAI26_BRENT --symbol=Brent`` darf NICHT ``MAI26_BRENT_BRENT`` ergeben).
+    Fuer ``suffix == ""`` (SILVER) ist die Funktion die Identitaet - der
+    Baseline-Namensraum bleibt damit bitgenau unveraendert.
+
+    Args:
+        label: Bereits normalisiertes Report-Label.
+        suffix: Instrumenten-Suffix aus ``symbol_suffix`` (ggf. ``""``).
+
+    Returns:
+        Label mit genau einem Suffix.
+    """
+    if suffix and label.upper().endswith(suffix.upper()):
+        return label
+    return label + suffix
+
+
 def loese_zeitraeume(
     fenster: str,
     start: Optional[str],
     ende: Optional[str],
     bezeichnung: Optional[str] = None,
+    symbol: str = "SILVER",
 ) -> List[str]:
     """Bestimmt die abzuarbeitenden Report-Labels aus den CLI-Parametern.
 
     Reine Funktion (kein DB-Zugriff, keine Seiteneffekte) - damit die
     Zeitraum-Aufloesung isoliert testbar bleibt. Vorrang-Regel: ein freier
     Zeitraum (``start`` UND ``ende``) ueberschreibt das Alias-Fenster.
+    Fuer ein von ``SILVER`` abweichendes ``symbol`` wird das Label um
+    ``symbol_suffix(symbol)`` ergaenzt (Instrumenten-Namensraum).
 
     Args:
         fenster: Alias (AUG|S1|S2|ALLE) bzw. frei gewaehltes Label.
         start: ISO-Datum (inklusive) oder ``None``.
         ende: ISO-Datum (exklusiv) oder ``None``.
         bezeichnung: Optionaler Report-Namensraum.
+        symbol: Instrumentsname (Default ``SILVER`` = Baseline).
 
     Returns:
-        Liste der Fenster-/Zeitraum-Labels.
+        Liste der Fenster-/Zeitraum-Labels (inkl. Symbol-Suffix).
 
     Raises:
         SystemExit: Bei nur einseitig gesetztem Zeitraum, ungueltigem Datum,
             leerem Zeitraum oder unbekanntem Alias.
     """
+    suffix: str = symbol_suffix(symbol)
     if (start is None) != (ende is None):
         raise SystemExit(
             "--start und --ende nur gemeinsam angeben (freier Zeitraum)."
@@ -341,15 +396,15 @@ def loese_zeitraeume(
     if start is not None and ende is not None:
         # Gemeinsame Validierungsquelle (ISO-Format + start < ende)
         fenster_spanne("FREI", TrendConfig(start=start, ende=ende))
-        return [
-            normiere_bezeichnung(
-                bezeichnung if bezeichnung else bezeichnung_aus_zeitraum(start, ende)
-            )
-        ]
+        basis: str = (
+            bezeichnung if bezeichnung else bezeichnung_aus_zeitraum(start, ende)
+        )
+        return [haenge_symbol_suffix(normiere_bezeichnung(basis), suffix)]
     if fenster == "ALLE":
-        return ["AUG", "S1", "S2"]
+        return [haenge_symbol_suffix(f, suffix) for f in ("AUG", "S1", "S2")]
     if fenster in FENSTER_DEFS:
-        return [normiere_bezeichnung(bezeichnung) if bezeichnung else fenster]
+        basis = normiere_bezeichnung(bezeichnung) if bezeichnung else fenster
+        return [haenge_symbol_suffix(basis, suffix)]
     raise SystemExit(
         f"Unbekanntes Fenster: {fenster} "
         f"({', '.join(sorted(FENSTER_DEFS))}|ALLE) - "
@@ -420,8 +475,11 @@ class TrendConfig:
             Aufloesung ueber ``FENSTER_DEFS[fenster]``.
         ende: Freies Zeitraum-Ende (ISO-Datum, exklusiv). ``None`` =
             Aufloesung ueber ``FENSTER_DEFS[fenster]``.
-        symbol: Symbol (fest SILVER wie Baseline).
-        timeframe: Timeframe (fest M15 wie Baseline).
+        symbol: Symbol (Default ``SILVER`` wie Baseline). Wird sowohl fuer den
+            Datenzugriff als auch fuer die Report-Kennzeichnung genutzt; ein
+            von ``SILVER`` abweichendes Symbol erhaelt automatisch ein
+            Label-Suffix (kein Ueberschreiben der Silber-Artefakte).
+        timeframe: Timeframe (Default ``M15`` wie Baseline).
         db_path: DuckDB-Datei (Default = zentrale Produktions-DB).
         suppression_phasenlokal: Phasenlokale Open-Position-Suppression
             (Produktion Pflicht; Key = (phase, dir), F3). ``False`` =
@@ -453,7 +511,7 @@ class TrendConfig:
     start: Optional[str] = None
     ende: Optional[str] = None
     symbol: str = "SILVER"
-    timeframe: Literal["M15"] = "M15"
+    timeframe: str = "M15"
     db_path: Path = (
         Path(__file__).resolve().parent.parent / "data" / "market_data.duckdb"
     )
@@ -1584,7 +1642,8 @@ def _trade_block_tsv(
         else "RAW live-kausal + F4 intrabar + Zeit-Exit"
     )
     kopf: List[str] = [
-        f"# setup_c Phase-1-Kern ({mode_kopf}) - Fenster: {fenster}",
+        f"# setup_c Phase-1-Kern ({mode_kopf}) - Fenster: {fenster} | "
+        f"Symbol: {cfg.symbol} {cfg.timeframe}",
         f"# HANDELSPFAD: alle kausalen RAW-Trigger (KEIN Vorlauf-Filter) | "
         f"suppression_phasenlokal: {cfg.suppression_phasenlokal} | "
         f"stop_puffer: {cfg.stop_puffer} | sl_pct_ref: {cfg.sl_pct_ref}",
@@ -1612,7 +1671,8 @@ def _trade_block_gate_tsv(
 ) -> str:
     """Maschinenlesbarer Gate-Trade-Block (TSV) inkl. regime/arm-Spalten."""
     kopf: List[str] = [
-        f"# setup_c Gate-Modus (Gated-Portfolio, --mit-regime-gate) - Fenster: {fenster}",
+        f"# setup_c Gate-Modus (Gated-Portfolio, --mit-regime-gate) - Fenster: {fenster} "
+        f"| Symbol: {cfg.symbol} {cfg.timeframe}",
         f"# suppression_phasenlokal: {cfg.suppression_phasenlokal} | "
         f"cluster_a_max_vorlauf: {cfg.cluster_a_max_vorlauf} | "
         f"stop_puffer: {cfg.stop_puffer} | sl_pct_ref: {cfg.sl_pct_ref}",
@@ -1863,9 +1923,16 @@ def bericht_fenster(
     """
     start, ende = fenster_spanne(fenster, cfg)
     seg_cfg: SegmentConfig = replace(
-        cfg.segment, db_path=cfg.db_path, start=start, ende=ende
+        cfg.segment,
+        db_path=cfg.db_path,
+        symbol=cfg.symbol,
+        timeframe=cfg.timeframe,
+        start=start,
+        ende=ende,
     )
-    df: pd.DataFrame = load_data(seg_cfg.db_path, seg_cfg.start, seg_cfg.ende)
+    df: pd.DataFrame = load_data(
+        seg_cfg.db_path, seg_cfg.start, seg_cfg.ende, seg_cfg.symbol, seg_cfg.timeframe
+    )
     sr: SegmentResult = segmentiere_markt(df, seg_cfg)
     signale: List[SetupCSignal] = _erfasse_signale(sr, cfg)
 
@@ -2015,6 +2082,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                                    (Variante B, §5.2/§5.4)
         --ema-trailing-modus=MODUS STOP_AUF_EXTREMUM (Primaer) | SOFORT_EXIT
                                    (Backlog, wird abgelehnt)
+        --symbol=SYM               Instrument (Default SILVER). Jedes andere
+                                   Symbol erhaelt ein Label-Suffix
+                                   (z. B. Brent -> _BRENT), damit die
+                                   Silber-Artefakte unberuehrt bleiben.
+        --timeframe=TF             Timeframe (Default M15).
 
     Args:
         argv: Kommandozeilen-Argumente (Default: sys.argv[1:]).
@@ -2031,6 +2103,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     mit_gate: bool = False
     ema_trailing: bool = False
     ema_modus: str = "STOP_AUF_EXTREMUM"
+    symbol: str = "SILVER"
+    timeframe: str = "M15"
     for a in args:
         if a.startswith("--fenster="):
             fenster = a.split("=", 1)[1].strip().upper()
@@ -2040,6 +2114,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             ende = a.split("=", 1)[1].strip()
         elif a.startswith("--bezeichnung="):
             bezeichnung = a.split("=", 1)[1].strip()
+        elif a.startswith("--symbol="):
+            symbol = a.split("=", 1)[1].strip()
+        elif a.startswith("--timeframe="):
+            timeframe = a.split("=", 1)[1].strip()
         elif a == "--ohne-suppression":
             suppression = False
         elif a == "--mit-regime-gate":
@@ -2064,11 +2142,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         )
 
     # --- Zeitraum-Aufloesung: freier Zeitraum (--start/--ende) gewinnt -------
-    fenster_list: List[str] = loese_zeitraeume(fenster, start, ende, bezeichnung)
+    fenster_list: List[str] = loese_zeitraeume(
+        fenster, start, ende, bezeichnung, symbol
+    )
     cfg = TrendConfig(
         fenster=fenster_list[0],
         start=start,
         ende=ende,
+        symbol=symbol,
+        timeframe=timeframe,
         suppression_phasenlokal=suppression,
         mit_regime_gate=mit_gate,
         ema_trailing=EMASlopeTrailingConfig(

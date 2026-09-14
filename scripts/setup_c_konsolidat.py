@@ -38,11 +38,20 @@ Aufruf (Projekt-Root, Namespace-Package):
     python -m scripts.setup_c_konsolidat --modus=base
     python -m scripts.setup_c_konsolidat --trades            (Einzeltrade-Reihe)
     python -m scripts.setup_c_konsolidat --labels=MAI26 --modus=tr --csv=x.csv
+    python -m scripts.setup_c_konsolidat --symbol=Brent      (nur _BRENT-Labels)
 
 Optionen:
     --labels=LABEL[,LABEL...]  Explizite Reihenfolge. Default: alle
                                vorhandenen BASE-TSVs, sortiert, ohne die
                                Alias-Referenzanker AUG/S1/S2 (§2.14).
+                               Bei expliziter Angabe werden die Labels
+                               unveraendert verwendet (--symbol filtert nur
+                               die automatische Ermittlung).
+    --symbol=SYM               Nur Labels DIESES Instruments (Suffix ueber
+                               ``setup_c_profil.symbol_suffix``, z. B.
+                               ``Brent`` -> ``_BRENT``). Verhindert, dass
+                               Brent- und Silber-Laeufe in EIN Gesamtaggregat
+                               gemischt werden. Default: kein Filter.
     --modus=alle|base|tr       Auszuweisende Varianten (Default alle).
     --horizonte=48,96          Horizonte der BASE-Variante (Default 48,96).
                                Fuer TR wird der Datei-Horizont verwendet.
@@ -63,6 +72,18 @@ from typing import Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 import pandas as pd
+
+# Direktaufruf (``python scripts/setup_c_konsolidat.py``) legt nur ``scripts/``
+# auf den Modulpfad -> der Namespace-Import ``scripts.*`` scheitert. Der Guard
+# stellt die Projekt-Wurzel voran und macht BEIDE Aufrufarten gueltig; beim
+# ``-m``-Aufruf ist ``__package__`` gesetzt und der Guard ist inaktiv.
+if __package__ in (None, ""):
+    _projekt_root: Path = Path(__file__).resolve().parent.parent
+    if str(_projekt_root) not in sys.path:
+        sys.path.insert(0, str(_projekt_root))
+
+# SSoT der Label-/Instrumenten-Namensraumbildung (identisch zum Profil-Kern).
+from scripts.setup_c_profil import symbol_suffix
 
 _PROJEKT_ROOT: Path = Path(__file__).resolve().parent.parent
 _DEFAULT_DIR: Path = _PROJEKT_ROOT / "reports" / "setup_c"
@@ -86,23 +107,37 @@ __all__ = [
 ]
 
 
-def finde_labels(report_dir: Path, modus: str = "BASE") -> List[str]:
+def finde_labels(
+    report_dir: Path, modus: str = "BASE", symbol: Optional[str] = None
+) -> List[str]:
     """Alle konsolidierbaren Lauf-Labels eines Reportordners.
 
     Args:
         report_dir: Ordner mit ``setup_c_trades_<LABEL>.tsv`` bzw.
             ``setup_c_ab_trailing_trades_<LABEL>.tsv``.
         modus: ``BASE`` oder ``TR`` - bestimmt das Dateipraefix.
+        symbol: Optionaler Instrumenten-Filter. ``None`` = kein Filter;
+            andernfalls bleiben nur Labels mit dem Suffix
+            ``symbol_suffix(symbol)`` uebrig (z. B. ``Brent`` -> ``_BRENT``),
+            damit verschiedene Instrumente nicht in EIN Gesamtaggregat
+            gemischt werden.
 
     Returns:
         Sortierte Labels ohne die Alias-Referenzanker (AUG/S1/S2).
     """
     praefix: str = _TSV_BASE if modus == "BASE" else _TSV_TR
+    suffix: str = symbol_suffix(symbol) if symbol else ""
     labels: List[str] = []
     for p in sorted(report_dir.glob(f"{praefix}*.tsv")):
         label: str = p.name[len(praefix) : -len(".tsv")]
-        if label not in _ALIAS_LABELS:
-            labels.append(label)
+        if label in _ALIAS_LABELS:
+            continue
+        if suffix:
+            if not label.endswith(suffix):
+                continue
+            if label[: -len(suffix)] in _ALIAS_LABELS:
+                continue
+        labels.append(label)
     return labels
 
 
@@ -261,6 +296,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         description="Setup-C Monats-Konsolidat aus den Trade-TSVs (rein lesend)."
     )
     ap.add_argument("--labels", default=None, help="Komma-Liste (Default: alle)")
+    ap.add_argument("--symbol", default=None,
+                    help="Nur Labels dieses Instruments (z. B. Brent -> _BRENT)")
     ap.add_argument("--modus", default="alle", choices=("alle", "base", "tr"),
                     help="BASE, TR oder alle (Default)")
     ap.add_argument("--horizonte", default="48,96", help="z. B. 48,96 (nur BASE)")
@@ -284,10 +321,13 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     labels: List[str] = (
         [x.strip() for x in str(ns.labels).split(",") if x.strip()]
         if ns.labels
-        else finde_labels(report_dir, modus="BASE")
+        else finde_labels(report_dir, modus="BASE", symbol=ns.symbol)
     )
     if not labels:
-        print(f"FEHLER: keine {_TSV_BASE}*.tsv in {report_dir}")
+        sym_hinweis: str = (
+            f" (Symbol-Filter: --symbol={ns.symbol})" if ns.symbol else ""
+        )
+        print(f"FEHLER: keine {_TSV_BASE}*.tsv in {report_dir}{sym_hinweis}")
         return 1
 
     # --- Varianten einlesen (fehlende Variante = uebersprungen, mit Hinweis)
@@ -316,6 +356,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print("=" * 112)
     print("SETUP C RAW (live-kausal) | KONSOLIDAT (BASE = F4 intrabar + "
           "Zeit-Exit, TR = EMA-Slope-Trailing Variante B)")
+    if ns.symbol:
+        print(f"Instrumenten-Filter: --symbol={ns.symbol} "
+              f"(Label-Suffix '{symbol_suffix(ns.symbol)}')")
     print("=" * 112)
     print(kopf.format("Modus", "Label", "Zeitraum (BKZ)", "N", "n", "gew", "zens",
                       "sum R", f"dN{horizont_ref}", "WR", "PF", "MDD", "HD"))

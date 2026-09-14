@@ -52,6 +52,15 @@ Chart und Profil-Lauf immer denselben Zeitraum zeigen):
               wird 1:1 als ``{FENSTER}``-Platzhalter in den Dateinamen
               verwendet, z. B. ``setup_c_chart_SEP26_N48.png``.
 
+Anderes Symbol / Timeframe (Silber-Artefakte bleiben unberuehrt):
+    python scripts/setup_c_chart.py --symbol=Brent --timeframe=M15 ^
+        --start=2026-05-01 --ende=2026-06-01 --bezeichnung=MAI26_BRENT
+    --symbol=     DB-Symbol (Default SILVER). Bei Nicht-SILVER wird ein
+              Grossbuchstaben-Suffix an die Fenster-Labels gehaengt
+              (z. B. ``MAI26_BRENT``), damit der Konsolidat-Lauf sie
+              getrennt halten kann.
+    --timeframe=  Timeframe-String (Default M15).
+
 Ausgabe (unversioniert, deterministisch reproduzierbar):
     reports/setup_c/setup_c_chart_{FENSTER}_N{N}.png
     reports/setup_c/setup_c_chart_{FENSTER}.txt        (Voll-Lauf 48+96)
@@ -676,8 +685,17 @@ def _lauf_fenster(
         cfg = TrendConfig()
     # Alias (FENSTER_DEFS) oder freier Zeitraum (cfg.start/cfg.ende)
     start, ende = fenster_spanne(fenster, cfg)
-    seg_cfg = replace(cfg.segment, db_path=cfg.db_path, start=start, ende=ende)
-    df: pd.DataFrame = load_data(seg_cfg.db_path, seg_cfg.start, seg_cfg.ende)
+    seg_cfg = replace(
+        cfg.segment,
+        db_path=cfg.db_path,
+        symbol=cfg.symbol,
+        timeframe=cfg.timeframe,
+        start=start,
+        ende=ende,
+    )
+    df: pd.DataFrame = load_data(
+        seg_cfg.db_path, seg_cfg.start, seg_cfg.ende, seg_cfg.symbol, seg_cfg.timeframe
+    )
     sr: SegmentResult = segmentiere_markt(df, seg_cfg)
     signale: List[SetupCSignal] = _erfasse_signale(sr, cfg)
 
@@ -749,6 +767,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         --ema=20                   Periode der Close-EMA-Overlay-Linie
         --dpi=300                  PNG-Aufloesung
         --ema-trailing             EMA-Slope-Trailing-Chart (Variante B)
+        --symbol=SYMBOL            DB-Symbol (Default SILVER); z. B. Brent
+        --timeframe=TF             Timeframe (Default M15)
     """
     args: List[str] = list(sys.argv[1:] if argv is None else argv)
     fenster_arg: str = "ALLE"
@@ -759,6 +779,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     horizont_arg: str = "48,96"
     ema_periode: int = _EMA_DEFAULT_PERIODE
     ema_trailing: bool = False
+    symbol: str = "SILVER"
+    timeframe: str = "M15"
     for a in args:
         if a.startswith("--fenster="):
             fenster_arg = a.split("=", 1)[1].strip().upper()
@@ -774,6 +796,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             horizont_arg = a.split("=", 1)[1]
         elif a.startswith("--ema="):
             ema_periode = int(a.split("=", 1)[1])
+        elif a.startswith("--symbol="):
+            symbol = a.split("=", 1)[1].strip() or "SILVER"
+        elif a.startswith("--timeframe="):
+            timeframe = a.split("=", 1)[1].strip() or "M15"
         elif a == "--ema-trailing":
             ema_trailing = True
     if ema_periode <= 0:
@@ -783,10 +809,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     # Identische Logik wie scripts/setup_c_profil.main (gemeinsame Quelle),
     # damit Chart und Profil-Lauf bitgenau denselben Zeitraum abbilden.
     fenster_list: List[str] = loese_zeitraeume(
-        fenster_arg if fenster_arg else "ALLE", start, ende, bezeichnung
+        fenster_arg if fenster_arg else "ALLE", start, ende, bezeichnung, symbol
     )
     cfg: TrendConfig = TrendConfig(
-        fenster=fenster_list[0], start=start, ende=ende
+        fenster=fenster_list[0],
+        start=start,
+        ende=ende,
+        symbol=symbol,
+        timeframe=timeframe,
     )
 
     if ema_trailing:

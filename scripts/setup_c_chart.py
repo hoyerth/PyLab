@@ -74,6 +74,16 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
+# Direktaufruf (``python scripts/setup_c_chart.py``) legt nur ``scripts/`` auf
+# den Modulpfad -> die Namespace-Importe ``scripts.*`` scheitern. Der Guard
+# stellt die Projekt-Wurzel voran und macht damit BEIDE dokumentierten
+# Aufrufarten gueltig (Direktaufruf und ``python -m scripts.setup_c_chart``);
+# beim ``-m``-Aufruf ist ``__package__`` gesetzt und der Guard ist inaktiv.
+if __package__ in (None, ""):
+    _projekt_root: Path = Path(__file__).resolve().parent.parent
+    if str(_projekt_root) not in sys.path:
+        sys.path.insert(0, str(_projekt_root))
+
 from scripts.market_segmentation import SegmentResult, load_data, segmentiere_markt
 from scripts.setup_c_profil import (
     EMASlopeTrailingConfig,

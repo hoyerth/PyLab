@@ -133,6 +133,9 @@ class VolumeProfilConfig:
         ende: Fenster-Ende als ISO-Datum, exklusiv (BKZ).
         db_path: Marktdaten-DuckDB (Default = zentrale Produktions-DB).
         window_kind: Fensterart (``day``/``week``/``h12``/``h4``/``h1``/``m30``).
+            Default ``day`` = echtes Tagesfenster (BKZ-Kalendertag 00:00 bis
+            23:59, Handelssession des Brokers) - davon wird nur bei
+            ausdruecklicher Angabe einer anderen Art abgewichen.
         min_bars: Mindestzahl Bars je Fenster. ``None`` (Default) = ABLEITEN
             aus Fensterart und Timeframe (siehe ``min_abdeckung``) - damit
             wird auf jedem Timeframe dieselbe Groesse untersucht.
@@ -174,6 +177,10 @@ class VolumeProfilConfig:
     db_path: Path = _ROOT / "data" / "market_data.duckdb"
 
     # --- Fenster ------------------------------------------------------------
+    # Default = ECHTES Tagesfenster: BKZ-Kalendertag 00:00 bis 23:59 (die
+    # Handelssession des Brokers in Broker-Kerzen-Zeit). Nur wenn ausdruecklich
+    # eine andere Fensterart angegeben wird (week/h12/h4/h1/m30), wird davon
+    # abgewichen.
     window_kind: str = "day"
     min_bars: Optional[int] = None
     min_abdeckung: float = 0.5

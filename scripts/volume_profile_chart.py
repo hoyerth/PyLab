@@ -25,8 +25,10 @@ werden vom Kern immer mitgerechnet - hier wird nur ausgewaehlt und beschriftet.
 Zeitbasis (docs/ZEITBASIS_KANON.md)
 -----------------------------------
 Alle Zeitangaben sind BKZ (tz-naiv). Die X-Achse des Zonen-Charts ist der
-Bar-Index (K5: Primaerschluessel), die Tick-Beschriftung zeigt das
-Fensterlabel bzw. den BKZ-Zeitstempel ohne Zeitzonen-Projektion (K2).
+Bar-Index (K5: Primaerschluessel), die Tick-Beschriftung sitzt GENAU auf den
+BKZ-Tagesgrenzen (00:00 je Tag, dynamisch aus der Zeitachse abgeleitet, K6) -
+der Achsenwechsel ist damit mit dem Tageswechsel synchronisiert. Es findet
+keine Zeitzonen-Projektion statt (K2).
 
 Aufruf (aus einem Orchestrator):
     from scripts.volume_profile_chart import ChartStil, zeichne_zonen_chart
@@ -96,6 +98,12 @@ class ChartStil:
         ncols_grid: Spalten des Profil-Grids.
         max_label_zeichen: Auf diese Laenge werden Fensterlabels im
             Zonen-Chart gekuerzt (verhindert Ueberlappung).
+        max_xticks: Hoechstzahl der beschrifteten Ticks auf der X-Achse des
+            Zonen-Charts. Die Ticks sitzen IMMER auf den BKZ-Tagesgrenzen
+            (00:00 je Tag, dynamisch abgeleitet) - bei vielen Tagen wird nur
+            die Beschriftung ausgeduennt, nie der Bezug zum Tageswechsel
+            aufgegeben. Alle Tagesgrenzen erhalten zusaetzlich eine duenne
+            Hilfslinie, damit der Tageswechsel im Preisverlauf sichtbar ist.
         modus: Hauptband der Zeichnung (``zone`` oder ``balance``). Beide
             Baender liegen im Vertrag; hier wird nur ausgewaehlt.
     """
@@ -108,6 +116,7 @@ class ChartStil:
     seiten_max: int = 96
     ncols_grid: int = 4
     max_label_zeichen: int = 24
+    max_xticks: int = 14
     modus: str = "zone"
 
 
@@ -153,6 +162,61 @@ def _stamm(stil: ChartStil) -> str:
     if stil.zeitraum:
         kopf = f"{kopf} | {stil.zeitraum}" if kopf else stil.zeitraum
     return kopf
+
+
+def _tagesgrenzen_indizes(df: pd.DataFrame, max_ticks: int = 14) -> np.ndarray:
+    """Liefert die Bar-Indizes der BKZ-Tagesgrenzen (je erster Bar eines Tages).
+
+    Die Grenzen werden DYNAMISCH aus der BKZ-Achse abgeleitet (Kanon K6: keine
+    Bar-Konstante, kein ``searchsorted`` auf einer Zeitzonen-Projektion). Damit
+    faellt jeder X-Achsen-Tick exakt mit dem Wechsel auf einen neuen Tag
+    zusammen - die Beschriftung ist mit dem Tageswechsel synchronisiert und
+    nicht mehr an einen beliebigen Bar-Schritt gebunden.
+
+    Bei vielen Tagen wird ausgeduennt; die verbleibenden Ticks liegen aber
+    IMMER auf einer Tagesgrenze (der erste Tag ist stets dabei).
+
+    Args:
+        df: Bars (Spalte ``ts`` = BKZ, tz-naiv, aufsteigend sortiert).
+        max_ticks: Hoechstzahl der Achsen-Ticks (<= 0 = nicht ausduennen).
+
+    Returns:
+        Aufsteigende Bar-Indizes; leer nur bei leerem DataFrame.
+    """
+    if df.empty:
+        return np.zeros(0, dtype=int)
+    ts: pd.Series = df["ts"]
+    tage: pd.Series = ts.dt.normalize()
+    # Erster Bar eines Tages: Tagesdatum wechselt gegenueber dem Vorgaenger-Bar
+    # (der erste Bar der Achse ist per NaT-Vergleich ebenfalls ein Wechsel).
+    indizes: np.ndarray = np.flatnonzero(tage.ne(tage.shift(1)).to_numpy())
+    if indizes.size == 0:
+        indizes = np.array([0], dtype=int)
+    if max_ticks > 0 and indizes.size > max_ticks:
+        schritt: int = int(np.ceil(indizes.size / max_ticks))
+        ausgeduennt: np.ndarray = indizes[::schritt]
+        # Letzten Tageswechsel mitnehmen, wenn er nicht direkt am Vorgaenger klebt
+        if ausgeduennt.size > 1 and indizes[-1] - ausgeduennt[-1] > 1:
+            ausgeduennt = np.append(ausgeduennt, indizes[-1])
+        indizes = ausgeduennt
+    return indizes.astype(int)
+
+
+def _tagesgrenzen_labels(df: pd.DataFrame, indizes: np.ndarray) -> List[str]:
+    """Beschriftet die Tagesgrenz-Ticks (Datum, ohne Uhrzeit).
+
+    Da die Ticks per Konstruktion genau auf dem Tagesanfang liegen, genuegt das
+    Datum; die Uhrzeit waere in jeder Zeile dieselbe (00:00 BKZ).
+
+    Args:
+        df: Bars mit Spalte ``ts`` (BKZ, tz-naiv).
+        indizes: Bar-Indizes der Tagesgrenzen.
+
+    Returns:
+        Beschriftungen in Reihenfolge der Indizes.
+    """
+    ts: pd.Series = df["ts"]
+    return [ts.iloc[int(i)].strftime("%a %d.%m.") for i in indizes]
 
 
 # =============================================================================
@@ -254,12 +318,19 @@ def zeichne_zonen_chart(
                     ls=(0, (4, 3)), zorder=4)
             n_nest += 1
 
-    step = max(16, len(df) // 14)
-    ticks = np.arange(0, len(df), step)
+    # X-Achse: Ticks GENAU auf den BKZ-Tagesgrenzen (00:00 je Tag), dynamisch
+    # aus der Zeitachse abgeleitet. ALLE Tagesgrenzen bekommen eine duenne
+    # Hilfslinie (der Tageswechsel ist damit im Preisverlauf sichtbar), die
+    # Beschriftung wird ausgeduennt - sitzt aber immer auf einem Tageswechsel.
+    for g in _tagesgrenzen_indizes(df, max_ticks=0):
+        ax.axvline(int(g), color="#9e9e9e", lw=0.4, alpha=0.30, zorder=0)
+    ticks = _tagesgrenzen_indizes(df, max_ticks=stil.max_xticks)
     ax.set_xticks(ticks)
     ax.set_xticklabels(
-        [df["ts"].iloc[int(t)].strftime("%a %d.%m %H:%M") for t in ticks],
-        rotation=45, ha="right", fontsize=8,
+        _tagesgrenzen_labels(df, ticks), rotation=45, ha="right", fontsize=8,
+    )
+    ax.set_xlabel(
+        "BKZ-Tagesgrenzen (00:00) | Bar-Index (K5: Primaerschluessel)", fontsize=8.5
     )
     ax.set_xlim(int(zeigen[0].bar_start) - 1, int(zeigen[-1].bar_ende) + 1)
     ax.set_ylabel(f"Preis ({stil.titel_symbol or 'Preis'})")

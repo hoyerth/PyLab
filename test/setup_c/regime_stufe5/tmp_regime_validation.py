@@ -1,6 +1,7 @@
 """
-test/tmp_regime_validation.py - Stufe-5-Validierung scripts/regime_filter.py
+test/setup_c/regime_stufe5/tmp_regime_validation.py
 =============================================================================
+Stufe-5-Validierung scripts/regime_filter.py
 Dreistufige Validierung des Regime-Filters gemaess §2.16 (Doktrin/OOS-Zonen)
 und der arretierten Validierungs-Matrix (05.09.2026):
 
@@ -54,7 +55,7 @@ REINHEIT & HYGIENE
   importiert (Funktions-Importe), niemals modifiziert.
 - Determinismus: keine Zufallsquellen, keine Systemzeit in Ergebnissen.
 - ASCII-Konsole (cp1252-sicher); Dateien UTF-8.
-- Aufruf: python test/tmp_regime_validation.py --stufe=sweep
+- Aufruf: python test/setup_c/regime_stufe5/tmp_regime_validation.py --stufe=sweep
 """
 from __future__ import annotations
 
@@ -68,7 +69,29 @@ from typing import Dict, List, Optional, Sequence, Tuple
 import numpy as np
 import pandas as pd
 
-_PROJEKT_ROOT: Path = Path(__file__).resolve().parent.parent
+
+def _finde_projekt_root(datei: Path) -> Path:
+    """Projekt-Wurzel = naechstes Verzeichnis mit ``.git`` (umzugsrobust).
+
+    Der Report-/Testordner liegt inzwischen verschachtelt
+    (``test/setup_c/regime_stufe5/``); eine feste ``parent.parent``-Kette
+    wuerde danach auf ``test/setup_c`` zeigen und den DB-Pfad brechen.
+
+    Args:
+        datei: Pfad dieser Datei (``__file__``).
+
+    Returns:
+        Projekt-Wurzel (Verzeichnis mit ``.git``); Fallback = vier Ebenen
+        ueber der Datei.
+    """
+    basis: Path = datei.resolve().parent
+    for kandidat in (basis, *basis.parents):
+        if (kandidat / ".git").exists():
+            return kandidat
+    return datei.resolve().parents[3]
+
+
+_PROJEKT_ROOT: Path = _finde_projekt_root(Path(__file__))
 if str(_PROJEKT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJEKT_ROOT))
 

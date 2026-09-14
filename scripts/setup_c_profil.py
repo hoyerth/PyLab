@@ -56,6 +56,19 @@ Aufruf (Projekt-Root, Namespace-Package ohne __init__.py):
     python -m scripts.setup_c_profil --fenster=AUG|S1|S2|ALLE [--ohne-suppression]
     python -m scripts.setup_c_profil --fenster=ALLE --mit-regime-gate
 
+Beliebiger Zeitraum als Parameter (Betrieb, ohne Zusatzfreigabe):
+    python -m scripts.setup_c_profil --start=2026-09-01 --ende=2026-09-11
+    python -m scripts.setup_c_profil --start=2026-01-01 --ende=2026-09-11 ^
+        --bezeichnung=Y2026 --mit-regime-gate
+``--start`` (inklusive) und ``--ende`` (exklusiv) sind ISO-Daten (die
+``load_data``-Konvention, deckungsgleich der BKZ-Zeitbasis: der Filter laeuft
+ueber ``time AT TIME ZONE 'UTC'``). Beide sind zwingend gemeinsam zu setzen;
+fehlt ``--bezeichnung``, wird das Label automatisch als
+``<start_ohne_bindestriche>_<ende_ohne_bindestriche>`` gebildet und dient als
+Report-Namensraum (``reports/setup_c/setup_c_<label>.txt``). Alle uebrigen
+Schalter (--ohne-suppression, --mit-regime-gate, --ema-trailing, ...) gelten
+unveraendert auch fuer freie Zeitraeume.
+
 Gate-Modus (optional, Luecke-1-Integration; §2.16-A.4): ``--mit-regime-gate``
 aktiviert das Gated-Portfolio exakt wie im OOS abgenommen (§2.16-F.1:
 TREND -> RAW-A@96 + RAW-B@96 nur Bruchrichtung; SHAKEOUT/UNKLAR -> strikt
@@ -67,6 +80,8 @@ test-Artefakte.
 """
 from __future__ import annotations
 
+import datetime
+import re
 import sys
 from dataclasses import dataclass, field, replace
 from pathlib import Path
@@ -103,6 +118,11 @@ __all__ = [
     "AggBlock",
     "berechne_ema_slope_vektoren",
     "bericht_fenster",
+    "fenster_spanne",
+    "loese_zeitraeume",
+    "ist_iso_datum",
+    "normiere_bezeichnung",
+    "bezeichnung_aus_zeitraum",
     "main",
 ]
 
@@ -163,6 +183,154 @@ FENSTER_DEFS: Dict[str, Tuple[str, str]] = {
     "S2": ("2025-01-01", "2025-12-01"),
 }
 
+# ISO-Datum der freien Zeitraum-Parameter (--start / --ende)
+_ISO_DATUM_MUSTER = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def ist_iso_datum(text: str) -> bool:
+    """Prueft ein ISO-Datum (YYYY-MM-DD) syntaktisch und kalendarisch.
+
+    Args:
+        text: Zu pruefender String.
+
+    Returns:
+        True, wenn ``text`` ein gueltiges ISO-Datum ist.
+    """
+    if not _ISO_DATUM_MUSTER.match(text):
+        return False
+    try:
+        datetime.date.fromisoformat(text)
+    except ValueError:
+        return False
+    return True
+
+
+def normiere_bezeichnung(text: str) -> str:
+    """Bildet ein dateisystem- und report-sicheres Zeitraum-Label.
+
+    Nur ``A-Z a-z 0-9 _ . -`` bleiben erhalten; alle anderen Zeichen werden
+    zu ``_`` (Report-Namensraum ``reports/setup_c/setup_c_<label>.txt``).
+
+    Args:
+        text: Rohbezeichnung (z. B. ``--bezeichnung=Y2026``).
+
+    Returns:
+        Bereinigtes Label.
+
+    Raises:
+        SystemExit: Wenn nach der Bereinigung kein Zeichen uebrig bleibt.
+    """
+    sauber: str = re.sub(r"[^A-Za-z0-9_.-]+", "_", text.strip()).strip("_.-")
+    if not sauber:
+        raise SystemExit(f"Ungueltige Bezeichnung: {text!r}")
+    return sauber
+
+
+def bezeichnung_aus_zeitraum(start: str, ende: str) -> str:
+    """Auto-Label eines freien Zeitraums (``YYYYMMDD_YYYYMMDD``).
+
+    Args:
+        start: ISO-Datum (inklusive).
+        ende: ISO-Datum (exklusiv).
+
+    Returns:
+        Label ohne Bindestriche.
+    """
+    return f"{start.replace('-', '')}_{ende.replace('-', '')}"
+
+
+def fenster_spanne(fenster: str, cfg: "TrendConfig") -> Tuple[str, str]:
+    """Loest (start, ende) aus ``cfg.start``/``cfg.ende`` oder ``FENSTER_DEFS``.
+
+    Freier Zeitraum hat Vorrang: sind ``cfg.start`` UND ``cfg.ende`` gesetzt,
+    wird dieser Zeitraum verwendet (beliebig, nicht auf AUG/S1/S2 begrenzt).
+    Andernfalls greift die Alias-Aufloesung ``FENSTER_DEFS[fenster]``.
+
+    Args:
+        fenster: Fenster-Label (Alias AUG|S1|S2 oder freie Bezeichnung).
+        cfg: TrendConfig mit optionalem freiem Zeitraum (start/ende).
+
+    Returns:
+        Tupel ``(start, ende)`` fuer ``load_data`` (ende exklusiv).
+
+    Raises:
+        SystemExit: Wenn nur eines von start/ende gesetzt ist, ein Datum
+            ungueltig ist, start >= ende gilt oder das Label kein bekanntes
+            Referenzfenster und kein freier Zeitraum ist.
+    """
+    frei_start: Optional[str] = getattr(cfg, "start", None)
+    frei_ende: Optional[str] = getattr(cfg, "ende", None)
+    if (frei_start is None) != (frei_ende is None):
+        raise SystemExit(
+            "Freier Zeitraum: --start und --ende nur gemeinsam "
+            f"(erhalten: start={frei_start!r}, ende={frei_ende!r})."
+        )
+    if frei_start is not None and frei_ende is not None:
+        if not ist_iso_datum(frei_start):
+            raise SystemExit(f"Ungueltiges --start (ISO YYYY-MM-DD): {frei_start!r}")
+        if not ist_iso_datum(frei_ende):
+            raise SystemExit(f"Ungueltiges --ende (ISO YYYY-MM-DD): {frei_ende!r}")
+        if frei_start >= frei_ende:
+            raise SystemExit(
+                f"Leerer Zeitraum: start={frei_start} muss < ende={frei_ende} sein."
+            )
+        return frei_start, frei_ende
+    if fenster not in FENSTER_DEFS:
+        raise SystemExit(
+            f"Unbekanntes Fenster: {fenster} "
+            f"({', '.join(sorted(FENSTER_DEFS))}|ALLE) "
+            "oder freien Zeitraum via --start/--ende angeben."
+        )
+    return FENSTER_DEFS[fenster]
+
+
+def loese_zeitraeume(
+    fenster: str,
+    start: Optional[str],
+    ende: Optional[str],
+    bezeichnung: Optional[str] = None,
+) -> List[str]:
+    """Bestimmt die abzuarbeitenden Report-Labels aus den CLI-Parametern.
+
+    Reine Funktion (kein DB-Zugriff, keine Seiteneffekte) - damit die
+    Zeitraum-Aufloesung isoliert testbar bleibt. Vorrang-Regel: ein freier
+    Zeitraum (``start`` UND ``ende``) ueberschreibt das Alias-Fenster.
+
+    Args:
+        fenster: Alias (AUG|S1|S2|ALLE) bzw. frei gewaehltes Label.
+        start: ISO-Datum (inklusive) oder ``None``.
+        ende: ISO-Datum (exklusiv) oder ``None``.
+        bezeichnung: Optionaler Report-Namensraum.
+
+    Returns:
+        Liste der Fenster-/Zeitraum-Labels.
+
+    Raises:
+        SystemExit: Bei nur einseitig gesetztem Zeitraum, ungueltigem Datum,
+            leerem Zeitraum oder unbekanntem Alias.
+    """
+    if (start is None) != (ende is None):
+        raise SystemExit(
+            "--start und --ende nur gemeinsam angeben (freier Zeitraum)."
+        )
+    if start is not None and ende is not None:
+        # Gemeinsame Validierungsquelle (ISO-Format + start < ende)
+        fenster_spanne("FREI", TrendConfig(start=start, ende=ende))
+        return [
+            normiere_bezeichnung(
+                bezeichnung if bezeichnung else bezeichnung_aus_zeitraum(start, ende)
+            )
+        ]
+    if fenster == "ALLE":
+        return ["AUG", "S1", "S2"]
+    if fenster in FENSTER_DEFS:
+        return [normiere_bezeichnung(bezeichnung) if bezeichnung else fenster]
+    raise SystemExit(
+        f"Unbekanntes Fenster: {fenster} "
+        f"({', '.join(sorted(FENSTER_DEFS))}|ALLE) - "
+        "oder freien Zeitraum via --start/--ende angeben."
+    )
+
 ArmName = Literal["RAW", "CONFIRMED", "RETEST"]
 DirName = Literal["up", "down"]
 RawCluster = Literal["CLUSTER_A_ENG", "CLUSTER_B_WEIT", "NICHT_RAW"]
@@ -220,8 +388,13 @@ class TrendConfig:
     Whipsaw-F3). Aenderungen nur als dokumentierte Sensitivitaeten.
 
     Attributes:
-        fenster: Referenzfenster (AUG|S1|S2), bestimmt start/ende via
-            ``FENSTER_DEFS``.
+        fenster: Fenster-Label. Bekannte Referenz-Aliasse (AUG|S1|S2)
+            bestimmen start/ende via ``FENSTER_DEFS``; bei freien Zeitraeumen
+            dient es zugleich als Report-Namensraum.
+        start: Freier Zeitraum-Start (ISO-Datum, inklusive). ``None`` =
+            Aufloesung ueber ``FENSTER_DEFS[fenster]``.
+        ende: Freies Zeitraum-Ende (ISO-Datum, exklusiv). ``None`` =
+            Aufloesung ueber ``FENSTER_DEFS[fenster]``.
         symbol: Symbol (fest SILVER wie Baseline).
         timeframe: Timeframe (fest M15 wie Baseline).
         db_path: DuckDB-Datei (Default = zentrale Produktions-DB).
@@ -245,7 +418,12 @@ class TrendConfig:
         report_dir: Ausgabeordner (Phase 1 = Text-Export only).
     """
 
-    fenster: Literal["AUG", "S1", "S2"] = "AUG"
+    fenster: str = "AUG"
+    # Freier Zeitraum (Betrieb): ISO-Daten, start inklusive / ende exklusiv.
+    # Beide gesetzt = beliebiger Zeitraum als Parameter (Vorrang vor
+    # FENSTER_DEFS); beide None = Alias-Aufloesung ueber FENSTER_DEFS.
+    start: Optional[str] = None
+    ende: Optional[str] = None
     symbol: str = "SILVER"
     timeframe: Literal["M15"] = "M15"
     db_path: Path = (
@@ -1589,7 +1767,8 @@ def bericht_fenster(
     """Baut den Phase-1-Report fuer ein Fenster (L1 + L2, Text + TSV).
 
     Args:
-        fenster: AUG | S1 | S2.
+        fenster: Alias (AUG | S1 | S2) oder freie Bezeichnung eines
+            beliebigen Zeitraums (dann ``cfg.start``/``cfg.ende`` gesetzt).
         cfg: TrendConfig.
         gate_provider: Optionaler Regime-Provider (nur bei
             ``cfg.mit_regime_gate``; Default = RegimeFilterProvider).
@@ -1597,7 +1776,7 @@ def bericht_fenster(
     Returns:
         Reporttext (wird zusaetzlich nach reports/setup_c/ geschrieben).
     """
-    start, ende = FENSTER_DEFS[fenster]
+    start, ende = fenster_spanne(fenster, cfg)
     seg_cfg: SegmentConfig = replace(
         cfg.segment, db_path=cfg.db_path, start=start, ende=ende
     )
@@ -1720,6 +1899,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     Optionen:
         --fenster=AUG|S1|S2|ALLE   (Default AUG)
+        --start=YYYY-MM-DD         Freier Zeitraum-Start (inklusive);
+                                   nur gemeinsam mit --ende.
+        --ende=YYYY-MM-DD          Freies Zeitraum-Ende (exklusiv).
+                                   --start/--ende ueberschreiben das
+                                   Alias-Fenster (beliebiger Zeitraum).
+        --bezeichnung=LABEL        Report-Namensraum des Laufs
+                                   (Default bei freiem Zeitraum:
+                                   YYYYMMDD_YYYYMMDD).
         --ohne-suppression         L2-Referenzmodus (F3-Suppression aus)
         --mit-regime-gate          Gated-Portfolio (§2.16-F.1)
         --ema-trailing             A/B: Baseline vs. EMA-Slope-Trailing
@@ -1735,13 +1922,22 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     """
     args = list(sys.argv[1:] if argv is None else argv)
     fenster: str = "AUG"
+    start: Optional[str] = None
+    ende: Optional[str] = None
+    bezeichnung: Optional[str] = None
     suppression: bool = True
     mit_gate: bool = False
     ema_trailing: bool = False
     ema_modus: str = "STOP_AUF_EXTREMUM"
     for a in args:
         if a.startswith("--fenster="):
-            fenster = a.split("=", 1)[1].upper()
+            fenster = a.split("=", 1)[1].strip().upper()
+        elif a.startswith("--start="):
+            start = a.split("=", 1)[1].strip()
+        elif a.startswith("--ende="):
+            ende = a.split("=", 1)[1].strip()
+        elif a.startswith("--bezeichnung="):
+            bezeichnung = a.split("=", 1)[1].strip()
         elif a == "--ohne-suppression":
             suppression = False
         elif a == "--mit-regime-gate":
@@ -1764,13 +1960,13 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             f"Unbekannter Trailing-Modus: {ema_modus} "
             "(STOP_AUF_EXTREMUM|SOFORT_EXIT)"
         )
-    if fenster == "ALLE":
-        fenster_list: List[str] = ["AUG", "S1", "S2"]
-    elif fenster in ("AUG", "S1", "S2"):
-        fenster_list = [fenster]
-    else:
-        raise SystemExit(f"Unbekanntes Fenster: {fenster} (AUG|S1|S2|ALLE)")
+
+    # --- Zeitraum-Aufloesung: freier Zeitraum (--start/--ende) gewinnt -------
+    fenster_list: List[str] = loese_zeitraeume(fenster, start, ende, bezeichnung)
     cfg = TrendConfig(
+        fenster=fenster_list[0],
+        start=start,
+        ende=ende,
         suppression_phasenlokal=suppression,
         mit_regime_gate=mit_gate,
         ema_trailing=EMASlopeTrailingConfig(

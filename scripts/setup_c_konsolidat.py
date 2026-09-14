@@ -18,6 +18,9 @@ optionalen ``--csv``):
 
 Kennzahlen je (Modus, Label, Horizont):
   sum R    Summe r_f4 (RECHTS_ZENSIERT strikt isoliert = nicht gewertet, E2)
+  Δ N48    Differenz der Summe gegen die BASE-Referenz desselben Labels
+           (Default ``--ref=48``); zeigt direkt, ob TR/N96 den N48-Ertrag
+           schlaegt oder kostet
   WR       Winrate der gewerteten Trades
   PF       Profit-Faktor (Summe Gewinne / Summe |Verluste|)
   MDD      maximaler Rueckgang der R-Kumulation in EXIT-Reihenfolge
@@ -33,6 +36,7 @@ Aufruf (Projekt-Root, Namespace-Package):
     python -m scripts.setup_c_konsolidat
     python -m scripts.setup_c_konsolidat --labels=MAI26,JUN26,JUL26,AUG26
     python -m scripts.setup_c_konsolidat --modus=base
+    python -m scripts.setup_c_konsolidat --trades            (Einzeltrade-Reihe)
     python -m scripts.setup_c_konsolidat --labels=MAI26 --modus=tr --csv=x.csv
 
 Optionen:
@@ -42,6 +46,9 @@ Optionen:
     --modus=alle|base|tr       Auszuweisende Varianten (Default alle).
     --horizonte=48,96          Horizonte der BASE-Variante (Default 48,96).
                                Fuer TR wird der Datei-Horizont verwendet.
+    --ref=48                   Referenz-Horizont der Spalte Δ N48.
+    --trades                   Zusaetzlich je Lauf die Einzeltrade-Reihe
+                               r_f4 in Exit-Reihenfolge ausgeben.
     --dir=Pfad                 Reportordner (Default reports/setup_c).
     --csv=Pfad                 Optionaler CSV-Export der Tabelle (das
                                einzige Schreiben; ohne Angabe rein lesend).
@@ -193,6 +200,39 @@ def reihe(
     return r[np.isfinite(r)]
 
 
+def trade_reihe(
+    trades: pd.DataFrame, horizont: int
+) -> List[Tuple[str, float, str, int]]:
+    """Einzeltrades eines Laufs in Exit-Reihenfolge (Nachweis-Reihe).
+
+    Args:
+        trades: Trade-DataFrame eines Labels.
+        horizont: Zeit-Horizont (Bars).
+
+    Returns:
+        Liste ``(entry_ts, r_f4, exit_grund, haltezeit_bars)`` je gewertetem
+        Trade, chronologisch nach ``exit_idx`` (RECHTS_ZENSIERT isoliert).
+    """
+    dh: pd.DataFrame = trades[
+        (trades["horizont"] == horizont)
+        & (trades["exit_grund"] != "RECHTS_ZENSIERT")
+    ].sort_values("exit_idx")
+    out: List[Tuple[str, float, str, int]] = []
+    for _, row in dh.iterrows():
+        r: float = float(row["r_f4"])
+        if not np.isfinite(r):
+            continue
+        out.append(
+            (
+                str(row["entry_ts"])[:16],
+                r,
+                str(row["exit_grund"]),
+                int(row["haltezeit_bars"]),
+            )
+        )
+    return out
+
+
 def _fmt(v: float, f: str = ".2f") -> str:
     """Formatiert Zahlen; NaN/inf -> '-'.
 
@@ -224,11 +264,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     ap.add_argument("--modus", default="alle", choices=("alle", "base", "tr"),
                     help="BASE, TR oder alle (Default)")
     ap.add_argument("--horizonte", default="48,96", help="z. B. 48,96 (nur BASE)")
+    ap.add_argument("--ref", type=int, default=48,
+                    help="Referenz-Horizont der Spalte dN (Default 48)")
+    ap.add_argument("--trades", action="store_true",
+                    help="Einzeltrade-Reihe r_f4 ausgeben")
     ap.add_argument("--dir", default=str(_DEFAULT_DIR), help="Reportordner")
     ap.add_argument("--csv", default=None, help="Optionaler CSV-Export")
     ns = ap.parse_args(list(sys.argv[1:] if argv is None else argv))
 
     report_dir: Path = Path(ns.dir)
+    horizont_ref: int = int(ns.ref)
     horizonte_base: List[int] = [
         int(x) for x in str(ns.horizonte).split(",") if x.strip()
     ]
@@ -257,17 +302,26 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             else:
                 print(f"HINWEIS: {modus} fehlt fuer {lb}: {p.name}")
 
+    # --- Referenzsummen je Label (BASE @ --ref) fuer die Spalte dN ----------
+    ref_summe: Dict[str, float] = {}
+    for lb in labels:
+        df_ref: Optional[pd.DataFrame] = vorhanden.get(f"BASE|{lb}")
+        if df_ref is not None:
+            ref_summe[lb] = float(kennzahlen(df_ref, horizont_ref)["sum_r"])
+
     kopf: str = (
-        "{:<5} {:<8} {:<25} {:>3} {:>3} {:>4} {:>5} {:>9} {:>8} {:>7} {:>8} {:>6}"
+        "{:<5} {:<8} {:<24} {:>3} {:>3} {:>5} {:>5} {:>9} {:>9} {:>8} {:>7} "
+        "{:>8} {:>6}"
     )
     print("=" * 112)
     print("SETUP C RAW-CLUSTER A | KONSOLIDAT (BASE = F4 intrabar + Zeit-Exit, "
           "TR = EMA-Slope-Trailing Variante B)")
     print("=" * 112)
     print(kopf.format("Modus", "Label", "Zeitraum (BKZ)", "N", "n", "gew", "zens",
-                      "sum R", "WR", "PF", "MDD", "HD"))
+                      "sum R", f"dN{horizont_ref}", "WR", "PF", "MDD", "HD"))
     zeilen_csv: List[Dict[str, object]] = []
     per_key: Dict[Tuple[str, int], List[np.ndarray]] = {}
+    reihen: List[Tuple[str, str, int, float, List[Tuple[str, float, str, int]]]] = []
     for lb in labels:
         zr: str = zeitraum_aus_chart_txt(report_dir, lb)
         for modus in modi:
@@ -283,20 +337,30 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 k: Dict[str, float] = kennzahlen(df, h)
                 r: np.ndarray = reihe(df, h)
                 per_key.setdefault((modus, h), []).append(r)
+                # dN nur fuer Nicht-Referenz-Zeilen (Ref selbst = "-")
+                ist_ref: bool = modus == "BASE" and h == horizont_ref
+                d_ref: float = float("nan")
+                if not ist_ref and lb in ref_summe:
+                    d_ref = k["sum_r"] - ref_summe[lb]
                 print(kopf.format(
-                    modus, lb, zr, str(h), _fmt(k["n"], ".0f"),
-                    _fmt(k["n"] - k["n_zensiert"], ".0f"),
+                    modus, lb, zr, str(h),
+                    _fmt(k["n_kandidaten"], ".0f"),
+                    _fmt(k["n"], ".0f"),
                     _fmt(k["n_zensiert"], ".0f"),
                     f"{k['sum_r']:+.2f}",
+                    "-" if ist_ref else f"{d_ref:+.2f}",
                     f"{k['wr']:.1f}%" if np.isfinite(k["wr"]) else "-",
                     _fmt(k["pf"]),
                     f"{k['mdd']:+.2f}" if np.isfinite(k["mdd"]) else "-",
                     _fmt(k["hd"], ".0f"),
                 ))
                 zeilen_csv.append(
-                    {"modus": modus, "label": lb, "zeitraum": zr, "horizont": h, **k}
+                    {"modus": modus, "label": lb, "zeitraum": zr, "horizont": h,
+                     "delta_ref": d_ref, **k}
                 )
-        print("-" * 112)
+                if ns.trades:
+                    reihen.append((modus, lb, h, k["sum_r"], trade_reihe(df, h)))
+        print("-" * 121)
 
     print()
     print("GESAMT je (Modus, Horizont) - alle Labels, fortlaufend in Exit-Reihenfolge:")
@@ -317,6 +381,17 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 f"best={r.max():+7.2f}R  worst={r.min():+.2f}R"
             )
     print("=" * 112)
+
+    # --- Einzeltrade-Reihe (--trades): Nachweis der Aggregat-Zahlen ----------
+    if ns.trades:
+        print()
+        print("EINZELTRADES je (Modus, Label, Horizont) - Exit-Reihenfolge "
+              "(gewertet, RECHTS_ZENSIERT isoliert):")
+        for modus, lb, h, s, tr in reihen:
+            print(f"  {modus} {lb} N{h:<3} n={len(tr):>2}  sum={s:+.2f}R")
+            for entry_ts, r, grund, hd in tr:
+                print(f"      {entry_ts}  {r:+7.2f}R  {grund:<14} {hd:>3} Bars")
+        print("=" * 112)
 
     if ns.csv:
         ziel: Path = Path(ns.csv)

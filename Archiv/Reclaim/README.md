@@ -21,7 +21,7 @@ Beide Stränge sind verworfene Strategie und liegen hier gemeinsam.
 | `scripts/` | 2 | `reclaim_live_kernel.py` (Produktivkern), `_tmp_archiviere_reclaim.py` (Archivierungswerkzeug Phase 1) |
 | `tests/` | 1096 | Replays, Audit-/Sonden-/Diagnoseskripte, Outputs, Sichtprüfungs-PNGs |
 | `tests/v019_aug_staging/` | 39 | Kanten-Engine-v019-Staging inkl. Altstände `phasen_regime_adapter.py`, `SESSION_HANDOFF.md` |
-| `tests/setup_b/` | 33 | Setup-B-Diagnostik auf dem Monolithen: Segmentierung (`*_3eck_*`, `*_box_*`), Kanten-SL (`tmp_diag_sl_kante*`), Struktur-Regel, Parameter-Sweeps, Initialphasen-/Anker-Audits, S1/S2-Wirtschafts- und Monatsauswertungen |
+| `tests/setup_b/` | 25 | Setup-B-Diagnostik auf dem Monolithen: Segmentierung (`*_3eck_*`, `*_box_*`), Kanten-SL (`tmp_diag_sl_kante*`), Struktur-Regel, Parameter-Sweeps, Initialphasen-/Anker-Audits. Die neun Generator-Skripte (S1/S2-Monats- und Wirtschaftsauswertung, CSV-Export) wurden am 2026-09-14 nach Weisung entfernt — sie sind in Minuten neu geschrieben. |
 | `artefakte/` | 4 | Beweisstücke der Baseline `aug_p11` (v40r): Engine-Snapshot, Renderer-Snapshot, Trade-Chart, `MANIFEST.md` |
 
 ## Herkunft
@@ -41,18 +41,30 @@ Beide Stränge sind verworfene Strategie und liegen hier gemeinsam.
 
 * `test/archiv/H2_PHASENREGIME_ADAPTER_SPEZ.md` — **Dublette**, hash-identisch mit
   `reports/h2_phasenregime/H2_PHASENREGIME_ADAPTER_SPEZ.md` (Thema H2-Phasenregime).
-* 12 Dateien aus `test/archiv/` ohne Setup-B-Bezug → Themeninsel
-  `test/silver_regime/` (9 Regime-/Phasenanalysen der S1/S2-Verlustserien +
-  3 `silver_m15_ohlc_*.csv`), sowie `tmp_db_inspektion.py` und `tmp_obd_sonde.py`
-  nach `test/` (DuckDB-Zeitbasis-Sonden). `test/archiv/test.py` bleibt als
-  Altstand der zentralen Testdatei liegen.
-  Diese Dateien lesen die S1/S2-Monatslauf-Ausgaben, importieren aber den
-  Monolithen **nicht** — Abgrenzungsregel: Setup B = Referenz auf
-  `phasen_volumen_profil` bzw. `reclaim_signals`/`MIN_RECLAIM`/`find_reclaim`.
+* `test/archiv/test.py` bleibt als Altstand der zentralen Testdatei liegen.
+
+## Nachgelagerte Aufräumung (2026-09-14, Weisung des Anwenders)
+
+`test/silver_regime/` (94 Dateien) war die Ausgabesammlung der Setup-B-/Phasen-
+profil-Linie und damit Reclaim-Alt; sie wurde **gelöscht**. Erhalten blieben:
+
+| Datei | neuer Ort | Grund |
+|---|---|---|
+| 3× `silver_m15_ohlc_*.csv` | `data/` | Rohdaten-Exporte |
+| 11× Stufe-5-Regime (`tmp_regime_*`, `tmp_test_regime.py`, `tmp_sanity_klassifikation.py`, `tmp_stufe5_db_scan.py`, `tmp_inspect_freezed.py`, `regime_schwellen_freezed.json`) | `test/setup_c/regime_stufe5/` | Validierung von `scripts/regime_filter.py`; `tmp_regime_validation.py` ist die 1:1-Vorlage der Portfolio-Assemblierung in `scripts/setup_c_profil.py` (Z1097) — gehört zu **Setup C**, nicht zu Reclaim |
+
+Diese Ausnahme ist belegt: `scripts/setup_c_profil.py` (Z130-137) nutzt die
+versiegelten `RegimeSchwellen`-Klassen-Defaults und greift **bewusst nicht** auf
+`test/regime_schwellen_freezed.json` zu; trotzdem bleibt das Sigel als
+Validierungsnachweis der Regimefilter-Stufe 5 erhalten.
 
 ## Manifeste
 
-* `MANIFEST.sha256` — SHA256, Größe, neuer Pfad und Ursprungspfad je Datei (1151).
+Stand 2026-09-14. Nach Weisung des Anwenders („es wird niemals einen Audit
+geben") werden sie **nicht weiter gepflegt** — die unter `tests/setup_b/`
+entfernten Generator-Dateien sind darin noch als vorhanden gelistet.
+
+* `MANIFEST.sha256` — SHA256, Größe, neuer Pfad und Ursprungspfad je Datei (1158).
 * `MANIFEST_ENTFERNT.sha256` — SHA256, Größe, Pfad und Grund der **338 entfernten**
   Dateien (80 ältere Sichtprüfungs-PNGs nach der Regel „nur der jeweils letzte
   Lauf", 257 Dateien aus `test/trash/`, 1 Dublette).

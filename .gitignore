@@ -258,10 +258,13 @@ data/backtest_ui_state.json
 # nachvollziehbar gemacht. Abgeleitete Grafiken (*.png) bleiben bewusst
 # ausgenommen - sie sind aus den versionierten Skripten reproduzierbar.
 !test/archiv/
-!test/silver_regime/
 !test/setup_c/
 !test/counter_engine/
 !test/_ref_baseline_pre_ema/
 test/**/*.png
+
+# Unversioniertes Archiv (Weisung 2026-09-14): lose Zeitbasis-/Zeitkanon- und
+# Regime-Sonden aus test/, bewusst ohne Versionierung.
+Archiv/Zeitbasis_Regime/
 
 

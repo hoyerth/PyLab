@@ -42,7 +42,7 @@ import hashlib
 import json
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any, Dict, Iterator, List, Optional, Sequence
 
 import duckdb
 
@@ -590,3 +590,163 @@ class ProfilSpeicher:
         gesamt = sum(sys.getsizeof(z) for z in self._profile)
         gesamt += sum(sys.getsizeof(z) for z in self._nester)
         return float(gesamt) / (1024.0 * 1024.0)
+
+
+class ProfilSpeicherHalter:
+    """Haelt MEHRERE Laufzeit-Speicher - einer je Parametersatz (``run_id``).
+
+    Der Halter ist der Einstiegspunkt fuer den Live-Einsatz: eine Ansicht (oder
+    ein Diagramm) holt sich ihren Speicher ueber ``hole_oder_anlegen`` und
+    bekommt bei gleichem Parametersatz exakt denselben Speicher zurueck - ohne
+    Neuberechnung und ohne dass ein Parameterwechsel den alten Stand ueberschreibt.
+
+    Die Schluessel sind die ``run_id``-Werte, also deterministisch aus Symbol,
+    Timeframe, Fensterart und Volumenparametern gebildet.
+
+    Attributes:
+        HALTER: Prozessweiter Standard-Halter (Bequemlichkeit fuer Live).
+    """
+
+    def __init__(self) -> None:
+        """Legt einen leeren Halter an."""
+        self._speicher: Dict[str, ProfilSpeicher] = {}
+        self._reihenfolge: List[str] = []
+
+    def _registriere(self, speicher: ProfilSpeicher) -> str:
+        """Traegt einen Speicher ein (intern, ohne Rueckgabeobjekt).
+
+        Args:
+            speicher: Laufzeit-Speicher.
+
+        Returns:
+            Die ``run_id`` des Speichers.
+        """
+        if speicher.run_id not in self._speicher:
+            self._reihenfolge.append(speicher.run_id)
+        self._speicher[speicher.run_id] = speicher
+        return speicher.run_id
+
+    def register(self, speicher: ProfilSpeicher) -> str:
+        """Traegt einen fertigen Speicher ein und ersetzt gleiche ``run_id``.
+
+        Args:
+            speicher: Laufzeit-Speicher.
+
+        Returns:
+            Die ``run_id`` des Speichers.
+        """
+        return self._registriere(speicher)
+
+    def hole(self, run_id: str) -> Optional[ProfilSpeicher]:
+        """Liefert den Speicher einer ``run_id``.
+
+        Args:
+            run_id: Kennung des Parametersatzes.
+
+        Returns:
+            Der Speicher oder None, wenn die Kennung unbekannt ist.
+        """
+        return self._speicher.get(run_id)
+
+    def hole_oder_anlegen(
+        self,
+        symbol: str,
+        timeframe: str,
+        window_kind: str,
+        params: Optional[Dict[str, Any]] = None,
+    ) -> ProfilSpeicher:
+        """Liefert den Speicher eines Parametersatzes oder legt ihn neu an.
+
+        Args:
+            symbol: Symbol.
+            timeframe: Timeframe.
+            window_kind: Fensterart.
+            params: Volumenparameter (gehen in die ``run_id`` ein).
+
+        Returns:
+            Der vorhandene (inhaltlich unveraenderte) oder ein neuer, leerer
+            Speicher.
+        """
+        rid = _run_id(symbol, timeframe, window_kind, dict(params or {}))
+        vorhanden = self._speicher.get(rid)
+        if vorhanden is not None:
+            return vorhanden
+        return self.hole(self._registriere(
+            ProfilSpeicher(symbol, timeframe, window_kind, params or {})
+        ))  # type: ignore[return-value]
+
+    def neuester(self) -> Optional[ProfilSpeicher]:
+        """Liefert den zuletzt eingetragenen Speicher.
+
+        Returns:
+            Der zuletzt eingetragene Speicher oder None (Halter leer).
+        """
+        if not self._reihenfolge:
+            return None
+        return self._speicher.get(self._reihenfolge[-1])
+
+    def run_ids(self) -> List[str]:
+        """Liefert die Kennungen in Eintragsreihenfolge.
+
+        Returns:
+            Liste der ``run_id``-Werte (aeltester zuerst).
+        """
+        return list(self._reihenfolge)
+
+    def verwerfen(self, run_id: str) -> bool:
+        """Entfernt den Speicher eines Parametersatzes.
+
+        Args:
+            run_id: Kennung des Parametersatzes.
+
+        Returns:
+            True, wenn ein Speicher entfernt wurde.
+        """
+        if run_id not in self._speicher:
+            return False
+        del self._speicher[run_id]
+        self._reihenfolge.remove(run_id)
+        return True
+
+    def leeren(self) -> None:
+        """Verwirft alle gehaltenen Speicher."""
+        self._speicher.clear()
+        self._reihenfolge.clear()
+
+    def zaehle(self) -> Dict[str, int]:
+        """Zaehlt die gehaltenen Speicher und ihre Zeilen.
+
+        Returns:
+            Dict mit ``speicher`` (Anzahl Parametersaetze), ``profiles`` und
+            ``nests`` (Summen ueber alle Speicher).
+        """
+        return {
+            "speicher": len(self._speicher),
+            "profiles": sum(s.zaehle()["profiles"] for s in self._speicher.values()),
+            "nests": sum(s.zaehle()["nests"] for s in self._speicher.values()),
+        }
+
+    def speicher_mb(self) -> float:
+        """Summiert den Speicherbedarf aller gehaltenen Speicher.
+
+        Returns:
+            Grobe Obergrenze in MByte.
+        """
+        return float(sum(s.speicher_mb() for s in self._speicher.values()))
+
+    def __len__(self) -> int:
+        """Anzahl gehaltener Speicher."""
+        return len(self._speicher)
+
+    def __contains__(self, run_id: object) -> bool:
+        """Prueft, ob eine ``run_id`` gehalten wird."""
+        return run_id in self._speicher
+
+    def __iter__(self) -> "Iterator[ProfilSpeicher]":
+        """Iteriert die Speicher in Eintragsreihenfolge."""
+        return iter(self._speicher[r] for r in self._reihenfolge)
+
+
+# Prozessweiter Standard-Halter: im Live-Einsatz teilen sich Ansichten/Charts
+# diesen Halter, damit ein Parametersatz nur EINMAL gerechnet wird.
+HALTER: ProfilSpeicherHalter = ProfilSpeicherHalter()

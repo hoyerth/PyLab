@@ -15,8 +15,21 @@ Zwei Ebenen je Fenster
 ----------------------
     SEGMENTE   Berge/Nester aus ``find_mountains`` - die bewaehrte
                Segment-Erkennung, bleibt unveraendert erhalten.
-    ZONEN-VA   symmetrische Value Area ab dem globalen POC, die ``va_zone_pct``
-               (Default 0,94) des Gesamtvolumens erfasst.
+    BAND       das Hauptband des Fensters: entweder die ZONEN-VA
+               (symmetrische Value Area ab dem globalen POC, ``va_zone_pct`` =
+               0,94 des Gesamtvolumens) oder das BALANCE-BAND (Huelle der
+               Segment-Value-Areas, ``val_huelle .. vah_huelle``).
+
+Modus (es gibt nur EINE Engine)
+-------------------------------
+BEIDE Baender werden immer mitgerechnet (sie stecken im Vertrag
+``Segmentierung``); ``modus`` waehlt nur, welches Band als Hauptband gemeldet,
+gespeichert und gezeichnet wird:
+
+    --modus=zone       Zonen-VA ab POC (Default)
+    --modus=balance    Huelle der Segment-VAs - mit ``--window=day`` ist das
+                       exakt der fruehere Tages-Balancen-Modus (POC/VAH/VAL
+                       je Kalendertag).
 
 Speicher
 --------
@@ -25,6 +38,12 @@ an seinen Parametersatz gebunden und wird bei Parameteraenderung sofort
 ungueltig - eine Dateiablage waere dann Altbestand. Die DuckDB-Ablage
 (``ProfilStore``) bleibt als ausdruecklicher Archivlauf per
 ``--speicher=db`` erhalten.
+
+Vergeben wird der Laufzeitspeicher vom prozessweiten Halter
+(``volume_profile_store.HALTER``): ``hole_oder_anlegen`` liefert bei gleichem
+Parametersatz denselben Speicher zurueck (nichts wird doppelt gerechnet), bei
+geaendertem Parametersatz einen neuen. Damit steht der Live-Einsatz auf
+derselben Mechanik wie der CLI-Lauf.
 
 Mindest-Bars
 ------------
@@ -71,14 +90,17 @@ from scripts.volume_profile_chart import (  # noqa: E402
     zeichne_alles,
 )
 from scripts.volume_profile_core import (  # noqa: E402
+    MODI,
+    Band,
     FensterProfil,
     KonsensParameter,
     ProfilParameter,
+    band_von,
     profil_mit_kennzahlen,
 )
 from scripts.volume_profile_store import (  # noqa: E402
+    HALTER,
     NestZeile,
-    ProfilSpeicher,
     ProfilStore,
     ProfilZeile,
 )
@@ -120,6 +142,10 @@ class VolumeProfilConfig:
             Bars belegt sein muss (Default 0,5 = halbes Fenster).
         num_bins: Anzahl Preis-Bins des Profils (Baseline ``NUM_BINS``).
         smooth_win: Glaettungsfenster des Volumens (Baseline ``SMOOTH_WIN``).
+        modus: Hauptband des Laufs: ``zone`` (Zonen-VA ab POC, Default) oder
+            ``balance`` (Huelle der Segment-VAs). Beide Baender werden immer
+            mitgerechnet; der Modus wirkt nur auf Meldung, Speicherzeile und
+            Zeichnung. ``balance`` + ``window_kind="day"`` = Tages-Balancen.
         va_pct: Value-Area-Anteil des Berg-Volumens (Baseline ``VA_PCT``).
         valley_rel: Tal-Schwellwert zur Berg-Trennung (Baseline ``VALLEY_REL``).
         min_mountain_pct: Mindestanteil am groessten Berg (Baseline
@@ -163,6 +189,7 @@ class VolumeProfilConfig:
     # --- Volumenprofil (Baseline-Defaults + Zonen-VA) -----------------------
     num_bins: int = 60
     smooth_win: int = 3
+    modus: str = "zone"
     va_pct: float = 0.93
     valley_rel: float = 0.15
     min_mountain_pct: float = 4.0
@@ -226,6 +253,22 @@ def _konsens_parameter(config: VolumeProfilConfig) -> Optional[KonsensParameter]
         konsens_smooth=tuple(config.konsens_smooth),
         streu_toleranz_atr=config.streu_toleranz_atr,
     )
+
+
+def hauptband(p: FensterProfil, config: VolumeProfilConfig) -> Band:
+    """Liefert das Hauptband eines Fensters im gewaehlten Modus.
+
+    Es wird nur AUSGEWAEHLT, nicht gerechnet: beide Baender stecken bereits im
+    Vertrag ``Segmentierung`` (``zone`` und ``val_huelle/vah_huelle``).
+
+    Args:
+        p: Fensterprofil.
+        config: Laufkonfiguration (liefert ``modus``).
+
+    Returns:
+        ``Band`` des Modus; ohne Profil sind alle Kanten ``nan``.
+    """
+    return band_von(p.segmentierung, config.modus)
 
 
 def effektive_min_bars(config: VolumeProfilConfig) -> int:
@@ -362,10 +405,17 @@ def report_text(
         Reporttext als String.
     """
     gueltig = [p for p in profile if p.gueltig]
+    band_name = band_von(None, config.modus).name
+    titel = (
+        "VOLUMENPROFILE - FENSTERWEISE (POC / ZONEN-VA 94 % / SEGMENTE)"
+        if config.modus == "zone"
+        else "VOLUMENPROFILE - FENSTERWEISE (POC / BALANCE-BAND / SEGMENTE)"
+    )
     linie = "=" * 130
     txt: List[str] = [
         linie,
-        "VOLUMENPROFILE - FENSTERWEISE (POC / ZONEN-VA 94 % / SEGMENTE)",
+        titel,
+        f"Hauptband: {config.modus} = {band_name}",
         f"Instrument: {config.symbol} {config.timeframe} | Zeitraum: "
         f"{config.start} .. {config.ende} (ende-exklusiv, BKZ)",
         f"Fensterart: {config.window_kind} | min_bars={effektive_min_bars(config)}"
@@ -388,18 +438,18 @@ def report_text(
     ]
     for p in profile:
         seg = p.segmentierung
-        if seg is None or seg.zone is None:
+        band = hauptband(p, config)
+        if seg is None or not (np.isfinite(band.val) and np.isfinite(band.vah)):
             txt.append(
                 f"  {p.label:<20} | {p.n_bars:5d} | "
                 f"{'(kein Profil - zu wenig Bars?)':>46}"
             )
             continue
-        z = seg.zone
-        breite = z.vah - z.val
+        breite = band.breite
         b_atr = breite / p.atr if p.atr > 0 else float("nan")
         txt.append(
-            f"  {p.label:<20} | {p.n_bars:5d} | {z.poc:8.3f} {z.val:8.3f} "
-            f"{z.vah:8.3f} | {breite:6.3f} | "
+            f"  {p.label:<20} | {p.n_bars:5d} | {band.poc:8.3f} {band.val:8.3f} "
+            f"{band.vah:8.3f} | {breite:6.3f} | "
             f"{('-' if not np.isfinite(b_atr) else f'{b_atr:.2f}'):>5} | "
             f"{seg.n_segmente:3d} | "
             f"{('-' if not np.isfinite(seg.lobe2_ratio) else f'{seg.lobe2_ratio:.3f}'):>5} | "
@@ -409,8 +459,8 @@ def report_text(
     txt.append("")
     if gueltig:
         abdeck = np.array(
-            [p.segmentierung.zone.abdeckung for p in gueltig
-             if p.segmentierung and p.segmentierung.zone], dtype=float
+            [b.abdeckung for b in (hauptband(p, config) for p in gueltig)
+             if np.isfinite(b.abdeckung)], dtype=float
         )
         seg_n = np.array([p.segmentierung.n_segmente for p in gueltig], dtype=float)
         st = np.array(
@@ -429,7 +479,8 @@ def report_text(
         )
         if abdeck.size:
             txt.append(
-                f"  Zonen-VA-Abdeckung: median={np.median(abdeck):.4f} "
+                f"  Band-Abdeckung ({config.modus}): "
+                f"median={np.median(abdeck):.4f} "
                 f"min={abdeck.min():.4f} max={abdeck.max():.4f}"
             )
         if st.size:
@@ -454,14 +505,20 @@ def tsv_levels(config: VolumeProfilConfig, profile: Sequence[FensterProfil]) -> 
     Returns:
         TSV-Text (Kommentarzeilen, Header, Datenzeilen).
     """
+    rolle = "ZONE" if config.modus == "zone" else "BALANCE"
+    rolle_txt = (
+        "ZONE = Zonen-Value-Area ab POC"
+        if config.modus == "zone"
+        else "BALANCE = Huelle der Segment-Value-Areas"
+    )
     kopf: List[str] = [
         f"# volume_profile Level - {config.symbol} {config.timeframe} | "
         f"{config.start} .. {config.ende} (ende-exklusiv, BKZ)",
         f"# Fensterart={config.window_kind} min_bars={effektive_min_bars(config)} "
         f"bins={config.num_bins} "
         f"smooth={config.smooth_win} va_pct={config.va_pct} "
-        f"va_zone_pct={config.va_zone_pct}",
-        "# rolle: ZONE = Zonen-Value-Area ab POC | SEGMENT = einzelner Volumen-Berg",
+        f"va_zone_pct={config.va_zone_pct} modus={config.modus}",
+        f"# rolle: {rolle_txt} | SEGMENT = einzelner Volumen-Berg",
         "# atr: mittlere Bar-Spanne (high-low) des Fensters",
         "# poc_streu: POC-Spanne ueber die Konsens-Parametersaetze, in ATR",
         "label\twindow_kind\tbar_start\tbar_ende\tts_start\tts_ende\tn_bars\t"
@@ -472,21 +529,21 @@ def tsv_levels(config: VolumeProfilConfig, profile: Sequence[FensterProfil]) -> 
     zeilen: List[str] = list(kopf)
     for p in profile:
         seg = p.segmentierung
-        if seg is None or seg.zone is None:
+        band = hauptband(p, config)
+        if seg is None or not (np.isfinite(band.val) and np.isfinite(band.vah)):
             continue
-        z = seg.zone
         basis = (
             f"{p.label}\t{p.window_kind}\t{p.bar_start}\t{p.bar_ende}\t"
             f"{p.ts_start:%Y-%m-%d %H:%M:%S}\t{p.ts_ende:%Y-%m-%d %H:%M:%S}\t"
             f"{p.n_bars}\t{seg.n_bars_gefiltert}\t{p.vol_summe:.1f}\t"
-            f"{p.atr:.5f}\t{config.va_zone_pct:.4f}\t{z.abdeckung:.6f}\t"
+            f"{p.atr:.5f}\t{config.va_zone_pct:.4f}\t{band.abdeckung:.6f}\t"
             f"{p.konsens.streu_atr:.4f}\t{p.konsens.poc_min:.5f}\t"
             f"{p.konsens.poc_max:.5f}\t{int(p.konsens.eindeutig)}\t"
             f"{seg.lobe2_ratio:.4f}"
         )
         zeilen.append(
-            f"{basis}\tZONE\t-1\t{z.poc:.5f}\t{z.val:.5f}\t{z.vah:.5f}\t"
-            f"{z.vah - z.val:.5f}\t\t"
+            f"{basis}\t{rolle}\t-1\t{band.poc:.5f}\t{band.val:.5f}\t"
+            f"{band.vah:.5f}\t{band.breite:.5f}\t\t"
         )
         for rank, nest in enumerate(seg.nester):
             zeilen.append(
@@ -504,12 +561,13 @@ def _datei_stamm(config: VolumeProfilConfig) -> str:
         config: Laufkonfiguration.
 
     Returns:
-        Stamm wie ``volume_profile_SILVER_M15_day_2026-08-01_2026-09-01``.
+        Stamm wie
+        ``volume_profile_SILVER_M15_day_zone_2026-08-01_2026-09-01``.
     """
     sym = "".join(ch for ch in config.symbol.upper() if ch.isalnum())
     return (
         f"volume_profile_{sym}_{config.timeframe}_{config.window_kind}_"
-        f"{config.start}_{config.ende}"
+        f"{config.modus}_{config.start}_{config.ende}"
     )
 
 
@@ -541,7 +599,7 @@ def _parse_cli(
         key = key.strip().replace("-", "_")
         val = val.strip()
         if key in ("symbol", "timeframe", "start", "ende", "window", "window_kind",
-                   "speicher"):
+                   "speicher", "modus"):
             felder["window_kind" if key.startswith("window") else key] = val
         elif key in ("num_bins", "smooth_win", "min_bars", "dpi",
                      "grid_max_profile", "grid_seiten_max"):
@@ -588,6 +646,10 @@ def _validiere(config: VolumeProfilConfig) -> None:
             f"Unbekannte Speicherart {config.speicher!r}. Erlaubt: "
             "ram, db, keine."
         )
+    if config.modus not in MODI:
+        raise SystemExit(
+            f"Unbekannter Modus {config.modus!r}. Erlaubt: {list(MODI)}."
+        )
     if not 0.0 < config.va_pct < 1.0:
         raise SystemExit("va_pct muss im offenen Intervall (0, 1) liegen.")
     if not 0.0 < config.va_zone_pct <= 1.0:
@@ -604,6 +666,11 @@ def _validiere(config: VolumeProfilConfig) -> None:
 
 def _store_parameter(config: VolumeProfilConfig) -> Dict[str, object]:
     """Bildet die Parameter, die in die ``run_id`` des Speichers eingehen.
+
+    ``modus`` gehoert bewusst NICHT dazu: gespeichert werden immer BEIDE
+    Baender (``val``/``vah`` = Zonen-VA, ``val_huelle``/``vah_huelle`` =
+    Balance-Huelle). Der Modus ist reine Auswahl bei Meldung und Zeichnung und
+    darf deshalb keinen zweiten Archivlauf mit identischen Zahlen erzeugen.
 
     Args:
         config: Laufkonfiguration.
@@ -669,15 +736,19 @@ def main(
     zeilen, nests = _speicher_zeilen(profile, config)
     speicher_zeile = ""
     if config.speicher == "ram":
-        speicher = ProfilSpeicher(
+        speicher = HALTER.hole_oder_anlegen(
             config.symbol, config.timeframe, config.window_kind, store_params
         )
         n_gehalten = speicher.merke(zeilen, nests)
         stand = speicher.zaehle()
+        halter_stand = HALTER.zaehle()
         speicher_zeile = (
             f"Laufzeitspeicher (RAM): run_id={speicher.run_id}, "
             f"{n_gehalten} Profile, {stand['nests']} Segmente gehalten, "
-            f"{speicher.speicher_mb():.2f} MB"
+            f"{speicher.speicher_mb():.2f} MB | Halter: "
+            f"{len(HALTER)} Parametersatz/Parametersaetze, "
+            f"{halter_stand['profiles']} Profile gesamt, "
+            f"{HALTER.speicher_mb():.2f} MB"
         )
     elif config.speicher == "db":
         with ProfilStore(
@@ -712,6 +783,7 @@ def main(
         zeitraum=f"{config.start} .. {config.ende} (ende-exkl., BKZ)",
         max_profile=config.grid_max_profile,
         seiten_max=config.grid_seiten_max,
+        modus=config.modus,
     )
     p_zone, p_grids = zeichne_alles(
         df, profile, stil, config.out_dir / stamm
@@ -720,7 +792,8 @@ def main(
     gueltig = [p for p in profile if p.gueltig]
     n_unsicher = sum(1 for p in gueltig if not p.konsens.eindeutig)
     print(
-        f"Fensterart {config.window_kind}: {len(gueltig)} Profile aus "
+        f"Fensterart {config.window_kind} | Modus {config.modus}: "
+        f"{len(gueltig)} Profile aus "
         f"{len(profile)} ausgewerteten Fenstern ({n_verworfen} verworfen, "
         f"min_bars={effektive_min_bars(config)}) | POC unsicher: {n_unsicher}"
     )

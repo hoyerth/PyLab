@@ -42,13 +42,20 @@ Der Filter greift VOR dem Profilbau auf die Bars des jeweiligen Fensters:
                    Fensters (relativ, gegen Ausreisser-arme Illiquiditaet)
 Gefilterte Bars gehen nicht ins Profil ein; die Anzahl wird mitberichtet.
 
+Modus (zone / balance)
+----------------------
+Beide Baender stecken im Ergebnis: ``Segmentierung.zone`` (Zonen-VA ab POC) und
+``Segmentierung.val_huelle``/``vah_huelle`` (Huelle der Segment-Value-Areas).
+``band_von(seg, modus)`` waehlt daraus das Hauptband - es wird nichts neu
+gerechnet. ``modus="balance"`` ueber Kalendertage ist der Tages-Balancen-Modus.
+
 Aufruf (aus einem Orchestrator, kein CLI in diesem Modul):
-    from scripts.volume_profile_core import ProfilParameter, compute_volume_zone
+    from scripts.volume_profile_core import ProfilParameter, compute_segmentierung
 """
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -286,6 +293,98 @@ class FensterProfil:
     def gueltig(self) -> bool:
         """True, wenn ein Profil mit mindestens einem Segment vorliegt."""
         return self.segmentierung is not None
+
+
+# --- Darstellungs-/Auswertungsmodus -----------------------------------------
+# Es gibt nur EINE Engine. Beide Bänder werden IMMER mitgerechnet; ``modus``
+# waehlt nur, welches Band als Hauptband gemeldet/gezeichnet wird.
+MODI: Tuple[str, str] = ("balance", "zone")
+
+_MODUS_NAME: Dict[str, str] = {
+    "zone": "Zonen-VA (Anteil am Gesamtvolumen)",
+    "balance": "Balance-Band (Huelle der Segment-VAs)",
+}
+
+
+@dataclass(frozen=True, slots=True)
+class Band:
+    """Das Hauptband eines Fensters (POC + untere/obere Kante + Abdeckung).
+
+    Beide Bänder desselben Profils sind damit vergleichbar:
+    ``zone``    symmetrischer Wertbereich ab dem globalen POC, der
+                ``va_zone_pct`` (Default 0,94) des Gesamtvolumens erfasst.
+    ``balance`` Huelle der Segment-Value-Areas: ``val`` = kleinste Berg-VAL,
+                ``vah`` = groesste Berg-VAH. Das ist der Modus, in dem die
+                Tages-Balancen gezeichnet wurden (nicht zusammenhaengend, weil
+                jeder Berg seinen eigenen 93 %-Anteil beisteuert).
+
+    Attributes:
+        poc: Point of Control des Fensters (Gipfel des groessten Segmentes).
+        val: Untere Kante des Bandes.
+        vah: Obere Kante des Bandes.
+        abdeckung: Anteil des GESAMTVOLUMENS, der zwischen ``val`` und ``vah``
+            liegt (0..1; nan, wenn nicht bestimmbar). Bei ``zone`` die direkt
+            erreichte Abdeckung, bei ``balance`` aus dem rohen Profil gerechnet.
+        modus: ``zone`` oder ``balance``.
+        name: Lesbarer Name des Modus.
+    """
+
+    poc: float
+    val: float
+    vah: float
+    abdeckung: float
+    modus: str
+    name: str
+
+    @property
+    def breite(self) -> float:
+        """Breite des Bandes in Preiseinheiten (nan bei unbestimmtem Band)."""
+        if not (np.isfinite(self.val) and np.isfinite(self.vah)):
+            return float("nan")
+        return float(self.vah - self.val)
+
+
+def band_von(seg: Optional[Segmentierung], modus: str = "zone") -> Band:
+    """Liefert das Hauptband einer Segmentierung fuer den gewaehlten Modus.
+
+    Args:
+        seg: Profilergebnis; None = kein Profil (Rueckgabe bleibt nan).
+        modus: ``zone`` (Zonen-VA ab POC) oder ``balance`` (Huelle der
+            Segment-Value-Areas).
+
+    Returns:
+        ``Band`` mit POC/Kanten/Abdeckung; bei fehlendem Profil alle Kanten
+        ``nan``.
+
+    Raises:
+        ValueError: Bei unbekanntem Modus.
+    """
+    if modus not in _MODUS_NAME:
+        raise ValueError(f"Unbekannter Modus {modus!r}. Erlaubt: {sorted(MODI)}")
+    nan = float("nan")
+    if seg is None:
+        return Band(nan, nan, nan, nan, modus, _MODUS_NAME[modus])
+    if modus == "zone":
+        z = seg.zone
+        if z is None:
+            return Band(seg.poc, nan, nan, nan, modus, _MODUS_NAME[modus])
+        return Band(
+            poc=float(z.poc), val=float(z.val), vah=float(z.vah),
+            abdeckung=float(z.abdeckung), modus=modus, name=_MODUS_NAME[modus],
+        )
+    # balance: Huelle der Segment-VAs; Abdeckung aus dem ROHEN Profil
+    val, vah = float(seg.val_huelle), float(seg.vah_huelle)
+    deckung = nan
+    prof = seg.profile
+    if np.isfinite(val) and np.isfinite(vah):
+        gesamt = float(prof.vol.sum())
+        if gesamt > 0.0:
+            drin = (prof.centers >= val) & (prof.centers <= vah)
+            deckung = float(prof.vol[drin].sum() / gesamt)
+    return Band(
+        poc=float(seg.poc), val=val, vah=vah, abdeckung=deckung,
+        modus=modus, name=_MODUS_NAME[modus],
+    )
 
 
 # =============================================================================

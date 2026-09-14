@@ -1,0 +1,556 @@
+======================================================================================================================
+STRAIGHT-EDGE-AUDIT AUG | SE_BAND_PCT 0.110 | Box < 19.08 (bars < 644)
+======================================================================================================================
+Gekeimte SE-Kanten gesamt: 69 (OBEN 35 / UNTEN 34) | >= 3 Touches (reif): 49 | mit Box-Docht: 36
+ALT (Phase-0b, Commit 69e9698): 39 Kanten / 33 Typ B / 66 Signale AUG, davon 33 in der Box | Phase-0b-Kanten im Niemandsland handelten (Regel-2-Fix)
+
+----------------------------------------------------------------------------------------------------------------------
+SE-KANTEN MIT BOX-DOCHT (chronologisch nach Geburt; basis = Box-End-Mittel)
+----------------------------------------------------------------------------------------------------------------------
+  K  2 OBEN  basis_box=  63.678 (end   63.678) geb=  18 (10.08 04:30) n= 2 wicks_box=[12,18]
+  K  0 OBEN  basis_box=  63.884 (end   63.884) geb=  25 (10.08 06:15) n= 4 wicks_box=[5,25,634,638]
+  K  6 OBEN  basis_box=  64.284 (end   64.284) geb=  45 (10.08 11:15) n= 2 wicks_box=[31,45]
+  K  8 UNTEN basis_box=  63.758 (end   63.758) geb=  57 (10.08 14:15) n= 5 wicks_box=[52,57,380,627,635]
+  K  5 UNTEN basis_box=  63.633 (end   63.633) geb=  60 (10.08 15:00) n= 5 wicks_box=[30,60,63,386,632]
+  K  9 OBEN  basis_box=  64.108 (end   64.108) geb=  62 (10.08 15:30) n= 4 wicks_box=[56,62,386,624]
+  K 12 OBEN  basis_box=  65.257 (end   65.257) geb=  78 (10.08 19:30) n= 9 wicks_box=[72,78,148,155,275,463,578,609,614]
+  K 16 OBEN  basis_box=  65.882 (end   65.892) geb=  96 (11.08 01:00) n=10 wicks_box=[90,96,114,478,492,495,510,514  (+2 nach Box)]
+  K 17 UNTEN basis_box=  65.602 (end   65.602) geb= 111 (11.08 04:45) n=13 wicks_box=[92,111,242,246,252,475,493,497,512,544,553  (+2 nach Box)]
+  K 11 UNTEN basis_box=  64.467 (end   64.467) geb= 122 (11.08 07:30) n= 5 wicks_box=[69,122,177,349,410]
+  K 10 OBEN  basis_box=  64.903 (end   64.903) geb= 135 (11.08 10:45) n= 6 wicks_box=[67,135,187,352,416,444]
+  K 13 UNTEN basis_box=  64.714 (end   64.714) geb= 154 (11.08 15:30) n=10 wicks_box=[75,154,157,192,196,442,447,452,466,582]
+  K 25 OBEN  basis_box=  65.126 (end   65.126) geb= 160 (11.08 17:00) n= 7 wicks_box=[141,160,165,196,343,594,603]
+  K 23 UNTEN basis_box=  64.331 (end   64.331) geb= 162 (11.08 17:30) n= 7 wicks_box=[130,162,172,320,346,368,372]
+  K 27 OBEN  basis_box=  64.785 (end   64.785) geb= 179 (11.08 21:45) n= 4 wicks_box=[175,179,315,357]
+  K 24 UNTEN basis_box=  64.601 (end   64.601) geb= 184 (12.08 00:00) n= 7 wicks_box=[136,184,312,356,414,420,458]
+  K 14 UNTEN basis_box=  65.042 (end   65.042) geb= 209 (12.08 06:15) n= 6 wicks_box=[81,209,259,279,300,520]
+  K 26 OBEN  basis_box=  65.326 (end   65.326) geb= 211 (12.08 06:45) n= 2 wicks_box=[144,211]
+  K 15 OBEN  basis_box=  66.047 (end   66.046) geb= 220 (12.08 09:00) n= 3 wicks_box=[85,220  (+1 nach Box)]
+  K 31 OBEN  basis_box=  66.345 (end   66.345) geb= 249 (12.08 16:15) n= 4 wicks_box=[237,249,286,536]
+  K 33 OBEN  basis_box=  65.594 (end   65.594) geb= 267 (12.08 20:45) n= 4 wicks_box=[262,267,296,306]
+  K 34 UNTEN basis_box=  65.213 (end   65.213) geb= 273 (12.08 22:15) n= 2 wicks_box=[264,273]
+  K 29 UNTEN basis_box=  64.923 (end   64.923) geb= 294 (13.08 04:30) n= 4 wicks_box=[214,294,437,606]
+  K 21 UNTEN basis_box=  64.206 (end   64.206) geb= 316 (13.08 10:00) n= 4 wicks_box=[126,316,361,406]
+  K 37 UNTEN basis_box=  64.813 (end   64.816) geb= 334 (13.08 14:30) n= 4 wicks_box=[330,334,592  (+1 nach Box)]
+  K  1 UNTEN basis_box=  63.485 (end   63.485) geb= 398 (14.08 07:30) n= 3 wicks_box=[7,398,621]
+  K 41 OBEN  basis_box=  64.695 (end   64.695) geb= 407 (14.08 09:45) n= 2 wicks_box=[376,407]
+  K 28 OBEN  basis_box=  65.709 (end   65.709) geb= 433 (14.08 16:15) n= 2 wicks_box=[204,433]
+  K 19 UNTEN basis_box=  65.407 (end   65.418) geb= 479 (17.08 04:45) n= 6 wicks_box=[104,479,485,503,508  (+1 nach Box)]
+  K 32 UNTEN basis_box=  65.486 (end   65.486) geb= 500 (17.08 10:00) n= 2 wicks_box=[255,500]
+  K 46 OBEN  basis_box=  65.968 (end   65.968) geb= 547 (17.08 21:45) n= 2 wicks_box=[498,547]
+  K 18 UNTEN basis_box=  65.698 (end   65.698) geb= 550 (17.08 22:30) n= 2 wicks_box=[98,550]
+  K 47 OBEN  basis_box=  66.537 (end   66.537) geb= 565 (18.08 03:15) n= 2 wicks_box=[529,565]
+  K 50 OBEN  basis_box=  65.463 (end   65.462) geb= 585 (18.08 08:15) n= 3 wicks_box=[572,585  (+1 nach Box)]
+  K  3 UNTEN basis_box=  62.967 (end   63.003) geb= 682 (19.08 09:30) n= 3 wicks_box=[14  (+2 nach Box)]
+  K 20 OBEN  basis_box=  66.459 (end   66.440) geb= 730 (19.08 21:30) n= 2 wicks_box=[107  (+1 nach Box)]
+
+SEEDS (Singleton-Dochte, bis Box-Ende NICHT gekeimt): 17
+  K 52 UNTEN basis=  63.156 bar= 643 (18.08 22:45)
+  K  4 UNTEN basis=  63.252 bar=  20 (10.08 05:00)
+  K 43 UNTEN basis=  63.916 bar= 392 (14.08 06:00)
+  K 51 OBEN  basis=  63.994 bar= 629 (18.08 19:15)
+  K  7 UNTEN basis=  64.071 bar=  43 (10.08 10:45)
+  K 42 OBEN  basis=  64.184 bar= 390 (14.08 05:30)
+  K 44 OBEN  basis=  64.384 bar= 400 (14.08 08:00)
+  K 39 UNTEN basis=  64.409 bar= 342 (13.08 16:30)
+  K 40 OBEN  basis=  64.464 bar= 365 (13.08 22:15)
+  K 22 OBEN  basis=  64.552 bar= 128 (11.08 09:00)
+  K 36 OBEN  basis=  65.024 bar= 327 (13.08 12:45)
+  K 35 UNTEN basis=  65.293 bar= 291 (13.08 03:45)
+  K 38 OBEN  basis=  65.409 bar= 336 (13.08 15:00)
+  K 49 OBEN  basis=  65.791 bar= 552 (18.08 00:00)
+  K 30 UNTEN basis=  66.076 bar= 235 (12.08 12:45)
+  K 45 OBEN  basis=  66.206 bar= 473 (17.08 03:15)
+  K 48 UNTEN basis=  66.234 bar= 534 (17.08 18:30)
+
+----------------------------------------------------------------------------------------------------------------------
+SWEEP-SPERRE (Commit a771e04): Reclaim-Dochte der aeussersten Referenz der Seite (INKL. Singleton-Seeds) bilden keine neuen Linien | Sperren gesamt: 14
+----------------------------------------------------------------------------------------------------------------------
+  bar    9 (10.08 02:15) OBEN  docht=64.013 | aeusserste Referenz 63.906 | Ueberdehnung 0.167% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar   39 (10.08 09:45) OBEN  docht=64.437 | aeusserste Referenz 64.312 | Ueberdehnung 0.194% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar   42 (10.08 10:30) OBEN  docht=64.409 | aeusserste Referenz 64.312 | Ueberdehnung 0.151% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar  101 (11.08 02:15) OBEN  docht=66.223 | aeusserste Referenz 66.046 | Ueberdehnung 0.268% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar  229 (12.08 11:15) OBEN  docht=66.776 | aeusserste Referenz 66.459 | Ueberdehnung 0.477% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed   <== K33 (Seed 229/66.776) ELIMINIERT
+  bar  242 (12.08 14:30) OBEN  docht=66.663 | aeusserste Referenz 66.459 | Ueberdehnung 0.307% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed   <== K36 (Seed 242/66.663) ELIMINIERT
+  bar  650 (19.08 01:30) UNTEN docht=62.721 | aeusserste Referenz 62.967 | Ueberdehnung 0.391% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar  745 (20.08 02:15) OBEN  docht=67.288 | aeusserste Referenz 67.076 | Ueberdehnung 0.316% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar  752 (20.08 04:00) OBEN  docht=67.294 | aeusserste Referenz 67.076 | Ueberdehnung 0.325% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar  756 (20.08 05:00) OBEN  docht=67.188 | aeusserste Referenz 67.076 | Ueberdehnung 0.167% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar  759 (20.08 05:45) OBEN  docht=67.236 | aeusserste Referenz 67.076 | Ueberdehnung 0.239% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar  764 (20.08 07:00) OBEN  docht=67.282 | aeusserste Referenz 67.076 | Ueberdehnung 0.307% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar  853 (21.08 06:15) OBEN  docht=69.172 | aeusserste Referenz 68.989 | Ueberdehnung 0.265% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar  859 (21.08 07:45) OBEN  docht=69.188 | aeusserste Referenz 68.989 | Ueberdehnung 0.288% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  -> K33 (Seed 229/66.776): ELIMINIERT | K36 (Seed 242/66.663): ELIMINIERT
+
+######################################################################################################################
+# SOLL-ZONEN-ABDECKUNG (menschl. Zaehlung +/- 0.15 USD um Anker)
+######################################################################################################################
+
+[UPPER-WAND] (OBEN, Anker 66.46) Soll 5: [107, 237, 249, 529, 536] | Soll 5/5; SE erwartet Sub-Linien ~66.36/66.51 (Band-Scan)
+  SE-Kanten im Zonen-Band (box-basis): 2
+    K 47 basis_box=  66.537 n=2 wicks_box=[529, 565]  <== Soll-Dochte [529]
+    K 31 basis_box=  66.345 n=4 wicks_box=[237, 249, 286, 536]  <== Soll-Dochte [237, 249, 536]
+  -> Soll-Bars abgedeckt: 4/5 [(107, None), (237, 31), (249, 31), (529, 47), (536, 31)]
+  -> FEHLEND (orphan, kein Zonen-Kanten-Docht): [107]
+
+[LOWER-MAIN] (UNTEN, Anker 63.67) Soll 7: [30, 52, 57, 60, 63, 380, 386] | Soll 7/7 = menschl. Zonen-Zaehlung; SE: Staffelung 63.62/63.70-63.79
+  SE-Kanten im Zonen-Band (box-basis): 2
+    K  5 basis_box=  63.633 n=5 wicks_box=[30, 60, 63, 386, 632]  <== Soll-Dochte [30, 60, 63, 386]
+    K  8 basis_box=  63.758 n=5 wicks_box=[52, 57, 380, 627, 635]  <== Soll-Dochte [52, 57, 380]
+  -> Soll-Bars abgedeckt: 7/7 [(30, 5), (52, 8), (57, 8), (60, 5), (63, 5), (380, 8), (386, 5)]
+
+[MINOR-DOMINANT] (UNTEN, Anker 64.22) Soll 4: [126, 316, 320, 361] | E1: dominant 64.22 = 4/4
+  SE-Kanten im Zonen-Band (box-basis): 2
+    K 21 basis_box=  64.206 n=4 wicks_box=[126, 316, 361, 406]  <== Soll-Dochte [126, 316, 361]
+    K 23 basis_box=  64.331 n=7 wicks_box=[130, 162, 172, 320, 346, 368, 372]  <== Soll-Dochte [320]
+  -> Soll-Bars abgedeckt: 4/4 [(126, 21), (316, 21), (320, 23), (361, 21)]
+
+[MINOR-JUNIOR] (UNTEN, Anker 64.31) Soll 3: [130, 162, 368] | E1: Junior 64.31 = 3/3, ZWISCHEN_LEVEL (stumm)
+  SE-Kanten im Zonen-Band (box-basis): 2
+    K 23 basis_box=  64.331 n=7 wicks_box=[130, 162, 172, 320, 346, 368, 372]  <== Soll-Dochte [130, 162, 368]
+    K 21 basis_box=  64.206 n=4 wicks_box=[126, 316, 361, 406]
+  -> Soll-Bars abgedeckt: 3/3 [(130, 23), (162, 23), (368, 23)]
+
+----------------------------------------------------------------------------------------------------------------------
+UEBERLAPPUNGSPROTOKOLL (Docht im Band mehrerer Kanten; U1-Entscheid: hoechste touch_anzahl, Gleichstand aeusseres Extremum)
+----------------------------------------------------------------------------------------------------------------------
+  bar  148 (11.08 14:00) OBEN docht=65.294 | Kandidaten: K12(basis 65.233, 2T); K26(basis 65.314, 1T)
+  bar  155 (11.08 15:45) OBEN docht=65.247 | Kandidaten: K12(basis 65.254, 3T); K26(basis 65.314, 1T)
+  bar  252 (12.08 17:00) UNTEN docht=65.642 | Kandidaten: K17(basis 65.587, 4T); K18(basis 65.695, 1T)
+  bar  275 (12.08 22:45) OBEN docht=65.317 | Kandidaten: K12(basis 65.252, 4T); K26(basis 65.326, 2T)
+  bar  320 (13.08 11:00) UNTEN docht=64.268 | Kandidaten: K21(basis 64.206, 2T); K23(basis 64.333, 3T)
+  bar  346 (13.08 17:30) UNTEN docht=64.366 | Kandidaten: K23(basis 64.316, 4T); K39(basis 64.409, 1T)
+  bar  349 (13.08 18:15) UNTEN docht=64.416 | Kandidaten: K11(basis 64.482, 3T); K39(basis 64.409, 1T)
+  bar  372 (14.08 01:00) UNTEN docht=64.388 | Kandidaten: K23(basis 64.322, 6T); K39(basis 64.409, 1T)
+  bar  410 (14.08 10:30) UNTEN docht=64.472 | Kandidaten: K11(basis 64.465, 4T); K39(basis 64.409, 1T)
+  bar  444 (14.08 19:00) OBEN docht=64.961 | Kandidaten: K10(basis 64.892, 5T); K36(basis 65.024, 1T)
+  bar  452 (14.08 21:00) UNTEN docht=64.647 | Kandidaten: K13(basis 64.716, 7T); K24(basis 64.599, 6T)
+  bar  466 (17.08 01:30) UNTEN docht=64.746 | Kandidaten: K13(basis 64.708, 8T); K37(basis 64.810, 2T)
+  bar  485 (17.08 06:15) UNTEN docht=65.362 | Kandidaten: K19(basis 65.407, 2T); K35(basis 65.293, 1T)
+  bar  493 (17.08 08:15) UNTEN docht=65.654 | Kandidaten: K17(basis 65.599, 6T); K18(basis 65.695, 1T)
+  bar  503 (17.08 10:45) UNTEN docht=65.433 | Kandidaten: K19(basis 65.392, 3T); K32(basis 65.486, 2T)
+  bar  508 (17.08 12:00) UNTEN docht=65.424 | Kandidaten: K19(basis 65.402, 4T); K32(basis 65.486, 2T)
+  bar  512 (17.08 13:00) UNTEN docht=65.534 | Kandidaten: K17(basis 65.605, 8T); K32(basis 65.486, 2T)
+  bar  536 (17.08 19:00) OBEN docht=66.399 | Kandidaten: K20(basis 66.459, 1T); K31(basis 66.327, 3T)
+  bar  544 (17.08 21:00) UNTEN docht=65.650 | Kandidaten: K17(basis 65.597, 9T); K18(basis 65.695, 1T)
+  bar  585 (18.08 08:15) OBEN docht=65.437 | Kandidaten: K38(basis 65.409, 1T); K50(basis 65.490, 1T)
+  bar  614 (18.08 15:30) OBEN docht=65.296 | Kandidaten: K12(basis 65.252, 8T); K26(basis 65.326, 2T)
+  bar  624 (18.08 18:00) OBEN docht=64.116 | Kandidaten: K9(basis 64.106, 3T); K42(basis 64.184, 1T)
+  bar  706 (19.08 15:30) OBEN docht=65.458 | Kandidaten: K38(basis 65.409, 1T); K50(basis 65.463, 2T)
+  bar  710 (19.08 16:30) OBEN docht=65.921 | Kandidaten: K16(basis 65.882, 8T); K46(basis 65.968, 2T)
+  bar  724 (19.08 20:00) OBEN docht=65.940 | Kandidaten: K16(basis 65.887, 9T); K46(basis 65.968, 2T)
+  bar  725 (19.08 20:15) UNTEN docht=65.474 | Kandidaten: K19(basis 65.407, 5T); K32(basis 65.486, 2T)
+  bar  946 (24.08 06:30) UNTEN docht=68.813 | Kandidaten: K74(basis 68.794, 2T); K79(basis 68.872, 2T)
+  bar  956 (24.08 09:00) OBEN docht=69.263 | Kandidaten: K86(basis 69.332, 1T); K87(basis 69.189, 1T)
+  bar  980 (24.08 15:00) OBEN docht=69.899 | Kandidaten: K75(basis 69.969, 3T); K78(basis 69.841, 1T)
+  bar 1023 (25.08 02:45) OBEN docht=69.684 | Kandidaten: K81(basis 69.715, 1T); K82(basis 69.626, 2T)
+  bar 1091 (25.08 19:45) OBEN docht=68.943 | Kandidaten: K66(basis 69.003, 5T); K88(basis 68.885, 2T)
+  bar 1122 (26.08 04:30) OBEN docht=69.709 | Kandidaten: K81(basis 69.715, 1T); K82(basis 69.645, 3T)
+  bar 1126 (26.08 05:30) OBEN docht=69.474 | Kandidaten: K83(basis 69.425, 2T); K84(basis 69.524, 2T)
+  bar 1153 (26.08 12:15) UNTEN docht=68.440 | Kandidaten: K85(basis 68.392, 3T); K93(basis 68.512, 2T)
+  bar 1157 (26.08 13:15) UNTEN docht=68.357 | Kandidaten: K85(basis 68.404, 4T); K89(basis 68.288, 1T)
+  bar 1172 (26.08 17:00) UNTEN docht=67.494 | Kandidaten: K90(basis 67.544, 2T); K92(basis 67.420, 1T)
+  bar 1202 (27.08 01:30) OBEN docht=69.021 | Kandidaten: K66(basis 68.977, 9T); K94(basis 69.082, 1T)
+  bar 1214 (27.08 04:30) UNTEN docht=69.020 | Kandidaten: K77(basis 69.064, 2T); K96(basis 68.958, 1T)
+  bar 1217 (27.08 05:15) OBEN docht=69.486 | Kandidaten: K83(basis 69.421, 3T); K84(basis 69.507, 3T)
+  bar 1222 (27.08 06:30) UNTEN docht=68.852 | Kandidaten: K74(basis 68.786, 5T); K79(basis 68.882, 3T)
+  ... +7 weitere
+
+----------------------------------------------------------------------------------------------------------------------
+BOX-RANGE-SETUPS V-S (streng §7.2: aeusserste aktive geborene Kante, handelbar ab >= 3 Touches): 4
+----------------------------------------------------------------------------------------------------------------------
+  LONG  bar  398 (14.08 07:30) an K  5 basis=63.619 sweep=63.485 close=63.757 touch_n=4
+  SHORT bar  527 (17.08 16:45) an K 31 basis=66.327 sweep=66.378 close=66.199 touch_n=3
+  SHORT bar  562 (18.08 02:30) an K 31 basis=66.345 sweep=66.414 close=66.254 touch_n=4
+  LONG  bar  639 (18.08 21:45) an K  1 basis=63.485 sweep=63.348 close=63.533 touch_n=3
+
+----------------------------------------------------------------------------------------------------------------------
+BOX-RANGE-SETUPS V-2 (Reife-Lockerung: dieselbe Aussengrenze, handelbar ab Geburt >= 2 Touches): 7
+----------------------------------------------------------------------------------------------------------------------
+  SHORT bar   22 (10.08 05:30) an K  2 basis=63.678 sweep=63.684 close=63.623 touch_n=2
+  LONG  bar   60 (10.08 15:00) an K  8 basis=63.770 sweep=63.577 close=63.923 touch_n=2
+  SHORT bar  223 (12.08 09:45) an K 15 basis=66.047 sweep=66.146 close=66.036 touch_n=2
+  LONG  bar  398 (14.08 07:30) an K  5 basis=63.619 sweep=63.485 close=63.757 touch_n=4
+  SHORT bar  527 (17.08 16:45) an K 31 basis=66.327 sweep=66.378 close=66.199 touch_n=3
+  SHORT bar  562 (18.08 02:30) an K 31 basis=66.345 sweep=66.414 close=66.254 touch_n=4
+  LONG  bar  639 (18.08 21:45) an K  1 basis=63.485 sweep=63.348 close=63.533 touch_n=3
+
+
+======================================================================================================================
+STRAIGHT-EDGE-AUDIT AUG | SE_BAND_PCT 0.115 | Box < 19.08 (bars < 644)
+======================================================================================================================
+Gekeimte SE-Kanten gesamt: 65 (OBEN 33 / UNTEN 32) | >= 3 Touches (reif): 47 | mit Box-Docht: 34
+
+----------------------------------------------------------------------------------------------------------------------
+SE-KANTEN MIT BOX-DOCHT (chronologisch nach Geburt; basis = Box-End-Mittel)
+----------------------------------------------------------------------------------------------------------------------
+  K  2 OBEN  basis_box=  63.678 (end   63.678) geb=  18 (10.08 04:30) n= 2 wicks_box=[12,18]
+  K  0 OBEN  basis_box=  63.884 (end   63.884) geb=  25 (10.08 06:15) n= 4 wicks_box=[5,25,634,638]
+  K  6 OBEN  basis_box=  64.284 (end   64.284) geb=  45 (10.08 11:15) n= 2 wicks_box=[31,45]
+  K  8 UNTEN basis_box=  63.758 (end   63.758) geb=  57 (10.08 14:15) n= 5 wicks_box=[52,57,380,627,635]
+  K  5 UNTEN basis_box=  63.633 (end   63.633) geb=  60 (10.08 15:00) n= 5 wicks_box=[30,60,63,386,632]
+  K  9 OBEN  basis_box=  64.108 (end   64.108) geb=  62 (10.08 15:30) n= 4 wicks_box=[56,62,386,624]
+  K 12 OBEN  basis_box=  65.257 (end   65.257) geb=  78 (10.08 19:30) n= 9 wicks_box=[72,78,148,155,275,463,578,609,614]
+  K 16 OBEN  basis_box=  65.899 (end   65.905) geb=  96 (11.08 01:00) n=12 wicks_box=[90,96,114,478,492,495,498,510,514,547  (+2 nach Box)]
+  K 17 UNTEN basis_box=  65.602 (end   65.602) geb= 111 (11.08 04:45) n=13 wicks_box=[92,111,242,246,252,475,493,497,512,544,553  (+2 nach Box)]
+  K 11 UNTEN basis_box=  64.457 (end   64.457) geb= 122 (11.08 07:30) n= 6 wicks_box=[69,122,177,342,349,410]
+  K 10 OBEN  basis_box=  64.903 (end   64.903) geb= 135 (11.08 10:45) n= 6 wicks_box=[67,135,187,352,416,444]
+  K 13 UNTEN basis_box=  64.714 (end   64.714) geb= 154 (11.08 15:30) n=10 wicks_box=[75,154,157,192,196,442,447,452,466,582]
+  K 25 OBEN  basis_box=  65.126 (end   65.126) geb= 160 (11.08 17:00) n= 7 wicks_box=[141,160,165,196,343,594,603]
+  K 23 UNTEN basis_box=  64.331 (end   64.331) geb= 162 (11.08 17:30) n= 7 wicks_box=[130,162,172,320,346,368,372]
+  K 27 OBEN  basis_box=  64.785 (end   64.785) geb= 179 (11.08 21:45) n= 4 wicks_box=[175,179,315,357]
+  K 24 UNTEN basis_box=  64.601 (end   64.601) geb= 184 (12.08 00:00) n= 7 wicks_box=[136,184,312,356,414,420,458]
+  K 14 UNTEN basis_box=  65.042 (end   65.042) geb= 209 (12.08 06:15) n= 6 wicks_box=[81,209,259,279,300,520]
+  K 26 OBEN  basis_box=  65.326 (end   65.326) geb= 211 (12.08 06:45) n= 2 wicks_box=[144,211]
+  K 15 OBEN  basis_box=  66.047 (end   66.046) geb= 220 (12.08 09:00) n= 3 wicks_box=[85,220  (+1 nach Box)]
+  K 31 OBEN  basis_box=  66.345 (end   66.360) geb= 249 (12.08 16:15) n= 5 wicks_box=[237,249,286,536  (+1 nach Box)]
+  K 33 OBEN  basis_box=  65.594 (end   65.594) geb= 267 (12.08 20:45) n= 4 wicks_box=[262,267,296,306]
+  K 34 UNTEN basis_box=  65.213 (end   65.213) geb= 273 (12.08 22:15) n= 2 wicks_box=[264,273]
+  K 29 UNTEN basis_box=  64.923 (end   64.923) geb= 294 (13.08 04:30) n= 4 wicks_box=[214,294,437,606]
+  K 21 UNTEN basis_box=  64.206 (end   64.206) geb= 316 (13.08 10:00) n= 4 wicks_box=[126,316,361,406]
+  K 37 UNTEN basis_box=  64.813 (end   64.816) geb= 334 (13.08 14:30) n= 4 wicks_box=[330,334,592  (+1 nach Box)]
+  K  1 UNTEN basis_box=  63.485 (end   63.485) geb= 398 (14.08 07:30) n= 3 wicks_box=[7,398,621]
+  K 40 OBEN  basis_box=  64.695 (end   64.695) geb= 407 (14.08 09:45) n= 2 wicks_box=[376,407]
+  K 28 OBEN  basis_box=  65.709 (end   65.709) geb= 433 (14.08 16:15) n= 2 wicks_box=[204,433]
+  K 19 UNTEN basis_box=  65.407 (end   65.418) geb= 479 (17.08 04:45) n= 6 wicks_box=[104,479,485,503,508  (+1 nach Box)]
+  K 32 UNTEN basis_box=  65.486 (end   65.486) geb= 500 (17.08 10:00) n= 2 wicks_box=[255,500]
+  K 18 UNTEN basis_box=  65.698 (end   65.698) geb= 550 (17.08 22:30) n= 2 wicks_box=[98,550]
+  K 45 OBEN  basis_box=  66.537 (end   66.537) geb= 565 (18.08 03:15) n= 2 wicks_box=[529,565]
+  K 48 OBEN  basis_box=  65.463 (end   65.462) geb= 585 (18.08 08:15) n= 3 wicks_box=[572,585  (+1 nach Box)]
+  K  3 UNTEN basis_box=  62.967 (end   63.003) geb= 682 (19.08 09:30) n= 3 wicks_box=[14  (+2 nach Box)]
+
+SEEDS (Singleton-Dochte, bis Box-Ende NICHT gekeimt): 17
+  K 50 UNTEN basis=  63.156 bar= 643 (18.08 22:45)
+  K  4 UNTEN basis=  63.252 bar=  20 (10.08 05:00)
+  K 42 UNTEN basis=  63.916 bar= 392 (14.08 06:00)
+  K 49 OBEN  basis=  63.994 bar= 629 (18.08 19:15)
+  K  7 UNTEN basis=  64.071 bar=  43 (10.08 10:45)
+  K 41 OBEN  basis=  64.184 bar= 390 (14.08 05:30)
+  K 43 OBEN  basis=  64.384 bar= 400 (14.08 08:00)
+  K 39 OBEN  basis=  64.464 bar= 365 (13.08 22:15)
+  K 22 OBEN  basis=  64.552 bar= 128 (11.08 09:00)
+  K 36 OBEN  basis=  65.024 bar= 327 (13.08 12:45)
+  K 35 UNTEN basis=  65.293 bar= 291 (13.08 03:45)
+  K 38 OBEN  basis=  65.409 bar= 336 (13.08 15:00)
+  K 47 OBEN  basis=  65.791 bar= 552 (18.08 00:00)
+  K 30 UNTEN basis=  66.076 bar= 235 (12.08 12:45)
+  K 44 OBEN  basis=  66.206 bar= 473 (17.08 03:15)
+  K 46 UNTEN basis=  66.234 bar= 534 (17.08 18:30)
+  K 20 OBEN  basis=  66.459 bar= 107 (11.08 03:45)
+
+----------------------------------------------------------------------------------------------------------------------
+SWEEP-SPERRE (Commit a771e04): Reclaim-Dochte der aeussersten Referenz der Seite (INKL. Singleton-Seeds) bilden keine neuen Linien | Sperren gesamt: 14
+----------------------------------------------------------------------------------------------------------------------
+  bar    9 (10.08 02:15) OBEN  docht=64.013 | aeusserste Referenz 63.906 | Ueberdehnung 0.167% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar   39 (10.08 09:45) OBEN  docht=64.437 | aeusserste Referenz 64.312 | Ueberdehnung 0.194% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar   42 (10.08 10:30) OBEN  docht=64.409 | aeusserste Referenz 64.312 | Ueberdehnung 0.151% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar  101 (11.08 02:15) OBEN  docht=66.223 | aeusserste Referenz 66.046 | Ueberdehnung 0.268% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar  229 (12.08 11:15) OBEN  docht=66.776 | aeusserste Referenz 66.459 | Ueberdehnung 0.477% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed   <== K33 (Seed 229/66.776) ELIMINIERT
+  bar  242 (12.08 14:30) OBEN  docht=66.663 | aeusserste Referenz 66.459 | Ueberdehnung 0.307% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed   <== K36 (Seed 242/66.663) ELIMINIERT
+  bar  650 (19.08 01:30) UNTEN docht=62.721 | aeusserste Referenz 62.967 | Ueberdehnung 0.391% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar  745 (20.08 02:15) OBEN  docht=67.288 | aeusserste Referenz 67.076 | Ueberdehnung 0.316% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar  752 (20.08 04:00) OBEN  docht=67.294 | aeusserste Referenz 67.076 | Ueberdehnung 0.325% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar  756 (20.08 05:00) OBEN  docht=67.188 | aeusserste Referenz 67.076 | Ueberdehnung 0.167% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar  759 (20.08 05:45) OBEN  docht=67.236 | aeusserste Referenz 67.076 | Ueberdehnung 0.239% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar  764 (20.08 07:00) OBEN  docht=67.282 | aeusserste Referenz 67.076 | Ueberdehnung 0.307% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar  853 (21.08 06:15) OBEN  docht=69.172 | aeusserste Referenz 68.989 | Ueberdehnung 0.265% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar  859 (21.08 07:45) OBEN  docht=69.188 | aeusserste Referenz 68.989 | Ueberdehnung 0.288% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  -> K33 (Seed 229/66.776): ELIMINIERT | K36 (Seed 242/66.663): ELIMINIERT
+
+######################################################################################################################
+# SOLL-ZONEN-ABDECKUNG (menschl. Zaehlung +/- 0.15 USD um Anker)
+######################################################################################################################
+
+[UPPER-WAND] (OBEN, Anker 66.46) Soll 5: [107, 237, 249, 529, 536] | Soll 5/5; SE erwartet Sub-Linien ~66.36/66.51 (Band-Scan)
+  SE-Kanten im Zonen-Band (box-basis): 2
+    K 45 basis_box=  66.537 n=2 wicks_box=[529, 565]  <== Soll-Dochte [529]
+    K 31 basis_box=  66.345 n=5 wicks_box=[237, 249, 286, 536]  <== Soll-Dochte [237, 249, 536]
+  -> Soll-Bars abgedeckt: 4/5 [(107, None), (237, 31), (249, 31), (529, 45), (536, 31)]
+  -> FEHLEND (orphan, kein Zonen-Kanten-Docht): [107]
+
+[LOWER-MAIN] (UNTEN, Anker 63.67) Soll 7: [30, 52, 57, 60, 63, 380, 386] | Soll 7/7 = menschl. Zonen-Zaehlung; SE: Staffelung 63.62/63.70-63.79
+  SE-Kanten im Zonen-Band (box-basis): 2
+    K  5 basis_box=  63.633 n=5 wicks_box=[30, 60, 63, 386, 632]  <== Soll-Dochte [30, 60, 63, 386]
+    K  8 basis_box=  63.758 n=5 wicks_box=[52, 57, 380, 627, 635]  <== Soll-Dochte [52, 57, 380]
+  -> Soll-Bars abgedeckt: 7/7 [(30, 5), (52, 8), (57, 8), (60, 5), (63, 5), (380, 8), (386, 5)]
+
+[MINOR-DOMINANT] (UNTEN, Anker 64.22) Soll 4: [126, 316, 320, 361] | E1: dominant 64.22 = 4/4
+  SE-Kanten im Zonen-Band (box-basis): 2
+    K 21 basis_box=  64.206 n=4 wicks_box=[126, 316, 361, 406]  <== Soll-Dochte [126, 316, 361]
+    K 23 basis_box=  64.331 n=7 wicks_box=[130, 162, 172, 320, 346, 368, 372]  <== Soll-Dochte [320]
+  -> Soll-Bars abgedeckt: 4/4 [(126, 21), (316, 21), (320, 23), (361, 21)]
+
+[MINOR-JUNIOR] (UNTEN, Anker 64.31) Soll 3: [130, 162, 368] | E1: Junior 64.31 = 3/3, ZWISCHEN_LEVEL (stumm)
+  SE-Kanten im Zonen-Band (box-basis): 3
+    K 23 basis_box=  64.331 n=7 wicks_box=[130, 162, 172, 320, 346, 368, 372]  <== Soll-Dochte [130, 162, 368]
+    K 21 basis_box=  64.206 n=4 wicks_box=[126, 316, 361, 406]
+    K 11 basis_box=  64.457 n=6 wicks_box=[69, 122, 177, 342, 349, 410]
+  -> Soll-Bars abgedeckt: 3/3 [(130, 23), (162, 23), (368, 23)]
+
+----------------------------------------------------------------------------------------------------------------------
+UEBERLAPPUNGSPROTOKOLL (Docht im Band mehrerer Kanten; U1-Entscheid: hoechste touch_anzahl, Gleichstand aeusseres Extremum)
+----------------------------------------------------------------------------------------------------------------------
+  bar  148 (11.08 14:00) OBEN docht=65.294 | Kandidaten: K12(basis 65.233, 2T); K26(basis 65.314, 1T)
+  bar  155 (11.08 15:45) OBEN docht=65.247 | Kandidaten: K12(basis 65.254, 3T); K26(basis 65.314, 1T)
+  bar  252 (12.08 17:00) UNTEN docht=65.642 | Kandidaten: K17(basis 65.587, 4T); K18(basis 65.695, 1T)
+  bar  275 (12.08 22:45) OBEN docht=65.317 | Kandidaten: K12(basis 65.252, 4T); K26(basis 65.326, 2T)
+  bar  320 (13.08 11:00) UNTEN docht=64.268 | Kandidaten: K21(basis 64.206, 2T); K23(basis 64.333, 3T)
+  bar  372 (14.08 01:00) UNTEN docht=64.388 | Kandidaten: K11(basis 64.454, 5T); K23(basis 64.322, 6T)
+  bar  444 (14.08 19:00) OBEN docht=64.961 | Kandidaten: K10(basis 64.892, 5T); K36(basis 65.024, 1T)
+  bar  452 (14.08 21:00) UNTEN docht=64.647 | Kandidaten: K13(basis 64.716, 7T); K24(basis 64.599, 6T)
+  bar  466 (17.08 01:30) UNTEN docht=64.746 | Kandidaten: K13(basis 64.708, 8T); K37(basis 64.810, 2T)
+  bar  485 (17.08 06:15) UNTEN docht=65.362 | Kandidaten: K19(basis 65.407, 2T); K35(basis 65.293, 1T)
+  bar  493 (17.08 08:15) UNTEN docht=65.654 | Kandidaten: K17(basis 65.599, 6T); K18(basis 65.695, 1T)
+  bar  498 (17.08 09:30) OBEN docht=65.973 | Kandidaten: K15(basis 66.047, 2T); K16(basis 65.898, 6T)
+  bar  503 (17.08 10:45) UNTEN docht=65.433 | Kandidaten: K19(basis 65.392, 3T); K32(basis 65.486, 2T)
+  bar  508 (17.08 12:00) UNTEN docht=65.424 | Kandidaten: K19(basis 65.402, 4T); K32(basis 65.486, 2T)
+  bar  512 (17.08 13:00) UNTEN docht=65.534 | Kandidaten: K17(basis 65.605, 8T); K32(basis 65.486, 2T)
+  bar  536 (17.08 19:00) OBEN docht=66.399 | Kandidaten: K20(basis 66.459, 1T); K31(basis 66.327, 3T)
+  bar  544 (17.08 21:00) UNTEN docht=65.650 | Kandidaten: K17(basis 65.597, 9T); K18(basis 65.695, 1T)
+  bar  582 (18.08 07:30) UNTEN docht=64.736 | Kandidaten: K13(basis 64.712, 9T); K37(basis 64.810, 2T)
+  bar  585 (18.08 08:15) OBEN docht=65.437 | Kandidaten: K38(basis 65.409, 1T); K48(basis 65.490, 1T)
+  bar  594 (18.08 10:30) OBEN docht=65.098 | Kandidaten: K25(basis 65.129, 5T); K36(basis 65.024, 1T)
+  bar  614 (18.08 15:30) OBEN docht=65.296 | Kandidaten: K12(basis 65.252, 8T); K26(basis 65.326, 2T)
+  bar  624 (18.08 18:00) OBEN docht=64.116 | Kandidaten: K9(basis 64.106, 3T); K41(basis 64.184, 1T)
+  bar  706 (19.08 15:30) OBEN docht=65.458 | Kandidaten: K38(basis 65.409, 1T); K48(basis 65.463, 2T)
+  bar  725 (19.08 20:15) UNTEN docht=65.474 | Kandidaten: K19(basis 65.407, 5T); K32(basis 65.486, 2T)
+  bar  730 (19.08 21:30) OBEN docht=66.420 | Kandidaten: K20(basis 66.459, 1T); K31(basis 66.345, 4T)
+  bar  840 (21.08 03:00) UNTEN docht=67.883 | Kandidaten: K65(basis 67.936, 2T); K68(basis 67.831, 1T)
+  bar  928 (24.08 02:00) OBEN docht=69.638 | Kandidaten: K79(basis 69.715, 1T); K80(basis 69.613, 1T)
+  bar  956 (24.08 09:00) OBEN docht=69.263 | Kandidaten: K84(basis 69.332, 1T); K85(basis 69.189, 1T)
+  bar  980 (24.08 15:00) OBEN docht=69.899 | Kandidaten: K74(basis 69.969, 3T); K77(basis 69.841, 1T)
+  bar 1023 (25.08 02:45) OBEN docht=69.684 | Kandidaten: K79(basis 69.677, 2T); K80(basis 69.613, 1T)
+  bar 1063 (25.08 12:45) UNTEN docht=67.783 | Kandidaten: K67(basis 67.712, 3T); K68(basis 67.831, 1T)
+  bar 1091 (25.08 19:45) OBEN docht=68.943 | Kandidaten: K64(basis 69.003, 5T); K86(basis 68.885, 2T)
+  bar 1126 (26.08 05:30) OBEN docht=69.474 | Kandidaten: K81(basis 69.425, 2T); K82(basis 69.524, 2T)
+  bar 1143 (26.08 09:45) OBEN docht=68.938 | Kandidaten: K64(basis 68.986, 7T); K86(basis 68.861, 3T)
+  bar 1149 (26.08 11:15) UNTEN docht=68.436 | Kandidaten: K83(basis 68.370, 2T); K91(basis 68.512, 2T)
+  bar 1153 (26.08 12:15) UNTEN docht=68.440 | Kandidaten: K83(basis 68.392, 3T); K91(basis 68.512, 2T)
+  bar 1157 (26.08 13:15) UNTEN docht=68.357 | Kandidaten: K83(basis 68.404, 4T); K87(basis 68.288, 1T)
+  bar 1165 (26.08 15:15) UNTEN docht=67.882 | Kandidaten: K65(basis 67.918, 3T); K68(basis 67.831, 1T)
+  bar 1172 (26.08 17:00) UNTEN docht=67.494 | Kandidaten: K88(basis 67.544, 2T); K90(basis 67.420, 1T)
+  bar 1176 (26.08 18:00) UNTEN docht=67.807 | Kandidaten: K67(basis 67.730, 4T); K68(basis 67.831, 1T)
+  ... +10 weitere
+
+----------------------------------------------------------------------------------------------------------------------
+BOX-RANGE-SETUPS V-S (streng §7.2: aeusserste aktive geborene Kante, handelbar ab >= 3 Touches): 4
+----------------------------------------------------------------------------------------------------------------------
+  LONG  bar  398 (14.08 07:30) an K  5 basis=63.619 sweep=63.485 close=63.757 touch_n=4
+  SHORT bar  527 (17.08 16:45) an K 31 basis=66.327 sweep=66.378 close=66.199 touch_n=3
+  SHORT bar  562 (18.08 02:30) an K 31 basis=66.345 sweep=66.414 close=66.254 touch_n=4
+  LONG  bar  639 (18.08 21:45) an K  1 basis=63.485 sweep=63.348 close=63.533 touch_n=3
+
+----------------------------------------------------------------------------------------------------------------------
+BOX-RANGE-SETUPS V-2 (Reife-Lockerung: dieselbe Aussengrenze, handelbar ab Geburt >= 2 Touches): 7
+----------------------------------------------------------------------------------------------------------------------
+  SHORT bar   22 (10.08 05:30) an K  2 basis=63.678 sweep=63.684 close=63.623 touch_n=2
+  LONG  bar   60 (10.08 15:00) an K  8 basis=63.770 sweep=63.577 close=63.923 touch_n=2
+  SHORT bar  223 (12.08 09:45) an K 15 basis=66.047 sweep=66.146 close=66.036 touch_n=2
+  LONG  bar  398 (14.08 07:30) an K  5 basis=63.619 sweep=63.485 close=63.757 touch_n=4
+  SHORT bar  527 (17.08 16:45) an K 31 basis=66.327 sweep=66.378 close=66.199 touch_n=3
+  SHORT bar  562 (18.08 02:30) an K 31 basis=66.345 sweep=66.414 close=66.254 touch_n=4
+  LONG  bar  639 (18.08 21:45) an K  1 basis=63.485 sweep=63.348 close=63.533 touch_n=3
+
+
+======================================================================================================================
+STRAIGHT-EDGE-AUDIT AUG | SE_BAND_PCT 0.120 | Box < 19.08 (bars < 644)
+======================================================================================================================
+Gekeimte SE-Kanten gesamt: 65 (OBEN 33 / UNTEN 32) | >= 3 Touches (reif): 49 | mit Box-Docht: 34
+
+----------------------------------------------------------------------------------------------------------------------
+SE-KANTEN MIT BOX-DOCHT (chronologisch nach Geburt; basis = Box-End-Mittel)
+----------------------------------------------------------------------------------------------------------------------
+  K  2 OBEN  basis_box=  63.678 (end   63.678) geb=  18 (10.08 04:30) n= 2 wicks_box=[12,18]
+  K  0 OBEN  basis_box=  63.884 (end   63.884) geb=  25 (10.08 06:15) n= 4 wicks_box=[5,25,634,638]
+  K  6 OBEN  basis_box=  64.284 (end   64.284) geb=  45 (10.08 11:15) n= 2 wicks_box=[31,45]
+  K  8 UNTEN basis_box=  63.758 (end   63.758) geb=  57 (10.08 14:15) n= 5 wicks_box=[52,57,380,627,635]
+  K  5 UNTEN basis_box=  63.633 (end   63.633) geb=  60 (10.08 15:00) n= 5 wicks_box=[30,60,63,386,632]
+  K  9 OBEN  basis_box=  64.108 (end   64.108) geb=  62 (10.08 15:30) n= 4 wicks_box=[56,62,386,624]
+  K 12 OBEN  basis_box=  65.257 (end   65.257) geb=  78 (10.08 19:30) n= 9 wicks_box=[72,78,148,155,275,463,578,609,614]
+  K 16 OBEN  basis_box=  65.899 (end   65.905) geb=  96 (11.08 01:00) n=12 wicks_box=[90,96,114,478,492,495,498,510,514,547  (+2 nach Box)]
+  K 17 UNTEN basis_box=  65.602 (end   65.602) geb= 111 (11.08 04:45) n=13 wicks_box=[92,111,242,246,252,475,493,497,512,544,553  (+2 nach Box)]
+  K 11 UNTEN basis_box=  64.457 (end   64.457) geb= 122 (11.08 07:30) n= 6 wicks_box=[69,122,177,342,349,410]
+  K 10 OBEN  basis_box=  64.845 (end   64.845) geb= 135 (11.08 10:45) n= 7 wicks_box=[67,135,179,187,315,357,416]
+  K 13 UNTEN basis_box=  64.730 (end   64.730) geb= 154 (11.08 15:30) n=10 wicks_box=[75,154,157,192,196,334,442,447,466,582]
+  K 25 OBEN  basis_box=  65.126 (end   65.126) geb= 160 (11.08 17:00) n= 7 wicks_box=[141,160,165,196,343,594,603]
+  K 23 UNTEN basis_box=  64.331 (end   64.331) geb= 162 (11.08 17:30) n= 7 wicks_box=[130,162,172,320,346,368,372]
+  K 24 UNTEN basis_box=  64.607 (end   64.607) geb= 184 (12.08 00:00) n= 8 wicks_box=[136,184,312,356,414,420,452,458]
+  K 14 UNTEN basis_box=  65.031 (end   65.031) geb= 209 (12.08 06:15) n= 7 wicks_box=[81,209,259,279,300,437,520]
+  K 26 OBEN  basis_box=  65.326 (end   65.326) geb= 211 (12.08 06:45) n= 2 wicks_box=[144,211]
+  K 15 OBEN  basis_box=  66.047 (end   66.046) geb= 220 (12.08 09:00) n= 3 wicks_box=[85,220  (+1 nach Box)]
+  K 31 OBEN  basis_box=  66.345 (end   66.360) geb= 249 (12.08 16:15) n= 5 wicks_box=[237,249,286,536  (+1 nach Box)]
+  K 33 OBEN  basis_box=  65.594 (end   65.594) geb= 267 (12.08 20:45) n= 4 wicks_box=[262,267,296,306]
+  K 34 UNTEN basis_box=  65.213 (end   65.213) geb= 273 (12.08 22:15) n= 2 wicks_box=[264,273]
+  K 29 UNTEN basis_box=  64.918 (end   64.918) geb= 294 (13.08 04:30) n= 2 wicks_box=[214,294]
+  K 21 UNTEN basis_box=  64.206 (end   64.206) geb= 316 (13.08 10:00) n= 4 wicks_box=[126,316,361,406]
+  K 27 OBEN  basis_box=  64.709 (end   64.709) geb= 376 (14.08 02:00) n= 3 wicks_box=[175,376,407]
+  K  1 UNTEN basis_box=  63.485 (end   63.485) geb= 398 (14.08 07:30) n= 3 wicks_box=[7,398,621]
+  K 28 OBEN  basis_box=  65.709 (end   65.709) geb= 433 (14.08 16:15) n= 2 wicks_box=[204,433]
+  K 36 OBEN  basis_box=  64.993 (end   64.993) geb= 444 (14.08 19:00) n= 2 wicks_box=[327,444]
+  K 19 UNTEN basis_box=  65.407 (end   65.418) geb= 479 (17.08 04:45) n= 6 wicks_box=[104,479,485,503,508  (+1 nach Box)]
+  K 32 UNTEN basis_box=  65.486 (end   65.486) geb= 500 (17.08 10:00) n= 2 wicks_box=[255,500]
+  K 20 OBEN  basis_box=  66.511 (end   66.511) geb= 529 (17.08 17:15) n= 3 wicks_box=[107,529,565]
+  K 18 UNTEN basis_box=  65.698 (end   65.698) geb= 550 (17.08 22:30) n= 2 wicks_box=[98,550]
+  K 47 OBEN  basis_box=  65.463 (end   65.462) geb= 585 (18.08 08:15) n= 3 wicks_box=[572,585  (+1 nach Box)]
+  K 37 UNTEN basis_box=  64.845 (end   64.840) geb= 592 (18.08 10:00) n= 4 wicks_box=[330,592,606  (+1 nach Box)]
+  K  3 UNTEN basis_box=  62.967 (end   63.003) geb= 682 (19.08 09:30) n= 3 wicks_box=[14  (+2 nach Box)]
+
+SEEDS (Singleton-Dochte, bis Box-Ende NICHT gekeimt): 16
+  K 49 UNTEN basis=  63.156 bar= 643 (18.08 22:45)
+  K  4 UNTEN basis=  63.252 bar=  20 (10.08 05:00)
+  K 42 UNTEN basis=  63.916 bar= 392 (14.08 06:00)
+  K 48 OBEN  basis=  63.994 bar= 629 (18.08 19:15)
+  K  7 UNTEN basis=  64.071 bar=  43 (10.08 10:45)
+  K 41 OBEN  basis=  64.184 bar= 390 (14.08 05:30)
+  K 43 OBEN  basis=  64.384 bar= 400 (14.08 08:00)
+  K 40 OBEN  basis=  64.464 bar= 365 (13.08 22:15)
+  K 22 OBEN  basis=  64.552 bar= 128 (11.08 09:00)
+  K 39 OBEN  basis=  64.943 bar= 352 (13.08 19:00)
+  K 35 UNTEN basis=  65.293 bar= 291 (13.08 03:45)
+  K 38 OBEN  basis=  65.409 bar= 336 (13.08 15:00)
+  K 46 OBEN  basis=  65.791 bar= 552 (18.08 00:00)
+  K 30 UNTEN basis=  66.076 bar= 235 (12.08 12:45)
+  K 44 OBEN  basis=  66.206 bar= 473 (17.08 03:15)
+  K 45 UNTEN basis=  66.234 bar= 534 (17.08 18:30)
+
+----------------------------------------------------------------------------------------------------------------------
+SWEEP-SPERRE (Commit a771e04): Reclaim-Dochte der aeussersten Referenz der Seite (INKL. Singleton-Seeds) bilden keine neuen Linien | Sperren gesamt: 14
+----------------------------------------------------------------------------------------------------------------------
+  bar    9 (10.08 02:15) OBEN  docht=64.013 | aeusserste Referenz 63.906 | Ueberdehnung 0.167% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar   39 (10.08 09:45) OBEN  docht=64.437 | aeusserste Referenz 64.312 | Ueberdehnung 0.194% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar   42 (10.08 10:30) OBEN  docht=64.409 | aeusserste Referenz 64.312 | Ueberdehnung 0.151% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar  101 (11.08 02:15) OBEN  docht=66.223 | aeusserste Referenz 66.046 | Ueberdehnung 0.268% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar  229 (12.08 11:15) OBEN  docht=66.776 | aeusserste Referenz 66.459 | Ueberdehnung 0.477% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed   <== K33 (Seed 229/66.776) ELIMINIERT
+  bar  242 (12.08 14:30) OBEN  docht=66.663 | aeusserste Referenz 66.459 | Ueberdehnung 0.307% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed   <== K36 (Seed 242/66.663) ELIMINIERT
+  bar  650 (19.08 01:30) UNTEN docht=62.721 | aeusserste Referenz 62.967 | Ueberdehnung 0.391% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar  745 (20.08 02:15) OBEN  docht=67.288 | aeusserste Referenz 67.076 | Ueberdehnung 0.316% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar  752 (20.08 04:00) OBEN  docht=67.294 | aeusserste Referenz 67.076 | Ueberdehnung 0.325% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar  756 (20.08 05:00) OBEN  docht=67.188 | aeusserste Referenz 67.076 | Ueberdehnung 0.167% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar  759 (20.08 05:45) OBEN  docht=67.236 | aeusserste Referenz 67.076 | Ueberdehnung 0.239% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar  764 (20.08 07:00) OBEN  docht=67.282 | aeusserste Referenz 67.076 | Ueberdehnung 0.307% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar  853 (21.08 06:15) OBEN  docht=69.172 | aeusserste Referenz 68.989 | Ueberdehnung 0.265% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  bar  859 (21.08 07:45) OBEN  docht=69.188 | aeusserste Referenz 68.989 | Ueberdehnung 0.288% > arret. touch_band 0.12% | Reclaim im Grace-Fenster (2 Bars) -> KEIN Seed
+  -> K33 (Seed 229/66.776): ELIMINIERT | K36 (Seed 242/66.663): ELIMINIERT
+
+######################################################################################################################
+# SOLL-ZONEN-ABDECKUNG (menschl. Zaehlung +/- 0.15 USD um Anker)
+######################################################################################################################
+
+[UPPER-WAND] (OBEN, Anker 66.46) Soll 5: [107, 237, 249, 529, 536] | Soll 5/5; SE erwartet Sub-Linien ~66.36/66.51 (Band-Scan)
+  SE-Kanten im Zonen-Band (box-basis): 2
+    K 20 basis_box=  66.511 n=3 wicks_box=[107, 529, 565]  <== Soll-Dochte [107, 529]
+    K 31 basis_box=  66.345 n=5 wicks_box=[237, 249, 286, 536]  <== Soll-Dochte [237, 249, 536]
+  -> Soll-Bars abgedeckt: 5/5 [(107, 20), (237, 31), (249, 31), (529, 20), (536, 31)]
+
+[LOWER-MAIN] (UNTEN, Anker 63.67) Soll 7: [30, 52, 57, 60, 63, 380, 386] | Soll 7/7 = menschl. Zonen-Zaehlung; SE: Staffelung 63.62/63.70-63.79
+  SE-Kanten im Zonen-Band (box-basis): 2
+    K  5 basis_box=  63.633 n=5 wicks_box=[30, 60, 63, 386, 632]  <== Soll-Dochte [30, 60, 63, 386]
+    K  8 basis_box=  63.758 n=5 wicks_box=[52, 57, 380, 627, 635]  <== Soll-Dochte [52, 57, 380]
+  -> Soll-Bars abgedeckt: 7/7 [(30, 5), (52, 8), (57, 8), (60, 5), (63, 5), (380, 8), (386, 5)]
+
+[MINOR-DOMINANT] (UNTEN, Anker 64.22) Soll 4: [126, 316, 320, 361] | E1: dominant 64.22 = 4/4
+  SE-Kanten im Zonen-Band (box-basis): 2
+    K 21 basis_box=  64.206 n=4 wicks_box=[126, 316, 361, 406]  <== Soll-Dochte [126, 316, 361]
+    K 23 basis_box=  64.331 n=7 wicks_box=[130, 162, 172, 320, 346, 368, 372]  <== Soll-Dochte [320]
+  -> Soll-Bars abgedeckt: 4/4 [(126, 21), (316, 21), (320, 23), (361, 21)]
+
+[MINOR-JUNIOR] (UNTEN, Anker 64.31) Soll 3: [130, 162, 368] | E1: Junior 64.31 = 3/3, ZWISCHEN_LEVEL (stumm)
+  SE-Kanten im Zonen-Band (box-basis): 3
+    K 23 basis_box=  64.331 n=7 wicks_box=[130, 162, 172, 320, 346, 368, 372]  <== Soll-Dochte [130, 162, 368]
+    K 21 basis_box=  64.206 n=4 wicks_box=[126, 316, 361, 406]
+    K 11 basis_box=  64.457 n=6 wicks_box=[69, 122, 177, 342, 349, 410]
+  -> Soll-Bars abgedeckt: 3/3 [(130, 23), (162, 23), (368, 23)]
+
+----------------------------------------------------------------------------------------------------------------------
+UEBERLAPPUNGSPROTOKOLL (Docht im Band mehrerer Kanten; U1-Entscheid: hoechste touch_anzahl, Gleichstand aeusseres Extremum)
+----------------------------------------------------------------------------------------------------------------------
+  bar  148 (11.08 14:00) OBEN docht=65.294 | Kandidaten: K12(basis 65.233, 2T); K26(basis 65.314, 1T)
+  bar  155 (11.08 15:45) OBEN docht=65.247 | Kandidaten: K12(basis 65.254, 3T); K26(basis 65.314, 1T)
+  bar  179 (11.08 21:45) OBEN docht=64.799 | Kandidaten: K10(basis 64.874, 2T); K27(basis 64.738, 1T)
+  bar  252 (12.08 17:00) UNTEN docht=65.642 | Kandidaten: K17(basis 65.587, 4T); K18(basis 65.695, 1T)
+  bar  275 (12.08 22:45) OBEN docht=65.317 | Kandidaten: K12(basis 65.252, 4T); K26(basis 65.326, 2T)
+  bar  315 (13.08 09:45) OBEN docht=64.791 | Kandidaten: K10(basis 64.854, 4T); K27(basis 64.738, 1T)
+  bar  320 (13.08 11:00) UNTEN docht=64.268 | Kandidaten: K21(basis 64.206, 2T); K23(basis 64.333, 3T)
+  bar  334 (13.08 14:30) UNTEN docht=64.798 | Kandidaten: K13(basis 64.723, 5T); K37(basis 64.823, 1T)
+  bar  357 (13.08 20:15) OBEN docht=64.811 | Kandidaten: K10(basis 64.841, 5T); K27(basis 64.738, 1T)
+  bar  372 (14.08 01:00) UNTEN docht=64.388 | Kandidaten: K11(basis 64.454, 5T); K23(basis 64.322, 6T)
+  bar  416 (14.08 12:00) OBEN docht=64.900 | Kandidaten: K10(basis 64.836, 6T); K39(basis 64.943, 1T)
+  bar  437 (14.08 17:15) UNTEN docht=64.964 | Kandidaten: K14(basis 65.042, 5T); K29(basis 64.918, 2T)
+  bar  444 (14.08 19:00) OBEN docht=64.961 | Kandidaten: K36(basis 65.024, 1T); K39(basis 64.943, 1T)
+  bar  466 (17.08 01:30) UNTEN docht=64.746 | Kandidaten: K13(basis 64.727, 8T); K37(basis 64.823, 1T)
+  bar  485 (17.08 06:15) UNTEN docht=65.362 | Kandidaten: K19(basis 65.407, 2T); K35(basis 65.293, 1T)
+  bar  493 (17.08 08:15) UNTEN docht=65.654 | Kandidaten: K17(basis 65.599, 6T); K18(basis 65.695, 1T)
+  bar  498 (17.08 09:30) OBEN docht=65.973 | Kandidaten: K15(basis 66.047, 2T); K16(basis 65.898, 6T)
+  bar  503 (17.08 10:45) UNTEN docht=65.433 | Kandidaten: K19(basis 65.392, 3T); K32(basis 65.486, 2T)
+  bar  508 (17.08 12:00) UNTEN docht=65.424 | Kandidaten: K19(basis 65.402, 4T); K32(basis 65.486, 2T)
+  bar  512 (17.08 13:00) UNTEN docht=65.534 | Kandidaten: K17(basis 65.605, 8T); K32(basis 65.486, 2T)
+  bar  544 (17.08 21:00) UNTEN docht=65.650 | Kandidaten: K17(basis 65.597, 9T); K18(basis 65.695, 1T)
+  bar  585 (18.08 08:15) OBEN docht=65.437 | Kandidaten: K38(basis 65.409, 1T); K47(basis 65.490, 1T)
+  bar  606 (18.08 13:30) UNTEN docht=64.893 | Kandidaten: K29(basis 64.918, 2T); K37(basis 64.820, 2T)
+  bar  614 (18.08 15:30) OBEN docht=65.296 | Kandidaten: K12(basis 65.252, 8T); K26(basis 65.326, 2T)
+  bar  624 (18.08 18:00) OBEN docht=64.116 | Kandidaten: K9(basis 64.106, 3T); K41(basis 64.184, 1T)
+  bar  706 (19.08 15:30) OBEN docht=65.458 | Kandidaten: K38(basis 65.409, 1T); K47(basis 65.463, 2T)
+  bar  725 (19.08 20:15) UNTEN docht=65.474 | Kandidaten: K19(basis 65.407, 5T); K32(basis 65.486, 2T)
+  bar  779 (20.08 10:45) UNTEN docht=66.518 | Kandidaten: K58(basis 66.595, 2T); K59(basis 66.455, 1T)
+  bar  840 (21.08 03:00) UNTEN docht=67.883 | Kandidaten: K64(basis 67.936, 2T); K67(basis 67.831, 1T)
+  bar  920 (24.08 00:00) UNTEN docht=68.794 | Kandidaten: K70(basis 68.753, 2T); K75(basis 68.870, 1T)
+  bar  928 (24.08 02:00) OBEN docht=69.638 | Kandidaten: K77(basis 69.715, 1T); K78(basis 69.613, 1T)
+  bar  946 (24.08 06:30) UNTEN docht=68.813 | Kandidaten: K70(basis 68.750, 4T); K75(basis 68.872, 2T)
+  bar  956 (24.08 09:00) OBEN docht=69.263 | Kandidaten: K82(basis 69.332, 1T); K84(basis 69.189, 1T)
+  bar  972 (24.08 13:00) UNTEN docht=68.703 | Kandidaten: K70(basis 68.763, 5T); K83(basis 68.629, 4T)
+  bar  980 (24.08 15:00) OBEN docht=69.899 | Kandidaten: K71(basis 69.969, 3T); K74(basis 69.841, 1T)
+  bar 1020 (25.08 02:00) OBEN docht=69.924 | Kandidaten: K71(basis 69.951, 4T); K74(basis 69.841, 1T)
+  bar 1023 (25.08 02:45) OBEN docht=69.684 | Kandidaten: K77(basis 69.677, 2T); K78(basis 69.613, 1T)
+  bar 1063 (25.08 12:45) UNTEN docht=67.783 | Kandidaten: K66(basis 67.712, 3T); K67(basis 67.831, 1T)
+  bar 1091 (25.08 19:45) OBEN docht=68.943 | Kandidaten: K63(basis 69.003, 5T); K85(basis 68.885, 2T)
+  bar 1126 (26.08 05:30) OBEN docht=69.474 | Kandidaten: K79(basis 69.425, 2T); K80(basis 69.524, 2T)
+  ... +13 weitere
+
+----------------------------------------------------------------------------------------------------------------------
+BOX-RANGE-SETUPS V-S (streng §7.2: aeusserste aktive geborene Kante, handelbar ab >= 3 Touches): 3
+----------------------------------------------------------------------------------------------------------------------
+  LONG  bar  398 (14.08 07:30) an K  5 basis=63.619 sweep=63.485 close=63.757 touch_n=4
+  SHORT bar  527 (17.08 16:45) an K 31 basis=66.327 sweep=66.378 close=66.199 touch_n=3
+  LONG  bar  639 (18.08 21:45) an K  1 basis=63.485 sweep=63.348 close=63.533 touch_n=3
+
+----------------------------------------------------------------------------------------------------------------------
+BOX-RANGE-SETUPS V-2 (Reife-Lockerung: dieselbe Aussengrenze, handelbar ab Geburt >= 2 Touches): 7
+----------------------------------------------------------------------------------------------------------------------
+  SHORT bar   22 (10.08 05:30) an K  2 basis=63.678 sweep=63.684 close=63.623 touch_n=2
+  LONG  bar   60 (10.08 15:00) an K  8 basis=63.770 sweep=63.577 close=63.923 touch_n=2
+  SHORT bar  223 (12.08 09:45) an K 15 basis=66.047 sweep=66.146 close=66.036 touch_n=2
+  LONG  bar  398 (14.08 07:30) an K  5 basis=63.619 sweep=63.485 close=63.757 touch_n=4
+  SHORT bar  527 (17.08 16:45) an K 31 basis=66.327 sweep=66.378 close=66.199 touch_n=3
+  SHORT bar  564 (18.08 03:00) an K 20 basis=66.499 sweep=66.530 close=66.433 touch_n=2
+  LONG  bar  639 (18.08 21:45) an K  1 basis=63.485 sweep=63.348 close=63.533 touch_n=3
+
+
+======================================================================================================================
+ZUSAMMENFASSUNG BAND-SWEEP | Soll-Wand-Zaehlung +/- 0.15 USD | Box-Setups (in_bar)
+======================================================================================================================
+   Band | SE ges  TypB |   UPPER  MAIN  MIN-D  MIN-J |  SetupsS  Setups2
+----------------------------------------------------------------------------------------------------------------------
+  0.110 |     69    49 |     4/5   7/7    4/4    3/3 |        4        7
+  0.115 |     65    47 |     4/5   7/7    4/4    3/3 |        4        7
+  0.120 |     65    49 |     5/5   7/7    4/4    3/3 |        3        7
+----------------------------------------------------------------------------------------------------------------------
+Legende: UPPER/MAIN/MIN-D/MIN-J = abgedeckte Soll-Bars der menschl. Zonen-Zaehlung (nur in der Box gekeimte Kanten); SetupsS = V-S (Aussengrenze ab >= 3 Touches); Setups2 = V-2 (Aussengrenze ab Geburt >= 2 Touches). Alt-C-Box-Signale: 33.
+
+----------------------------------------------------------------------------------------------------------------------
+SWEEP-IMMUNITAETS-NACHWEIS (Commit a771e04 / §7.2-Nachtrag): K33 = Seed 229/66.776, K36 = Seed 242/66.663
+----------------------------------------------------------------------------------------------------------------------
+  Band 0.110: Sperren 14 | K33 JA | K36 JA | SE gesamt  69 | Seeds offen 30 | Soll-Zonen 4/5 7/7 4/4 3/3
+  Band 0.115: Sperren 14 | K33 JA | K36 JA | SE gesamt  65 | Seeds offen 31 | Soll-Zonen 4/5 7/7 4/4 3/3
+  Band 0.120: Sperren 14 | K33 JA | K36 JA | SE gesamt  65 | Seeds offen 29 | Soll-Zonen 5/5 7/7 4/4 3/3
+----------------------------------------------------------------------------------------------------------------------
+  VERDIKT Band 0.120 (Default): ist_perfekt = True
+  Bedingung: K33 eliminiert UND K36 eliminiert UND Soll-Zonen 5/5 7/7 4/4 3/3 -> erfuellt: True (K33=True, K36=True, Zonen 5/5 7/7 4/4 3/3)
+  -> Arretierung bestaetigt: Die Sweep-Immunitaet (Reclaim-Dochte bilden keine Linien) ist additiv nachgewiesen; K33/K36 sind ersatzlos eliminiert, die Soll-Waende bleiben unveraendert. Damit ist diese Tabelle die formale Abnahme-Grundlage fuer das 'Go' zu Schritt B (additiver Umbau von _replay_c im Harness) und Schritt C (AUG-Lauf --modus C).
+
+ENTSCHEIDUNGSPUNKTE FUER DIE ABNNAHME (Schritt C):
+  (1) Band-Default: 0.12 erreicht UPPER 5/5; 0.11/0.115 -> 4/5 (bar 107 bleibt in der Box Singleton-Seed; K23 keimt erst mit bar 730 am 19.08). Arretierter Default-Vorschlag: 0.12.
+  (2) E1-Zwei-Linien Minor: freier Scan weist bar 320 dem Junior zu (Junior erreichte ueber bar 172 zuerst 3 Touches); dominant ~64.21 = {126,316,361,406}, junior ~64.33 = {130,162,172,320,346,368,372}. Zonen-Abdeckung 4/4 bleibt; die E1-Zuordnung (320->dominant) ist mit der freien Keimung nicht reproduzierbar - Entscheidung: freie Keimung akzeptieren oder E1-Zuordnung als Sonderregel arretieren.
+  (3) Upper-Wand: 2 Sub-Linien statt einer 66.42-66.46-Linie: K35 ~66.36 ({237,249,286,536,730}) und K23 ~66.51 ({107,529,565}). K35 schlaeft am 18.08 03:15 (2 Koerper ueber 66.345 in Bars 564/565) und wird erst durch Bar 730 (19.08) reaktiviert; K23 (66.51) bleibt AKTIV (Koerper nie ueber 66.5).
+  (4) Unterkante: Staffelung L1 ~63.63 ({30,60,63,386,632}) + L2 ~63.76 ({52,57,380,627,635}) + Sweep-Zone ~63.49 ({7,398,621}); Soll-Main 7/7 bleibt (Zonen-Zaehlung).
+  (5) Setup-Zahl in der Box: V-S (Reife >= 3) = 3-4 - deutlich UNTER der Erwartung 6-9. V-2 (handelbar ab Geburt >= 2) = 7 auf allen Band-Stufen - trifft das Zielband 6-9. Die 3 zusaetzlichen V-2-Setups (Bars 22/60/223 an K3/K10/K17) sind Frueh-Struktur-Trades an der jeweils ersten handelbaren Aussengrenze VOR Keimung der spaeteren Waende; die Wand-Sweeps 398/527/564/639 sind in beiden Varianten enthalten.
+      -> Abnaehme noetig: (a) V-S (streng) vs. V-2 (ab Geburt) fuer Schritt C; (b) Faellt die Reife-Schwelle auf >= 2, fallen die Frueh-Struktur-Trades 22/60/223 mit an - sind diese erwuenscht oder gehoert eine Mindest-Reife (3) zur Aussengrenzen-Definition?; (c) next_bar-Split mitzaehlen; (d) F3-Lockerung pruefen; (e) L2-Staffelung/K23 (66.51) als separate Wall-Kante mit eigenem Signalrecht bewerten.

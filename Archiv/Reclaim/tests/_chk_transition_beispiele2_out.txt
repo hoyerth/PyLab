@@ -1,0 +1,126 @@
+﻿====================================================================================================================================
+TAGES-OHLC (Bars 00:00-22:45) | n=1932
+====================================================================================================================================
+  03.08 Bars    0..91   O 58.3780 H 58.6100 L 56.5470 C 58.1660
+  04.08 Bars   92..183  O 58.1850 H 60.0300 L 57.9660 C 59.5280
+  05.08 Bars  184..275  O 59.5730 H 62.7620 L 59.3760 C 62.0240
+  06.08 Bars  276..367  O 62.0880 H 62.8840 L 60.8510 C 61.3620
+  07.08 Bars  368..459  O 61.4360 H 65.1170 L 61.1200 C 63.4520
+  10.08 Bars  460..551  O 63.5670 H 66.0460 L 62.9670 C 65.6980
+  11.08 Bars  552..643  O 65.5960 H 66.4590 L 64.2080 C 64.6610
+  12.08 Bars  644..735  O 64.6420 H 66.7760 L 64.5750 C 65.3020
+  13.08 Bars  736..827  O 65.2390 H 66.2880 L 64.1980 C 64.3940
+  14.08 Bars  828..919  O 64.3540 H 65.6840 L 63.4850 C 64.6610
+  17.08 Bars  920..1011 O 64.7250 H 66.5380 L 64.6450 C 65.7550
+  18.08 Bars 1012..1103 O 65.7360 H 66.5360 L 63.1560 C 63.3120
+  19.08 Bars 1104..1195 O 63.2590 H 67.0060 L 62.5480 C 66.9930
+  20.08 Bars 1196..1287 O 67.0600 H 68.9720 L 65.6130 C 68.0570
+  21.08 Bars 1288..1379 O 68.1200 H 70.0000 L 67.8830 C 68.8770
+  24.08 Bars 1380..1471 O 69.1160 H 69.8990 L 68.2880 C 68.9280
+  25.08 Bars 1472..1563 O 68.9140 H 69.9240 L 67.4200 C 68.5900
+  26.08 Bars 1564..1655 O 68.6840 H 69.7090 L 67.4940 C 68.0780
+  27.08 Bars 1656..1747 O 68.5140 H 69.7140 L 67.6000 C 69.1620
+  28.08 Bars 1748..1839 O 69.2710 H 71.1390 L 66.0940 C 66.3650
+  31.08 Bars 1840..1931 O 65.7190 H 67.4520 L 65.5190 C 66.5010
+
+====================================================================================================================================
+FALL A) 14.08. -- Erweiterung? Historische Kante bei ~63.7 (10.08. 15:00)
+====================================================================================================================================
+  Kandidaten im Band 63.4..64.0, BEKANNT bei Bar 890 (14.08. 15:30), OHNE Lookahead:
+   EK60  U @ 63.4850 geb 858 piv 467 w 3 tc 2 letztd 858 age 423 norm SCHLAFEND leb=J
+   EK62  U @ 63.6630 geb 520 piv 490 w 5 tc 4 letztd 846 age 400 norm SCHLAFEND leb=J
+   EK58  O @ 63.6700 geb 472 piv 455 w 3 tc 3 letztd 478 age 435 norm SCHLAFEND leb=-
+   EK51  U @ 63.7970 geb 512 piv 425 w 6 tc 4 letztd 840 age 465 norm SCHLAFEND leb=J
+   EK47  O @ 63.8940 geb 465 piv 403 w 5 tc 3 letztd 485 age 487 norm SCHLAFEND leb=-
+
+  Detail: die mutmassliche historische Kante (Geburt exakt 10.08 15:00 = Bar 520):
+   EK62  U @ 63.6630 geb 520 piv 490 w 5 tc 4 letztd 846 age 400 norm SCHLAFEND leb=J
+        wicks(=alle Dochte): [(490, 63.618), (520, 63.577), (523, 63.619), (846, 63.663), (1092, 63.686)]
+   EK51  U @ 63.7970 geb 512 piv 425 w 6 tc 4 letztd 840 age 465 norm SCHLAFEND leb=J
+        wicks(=alle Dochte): [(425, 63.763), (512, 63.797), (517, 63.744), (840, 63.716), (1087, 63.815), (1095, 63.719)]
+
+  Untere definierende Grenze der Balance am 14.08. (aeusserste LEBENDE UNTEN-Kante):
+   Bar  828 2026-08-14 00:00:00  Low=64.2980  lebUNTEN_min=64.2680(7)  lebOBEN_max=66.2880(7)  UNTERGRENZE_gebrochen=nein
+   Bar  860 2026-08-14 08:00:00  Low=64.1060  lebUNTEN_min=63.4850(7)  lebOBEN_max=65.5540(6)  UNTERGRENZE_gebrochen=nein
+   Bar  890 2026-08-14 15:30:00  Low=65.0810  lebUNTEN_min=63.4850(8)  lebOBEN_max=65.4090(5)  UNTERGRENZE_gebrochen=nein
+   Bar  893 2026-08-14 16:15:00  Low=65.3910  lebUNTEN_min=63.4850(7)  lebOBEN_max=65.7340(5)  UNTERGRENZE_gebrochen=nein
+   Bar  900 2026-08-14 18:00:00  Low=64.8780  lebUNTEN_min=63.4850(8)  lebOBEN_max=65.6840(4)  UNTERGRENZE_gebrochen=nein
+   Bar  919 2026-08-14 22:45:00  Low=64.6290  lebUNTEN_min=63.4850(9)  lebOBEN_max=65.6840(5)  UNTERGRENZE_gebrochen=nein
+
+====================================================================================================================================
+FALL B) 19.08. 01:00-08:00 -- Verlassen der Unterkante (Bar 1108..1136)
+====================================================================================================================================
+  LEBENDE UNTEN-Kanten je Bar, aufsteigend (naechstgelegene unten zuerst):
+   Bar 1104 2026-08-19 00:00:00 Lo=63.2280 Cl=63.3690 lebUNTEN=[EK57@63.1280(age655) | EK60@63.5070(age637) | EK62@63.6860(age614) | EK51@63.8150(age679) | EK68@64.7980(age569) | EK82@64.9250(age430)]
+        -> lebende Kanten UNTER dem Tief: 1 (tiefste 63.1280, Abst. 0.16%)
+   Bar 1108 2026-08-19 01:00:00 Lo=62.9590 Cl=63.0160 lebUNTEN=[EK57@63.1560(age659) | EK60@63.5070(age641) | EK62@63.6860(age618) | EK51@63.8150(age683) | EK68@64.7980(age573) | EK82@64.9250(age434)]
+        -> lebende Kanten UNTER dem Tief: 0 (VAKUUM)
+   Bar 1109 2026-08-19 01:15:00 Lo=62.8250 Cl=62.8250 lebUNTEN=[EK57@63.1560(age660) | EK60@63.5070(age642) | EK62@63.6860(age619) | EK51@63.8150(age684) | EK68@64.7980(age574) | EK82@64.9250(age435)]
+        -> lebende Kanten UNTER dem Tief: 0 (VAKUUM)
+   Bar 1110 2026-08-19 01:30:00 Lo=62.7210 Cl=62.8270 lebUNTEN=[SK97@62.7210(age0) | EK57@63.1560(age661) | EK60@63.5070(age643) | EK62@63.6860(age620) | EK51@63.8150(age685) | EK68@64.7980(age575)]
+        -> lebende Kanten UNTER dem Tief: 0 (VAKUUM)
+   Bar 1116 2026-08-19 03:00:00 Lo=62.6230 Cl=62.9760 lebUNTEN=[SK97@62.7210(age6) | EK57@63.1560(age667) | EK60@63.5070(age649) | EK62@63.6860(age626) | EK51@63.8150(age691) | EK68@64.7980(age581)]
+        -> lebende Kanten UNTER dem Tief: 0 (VAKUUM)
+   Bar 1117 2026-08-19 03:15:00 Lo=62.5770 Cl=62.9520 lebUNTEN=[SK97@62.7210(age7) | EK57@63.1560(age668) | EK60@63.5070(age650) | EK62@63.6860(age627) | EK51@63.8150(age692) | EK68@64.7980(age582)]
+        -> lebende Kanten UNTER dem Tief: 0 (VAKUUM)
+   Bar 1132 2026-08-19 07:00:00 Lo=62.5700 Cl=62.5920 lebUNTEN=[SK97@62.7210(age22) | SK100@62.8590(age7) | EK57@63.1560(age683) | EK60@63.5070(age665) | EK62@63.6860(age642) | EK51@63.8150(age707)]
+        -> lebende Kanten UNTER dem Tief: 0 (VAKUUM)
+   Bar 1136 2026-08-19 08:00:00 Lo=62.6160 Cl=62.6280 lebUNTEN=[EK99@62.5770(age19) | SK97@62.7210(age26) | SK100@62.8590(age11) | EK57@63.1560(age687) | EK60@63.5070(age669) | EK62@63.6860(age646)]
+        -> lebende Kanten UNTER dem Tief: 1 (tiefste 62.5770, Abst. 0.06%)
+
+  VAKUUM-CHECK: niedrigste LEBENDE Unterkante bei Bar 1108 und ihr Abstand zum Close:
+   EK57   @ 63.1560  Abstand Close 63.0160 -> -0.22%
+   EK60   @ 63.5070  Abstand Close 63.0160 -> -0.77%
+   EK62   @ 63.6860  Abstand Close 63.0160 -> -1.05%
+   EK51   @ 63.8150  Abstand Close 63.0160 -> -1.25%
+   EK68   @ 64.7980  Abstand Close 63.0160 -> -2.75%
+   EK82   @ 64.9250  Abstand Close 63.0160 -> -2.94%
+   EK72   @ 65.6540  Abstand Close 63.0160 -> -4.02%
+   Nicht-lebende Unterkanten unterhalb 63.0 (Existenz, aber tot = nicht praesent):
+   SK7   U @ 56.5470 geb  62 piv  62 w 1 tc 1 letztd  62 age1046 norm AKTIV     leb=-
+   SK10  U @ 57.1480 geb  70 piv  70 w 1 tc 1 letztd  70 age1038 norm AKTIV     leb=-
+   SK11  U @ 57.5960 geb  80 piv  80 w 1 tc 1 letztd  80 age1028 norm AKTIV     leb=-
+   EK3   U @ 57.7990 geb  30 piv  12 w 3 tc 3 letztd  37 age1096 norm SCHLAFEND leb=-
+   EK4   U @ 57.9870 geb  88 piv  18 w 4 tc 4 letztd 104 age1090 norm AKTIV     leb=-
+   EK5   U @ 58.0620 geb  98 piv  46 w 2 tc 2 letztd  98 age1062 norm AKTIV     leb=-
+   EK14  U @ 58.5940 geb 136 piv 115 w 3 tc 3 letztd 142 age 993 norm AKTIV     leb=-
+   EK15  U @ 58.7740 geb 126 piv 120 w 2 tc 2 letztd 126 age 988 norm SCHLAFEND leb=-
+   SK17  U @ 58.8740 geb 130 piv 130 w 1 tc 1 letztd 130 age 978 norm AKTIV     leb=-
+   SK18  U @ 59.1140 geb 149 piv 149 w 1 tc 1 letztd 149 age 959 norm AKTIV     leb=-
+   EK20  U @ 59.3210 geb 158 piv 153 w 3 tc 3 letztd 161 age 955 norm AKTIV     leb=-
+   SK25  U @ 59.3760 geb 191 piv 191 w 1 tc 1 letztd 191 age 917 norm AKTIV     leb=-
+   EK22  U @ 59.5120 geb 181 piv 174 w 3 tc 3 letztd 198 age 934 norm AKTIV     leb=-
+   SK21  U @ 59.5930 geb 165 piv 165 w 1 tc 1 letztd 165 age 943 norm AKTIV     leb=-
+   SK27  U @ 60.6440 geb 211 piv 211 w 1 tc 1 letztd 211 age 897 norm AKTIV     leb=-
+   SK41  U @ 60.8510 geb 349 piv 349 w 1 tc 1 letztd 349 age 759 norm AKTIV     leb=-
+   EK30  U @ 61.0350 geb 337 piv 235 w 2 tc 2 letztd 337 age 873 norm AKTIV     leb=-
+   SK44  U @ 61.1200 geb 379 piv 379 w 1 tc 1 letztd 379 age 729 norm AKTIV     leb=-
+   EK43  U @ 61.2460 geb 368 piv 354 w 2 tc 2 letztd 368 age 754 norm AKTIV     leb=-
+   EK32  U @ 61.5210 geb 256 piv 243 w 6 tc 6 letztd 372 age 865 norm SCHLAFEND leb=-
+   EK29  U @ 61.5730 geb 306 piv 222 w 3 tc 3 letztd 328 age 886 norm SCHLAFEND leb=-
+   SK39  U @ 61.6180 geb 315 piv 315 w 1 tc 1 letztd 315 age 793 norm AKTIV     leb=-
+   EK35  U @ 62.0050 geb 270 piv 261 w 7 tc 7 letztd 387 age 847 norm AKTIV     leb=-
+   EK33  U @ 62.0970 geb 265 piv 251 w 4 tc 4 letztd 294 age 857 norm SCHLAFEND leb=-
+   EK46  U @ 62.2170 geb 396 piv 393 w 2 tc 2 letztd 396 age 715 norm AKTIV     leb=-
+
+====================================================================================================================================
+DIREKTER VERGLEICH DER BEIDEN FAELLE
+====================================================================================================================================
+
+  14.08. Richtung OBEN:
+   Bar  890 2026-08-14 15:30:00 H=65.4430 L=65.0810 C=65.4040 | OBENmax=65.4090 <== DURCH UNTENmin=63.4850
+   Bar  891 2026-08-14 15:45:00 H=65.4130 L=65.1830 C=65.3590 | OBENmax=65.4090 <== DURCH UNTENmin=63.4850
+   Bar  892 2026-08-14 16:00:00 H=65.6360 L=65.3210 C=65.5030 | OBENmax=65.4090 <== DURCH UNTENmin=63.4850
+
+  19.08. Richtung UNTEN:
+   Bar 1106 2026-08-19 00:30:00 H=63.2440 L=63.1300 C=63.1550 | OBENmax=66.4590 UNTENmin=63.1560 <== DURCH
+   Bar 1107 2026-08-19 00:45:00 H=63.1940 L=63.1220 C=63.1510 | OBENmax=66.4590 UNTENmin=63.1560 <== DURCH
+   Bar 1108 2026-08-19 01:00:00 H=63.2480 L=62.9590 C=63.0160 | OBENmax=66.4590 UNTENmin=63.1560 <== DURCH
+   Bar 1109 2026-08-19 01:15:00 H=63.1530 L=62.8250 C=62.8250 | OBENmax=66.4590 UNTENmin=63.1560 <== DURCH
+   Bar 1116 2026-08-19 03:00:00 H=63.0900 L=62.6230 C=62.9760 | OBENmax=66.4590 UNTENmin=62.7210 <== DURCH
+   Bar 1117 2026-08-19 03:15:00 H=63.0180 L=62.5770 C=62.9520 | OBENmax=66.4590 UNTENmin=62.7210 <== DURCH
+   Bar 1132 2026-08-19 07:00:00 H=62.8780 L=62.5700 C=62.5920 | OBENmax=65.4370 UNTENmin=62.7210 <== DURCH
+   Bar 1133 2026-08-19 07:15:00 H=62.8550 L=62.5480 C=62.8520 | OBENmax=65.4370 UNTENmin=62.5770 <== DURCH
+
+ENDE v2
+

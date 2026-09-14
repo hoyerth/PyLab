@@ -1,0 +1,77 @@
+READ-ONLY Warm-up-Probe (H20.47) | AUG-Segment-Stabilitaet
+SHA-Guards OK: Baseline 53f28e1b / V020 e79c5c29 / Adapter 770eda2c (Adapter NICHT importiert)
+Analyseanker: i0='2026-08-10', i1='2026-08-19' (Box), i2=Fensterende '2026-08-28' exkl. | Modus A (hook=None, universell)
+
+===== LEITER (BKZ-Handelstage vor 2026-08-10; Kanon K1/K4/K6) =====
+Handelstage im Referenzrahmen: 764 | Leiter: [0, 5, 10, 20, 40, 80, 130, 190] | Pinned-Anker: N=500
+   N  Start (BKZ) 
+   0  2026-08-10  
+   5  2026-08-03  
+  10  2026-07-27  
+  20  2026-07-13  
+  40  2026-06-15  
+  80  2026-04-20  
+ 130  2026-02-11  
+ 190  2025-11-17  
+
+===== MESSUNG: Fenster [Start, 2026-08-28) | rechter Rand kalenderidentisch =====
+   N      n     i0 edges seeds  r21 tomb warA  tLade   tScan   tBox  tVoll BOX_N       BOX_R VOLL_N      VOLL_R H2_N        H2_R
+   0   1288      0    59    14   34   17   47    0.0     0.5    0.6    1.2    14  +27.327383     29  +23.389914   15   -3.937470
+   5   1748    460    88    23   51   29   75    0.0     1.6    1.3    2.5    13   -3.740870     20   -0.225687    7   +3.515184
+  10   2208    920   104    19   79   37   82    0.1     2.6    2.7    3.9    13   -7.644452     20   -4.129269    7   +3.515184
+  20   3128   1840   131    22   99   37  115    0.1     5.1    5.9    8.0    13  -11.795156     20   -8.279972    7   +3.515184
+  40   4937   3649   153    21  317   50  147    0.0    15.8   17.8   22.1    16  -11.451236     29   -3.486979   13   +7.964257
+  80   8607   7319   259    47  484   93  293    0.0    78.4   72.2   78.5    13   -9.001946     29  -13.468717   16   -4.466771
+
+===== DELTA gegen Referenz N=80 (Start 2026-04-20; VORLAEUFIG = laengste gemessene Stufe, Pinned N=500 noch offen) =====
+   N dN_BOX       dR_BOX sd_BOX dN_VOLL      dR_VOLL sd_VOLL dN_H2       dR_H2 sd_H2  exakt
+   0     +1   +36.329329     25      +0   +36.858631      52    -1   +0.529301    27   nein
+   5     +0    +5.261076     24      -9   +13.243030      47    -9   +7.981954    23   nein
+  10     +0    +1.357494     24      -9    +9.339448      47    -9   +7.981954    23   nein
+  20     +0    -2.793209     24      -9    +5.188745      47    -9   +7.981954    23   nein
+  40     +3    -2.449290     15      +0    +9.981738      36    -3  +12.431028    21   nein
+  80     +0    +0.000000      0      +0    +0.000000       0    +0   +0.000000     0     JA
+
+===== PLATEAU-NACHWEIS (exakt gegen ALLE laengeren Stufen) =====
+  N=   0 (2026-08-10): instabil (5 laengere Stufen geprueft)
+  N=   5 (2026-08-03): instabil (4 laengere Stufen geprueft)
+  N=  10 (2026-07-27): instabil (3 laengere Stufen geprueft)
+  N=  20 (2026-07-13): instabil (2 laengere Stufen geprueft)
+  N=  40 (2026-06-15): instabil (1 laengere Stufen geprueft)
+  N=  80 (2026-04-20): PLATEAU-STABIL (0 laengere Stufen geprueft)
+
+===== VERDIKT =====
+  Minimaler Warm-up (exaktes Plateau, BOX UND VOLL): N_min = 80 BKZ-Handelstage (Start 2026-04-20).
+  N_min(BOX) = 80
+  N_min(VOLL) = 80
+  Kaltstart (N=0) gegen N=80: BOX dN=+1 dR=+36.329329 | VOLL dN=+0 dR=+36.858631
+
+===== DETAIL N=0 (Kaltstart) vs N=80 =====
+  BOX(H1): nur-N0 13, nur-N80 12, gemeinsam 1
+      nur-N0    entry_rel= 115 SHORT r=-1.000000
+      nur-N0    entry_rel= 221 SHORT r=-1.000000
+      nur-N0    entry_rel= 231 SHORT r=+6.889303
+      nur-N0    entry_rel= 245 SHORT r=+3.925121
+      nur-N0    entry_rel= 247 SHORT r=-1.000000
+      nur-N0    entry_rel= 362 LONG  r=-0.429390
+      nur-N80  entry_rel=  70 SHORT r=-1.000000
+      nur-N80  entry_rel=  72 SHORT r=-1.000000
+      nur-N80  entry_rel=  73 SHORT r=-0.051623
+      nur-N80  entry_rel=  83 SHORT r=-0.123816
+      nur-N80  entry_rel= 107 SHORT r=-1.000000
+      nur-N80  entry_rel= 228 SHORT r=-1.000000
+  VOLL: nur-N0 26, nur-N80 26, gemeinsam 3
+      nur-N0    entry_rel= 115 SHORT r=-1.000000
+      nur-N0    entry_rel= 221 SHORT r=-1.000000
+      nur-N0    entry_rel= 231 SHORT r=+6.889303
+      nur-N0    entry_rel= 245 SHORT r=+3.925121
+      nur-N0    entry_rel= 247 SHORT r=-1.000000
+      nur-N0    entry_rel= 362 LONG  r=-0.429390
+      nur-N80  entry_rel=  70 SHORT r=-1.000000
+      nur-N80  entry_rel=  72 SHORT r=-1.000000
+      nur-N80  entry_rel=  73 SHORT r=-0.051623
+      nur-N80  entry_rel=  83 SHORT r=-0.123816
+      nur-N80  entry_rel= 107 SHORT r=-1.000000
+      nur-N80  entry_rel= 228 SHORT r=-1.000000
+
+Laufzeit bisher: 321.3s

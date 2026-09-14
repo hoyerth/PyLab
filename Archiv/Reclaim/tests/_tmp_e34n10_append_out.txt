@@ -1,0 +1,6 @@
+﻿Vorbedingung SHA256: 3e2e8d4f6008ab041abfc9aeabb06e807a20ec094a2b1b70953449ef8b55d16e
+aktuell           : 3e2e8d4f6008ab041abfc9aeabb06e807a20ec094a2b1b70953449ef8b55d16e
+neu SHA256: 236354f2aa54fb5abbfa0bafd879a21f6616e39117406b02b1c2528c0fe45355
+neu Bytes : 304290
+Zeilen    : 5380
+U+FFFD    : 0

@@ -1,0 +1,81 @@
+
+#### H20.15 Forensik 21./24.08. — Pivot-Rechner und Kanten-Genealogie (read-only, 2026-09-12)
+
+**Auftrag (Anwender):** (1) Wie ist der Pivot-Rechner formuliert? (2) Hat der Scan
+die Kante am 21.08. 16:30 (~68,88 USD) selbst im Speicher — und warum wurde sie
+nicht automatisch Gegenkante des Phasenstarts? (3) Verdacht: der Adapter koennte
+gerechnete Ergebnisse als Literale zementiert haben.
+
+**Artefakt-Anker (SHA256; `test/` = gitignored):**
+- `test/_chk_gegenpivot_2108.py`
+  17.465 B, `48973dd16f500d2ecc7035774730d6cc760c91a6d1614b1ec3427742d74b6e76`
+- `test/_chk_gegenpivot_2108_out.txt` (Lauf exit = 0)
+  23.129 B, `e149dd3e8b9bbf88f08150b2b20f4d941621bb594e3820fe1a74b396a58c4ca7`
+- Unveraendert (physisch): Engine `53f28e1b...` 200.433 B,
+  Adapter `983192b3...` 36.255 B, Renderer `500b5576...` 123.343 B.
+
+**Befund 1 — Pivot-Formel (Quelltext, Z. 1407 / 2240).** Der SE-Scan benutzt
+`_pivot_dual()`: **striktes 5-Bar-Kurs-Fraktal**.
+`H @ m <=> high[m] > high[m-2], high[m-1], high[m+1], high[m+2]`; L symmetrisch;
+H und L unabhaengig geprueft (Doppel-Pivot moeglich). Kausale Bestaetigung bei
+`k = m+2`. **Kein prozentualer Mindest-Rebound im SE-Pfad** —
+`MIN_SWING_PCT = 1.0 %` und `DENSITY_BAND = 0.15 USD` gehoeren zum alten
+`_verarbeite_pivot`-Pfad (Z. 730/754/1232) und werden in `_se_scan` NICHT
+aufgerufen.
+
+**Befund 2 — Erster Gegen-Pivot nach der Transition (kausal, ab P9-Ende).**
+Anwender-Marke 68,88 USD am 21.08. 16:30 trifft **exakt** den vom Scanner selbst
+erzeugten Pivot:
+- AUG   : Bar **894** (21.08. 16:30) L **68.8700** -> **K71**  (V-S 5, geb. 924)
+- AUG26 : Bar **1354** (= 894 + 460)  L **68.8700** -> **K121** (V-S 5)
+Weitere autonome Umkehrpivots im Zielbereich (AUG-Koordinaten): 928/69.6380 (K73),
+934/68.3920 (K77), 1031/67.5350 (K82). Der Scanner hat die Marke also **ohne
+Vorgabe** im Speicher (Katalog-Ausgabe von SCHRITT 2 belegt die Wicks-Zuordnung).
+
+**Befund 3 — Warum er NICHT Phasen-Gegenkante wurde (SCHRITT 4, gemessen).**
+Die O1-Regel nimmt die **aeusserste lebende** Linie je Seite. Der Gegen-Pivot ist
+zu keinem Bar Rang 1:
+- AUG   (12 Diagnose-Bars 848..1033): Rang unten 6/7, 5/7, 4/6, 3/5, 5/6 — nie 1.
+- AUG26 (dieselben Bars +460):        Rang unten 6/7, 5/7, 4/6, 3/5, 5/6 — nie 1.
+Fensterstabil identisch: der O1-Boden wird von tieferen Linien derselben Seite
+getragen (AUG K17/K62/K63/K60/K77; AUG26 K72/K112/K113/K110/K127).
+Ergebnis: der Gegen-Pivot ist ein **Rechenergebnis**, aber **nicht das Phasenpaar**
+— und es gibt **keine** Funktion `finde_gegenpivot`; die Gegenkante entsteht
+ausschliesslich aus der O1-Regel.
+
+**Befund 4 — Provenienz-Gegenprobe (SCHRITT 3): Rechenwert vs. Adapter-Literal.**
+| Position | kid AUG | kid AUG26 | Provenienz (a) | Scan `basis_bei(Start)` | Delta | Status |
+|---|---|---|---|---|---|---|
+| P9 boden | K77 | K127 | 68.3700 | 68.3920 | +0.0220 | Abweichung |
+| P9 decke | K67 | K117 | 69.9140 | 69.9750 | +0.0610 | Abweichung |
+| A1 decke | K67 | K117 | 69.8990 | 69.8990 | 0.0000 | **IDENTISCH** |
+| A1 boden | K82 | K132 | 67.5350 | 67.5350 | 0.0000 | **IDENTISCH** |
+| A2 decke | K73 | K123 | 69.6380 | 69.6380 | 0.0000 | **IDENTISCH** |
+| A2 boden | K82 | K132 | 67.5530 | 67.5530 | 0.0000 | **IDENTISCH** |
+
+A1/A2 sind in **beiden** Fenstern bit-exakt (fensterstabil +460): die arretierten
+Provenienz-Werte sind **exakt der Rechenwert zum jeweiligen Segmentstart**
+(`basis_bei(1033)` = 69.8990 / 67.5350; `basis_bei(1174)` = 69.6380 / 67.5530).
+Der Verdacht „gerechnete Werte als Literale zementiert" ist damit fuer A1/A2
+**widerlegt**. Die P9-Abweichung ist erklaert und kein Widerspruch: der P9-Start
+(848) liegt **vor** dem ersten Docht von K67 (873) und K77 (934), daher faellt
+`basis_bei` auf `wicks[0][1]` zurueck (Fallback); die P9-Werte 69.9140 (Decke,
+Override 69.87) und 68.3700 (Boden-Literal) stammen aus der **arretierten
+v0.20-P9-Setzung**, nicht aus `basis_bei`.
+
+**Antwort auf die Leitfrage „autonom genutzt?"** Ja: die Kante ist autonom
+berechnet und im Katalog (K71/K121). Sie wurde nicht als Phasen-Gegenkante
+verwendet, weil das Kriterium die **aeusserste lebende** Linie ist (O1) und
+die Gegenpivot-Linie zu diesem Zeitpunkt Rang >= 3 belegte. Das ist eine
+**Regelfolge**, kein Auslassungsfehler und keine Literal-Zementierung.
+
+**Offene Entscheidungen (Textblock, unveraendert offen aus H20.14):**
+F1 Anker-Herkunft (a) erster Wechsel mit beidseitig etablierter Linie (V-S >= 3)
+nach 96-Bar-Warmup / (b) erster Bar mit stabiler aeusserster Linie (`wall_live_bars`
+Dwell auf der Kante) / (c) Setzung beibehalten und explizit deklarieren?
+F2 Vor-Balance AUG26 (03.-07.08.) = Balance oder Trendvorlauf?
+F3 K1 fuer die Regelpruefung streichen und stattdessen K2 + K3 (IoU der derived
+Segmente ohne P9) verwenden?
+
+**Nicht geaendert:** Engine, Adapter, Renderer (SHAs identisch). Kein
+Einbrand. Warte auf Anwender-Entscheid zu F1-F3.

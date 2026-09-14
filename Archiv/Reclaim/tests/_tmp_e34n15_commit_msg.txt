@@ -1,0 +1,38 @@
+docs(handoff): E-34n/15 — V019-Komplett-Audit: fuenf Anwenderfragen, Kausalitaets-Messung (read-only)
+
+- Rein lesend: Engine/Renderer/Adapter byte-identisch (Anker in D1 geprueft);
+  neu sind nur read-only Pruefskripte und dieser Checkpoint. Vorbedingung
+  57252892... binaer geprueft; Anhang 14.629 B, ASCII-only, CRLF erhalten.
+- Methode: renderer-treuer Harness -- 13 Bestands-Paare und das Patchset
+  werden per AST direkt aus tmp_png_aug_sichttest.py geladen (kein Nachbau).
+  Kontrolle: ADAPTER_V019 ergibt exakt 24 Setups / +88.116626 R (H2 16 /
+  +49.197042).
+- (1) Generischer Ansatz: Regel zielfrei, aber (a) box_end ist hart
+  np.datetime64("2026-08-19") mit Guard != 644 -> V019 auf AUG gepinnt,
+  (b) Adapter-Fenster sind Snapshot, A2.end = 1287 = Datenende,
+  (c) Plateau [41,114] unabhaengig nachgerechnet (0..40 -> +74.054425,
+  41..48 drei Segmente, 49..114 zwei Segmente, beide +82.614385,
+  115+ -> +79.318499) -- Klippe bei 49 ist exakt "1124..1171 = 48 Bars".
+- (2) Uebersehen: verifiziere_gegen_scan laeuft produktiv NICHT;
+  PhasenReifeKonfiguration ohne Produktionskonsumenten; der E-34m/X3-Hash
+  ist kein Defekt (Ruecknahme von Paar 5 -> exakt ZP-4 21.956 Zeichen /
+  8a3b7070...); range(2, box_end-3) schliesst Bars 1285..1287 aus.
+- (3) Abgebogen: ZP-5 mutiert Scanner-State statt vorgelagertem Scan-Schritt;
+  V-D-Kontrakt v0.24 ratifiziert, aber nicht verdrahtet.
+- (4)+(5) KAUSALITAETS-MESSUNG (neu): kausale Etiketten (Bestaetigung erst
+  ab start + MIN_BARS - 1) ergeben 23 / +85.577150 (H2 15 / +46.657566);
+  Kontrollvariante C (kausale Etiketten + ZP-5-Fenster der zweiten Wand
+  arretiert) ist bit-identisch -> Ursache ist allein das Etikett. Delta
+  -1 Trade / -2.539476 R: Bar 1211 SHORT K76 entfaellt (zyklus_blockiert
+  34 -> 33, v_s 24 -> 23). Alle uebrigen Zielzonen-Trades bit-identisch,
+  K82@1172 (+5.5022) kausal sauber. Wand A2 (1174) ist erst ab Bar 1250
+  bestaetigt -> der Trade ist fuer alle MIN in [41,114] kausal unerreichbar.
+- D8 hinterlegt sechs Entscheidungsfragen fuer morgen (Kausalitaets-Arretierung,
+  box_end-Parametrisierung, ZP-5-Form, kaltes Fail-Loud, Wiedervorlage Q1/Q2
+  aus E-34n/14, Uebernahme in die Adapter-Spez).
+- Kein Paragraph 75, kein S1, keine S2-Laeufe, keine UI-/Regressionstests,
+  kein git add -f.
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

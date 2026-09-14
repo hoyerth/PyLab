@@ -1,0 +1,455 @@
+## H20.52 - Autonomie-Grenze: Falsifikation "NAECHSTE", Schwanzlast-Traegerschaft, inerte Vertragspunkte
+
+### 0. Status
+
+Auftrag: Beantwortung von E1-E6 (Anwender, 14.09.2026). Gegenstand ist NICHT
+ein Motoreingriff, sondern der Nachweis, dass der seit H20.50 diskutierte
+"Reparaturhebel U3" (Gegenkante NAECHSTE / kleineres Ziel) das System
+zerstoert und nicht heilt. Der Bestand bleibt unangetastet.
+
+Modus: Reine Exploration/Analyse/Dokumentation. Keine Motor-, Adapter- oder
+Produktivcode-Aenderung. Alle Sonden sind read-only gegenueber den arretierten
+Motoren (SHA-Guard im Kopf jeder Sonde).
+
+Freigaben des Anwenders (E1-E6, alle bestaetigt):
+
+    E1 JA  U3 = Weg (c)+(a): Extremum bleibt handelswirksames Ziel;
+           U3 nur DIAGNOSTISCH in den Scan (dist_naechste, crv_naechste)
+    E2 JA  Kausales ATR(14) als scan["atr"] in den Scan aufnehmen
+    E3 JA  H20.52 jetzt schreiben (Falsifikation + Schwanzlast + POC + Inertie)
+    E4 JA  Inerte Vertragspunkte als schonungsloser Befund protokollieren
+    E5 JA  Monats-PNGs MAI/JUN/JUL jetzt erzeugen -- Stand per F3 praezisiert
+    E6 JA  Arretierungsbruch bestaetigt; kein Backup-Renderer noetig
+
+Entscheidungen des Anwenders (F1-F7, 14.09.2026):
+
+    F1 JA  Falsifikationsklausel wortgleich ins Protokoll (siehe Paragraph 1)
+    F2 JA  Die 7 inerten Felder in H20.52 protokollieren; in V022 wird
+           risiko_effektiv mit der realen Stop-Distanz scharf verdrahtet
+    F3 JA  Monats-PNG-Stand = V021-BASELINE (35/28/21), NICHT das V020-Tripel
+    F4 JA  Fuer V022 kausales H1-ATR(14) vormerken; M15-ATR ist unwirksam
+    F5 JA  dist_naechste/crv_naechste NUR diagnostisch (Protokoll +
+           Statistikblock), ohne Handelswirkung
+    F6 JA  Konzentrationszeile auch in den August-Renderer uebernehmen
+    F7 JA  Zwei getrennte Schritte: erst H20.52 committen, dann Renderer
+
+### 1. Anlass und Falsifikationsklausel
+
+Aus H20.51 Paragraph 13 (F1-F5) stand die Frage im Raum, ob das Ziel TP2
+"zu weit" liege und ob die NAECHSTE Gegenkante der Hebel sei. Die Sonde
+`test/_chk_u3_spec_beleg.py` hat das nachgerechnet; das Ergebnis ist eine
+Falsifikation mit Ansage.
+
+Auf Beschluss F1 wird die Grenze wortgleich verankert:
+
+    "Innerhalb der getesteten Zielklasse {naechste Kante, gedeckeltes
+     Extremum} existiert kein Eingriff, der den Bestand schlaegt."
+
+Die Klausel ist bewusst als KLASSEN-Aussage formuliert. Sie schliesst
+akademische Grundsatzdiskussionen aus und laesst Modelle ausserhalb der
+getesteten Klasse ausdruecklich offen -- z. B. Skalierung/Runner mit
+Teilgewinnmitnahme, die den Traeger-Trade nicht beschneidet, sondern teilt.
+Nicht getestet ist ferner jede Form von zeitlicher Staffelung des Ziels.
+
+Messanordnung: Die Setups des arretierten DEFAULT-Pfades bleiben unveraendert
+(Mengengeruest = Baseline). Danach wird JEDER Trade einzeln mit dem neuen
+Zielpreis nachgerechnet -- reine Funktion `_c_loese_trade`, `sl`, `entry`
+und `poc` unveraendert, ausschliesslich `tp2` ersetzt. Das trennt Gating
+(welche Setups entstehen) von Wirkung (was der Trade dann verdient).
+
+WICHTIG - Aussagekraft: Das Mengengeruest wird NICHT neu gerechnet. Die
+zustandsbehafteten Groessen (`letzter_sweep_bar`, Cluster-Dedup, 12-Bar-
+Zyklus) koennen sich bei einer echten V022 verschieben. Alle Zahlen unten
+sind Erste-Ordnung-Effektgroessen, keine vollstaendige Simulation.
+
+### 2. F4b - Falsifikation der NAECHSTEN Gegenkante
+
+Beleg: `test/_chk_u3_spec_beleg.py` (8a70e7d125d5e345), Protokoll
+`test/_chk_u3_spec_beleg_out.txt` (d8d6ba157a1d1073).
+
+| Fenster | EXTREMUM (Bestand) | NAECHSTE pur | NAECHSTE+Ordnung | +ORD+CRV1.5 |
+|---|---|---|---|---|
+| MAI | 35 / +38.318126 | 35 / +18.781729 | 8 / +5.738265 | 2 / +2.902644 |
+| JUN | 28 / -11.421155 | 28 / -6.940571 | 4 / -3.455939 | 3 / -2.455939 |
+| JUL | 21 / -4.325355 | 21 / -11.075170 | 9 / -0.187184 | 5 / -0.949389 |
+| SUMME | 84 / +22.571616 | 84 / +0.765988 | 21 / +2.095142 | 10 / -0.502684 |
+
+Befund: Der Wechsel auf die NAECHSTE Gegenkante kostet in Summe
+-21.805628 R (22.571616 -> 0.765988) bei UNVERAENDERTEM Durchsatz von 84
+Trades. Die Vorgabe aus dem U3-Entwurf (NAECHSTE + Klammer) bricht zusaetzlich
+den Durchsatz um 75 % (84 -> 21) bzw. 88 % (84 -> 10).
+
+Entscheidend ist die erste Spalte der Gegenprobe: NICHT weniger Trades sind
+das Problem, sondern dieselben 84 Trades mit kuerzerem Ziel. +0.765988 R auf
+84 Trades sind +0.0091 R je Trade -- das ist Rauschen, kein System.
+
+Einzige Ausnahme ist JUN (-11.421155 -> -6.940571). MAI verliert 19.536397 R,
+JUL verliert 6.749815 R. Eine Massnahme, die zwei von drei Fenstern deutlich
+verschlechtert und das dritte nur weniger schlecht macht, ist kein Hebel.
+
+Der Ordnungstest `sl < entry < poc < tp2` ist im Bestand eine HARTE Bedingung.
+Mit der NAECHSTEN Kante ist er nur selten erfuellbar:
+
+    MAI  8/35      JUN  4/28      JUL  9/21
+
+Damit ist der mitgedachte POC-Raum-Check nicht ein Zusatzfilter, sondern der
+Hauptgrund fuer den Durchsatzeinbruch (siehe Paragraph 4).
+
+### 3. Schwanzlast - die Traegerschaft des Ergebnisses
+
+Beleg: `test/_chk_u3_schwanz_last.py` (e8c9512efd54c577), Protokoll
+`test/_chk_u3_schwanz_last_out.txt` (ac7d80f99b723199).
+
+Der Bestand ist mathematisch KEIN High-Winrate-Scalper, sondern ein
+asymmetrisches Reclaim-/Fade-System, dessen Ergebnis an einzelnen weiten
+Treffern haengt:
+
+| Fenster | Trades | SumR | Top-1-Trade | R | SumR ohne Top-1 | R/Trade | R/Tr o.T1 | Top1-Anteil |
+|---|---|---|---|---|---|---|---|---|
+| MAI | 35 | +38.318126 | K103@841 | +51.6683 | -13.350142 | +1.0948 | -0.3927 | 134.8 % |
+| JUN | 28 | -11.421155 | K170@1754 | +10.0140 | -21.435173 | -0.4079 | -0.7939 | -87.7 % |
+| JUL | 21 | -4.325355 | K38@276 | +10.1556 | -14.480998 | -0.2060 | -0.7240 | -234.8 % |
+| AUG | 14 | +42.450970 | K20@564 | +15.8700 | +26.580936 | +3.0322 | +2.0447 | 37.4 % |
+| SUMME | 98 | +65.022586 | | | -22.685378 | +0.6635 | -0.2413 | |
+
+Exit-Verteilung (zeigt, woraus der Rest besteht):
+
+    Fenster  >+5R  +1..+5   0..+1     -1   <-1   SumR ohne alle >+5R
+    MAI         2       1       3     21     0            -20.489610
+    JUN         1       1       2     23     0            -21.435173
+    JUL         1       0       2     14     0            -14.480998
+    AUG         5       2       0      5     0             -0.846905
+
+Lesehilfe: Der SL-Bucket dominiert MAI 21/35, JUN 23/28, JUL 14/21. Streicht
+man jeden Ausreisser > +5 R, bleibt von MAI -20.489610 R, von JUN -21.435173 R
+und von JUL -14.480998 R. Nur AUG traegt breit (-0.846905 R ohne Ausreisser,
+5 Trades > +5 R).
+
+Konsequenz fuer den Hebel: Jede Verkuerzung von TP2 greift primaer genau die
+Trades an, die das Ergebnis tragen. Das erklaert F4b ohne Zusatzannahme: der
+Ausreisser K103@841 (+51.6683 R) lebt von der WEITEN Gegenkante. Wird das Ziel
+auf die naechste Kante gezogen, faellt genau dieser Trade weg, waehrend die
+SL-Treffer der Range-Fehlschlaege unveraendert bleiben.
+
+Institutionelle Einordnung: Ein asymmetrisches Reclaim-Setup an einem Makro-Pivot
+akzeptiert eine hohe Fehlversuchsquote (Kratzer am SL), weil die erfolgreichen
+Sweeps ueber die gesamte Marktstruktur bis zum gegenueberliegenden
+Liquiditaetspool laufen. Der "zu weite" Zielwert ist damit keine Schwaeche,
+sondern die Ertragsquelle.
+
+Anmerkung: Die Kennzahl ist nicht neu -- der Statistikblock in
+`test/_render_mai_jun_jul.py` fuehrt seit dem 13.09.2026 die Zeile
+"KONZENTRATION: bester Trade ... = ... % des SumR -> SumR OHNE diesen Trade".
+H20.52 verbindet diese Zahl erstmals mit der Zielwahl-Entscheidung. Auf
+Beschluss F6 wird dieselbe Zeile in den August-Renderer uebernommen, damit
+beide Bilder denselben Kennzahlsatz tragen.
+
+### 4. POC-Kopplung - warum nahe Ziele strukturell scheitern
+
+Der POC wird ueber das Band `[Basis, Gegenbasis]` berechnet. Wandert die
+Gegenbasis naeher, wird das Band schmaler, und der POC faellt haeufiger aus
+dem geforderten Raum. Der POC-Raum-Check ist damit nicht neutral gegenueber
+der Zielwahl -- er ist mit ihr gekoppelt.
+
+Sachlich ist das kein Defekt, sondern Semantik: Der POC ist das faire
+Volumen-Zentrum. Liegt das Ziel VOR dem POC, wettet man darauf, dass der Markt
+nicht einmal zum fairen Wert zurueckkehrt. Das widerspricht der Reclaim-Idee.
+
+Folge: "Ziel naeher" und "POC-Check behalten" sind keine zwei unabhaengigen
+Schalter. Wer beides gleichzeitig will, bekommt die Schnittmenge der oben
+gezeigten 8/35, 4/28, 9/21.
+
+### 5. F4c - Gedeckeltes Extremum (Gegenprobe, verworfen)
+
+Weil NAECHSTE falsifiziert war, wurde die konstruktive Alternative geprueft:
+das Extremum bleibt Ziel, wird aber auf einen Hoechstabstand gedeckelt
+(`tp2 = entry +/- min(dist_extrem, KAP)`), Ordnung `poc < tp2` geprueft.
+
+| Deckel | MAI | JUN | JUL | SUMME | Trades | R/Trade |
+|---|---|---|---|---|---|---|
+| 1.5 x R | +3.001216 | -4.009589 | +3.375683 | +2.367310 | 28 | +0.0845 |
+| 2.0 x R | -0.998784 | -3.895808 | +3.875683 | -1.018909 | 33 | -0.0309 |
+| 3.0 x R | +5.055509 | -5.895808 | +3.875683 | +3.035384 | 38 | +0.0799 |
+| 5.0 x R | +8.510390 | -7.895808 | +4.875683 | +5.490265 | 39 | +0.1408 |
+| 1.0 x ATR | +7.654330 | -6.455939 | +4.242177 | +5.440568 | 29 | +0.1876 |
+| 2.0 x ATR | +10.042201 | -4.842390 | +4.872004 | +10.071815 | 30 | +0.3357 |
+| 3.0 x ATR | +10.478185 | -5.020008 | +3.231873 | +8.690050 | 33 | +0.2633 |
+| EXTREMUM (Bestand) | +38.318126 | -11.421155 | -4.325355 | +22.571616 | 84 | +0.2687 |
+
+Befund: Kein gedeckeltes Ziel erreicht den Bestand absolut. Der Deckel
+2.0 x ATR hat zwar den hoechsten R/Trade (+0.3357 gegen +0.2687), kostet aber
+-12.499801 R absolut und 64 % Durchsatz. Das ist kein Fortschritt, sondern
+eine Umschichtung von Ertrag in Verzicht.
+
+Damit ist auch die konstruktive Variante der getesteten Klasse geschlossen:
+Weder "naeher" noch "gedeckelt" schlaegt den ungestutzten Bestand. Das ist
+die Substanz der F1-Klausel.
+
+### 6. ATR-Befund - 0 ATR im Motor; Beschluss E2/F4
+
+F1: Im Motor existieren NULL Zeilen mit einer ATR-Berechnung. `atr_periode`
+ist ein deklariertes, aber nie gelesenes Vertragsfeld (Paragraph 7). Die
+Klammer `0.50 * ATR` aus dem U3-Entwurf ist damit derzeit NICHT
+implementierbar.
+
+F2 (Groessenordnung, kausal nach Wilder, nur Referenz -- kein Motorcode):
+
+    Fenster   ATR min   ATR med   ATR max    0.50*ATR med   1.5*Risiko med
+    MAI        0.1709    0.3521    0.7223          0.1760           0.4830
+    JUN        0.1630    0.3054    0.6779          0.1527           0.4447
+    JUL        0.1143    0.2210    0.4607          0.1105           0.4140
+
+Selbst mit ATR bindet `1.5*|entry-sl|` immer (Faktor 2.7-3.7 groesser). Die
+ATR-Klammer waere also nicht nur unimplementiert, sie waere auch wirkungslos.
+
+Ein M15-ATR(14) von rund 0.22-0.35 USD gegen reale Stop-Distanzen von
+0.41-0.48 USD ist als Rauschmass fuer institutionelle Makro-Kanten zu klein.
+Beschluss F4: Fuer V022 wird ein kausales **H1-ATR(14)** vorgemerkt (alternativ
+H4); das M15-ATR(14) wird als unwirksam verworfen. Beschluss E2 bleibt: das
+ATR gehoert als physikalische Eigenschaft der Zeitreihe in den Scan
+(`scan["atr"]`, Volatilitaetsregime) -- aber auf der Zeitebene, auf der es
+ueberhaupt binden kann (offene Frage F9).
+
+Anmerkung zur Einordnung: ATR(14) M15 mag auch auf H1 nicht binden. Dann ist
+die Konsequenz nicht ein weiteres Hochskalieren, sondern der Verzicht auf die
+Volatilitaetsklammer zugunsten der reinen Stop-Distanz. Die Entscheidung ist
+an Messwerten zu treffen, nicht an der Erwartung.
+
+### 7. Inerte Vertragspunkte - 7 von 12 ohne Eingriffspunkt
+
+Der V021-Vertrag fuehrt 12 Felder. Geprueft wurde jede Vorkommnis in
+`test/tmp_kanten_engine_v021_replay.py` (Deklaration, Spiegel-Dataclass,
+Validierung, Patchtext). Ergebnis:
+
+| # | Feld | Funktionale Lesestelle | Status |
+|---|---|---|---|
+| 1 | basis_modus | keine (nur Zeile 148/278 Deklaration) | INERT |
+| 2 | gegenkante_modus | keine (nur Zeile 149/279 Deklaration) | INERT |
+| 3 | fensterrand_exit | keine (nur Zeile 150/280 Deklaration) | INERT |
+| 4 | min_risk_usd | nur `__post_init__` Zeile 165 + toter Pfad Zeile 205 | INERT |
+| 5 | atr_risiko_faktor | nur `__post_init__` Zeile 165 + toter Pfad Zeile 206 | INERT |
+| 6 | atr_periode | nur `__post_init__` Zeile 162/164 | INERT |
+| 7 | scan_readonly | keine (nur Zeile 158/288 Deklaration) | INERT |
+| 8 | existenz_modus | Patchtext Zeile 363/364 | VERDRAHTET |
+| 9 | m6l_modus | Patchtext Zeile 365/366 | VERDRAHTET |
+| 10 | rand_modus | Patchtext Zeile 367/368 | VERDRAHTET |
+| 11 | segmentwand_modus | Zeile 507/511/553 (Pfadwahl Segmentwand) | VERDRAHTET |
+| 12 | ueberdehnung_segment_pct | Zeile 330/334 (0.80-Codeanker) | VERDRAHTET |
+
+Sieben Felder haben also KEINEN funktionellen Eingriffspunkt. Konkret:
+
+- `risiko_floor()` (Zeile 196) wird ausschliesslich von `risiko_effektiv()`
+  (Zeile 208) gerufen; `risiko_effektiv()` hat 0 Aufrufstellen (Grep ueber
+  `test/*.py` und `backtest_lab/*.py`: nur Definition und Sonde). Beide sind
+  toter Code. `min_risk_usd`, `atr_risiko_faktor`, `atr_periode` beeinflussen
+  keinen einzigen Trade.
+- `scan_readonly` ist als "nicht abschaltbar" dokumentiert und in der Tat nur
+  ein Docstring-Versprechen -- es gibt keinen Schalterpfad.
+- `ueberdehnung_segment_pct` wirkt nur im NICHT-Legacy-Zweig. Der Legacy-Pfad
+  (Zeile 545/546) kehrt vor jedem Patch zurueck; dort ist das Feld wirkungslos.
+
+OPERATIVER KERN FUER E1: Weil `gegenkante_modus` inert ist, wuerde
+`gegenkante_modus="NAECHSTE"` im Motor STILL NICHTS tun -- der Bestand wuerde
+unbemerkt weiter mit dem Extremum handeln. Der in E1 beschlossene Bestand
+("Extremum bleibt") ist damit nicht nur richtig, sondern durch Konstruktion
+regressionsfrei. Die F4b-Zahlen konnten nur durch manuelle tp2-Substitution
+entstehen, nicht durch Setzen des Schalters.
+
+Weitere Folge: Das Sonden-Ergebnis F4b haette im Motor NIE sichtbar werden
+koennen. Ein Schalter, der nichts tut, ist gefaehrlicher als ein fehlender --
+er suggeriert eine Steuerbarkeit, die es nicht gibt.
+
+Beschluss F2: Die 7 Felder werden in H20.52 explizit als inerte Schnittstelle
+protokolliert. In V022 wird `risiko_effektiv()` mit der realen Stop-Distanz
+scharf verdrahtet; die uebrigen inerten Felder sind vor der Uebernahme in
+V022 einzeln zu rechtfertigen (verdrahten, entfernen oder ausdruecklich als
+"derzeit wirkungslos" kennzeichnen).
+
+### 8. Darstellungs-Garantie - PNG equity-frei
+
+Beschluss des Anwenders (14.09.2026): "im png renderer keine equity grafik
+zeigen". Umgesetzt in `test/_render_aug_v021.py`: GridSpec von 3 auf 2 Zeilen
+(`[7.4, 1.9]`), die cumR-Treppe (vormals `axc = gs[1]`) wird nicht mehr
+gezeichnet. Die cumR-Kennzahlen (Endstand, MaxDD, SL-Treffer) bleiben als
+ZAHLEN im Statistikblock erhalten.
+
+Beweis, dass NUR Grafik und nicht Zahl geaendert wurde:
+`test/render_aug_v021_out.txt` ist SHA-bit-identisch geblieben
+(2c427ecd0bd1da62, 1771 B). Alle Fail-Loud-Asserts unveraendert gruen:
+
+    SOLL OK: Legacy 14/+42.450970 | AN 18/+52.876174
+             H1 8/+38.919584 | H2 10/+13.956589
+
+Anmerkung: `test/tmp_png_aug_sichttest.py` (500b55762001d666) hat NIE eine
+Equity-Grafik enthalten (Grep auf equity/cumR/kumul/Kapital: 0 Treffer).
+Betroffen war ausschliesslich der V021-Renderer.
+
+### 9. Monats-PNGs - Beschluss auf den Baseline-Stand (E5/F3)
+
+Grundlage: Der Adapter fuehrt AUSSCHLIESSLICH AUG-Segmente.
+
+    ADAPTER_V014        1 Segment   [(848, 1020)]
+    ADAPTER_V015        1 Segment   [(848, 1020)]
+    ADAPTER_V019        3 Segmente  [(848, 1020), (1033, 1173), (1174, 1287)]
+    ADAPTER_V019_KAUSAL 3 Segmente  [(848, 1020), (1033, 1249), (1174, 1287)]
+
+Folge: `segmentwand_modus="AN"` verlangt laut Vertrag (Zeile 507) mehr als
+EINE Segmentgrenze und wirft fuer MAI/JUN/JUL `ValueError`. Ein Monats-PNG im
+V021-SEGMENTWANDSTAND ist damit nicht "noch nicht" darstellbar, sondern
+grundsaetzlich leer, solange keine Monatssegmente existieren.
+
+Daraus und aus der Anwenderentscheidung F3 ergibt sich der Sichtpruefungsstand:
+
+| Stand | MAI | JUN | JUL | Weg |
+|---|---|---|---|---|
+| TRIPEL | 58 / +40.023743 | 56 / -26.883881 | 68 / -11.3950657 | `_se_trades_v020` (verworfen) |
+| BASELINE | 35 / +38.318126 | 28 / -11.421155 | 21 / -4.325355 | V021-Defaults (BESCHLUSS) |
+| SEGMENTWAND | -- | -- | -- | nicht darstellbar |
+
+Begruendung des Anwenders: Der Tripel-Stand (58/56/68) ist der alte
+V020-Stand, der in H20.48/H20.49 demaskiert wurde. Er wurde in K4 nur
+reproduziert, um die Rueckverfolgbarkeit der Regression zu beweisen; als
+Sichtpruefungsbild wuerde er den Blick auf die Marktgeometrie erneut
+verfaelschen. Gegenstand ist die saubere V021-Baseline (35/28/21) -- die
+echten Kanten ohne die V020-Gate-Aufweichung.
+
+Technischer Weg (Vorschlag fuer Schritt 3, noch nicht ausgefuehrt):
+`V._lauf(scan, V.V021KantenKonfiguration(), box_end=n)` mit Default-Vertrag.
+`ist_legacy` ist dort True; der Pfad delegiert per Konstruktion an
+`B._se_trades(sc, wcfg)` (Zeile 545/546) und ist damit bit-identisch zur
+Baseline. Das Mengengeruest ist doppelt belegt: H20.51 Paragraph 1
+(Legacy-Spalte) und `_chk_u3_schwanz_last_out.txt`.
+
+Bestandslage: `test/_render_mai_jun_jul.py` (16 430 B) erzeugte am 13.09.2026
+`render_mai_sichttest.png` (1 394 697 B), `render_jun_sichttest.png`
+(1 282 766 B) und `render_jul_sichttest.png` (1 523 147 B) -- im TRIPEL-Stand
+und MIT cumR-Panel (`gs[1]`, `axc.step(...)`). Beides ist nach Paragraph 8
+und F3 zu bereinigen. Vorschlag: die drei Altbilder bleiben als Beweisstueck
+unangetastet liegen; die neuen Bilder erhalten eigene Dateinamen
+(z. B. `render_mai_baseline.png`).
+
+### 10. Dateien / SHAs (neu, alle in test/, read-only gegenueber Motoren)
+
+    e8c9512efd54c577   ( 5 137 B)   _chk_u3_schwanz_last.py
+    ac7d80f99b723199   ( 1 709 B)   _chk_u3_schwanz_last_out.txt
+    8a70e7d125d5e345   (18 281 B)   _chk_u3_spec_beleg.py
+    d8d6ba157a1d1073   ( 8 516 B)   _chk_u3_spec_beleg_out.txt
+    e1e3c5d6fa9644f2   (16 401 B)   _render_aug_v021.py      NEU (equity-frei)
+    6d5ce374283c9ea1   (424 303 B)  render_aug_v021.png      NEU (2413x1278)
+    2c427ecd0bd1da62   ( 1 771 B)   render_aug_v021_out.txt  UNVERAENDERT
+    (Bestand)          (16 430 B)   _render_mai_jun_jul.py   Gegenstand Schritt 3
+
+Arretierungsbruch (E6 bestaetigt): Der Renderer trug zuvor 8c9897788a473719
+und ist auf Anweisung ersetzt worden. Kein Backup noetig -- der Git-Verlauf
+haelt den Stand. Historie im Commit 32bd1cd (H20.51-Append).
+
+Unveraendert arretiert (Gegenprobe):
+
+    53f28e1b6971a64d   (200 433 B)  tmp_kanten_engine_replay.py   (Baseline)
+    e79c5c29482398d8   ( 40 567 B)  tmp_kanten_engine_v020_replay.py
+    cda9e5b189ed4137   ( 23 494 B)  tmp_kanten_engine_v021_replay.py
+    770eda2c75aaa135   ( 43 279 B)  backtest_lab/phasen_regime_adapter.py
+    500b55762001d666   (123 343 B)  tmp_png_aug_sichttest.py
+
+### 11. V022-Vormerkung - Datenvertrag der diagnostischen Zielkennzahlen
+
+Der Anwender hat fuer die spaetere Aufnahme in den Statistikblock folgenden
+unveraenderlichen Datenvertrag vorgelegt. Er wird hier als V022-Vormerkung
+notiert, NICHT implementiert (Fast Mode). Drei Praezisierungen sind
+vorgemerkt; sie aendern die Semantik nicht, sondern schliessen Luecken:
+
+```python
+@dataclass(frozen=True, slots=True)
+class DiagnostischeZielKennzahlen:
+    """Diagnostische Zielkennzahlen EINES Setups (Zielwahl: EXTREMUM).
+
+    Handelswirkung: KEINE. Das Feld dient ausschliesslich der Beobachtung
+    der Gegenliquiditaet (Beschluss F5). tp2 bleibt das Extremum.
+
+    Kausalitaet: ``naechste_kante_preis`` ist ``gegen.basis_bei(entry_bar)``
+    -- die kausale Basis, NIE die statische Provenienz ``gegen.basis``.
+
+    Fehlende Gegenkante: existiert keine richtungsfremde Kante im Pool, so
+    sind ``naechste_kante_preis``, ``dist_naechste_usd`` und ``crv_naechste``
+    ``float("nan")`` -- niemals 0.0 (0.0 waere eine Aussage ueber den Markt).
+    """
+
+    kid: int
+    entry_preis: float
+    extremum_preis: float
+    naechste_kante_preis: float
+    dist_extremum_usd: float
+    dist_naechste_usd: float
+    crv_extremum: float
+    crv_naechste: float
+    ordnung_poc_erfuellt: bool
+    ziel_klasse: ClassVar[Literal["EXTREMUM"]] = "EXTREMUM"
+```
+
+Praezisierung P1 (Zielklasse): Im Entwurf stand
+`ziel_klasse: Final[Literal["EXTREMUM"]] = "EXTREMUM"`. Als Dataclass-Feld
+waere das ein INSTANZ-Attribut, das je Instanz immer denselben Wert traegt und
+in `dataclasses.fields()` mitlaeuft -- eine Konstante als Nutzlast. Korrekt ist
+`ClassVar`: damit ist es eine Klassenkonstante, die nicht in `__init__` und
+nicht in `fields()` erscheint. Die Klasse markiert damit den Geltungsbereich
+der Kennzahl (nur Extremum), ohne ein Datum vorzutaeuschen.
+
+Praezisierung P2 (Namensgebung): `kanten_id` wurde auf `kid` gekuerzt -- das
+ist die projektweit verwendete Bezeichnung (Label `K<kid>`, Paragraph 54/55)
+und vermeidet eine zweite Vokabel fuer dieselbe Sache.
+
+Praezisierung P3 (Ordnungsflag): `ordnung_poc_erfuellt` ist ergaenzt. Ohne
+dieses Flag ist die in Paragraph 4 nachgewiesene POC-Kopplung im Datensatz
+nicht sichtbar -- gerade sie ist aber die Begruendung, warum nahe Ziele
+strukturell scheitern.
+
+Definitionsvertrag (verbindlich fuer die Implementierung):
+
+    dist_extremum_usd     = |extremum_preis - entry_preis|
+    dist_naechste_usd     = |naechste_kante_preis - entry_preis|
+    risiko_usd            = |sl - entry|        (die REAL genutzte Stop-Distanz,
+                                                  NICHT risiko_effektiv --
+                                                  dieses ist inert, Paragraph 7)
+    crv_extremum          = dist_extremum_usd / risiko_usd
+    crv_naechste          = dist_naechste_usd / risiko_usd
+    ziel_klasse           = "EXTREMUM"          (Klassenkonstante)
+
+Einheiten: ``_usd`` traegt ausschliesslich USD-Felder. ``crv_*`` ist
+dimensionslos -- deshalb kein ``_usd``-Suffix. Die Einheit steht im Namen,
+nicht im Docstring.
+
+### 12. Offene Entscheidungsfragen (bitte beantworten)
+
+F8. Falsifikationsklausel: Genuegt die Formulierung in Paragraph 1 (Klasse
+    {naechste Kante, gedeckeltes Extremum}), oder soll zusaetzlich ein
+    ausdruecklicher Hinweis auf die NICHT getestete Teilgewinn-/Runner-
+    Skalierung aufgenommen werden, damit V022 sie nicht als "bereits
+    widerlegt" missversteht?
+
+F9. ATR-Zeitebene (F4): H1-ATR(14) oder H4-ATR(14)? Und Wilder-Glaettung
+    oder einfacher Mittelwert? Die F2-Tabelle zeigt, dass M15 nicht bindet;
+    ob H1 bindet, ist NICHT gemessen -- die Entscheidung steht damit auf
+    einer Erwartung. Soll vor der V022-Implementierung eine kurze
+    H1/H4-Messung (read-only, kein Motoreingriff) nachgeholt werden?
+
+F10. Diagnostische Kennzahlen (Paragraph 11): Sind die drei Praezisierungen
+     P1 (ClassVar statt Final), P2 (kid statt kanten_id) und P3
+     (ordnung_poc_erfuellt) bestaetigt? Und soll der Datenvertrag als eigener
+     Abschnitt in den V022-Vertrag uebernommen werden?
+
+F11. Inerte Felder (F2): Soll V022 die sieben Felder (a) entfernen, (b)
+     verdrahten oder (c) als Reserve mit dem Vermerk "derzeit wirkungslos"
+     weiterfuehren? Paragraph 7 ist die Entscheidungsgrundlage. Achtung:
+     `atr_periode` ist der einzige Abnehmer fuer E2 (`scan["atr"]`) -- wird es
+     entfernt, braucht das ATR ein neues Traegerfeld.
+
+F12. Monats-PNG-Namen (Paragraph 9): neue Dateinamen
+     (`render_mai_baseline.png` usw.) bei unangetasteten Altbildern, oder
+     Ersetzen der drei `*_sichttest.png`-Dateien? Der Statistikblock fuehrt
+     die Konzentrationszeile bereits -- soll sie im Baseline-Bild bleiben
+     (F6 analog) und um `crv_extremum`/`crv_naechste` erweitert werden?
+
+F13. Commit-Schnitt (F7): H20.52 in EINEM Commit mit dem Renderer-Schritt 3,
+     oder H20.52 zuerst? Die Entscheidung lautet "zuerst H20.52"; die Frage
+     ist nur, ob die drei Baseline-PNGs in denselben Commit gehen oder in
+     einen eigenen (Bilder als Artefakte vs. Code als Gegenstand).

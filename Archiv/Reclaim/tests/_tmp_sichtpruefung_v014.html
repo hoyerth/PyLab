@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Sichtprüfung V014 — AUG-Sichttest (5 Panels + 57 Prüfpunkte)</title>
+<style>
+  :root { --bg:#f7f7f5; --fg:#1a1a1a; --mut:#666; --line:#d8d8d4;
+          --pb:#1b6b3a; --ab:#b8860b; --acc:#8e44ad; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg);
+         font:14px/1.5 "Segoe UI",system-ui,sans-serif; }
+  header { position:sticky; top:0; z-index:10; background:#fff;
+           border-bottom:2px solid var(--line); padding:10px 18px; }
+  header h1 { margin:0 0 2px; font-size:17px; }
+  header .meta { font-size:12px; color:var(--mut); }
+  nav a { display:inline-block; margin:6px 10px 0 0; font-size:12px;
+          color:#0b5cad; text-decoration:none; }
+  nav a:hover { text-decoration:underline; }
+  main { padding:18px; max-width:1900px; margin:0 auto; }
+  section { background:#fff; border:1px solid var(--line); border-radius:6px;
+            margin:0 0 18px; padding:12px 14px; }
+  h2 { font-size:15px; margin:0 0 8px; }
+  h3 { font-size:13px; margin:14px 0 6px; color:#333; }
+  .filedata { font:12px/1.6 Consolas,monospace; color:var(--mut); }
+  .wrap { overflow:auto; border:1px solid var(--line); background:#fff; }
+  img { display:block; max-width:100%; height:auto; }
+  .zoom { font-size:12px; margin:4px 0 0; color:var(--mut); }
+  table { border-collapse:collapse; width:100%; font-size:12.5px; }
+  th,td { border:1px solid var(--line); padding:4px 7px; text-align:left;
+          vertical-align:top; }
+  th { background:#f0f0ec; }
+  .pb { color:var(--pb); font-weight:700; white-space:nowrap; }
+  ul.chk { list-style:none; margin:0; padding:0; columns:2; column-gap:26px; }
+  ul.chk li { break-inside:avoid; margin:0 0 4px; }
+  label { display:flex; gap:7px; align-items:flex-start; cursor:pointer; }
+  label input { margin-top:3px; }
+  .id { font:700 12px Consolas,monospace; color:#0b5cad; min-width:52px; }
+  .neg { border-left:4px solid var(--acc); padding-left:8px; }
+  .warn { background:#fff8e6; border:1px solid var(--ab); border-radius:5px;
+          padding:8px 10px; font-size:12.5px; }
+  code { background:#f0f0ec; padding:1px 4px; border-radius:3px;
+         font:12px Consolas,monospace; }
+  .twin { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  @media (max-width:1100px){ ul.chk{columns:1;} .twin{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Sichtprüfung V014 — AUG-Sichttest</h1>
+  <div class="meta">5 Panels · 57 visuelle Prüfpunkte · 34 protokollbasiert vorab
+    erledigt (<span class="pb">☑ PB</span>, hier nicht erneut gelistet) ·
+    Stand <code>ad7af57</code></div>
+  <nav>
+    <a href="#p01">01 Gesamt</a><a href="#p02">02 H1-Box</a>
+    <a href="#p03">03 H2+Phasen</a><a href="#p04">04 P9-Regime</a>
+    <a href="#p05">05 Kantenkarte</a><a href="#beweis">Beweis S-0</a>
+    <a href="#a">A Konventionen</a><a href="#c">C Panels</a>
+    <a href="#d">D Neuerungen</a><a href="#e">E Gegenproben</a>
+  </nav>
+</header>
+
+<main>
+
+<section>
+  <h2>Auftrag in einem Satz</h2>
+  <p>Alle <strong>protokollbasierten</strong> Zahlen sind vorab abgeglichen
+  (34 Positionen, <span class="pb">☑ PB</span>) und gelten als abgenommen. Zu
+  prüfen bleibt ausschließlich die <strong>Optik</strong>: 57 Punkte, verteilt
+  auf die Blöcke A&nbsp;→&nbsp;C&nbsp;→&nbsp;D&nbsp;→&nbsp;E
+  (<strong>E8/E9 zuletzt</strong>, Negativnachweise).</p>
+  <div class="warn">Kein Renderlauf, keine Neu-Arretierung. Die Bilder sind
+  byte-fixiert; ein abweichender Hash wäre ein Alarm, kein Schönheitsfehler.
+  Bild öffnen: im Browser mit <code>Strg</code>+<code>+</code> zoomen, oder
+  direkt die PNG-Datei im Bildbetrachter (100&nbsp;%).</div>
+</section>
+
+<!-- ============================ PANELS ============================ -->
+
+<section id="p01">
+  <h2>Panel 01 / 05 — Gesamt (Bars 0..1287)</h2>
+  <div class="filedata">
+    test/aug_sichttest_v014_01_gesamt.png · 2.049.763 B · 6600×3900 · bd8/ct6<br>
+    SHA256 25d388e66984a2e3432133fdfaf10901c605cc11ea251bc88d6c9f8383a34117
+  </div>
+  <div class="wrap"><img src="aug_sichttest_v014_01_gesamt.png"
+       alt="Panel 01 Gesamt"></div>
+  <p class="zoom">Prüfpunkte C01-1 … C01-8</p>
+</section>
+
+<section id="p02">
+  <h2>Panel 02 / 05 — H1-Box (Bars 0..660)</h2>
+  <div class="filedata">
+    test/aug_sichttest_v014_02_h1_box.png · 899.249 B · 6000×3600 · bd8/ct6<br>
+    SHA256 d9f35876442593c529083f194ab50cc37e7691a65794dfe6456a311c1b7cbb04
+  </div>
+  <div class="wrap"><img src="aug_sichttest_v014_02_h1_box.png"
+       alt="Panel 02 H1-Box"></div>
+  <p class="zoom">Prüfpunkt C02-1 … C02-4 · C02-5 ist bereits
+     <span class="pb">☑ PB</span></p>
+</section>
+
+<section id="p03">
+  <h2>Panel 03 / 05 — H2 + Phasen (Bars 620..1287)</h2>
+  <div class="filedata">
+    test/aug_sichttest_v014_03_h2_phasen.png · 1.695.409 B · 6600×3600 · bd8/ct6<br>
+    SHA256 a055b243463460e8b459e5ad244b18e0b45e74a525f253cf358caae1cdd01fc7
+  </div>
+  <div class="wrap"><img src="aug_sichttest_v014_03_h2_phasen.png"
+       alt="Panel 03 H2 Phasen"></div>
+  <p class="zoom">Prüfpunkte C03-1 … C03-7</p>
+</section>
+
+<section id="p04">
+  <h2>Panel 04 / 05 — P9-Regime (Bars 820..1045)</h2>
+  <div class="filedata">
+    test/aug_sichttest_v014_04_p9_regime.png · 1.151.700 B · 6300×3600 · bd8/ct6<br>
+    SHA256 1f13a7f7910a62cee10afb64d70acf85f3015a01909ef382bfb299fea981118c
+  </div>
+  <div class="wrap"><img src="aug_sichttest_v014_04_p9_regime.png"
+       alt="Panel 04 P9 Regime"></div>
+  <p class="zoom">Prüfpunkte C04-1 … C04-8 · Alt-Kandidat A-1 (Tick-Dichte)</p>
+</section>
+
+<section id="p05">
+  <h2>Panel 05 / 05 — Kantenkarte (Bars 0..1287)</h2>
+  <div class="filedata">
+    test/aug_sichttest_v014_05_kantenkarte.png · 2.063.329 B · 6600×3900 · bd8/ct6<br>
+    SHA256 7b022907af4493663e06600892836d999a1e98dcec7e1731c3f458be4f7fbbd3
+  </div>
+  <div class="wrap"><img src="aug_sichttest_v014_05_kantenkarte.png"
+       alt="Panel 05 Kantenkarte"></div>
+  <p class="zoom">Prüfpunkte C05-1 … C05-5</p>
+</section>
+
+<!-- ============================ BEWEIS ============================ -->
+
+<section id="beweis">
+  <h2>Beweis S-0 — H1-Panel ist in beiden Sätzen byte-identisch</h2>
+  <div class="warn">Beide Dateien tragen denselben SHA256
+    <code>d9f35876…1b7cbb04</code> und dieselbe Größe <strong>899.249 B</strong>.
+    Der P9-lokale Niveau-Override berührt die H1-Box <strong>pixelgenau
+    nicht</strong>. Rein visuell sind die beiden folgenden Bilder nicht
+    unterscheidbar — genau das ist der Nachweis.</div>
+  <div class="twin">
+    <div>
+      <h3>V01 (Referenz)</h3>
+      <div class="wrap"><img src="aug_sichttest_02_h1_box.png"
+           alt="V01 Panel 02"></div>
+    </div>
+    <div>
+      <h3>V014 (Prüfling)</h3>
+      <div class="wrap"><img src="aug_sichttest_v014_02_h1_box.png"
+           alt="V014 Panel 02"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ CHECKLISTEN ============================ -->
+
+<section id="a">
+  <h2>Block A — Globale Konventionen (12 Punkte, in allen Panels)</h2>
+  <ul class="chk">
+    <li><label><input type="checkbox"><span><span class="id">A1</span>Statistik mittig, Monospace</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">A2</span>Legende oben links, zweispaltig</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">A3</span>Alle Panels in Kerzen</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">A4</span>Titel mit Bar-Grenzen</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">A5</span>X-Achse = Bar-Zeit, kein Offset</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">A6</span>Trade-Kreise immer farbig gefüllt</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">A7</span>Jedes K-Label trägt den Preis</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">A8</span>Preiswechsel: <code>v0 -&gt; v1 *</code>, fett</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">A9</span>Norm als Zitat angehängt</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">A10</span>Linien kausal (<code>basis_bei(k)</code>)</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">A11</span>Sperr-Marker violett x/^</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">A12</span>R21-Kanten ohne Linie, nur Band</span></label></li>
+  </ul>
+</section>
+
+<section id="c">
+  <h2>Block C — Panels im Detail (32 Punkte)</h2>
+
+  <h3>Panel 01 — Gesamt (Bars 0..1287)</h3>
+  <ul class="chk">
+    <li><label><input type="checkbox"><span><span class="id">C01-1</span>H1-Box grau, Grenze gepunktet bei 640</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">C01-2</span>Labels H1 BOX / H2 EXPANSION</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">C01-3</span>17 Trade-Beschriftungen</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">C01-4</span>15 V01-Trades sichtbar, 2 blass</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">C01-5</span>Zeile PREIS AN DER LINIE: 54 / 4 von 4</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">C01-6</span>Zeile SPERR-MARKER: Q29 57, M6 23</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">C01-7</span>Kein Label ohne Preis / ohne e.basis</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">C01-8</span>Lesbarkeit dichte Bereiche</span></label></li>
+  </ul>
+
+  <h3>Panel 02 — H1-Box (Bars 0..660)</h3>
+  <ul class="chk">
+    <li><label><input type="checkbox"><span><span class="id">C02-1</span>Titel Bars 0..660, +38.964262 R</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">C02-2</span>8 Trades, Detailzeile vollständig</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">C02-3</span>Keine Override-Grenzlinie im Fenster</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">C02-4</span>Legende mit 3 V014-Zusatzeinträgen</span></label></li>
+  </ul>
+  <p class="zoom">C02-5 (Byte-Identität) = <span class="pb">☑ PB</span> —
+     siehe Abschnitt „Beweis S-0"</p>
+
+  <h3>Panel 03 — H2 + Phasen (Bars 620..1287)</h3>
+  <ul class="chk">
+    <li><label><input type="checkbox"><span><span class="id">C03-1</span>Zonen grün P9 / grau P12 / rot Lücke</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">C03-2</span>Lücken 641-847 · 1021-1029 · 1076-1081 · 1135-1170 · 1273-1287</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">C03-3</span>9 H2-Trades, Trade-Zeile vollständig</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">C03-4</span>P9-Zeile nennt das Quartett</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">C03-5</span>Park-Zeile 5 / +2.4809 R</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">C03-6</span>P10/P11/P12 als nicht aktiv</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">C03-7</span>Q29-Sperren in P9: 991, 992, 997, 998, 1002</span></label></li>
+  </ul>
+
+  <h3>Panel 04 — P9-Regime (Bars 820..1045)</h3>
+  <ul class="chk">
+    <li><label><input type="checkbox"><span><span class="id">C04-1</span>Titel Override 69.8700, Ziel 68.3700</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">C04-2</span>K67/K73/K76/K77/K82 fett, U/L_final</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">C04-3</span>Grenzlinien 848 / 1021, kein axvspan</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">C04-4</span>Quartett-Zeile stufe/entry/sl</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">C04-5</span>Quartett-R, Summe +19.804922</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">C04-6</span>Austritt 1021 -> 69.9513, ab 1022 -> 69.9458</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">C04-7</span>X-Achse 12 Ticks (Alt-Kandidat A-1)</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">C04-8</span>K67 starr auf 69.8700 ab Bar 875</span></label></li>
+  </ul>
+
+  <h3>Panel 05 — Kantenkarte (Bars 0..1287)</h3>
+  <ul class="chk">
+    <li><label><input type="checkbox"><span><span class="id">C05-1</span>59 edges + 14 seeds = 73</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">C05-2</span>OBEN/UNTEN, Sweeps, Neugeburten, Promotionen</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">C05-3</span>R21-gelöschte Kanten unsichtbar</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">C05-4</span>Lesart-Zeile K67 / K73 / K77</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">C05-5</span>Seed-Legende vorhanden</span></label></li>
+  </ul>
+</section>
+
+<section id="d">
+  <h2>Block D — Die neuen Anpassungen (§66 / §67) — 11 Punkte</h2>
+  <p class="zoom">D7, D9, D10 sind bereits <span class="pb">☑ PB</span>.
+     Zu prüfen bleiben 8 Punkte. <em>Kern des Auftrags.</em></p>
+  <ul class="chk">
+    <li><label><input type="checkbox"><span><span class="id">D1</span>Plateau-Label <code>K67 69.975 -&gt; 69.870 (P9-Override) -&gt; 69.946 *&nbsp;&nbsp;Norm 69.9140</code>, fett, Rahmen #b8860b</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">D2</span>Das <code>*</code> ist gesetzt, obwohl nur 3 wirksame Stufen</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">D3</span>Grenzlinien 848 / 1021 mit Kleintext, kein Flächenband</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">D4</span>K73@980 und K73@1020 blass (mfc=none, grau, α0.45, „(V01 entfaellt)")</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">D5</span>Alle 17 handelnden Trades bleiben farbig gefüllt</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">D6</span>Quartett vollständig: 903, 980, 981, 1020</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">D8</span>Legende trägt 3 V014-Zusatzeinträge</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">D11</span>In Panel 02 keine Override-Linie / kein Kleintext</span></label></li>
+  </ul>
+  <h3>Scharfe Einzelprüfung (§66.2)</h3>
+  <ul class="chk">
+    <li><label><input type="checkbox"><span><span class="id">D*</span>Gerendertes Label zeigt <code>-&gt; 69.946</code> (nicht 69.951)</span></label></li>
+  </ul>
+</section>
+
+<section id="e">
+  <h2>Block E — Gegenproben aus §69 — 3 visuelle Punkte</h2>
+  <p class="zoom">E1–E6 und E10 sind bereits <span class="pb">☑ PB</span>.
+     Offen bleiben E7 (datenbasiert) und die beiden Negativnachweise.</p>
+  <ul class="chk">
+    <li><label><input type="checkbox"><span><span class="id">E7</span>P9-Tiefs 68,2880 @1000 / 68,3080 @1002; ab 1003 kein Rückfall &lt; 68,40<br><span class="zoom">(datenbasiert aus der M15-Quelle, nicht protokollbasiert)</span></span></label></li>
+    <li class="neg"><label><input type="checkbox"><span><span class="id">E8</span><strong>kein Trade-Kreis bei Bar 1002</strong> — Regel G4 ist nicht aktiviert</span></label></li>
+    <li class="neg"><label><input type="checkbox"><span><span class="id">E9</span><strong>kein Trade-Kreis bei Bar 1259</strong> — P12_RESERVE inert (§69.11, Papier +2,234280 R)</span></label></li>
+  </ul>
+  <div class="warn">E8 und E9 sind <strong>Negativnachweise</strong>: zu prüfen ist
+  das <strong>Fehlen</strong> eines Markers. Sie belegen optisch, dass v0.19 nur
+  dokumentiert und nichts aktiviert hat.</div>
+</section>
+
+<section>
+  <h2>Alt-Befunde — informativ, keine Abnahmeblockade</h2>
+  <p class="zoom">Kenntnisnahme genügt; Umsetzung erst nach der v0.18-Arretierung.</p>
+  <ul class="chk">
+    <li><label><input type="checkbox"><span><span class="id">A-2</span>Doppelbelegung Marker <code>x</code>: rot (Sweep-Sperre) und violett (Q29) bewusst so belassen</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">A-1</span>Tick-Dichte Panel 04 → Auflage</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">A-3</span>Box-Überlappung dichte Bereiche → Auflage</span></label></li>
+    <li><label><input type="checkbox"><span><span class="id">A-4</span>Position P9 AKTIV / P12 RESERVE → Auflage</span></label></li>
+  </ul>
+</section>
+
+<section>
+  <h2>Nicht-Ziele dieser Ansicht</h2>
+  <ul>
+    <li>Keine Neu-Arretierung, kein Renderlauf — die Hashes oben sind bindend.</li>
+    <li>Die Kästchen dienen nur Ihrer eigenen Führung; sie werden nicht gespeichert.</li>
+    <li>Ergebnis bitte als <strong>Textblock</strong> zurückmelden; Eintrag erfolgt
+        in <code>ABNAHME_V014_2026-09-10.md</code> Teil V.</li>
+  </ul>
+</section>
+
+</main>
+</body>
+</html>

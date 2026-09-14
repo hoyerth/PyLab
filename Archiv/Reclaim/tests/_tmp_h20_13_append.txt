@@ -1,0 +1,106 @@
+
+#### H20.13 Schritt 2 - E-34 Paragraph O1 als Regime-Detektor: POSITIVER BEFUND
+
+Geprueft wurde kein neues Konstrukt, sondern die arretierte Kantenwechsel-Regel
+(E-34 Paragraph O1; 1:1-Port aus `_tmp_e34_auto.py` / `_chk_aug26_segmente.py`):
+`lebt(e, k)` = letzter BESTAETIGTER Docht `b + 2 <= k` mit
+`b >= k - wall_live_bars` (96); `decke(k)`/`boden(k)` = aeusserste lebende Linie
+je Seite; Segmentgrenze = Wechsel des Paares `(decke_kid, boden_kid)`;
+`zusammenfassen` nach Laenge < SCHWELLE ODER Grenzniveaus <= 0.12 % gleich.
+
+**A. Anschlag-Physik (woran haengt der Umschaltpunkt?)**
+
+| Fenster | Katalog | Umschaltpunkte | davon VERFALL | davon NEU | beides | Sprung Median | Sprung p90 | Sprung max | <= 0.12 % |
+|---|---|---|---|---|---|---|---|---|---|
+| AUG | 73 Linien | 62 | 29 | 33 | 0 | 0.5414 % | 1.2531 % | 4.2673 % | 2 (3.2 %) |
+| AUG26 | 116 Linien | 97 | 50 | 47 | 0 | 0.6222 % | 1.8238 % | 4.1466 % | 3 (3.1 %) |
+
+Der Umschaltpunkt ist **entweder** der Tod der Aussenwand (naechste lebende
+Linie rueckt nach) **oder** die Bestaetigung einer weiter aussen liegenden
+Linie - nie beides gleichzeitig. Entscheidend: nur ~3 % der Spruenge liegen im
+Verschmelzungsband 0.12 %, der Median bei 0.54/0.62 %. Die Regel schlaegt also
+an ECHTEN strukturellen Niveaus an, nicht an Mikro-Rauschen - genau der Modus,
+an dem der gleitende Dwell-Detektor gescheitert ist (H20.8/H20.9).
+
+**B. AUG - liefert die Regel 848 / 1033 / 1174?**
+
+- **1033 (A1-Start) und 1174 (A2-Start) sind BIT-EXAKT regel-erzeugt.** Mit dem
+  P9-Anker (`START` = P9-Ende + 1 = **1021**) und SCHWELLE 77 liefert
+  `zusammenfassen` genau `[(1033, 1173), (1174, 1287)]` - also A1 und A2
+  vollstaendig; die Luecke **1021..1032** entsteht fail-closed aus dem Anker.
+  (Rohsegmente: 61 ab 0 bzw. 7 ab 1021.)
+- **848 ist NICHT regel-erzeugt.** Es ist der arretierte P9-Start - laut
+  E-34 Paragraph O1 die "einzige uebernommene Groesse". Die Regel bildet den
+  P9-Bereich nur zu 51.4 % ab (Innenlinien-Dynamik: im P9-Bereich wechselt der
+  Boden ueber K17/K62/K63/K60 bis K77; vgl. E-34 Paragraph O4).
+- K1/K2/K3 mit `START = 0` (rein regel-erzeugt): **K1 NEIN, K2 JA** (3
+  Segmente), **K3 NEIN** (IoU 0.333, 851 FP). Im **anker-gebundenen** Betrieb
+  dagegen: 3 Segmente, Balance-Maske == arretierte Maske (IoU 1.000); dieser
+  K3-Wert ist per Konstruktion tautologisch und daher nicht als Beweis lesbar.
+
+**C. AUG26 - was wirft dieselbe Regel aus? Fensterstabil?**
+
+| Anker | Grenzen AUG | Grenzen AUG26 | Bewertung |
+|---|---|---|---|
+| keiner (`START = 0`, SCHWELLE 77) | 937 / 1174 | 1397 / 1634 | **+460 bit-exakt** |
+| P9-Ende + 1 (+460) | 1033 / 1174 | 1493 / 1634 | **+460 bit-exakt** |
+
+Damit ist H20.5 praezisiert: **die Regel SELBST ist fensterstabil.** Der dort
+gemeldete Kollaps (Seg 1 = 14..1396, 95.9 % ausserhalb) ist KEIN Defekt der
+Kantenwechsel-Regel, sondern die Folge des **fehlenden Ankers**: ohne
+P9-Vor-Balance kettet `zusammenfassen` den gesamten Vormonat in einen
+Monolithen. Ueber den P9-Anker geliefert werden auf AUG26 die +460-Bilder der
+arretierten Struktur:
+
+- A1-Analogon: **1493..1633** (Soll 1493..1633 = 1033+460 .. 1173+460) - exakt.
+- A2-Analogon: Start **1634** (Soll 1634 = 1174+460) - exakt; offenes Ende wie
+  in AUG (Segment laeuft bis Fensterende).
+
+Nicht reproduziert wird das P9-Analogon 1308..1480 (Ueberdeckung 51.4 %) -
+dieselbe Aussage wie auf AUG: P9 ist Setzung, nicht Regelprodukt.
+
+**D. Der offene Punkt ist der ANKER, nicht die Regel.** Die Regel braucht
+einen Startpunkt "Beginn der ersten bestaetigten Balance". Auf AUG ist das das
+hand-gesetzte P9 (848..1020) - endogen ist dieser Start nicht ableitbar. Genau
+dort liegt die offene Frage (vgl. F4: quartilfrei bis erste bestaetigte Balance
+plus Warmup 96 Bars).
+
+Artefakt-Anker:
+
+| Datei | Bytes | SHA256 |
+|---|---|---|
+| `test/_chk_kantenwechsel_o1.py` | 18.082 | `e8218a6a5a92f44f91588d61d302645634b2218ba6432da1c8dbe6fa0713875f` |
+| `test/_chk_kantenwechsel_o1_out.txt` | 23.802 | `936663d2921992ad4801ca7c2a604b410a46c3e98032f40c60a66ed40832cb6f` |
+
+#### H20.14 Konsequenz und offene Entscheidung (Textblock, kein Menue)
+
+**Befund.** Die Kantenwechsel-Regel (E-34 Paragraph O1) ist als Regime-Detektor
+**nicht widerlegt**: sie erzeugt die arretierten Grenzen 1033/1174 (AUG) bzw.
+1493/1634 (AUG26) bit-exakt und fensterstabil; sie schlaegt an echten
+Niveau-Spruengen an (Median 0.54 %). Der gleitende Dwell-Detektor ist dagegen
+nach K1-K3 widerlegt (H20.8/H20.9). Der Kollaps aus H20.5 ist auf den
+**fehlenden Anker** zurueckzufuehren, nicht auf die Regel.
+
+**Offene Frage 1 - Anker-Herkunft.** Woher kommt der Startpunkt der ersten
+bestaetigten Balance, wenn P9 (848) auf AUG eine Setzung ist? Drei
+Moeglichkeiten sind zu pruefen und zu bewerten:
+(a) erster Kantenwechsel, bei dem BEIDE Seiten eine etablierte Linie
+(V-S >= 3) tragen, nach einer Warmup-Zone von 96 Bars (F4);
+(b) erster Bar, an dem die aeusserste lebende Linie ueber `wall_live_bars`
+hinweg stabil bleibt (Dwell auf der KANTE, nicht auf dem Zeitfenster);
+(c) Beibehaltung der Setzung, aber explizit als Setzung deklariert
+(Anwender-Entscheid), samt Angabe, was das fuer AUG26 bedeutet (+460).
+
+**Offene Frage 2 - Vor-Balance auf AUG26.** Ohne P9-Anker liefert die Regel
+14..1396 als Monolith. Ist die Vor-Balance auf AUG26 (03.08. .. 07.08.)
+ueberhaupt eine Balance im Sinne der Regel, oder ist sie Trendvorlauf und
+bleibt dauerhaft TRANSITION (dann entfaellt der Anker-Zwang)?
+
+**Offene Frage 3 - K1/K3 fuer die Regel.** K1 gilt fuer die reine Regel als
+NICHT erfuellt (848 ist vererbt). Soll K1 fuer die Regelpruefung entfallen und
+stattdessen K2 (Schnitt) plus K3 (Flaechenmass im anker-gebundenen Betrieb,
+IoU der DERIVED-Segmente ohne P9) gelten?
+
+**Nicht fortgesetzt wird:** das gleitende Dwell-Fenster in jeder Form
+(Hysterese-Neukonstrukt gestrichen); Warte auf Anwender-Entscheid zu
+Frage 1-3.

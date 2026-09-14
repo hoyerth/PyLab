@@ -1,0 +1,72 @@
+SHA-Guards OK: Baseline 53f28e1b / V020 e79c5c29 / Adapter 770eda2c
+NEUES FENSTER: 2026-08-03 .. 2026-09-12 (exklusiv) | bestehendes AUG: 2026-08-10 .. 2026-08-28
+
+===== BEWEIS 1: BINNENSEGMENT (kein Praefix) =====
+  AUG n=1288 | AUG_SEP n=2750 (Differenz 1462)
+  AUG erste Kerze : 2026-08-10T00:00:00.000000000
+  AUG_SEP erste   : 2026-08-03T00:00:00.000000000
+  AUG_SEP letzte  : 2026-09-11T22:45:00.000000000
+  OK: ts_ext[460:1748] == ts_aug (Offset 460 = 5 Handelstage x 92)
+  FOLGE: AUG ist KEIN Praefix; alle AUG-Bar-Indizes liegen im AUG_SEP-Frame um +460 verschoben.
+
+===== BEWEIS 2: BOX-GRENZE (Kanon K6) =====
+  box_end_bar(AUG_SEP, '2026-08-19') = 1104
+  Erwartung: 1104 = 460 + 644
+  OK: edges=103 seeds=19 n=2750
+
+===== BEWEIS 3: FENSTER-INVARIANZ (gemessen, NICHT erzwungen) =====
+  A0: AUG 29 / +23.389914 (Klammer (29, 23.389914))  |  EXT-Segment 20 / -6.915273
+    gemeinsame (entry,richtung) 18: R-identisch 10, R-abweichend 8  |  nur-AUG 11  nur-EXT 2
+      DIV entry=231 SHORT AUG K20 r=+6.889303 -> EXT K75 r=+1.341418
+      DIV entry=245 SHORT AUG K20 r=+3.925121 -> EXT K75 r=+0.424718
+      DIV entry=433 SHORT AUG K33 r=-0.492472 -> EXT K86 r=-0.099793
+      DIV entry=531 SHORT AUG K20 r=+8.359943 -> EXT K75 r=+2.387942
+      DIV entry=1021 SHORT AUG K67 r=+1.050505 -> EXT K117 r=-1.000000
+      DIV entry=1077 LONG  AUG K62 r=+1.475768 -> EXT K112 r=+2.283882
+      DIV entry=1123 SHORT AUG K73 r=+2.192513 -> EXT K123 r=-1.000000
+      DIV entry=1273 SHORT AUG K73 r=+1.254682 -> EXT K123 r=-1.000000
+      NUR-AUG entry=362 LONG  K23 r=-0.429390
+      NUR-AUG entry=379 LONG  K21 r=-1.000000
+      NUR-AUG entry=565 SHORT K20 r=+15.870034
+      NUR-AUG entry=644 LONG  K4 r=-1.000000
+      NUR-AUG entry=653 LONG  K3 r=-1.000000
+      NUR-AUG entry=681 LONG  K45 r=-1.000000
+      NUR-AUG entry=706 SHORT K12 r=-1.000000
+      NUR-AUG entry=711 SHORT K16 r=-0.452653
+      NUR-AUG entry=714 SHORT K33 r=-1.000000
+      NUR-AUG entry=728 SHORT K15 r=-1.000000
+      NUR-AUG entry=729 SHORT K31 r=-1.000000
+      NUR-EXT entry=73 SHORT K52 r=-1.000000
+      NUR-EXT entry=476 SHORT K71 r=-1.000000
+  B0: AUG 33 / +56.549174 (Klammer (33, 56.549174))  |  EXT-Segment 11 / -4.974594
+    gemeinsame (entry,richtung) 8: R-identisch 4, R-abweichend 4  |  nur-AUG 25  nur-EXT 3
+      DIV entry=231 SHORT AUG K20 r=+6.889303 -> EXT K75 r=+1.341418
+      DIV entry=245 SHORT AUG K20 r=+3.925121 -> EXT K75 r=+0.424718
+      DIV entry=581 LONG  AUG K14 r=-0.389474 -> EXT K69 r=+0.176316
+      DIV entry=617 LONG  AUG K11 r=-0.405682 -> EXT K67 r=+0.082955
+      NUR-AUG entry=362 LONG  K23 r=-0.429390
+      NUR-AUG entry=379 LONG  K21 r=-1.000000
+      NUR-AUG entry=433 SHORT K33 r=-0.492472
+      NUR-AUG entry=528 SHORT K31 r=-1.000000
+      NUR-AUG entry=531 SHORT K20 r=+8.359943
+      NUR-AUG entry=565 SHORT K20 r=+15.870034
+      NUR-AUG entry=644 LONG  K4 r=-1.000000
+      NUR-AUG entry=653 LONG  K3 r=-1.000000
+      NUR-AUG entry=681 LONG  K45 r=-1.000000
+      NUR-AUG entry=706 SHORT K12 r=-1.000000
+      NUR-AUG entry=711 SHORT K16 r=-0.452653
+      NUR-AUG entry=714 SHORT K33 r=-1.000000
+      NUR-EXT entry=73 SHORT K52 r=-1.000000
+      NUR-EXT entry=618 LONG  K78 r=-1.000000
+      NUR-EXT entry=619 LONG  K49 r=-1.000000
+  VERDIKT: NICHT invariant -- der Scan ist fenster-global (Basis-VWAP ueber alle Touches, R21-Tombstone, Kid-Renumbering). Die AUG-SSoT uebertraegt sich NICHT auf ein laengeres Fenster.
+
+===== BEWEIS 4: VOLLAUF EXT (neue Frontier, box_end=n) =====
+  A0: total 65 / -26.573010  |  AUG-Segment 20 / -6.915273  |  H1(<1104) 19 / -9.740870  |  H2 46 / -16.832139  |  nur-Sep (bar>=1748) 39 / -13.657737
+  B0: total 17 / -10.974594  |  AUG-Segment 11 / -4.974594  |  H1(<1104) 17 / -10.974594  |  H2 0 / +0.000000  |  nur-Sep (bar>=1748) 0 / +0.000000
+
+===== VERDIKT =====
+  1. ts-Binnensegment OK (AUG = AUG_SEP[460:1748]); AUG ist KEIN Praefix.
+  2. Box-Grenze OK (searchsorted '2026-08-19' = 1104 = 460 + 644, Kanon K6).
+  3. FENSTER-INVARIANZ: VERLETZT. Der Scan ist fenster-global: Kanten-Basis (VWAP ueber alle Touches), R21-Tombstone-Loeschung und Kid-Vergabe haengen vom GESAMTEN Fenster ab. Eine Verlaengerung veraendert rueckwirkend AUG-Trades (nicht nur die Kid-Nummern).
+  FOLGE fuer die Roadmap: 'AUG bit-identisch in einem laengeren Fenster' gilt fuer die ROH-OHLC-Zeitachse, NICHT fuer Scan/Trades. Vor Schritt-4-Implementierung ist eine kausalitaets-invariante Scan-Variante zu spezifizieren.

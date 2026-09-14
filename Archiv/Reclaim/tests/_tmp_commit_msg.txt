@@ -1,0 +1,41 @@
+docs(handoff): E-27 Q29-Lokalisierung — die Long-Seite ist heilbar (+ D1-D4-Bereinigung)
+
+Umsetzung des ratifizierten Weges (a): Q29 symmetrisch auf das lokale
+Erkennungsfenster. Eingriff ausschliesslich in den zwei Q29-Referenzzeilen
+(Engine 2434/2435): hi[:k+1] -> hi[_a29:k+1], _a29 = 0 (global) | k-LB+1.
+
+Methodik-Erratum (F0): _se_trades mutiert den Kantenzustand
+(letzter_signal_bar/-sweep_bar, cluster_hoch/-tief). Mehrere Varianten in einem
+Prozess sind kontaminiert; der erste E-27-Entwurf lieferte 106 Setups statt 261.
+Regel: ein Variantenlauf = ein Prozess. Kontaminierter Output geloescht.
+
+Befunde S2 (box_end_bar = n = 21624, Split 17692):
+- GLOBAL 0..k : 299 Setups, R -186.055940, USD/Tr -0.0672, Q_stop 0.799, LONG 5
+- LOKAL 960   : 261 Setups, R  -70.813603, USD/Tr -0.0206, Q_stop 0.667, LONG 59
+- LOKAL 480   : 315 Setups, R  -90.046026, USD/Tr -0.0319, Q_stop 0.644, LONG 82
+Fidelity: GLOBAL reproduziert BASE bit-identisch (299 / -186.055940 / H2 54).
+
+Q29-Durchlass H2 (Kernfrage):
+- LONG  144 Kand.: GLOBAL 144 gesperrt (0.0%) | 960 102 gesperrt (29.2%) | 480 62 (56.9%)
+- SHORT 334 Kand.: GLOBAL  14 gesperrt (95.8%) | 960 144 gesperrt (56.9%) | 480 102 (69.5%)
+Die Long-Seite oeffnet: H2-LONG-Setups 0 -> 11 (960) bzw. 19 (480); K415-Cluster
+liefert R +19.44077 (960) bzw. +33.37007 (480). H2-R -45.59 -> -10.86 / -8.04.
+
+AUG-Regression: box_end_bar = 644 < 960 => _a29 = 0 fuer jeden Box-Bar, daher
+LOKAL 960 zeilenweise IDENTISCH zu GLOBAL (8 Setups / +38.919584 R). Die
+August-Baseline ist unter 960 konstruktionsbedingt nicht beruehrbar (gilt auch
+fuer den adapter-verdrahteten V018-Anker 17/+65.835576). LOKAL 480 verliert
+einen AUG-Trade.
+
+Ehrliche Bilanz: D1 (Q_stop <= 0.75) wird von 960/480 erfuellt, das neue harte
+Gate USD/Trade > 0 von KEINER Variante. Der Restverlust sitzt im Zielsystem
+(tp2 28.4320, POC 32.3-32.8 bei H2-Kursen 46-54) - dritte globale Referenz.
+
+Bereinigung D1-D4: D1 bestaetigt; D2 (R_adj) SUSPENDIERT; D3 ersetzt (fuehrend
+USD/Trade > 0 und ATR/Trade, R/R_adj nur deskriptiv); D4 bestaetigt.
+
+Kein Einbrand in backtest_lab/phasen_regime_adapter.py, kein §75, kein S1-Cache.
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

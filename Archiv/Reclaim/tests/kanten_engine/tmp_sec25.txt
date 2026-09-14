@@ -1,0 +1,40 @@
+## 25. COFFEE M15 — Equity-Statistik (USD, 1R = 100 USD)
+
+Konvention: Risiko 100 USD/Trade, Positionsgröße = 100/(Entry × SL_PCT),
+keine Kosten, kein Zinseszinseffekt (Belege: `test/stats_trades_Coffee_*_equity.txt`).
+Finale Läufe mit VA_PCT 0.93 + ATR-SL je Fenster (§2.8).
+
+| Fenster | Trades | WR % | SumR (Log) | End-Equity | Max DD (USD) | PF (USD) | Kurs%/Tr |
+|---|---|---|---|---|---|---|---|
+| AUG | 14 | 28.6 | −1.86R | **−186 $** | −409 $ | 0.78 | −0.071 |
+| S1 | 82 | 48.8 | +57.40R | **+5.740 $** | −948 $ | 2.63 | +0.314 |
+| S2 | 149 | 32.9 | +133.50R | **+13.350 $** | −984 $ | 2.54 | +0.403 |
+| S1+S2 | 231 | 38.5 | +190.90R | **+19.090 $** | — | 2.57 | +0.372 |
+
+> Hinweis: SumR/Equity summieren die im Trade-Log gerundeten R-Werte (2 Dez.);
+> Engine-STATS-EXPORT lautet S1 +57.40R / S2 +133.52R. Equity startet bei 0
+> (reiner P/L-Verlauf) → DD-Prozente vom laufenden Peak nicht aussagekräftig,
+> daher absoluter Max DD in USD (S1 −29.3 % vom Peak, Tief T28; S2 −10.2 % vom
+> Peak, Tief T105). S2-Bester T73 SHORT +20.36R; längste DD-Serie S1 22 Trades.
+
+---
+
+## 26. COFFEE M15 — VA_PCT-Topologie (S1+S2, ATR-SL je Fenster)
+
+| VA_PCT | S1 SumR | S1 PF | S2 SumR | S2 PF | S1+S2 SumR | Status |
+|---|---|---|---|---|---|---|
+| 0.85 | +38.89R | 2.22 | +94.49R | 1.89 | +133.38R | solide |
+| 0.87 | +52.70R | 2.50 | +104.71R | 2.04 | +157.41R | Aufbau |
+| 0.89 | +53.66R | 2.46 | +66.89R | 1.68 | +120.55R | S2-Tal |
+| 0.90 | +53.06R | 2.45 | +97.93R | 2.07 | +150.99R | Zwischenwert |
+| 0.91 | +51.32R | 2.51 | +111.45R | 2.25 | +162.77R | steigend |
+| 0.92 | +59.91R | 2.78 | +127.25R | 2.45 | +187.16R | nahe Optimum |
+| **0.93** | **+57.40R** | 2.63 | **+133.52R** | 2.54 | **+190.92R** | **Globales Optimum (SILVER-Kante)** |
+| 0.94 | +44.03R | 2.12 | +119.89R | 2.39 | +163.92R | S1-Abfall |
+| 0.95 | +28.21R | 1.65 | +130.26R | 2.63 | +158.47R | S1 bricht ein |
+| 0.96 | +22.85R | 1.50 | +111.95R | 2.44 | +134.80R | S1-Tal |
+| 0.97 | +37.47R | 1.81 | +97.07R | 2.26 | +134.54R | S2 fällt |
+| 0.98 | +42.76R | 1.91 | +89.41R | 2.24 | +132.17R | Plateau |
+| 0.99 | +52.01R | 2.33 | +89.61R | 2.36 | +141.62R | S1-Anstieg, S2 schwach |
+
+**Lesart:** S1 (2026, Abverkauf ~323→240 mit Erholungsrally bis ~353) zeigt

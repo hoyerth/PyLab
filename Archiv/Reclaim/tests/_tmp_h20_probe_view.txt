@@ -1,0 +1,16 @@
+### 9. Offene Entscheidungsfragen (bitte beantworten)
+## H20.51 - K4-Monatsnachweis, Zerlegung des Segmentwand-Zuwachses, ZP-5-Erratum
+### 0. Status
+### 1. K4 - Tripel auf Fremdfenstern, bit-exakt
+### 2. Protokoll-Hygiene - Baseline-Werte bestaetigt
+### 3. ZP-5-Verifikation AUG VOLL - die 18er-Zahl
+### 4. Q1 - Additivitaet bewiesen
+### 5. Q2/Q3 - Steuerbare Gegenprobe: Traegerschaft der vier Zuwaechse
+### 6. Q4 - Mechanismus: ZP-5 inkrementiert den Touch-Zaehler
+### 7. ERRATUM zu H20.50 Paragraph 5/6 - Zuschreibungskorrektur
+### 8. ERRATUM Mentor-Audit - Bar 1075
+### 9. MESSSTAND (arretiert, F5)
+### 10. V021-Vertrag - Stand der 12 Punkte
+### 11. Vormerkung V022 - Touch-Logik
+### 12. Dateien / SHAs (neu, alle in test/, read-only gegenueber Motoren)
+### 13. Offene Entscheidungsfragen (bitte beantworten)

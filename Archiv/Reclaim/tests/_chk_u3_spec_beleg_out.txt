@@ -1,0 +1,139 @@
+U3-SPEZIFIKATIONSBELEG (read-only, Baseline-Pfad)
+====================================================================================================
+SHA Baseline  53f28e1b6971a64d...  OK
+
+F1 -- Existiert ein ATR in der Engine?
+  Zeilen mit 'ATR'/'atr' (ohne --matrix-Kontext): 0
+  -> ERGEBNIS: Es gibt KEINE ATR-Berechnung. 'atr_periode' ist ein
+     deklariertes, aber unbenutztes Vertragsfeld (H20.51 Paragraph 10).
+     Die Klammer '0.50 * ATR' ist damit derzeit NICHT implementierbar;
+     sie verlangt ein neues, kausales ATR -- offene Vorfrage (H20.51
+     Paragraph 13 F3, bisher unbeantwortet).
+
+====================================================================================================
+F2 -- Groessenordnung ATR(14) M15, kausal (nur Referenz)
+  Fenster    ATR min   ATR med   ATR max    0.50*ATR med    1.5*Risiko med   bindet
+  MAI         0.1709    0.3521    0.7223          0.1760            0.4830   1.5*Risiko
+  JUN         0.1630    0.3054    0.6779          0.1527            0.4447   1.5*Risiko
+  JUL         0.1143    0.2210    0.4607          0.1105            0.4140   1.5*Risiko
+
+====================================================================================================
+F3/F4 -- NAECHSTE Gegenkante: CRV-Verteilung und Nachrechnung
+
+----------------------------------------------------------------------------------------------------
+MAI   n=1922   Trades=35   SumR=+38.318126
+  Trades mit NAECHSTER Gegenkante im Pool: 35/35   (Pool leer/richtungslos: 0)
+  CRV der naechsten Kante (dist/|entry-sl|):  min 0.08  median 1.36  max 7.75   (n=35)
+     CRV < 1.0: 14   < 1.5: 19   < 2.0: 22
+  Ordnung sl-entry-poc-tp2 mit der NAECHSTEN Kante erfuellt: 8/35
+  -> POC-Raum-Check ('unter < poc < ober') bleibt damit bei 8 Setups erfuellt (unveraendert uebernommen).
+  SumR ALT (Extremum, Bestand):   +38.318126
+  Durchsatz der CRV-Klammer (nur gefiltert, gleiche R-Werte):
+     CRV >= 1.0  ->    5/35 Trades /  -0.524075 R
+     CRV >= 1.5  ->    2/35 Trades /  +0.278750 R
+     CRV >= 2.0  ->    2/35 Trades /  +0.278750 R
+     CRV >= 3.0  ->    2/35 Trades /  +0.278750 R
+
+----------------------------------------------------------------------------------------------------
+JUN   n=2009   Trades=28   SumR=-11.421155
+  Trades mit NAECHSTER Gegenkante im Pool: 28/28   (Pool leer/richtungslos: 0)
+  CRV der naechsten Kante (dist/|entry-sl|):  min 0.07  median 2.50  max 17.83   (n=28)
+     CRV < 1.0: 10   < 1.5: 12   < 2.0: 13
+  Ordnung sl-entry-poc-tp2 mit der NAECHSTEN Kante erfuellt: 4/28
+  -> POC-Raum-Check ('unter < poc < ober') bleibt damit bei 4 Setups erfuellt (unveraendert uebernommen).
+  SumR ALT (Extremum, Bestand):   -11.421155
+  Durchsatz der CRV-Klammer (nur gefiltert, gleiche R-Werte):
+     CRV >= 1.0  ->    3/28 Trades /  -2.455939 R
+     CRV >= 1.5  ->    3/28 Trades /  -2.455939 R
+     CRV >= 2.0  ->    3/28 Trades /  -2.455939 R
+     CRV >= 3.0  ->    1/28 Trades /  -1.000000 R
+
+----------------------------------------------------------------------------------------------------
+JUL   n=2100   Trades=21   SumR=-4.325355
+  Trades mit NAECHSTER Gegenkante im Pool: 21/21   (Pool leer/richtungslos: 0)
+  CRV der naechsten Kante (dist/|entry-sl|):  min 0.12  median 1.80  max 10.11   (n=21)
+     CRV < 1.0: 9   < 1.5: 10   < 2.0: 12
+  Ordnung sl-entry-poc-tp2 mit der NAECHSTEN Kante erfuellt: 9/21
+  -> POC-Raum-Check ('unter < poc < ober') bleibt damit bei 9 Setups erfuellt (unveraendert uebernommen).
+  SumR ALT (Extremum, Bestand):    -4.325355
+  Durchsatz der CRV-Klammer (nur gefiltert, gleiche R-Werte):
+     CRV >= 1.0  ->    5/21 Trades /  -2.348266 R
+     CRV >= 1.5  ->    5/21 Trades /  -2.348266 R
+     CRV >= 2.0  ->    4/21 Trades /  -2.457957 R
+     CRV >= 3.0  ->    2/21 Trades /  -0.457957 R
+
+====================================================================================================
+F4b -- ECHTE Nachrechnung: jeder Trade mit dem NAECHSTEN Ziel neu
+  aufgeloest (reine Baseline-Funktion _c_loese_trade; sl/entry/poc
+  unveraendert, nur tp2 ersetzt). Trennt Gating von Wirkung.
+
+  Fenster  Variante                    Trades         SumR  TP2   SL  ENDE
+  MAI      NAECHSTE pur                    35   +18.781729   19   23     0
+  MAI      NAECHSTE + Ordnung               8    +5.738265    6    2     0
+  MAI      NAECHSTE + ORD + CRV 1.0         5    +4.364671    3    2     0
+  MAI      NAECHSTE + ORD + CRV 1.5         2    +2.902644    1    1     0
+  MAI      NAECHSTE + ORD + CRV 2.0         2    +2.902644    1    1     0
+  MAI      EXTREMUM (Bestand)              35   +38.318126    1   32     2
+
+  JUN      NAECHSTE pur                    28    -6.940571   12   24     2
+  JUN      NAECHSTE + Ordnung               4    -3.455939    0    4     0
+  JUN      NAECHSTE + ORD + CRV 1.0         3    -2.455939    0    3     0
+  JUN      NAECHSTE + ORD + CRV 1.5         3    -2.455939    0    3     0
+  JUN      NAECHSTE + ORD + CRV 2.0         3    -2.455939    0    3     0
+  JUN      EXTREMUM (Bestand)              28   -11.421155    0   26     2
+
+  JUL      NAECHSTE pur                    21   -11.075170    7   16     0
+  JUL      NAECHSTE + Ordnung               9    -0.187184    5    4     0
+  JUL      NAECHSTE + ORD + CRV 1.0         5    -0.949389    1    4     0
+  JUL      NAECHSTE + ORD + CRV 1.5         5    -0.949389    1    4     0
+  JUL      NAECHSTE + ORD + CRV 2.0         4    -2.457957    0    4     0
+  JUL      EXTREMUM (Bestand)              21    -4.325355    1   19     1
+
+====================================================================================================
+F4c -- ALTERNATIVE: GEDECKELTES Extremum (Bestandsziel, nur begrenzt)
+  tp2 bleibt die aeusserste Gegenkante, wird aber auf einen
+  Hoechstabstand gedeckelt: tp2 = entry +/- min(dist_extrem, KAP).
+  Ordnungsbedingung (poc < tp2) wird geprueft, sonst faellt das Setup.
+
+  Fenster  Deckel                  Trades         SumR  TP2   SL  ENDE
+  MAI      Deckel 1.5 x R              12    +3.001216    6    6     0
+  MAI      Deckel 2.0 x R              13    -0.998784    3   10     0
+  MAI      Deckel 3.0 x R              16    +5.055509    5   11     0
+  MAI      Deckel 5.0 x R              16    +8.510390    4   11     1
+  MAI      Deckel 1.0 x ATR            13    +7.654330    8    5     0
+  MAI      Deckel 2.0 x ATR            13   +10.042201    5    8     0
+  MAI      Deckel 3.0 x ATR            13   +10.478185    3   10     0
+  MAI      EXTREMUM (Bestand)          35   +38.318126    1   32     2
+
+  JUN      Deckel 1.5 x R               7    -4.009589    1    6     0
+  JUN      Deckel 2.0 x R              10    -3.895808    2    8     0
+  JUN      Deckel 3.0 x R              11    -5.895808    1   10     0
+  JUN      Deckel 5.0 x R              11    -7.895808    0   11     0
+  JUN      Deckel 1.0 x ATR             7    -6.455939    0    7     0
+  JUN      Deckel 2.0 x ATR             8    -4.842390    1    7     0
+  JUN      Deckel 3.0 x ATR            10    -5.020008    1    9     0
+  JUN      EXTREMUM (Bestand)          28   -11.421155    0   26     2
+
+  JUL      Deckel 1.5 x R               9    +3.375683    6    3     0
+  JUL      Deckel 2.0 x R              10    +3.875683    6    4     0
+  JUL      Deckel 3.0 x R              11    +3.875683    5    6     0
+  JUL      Deckel 5.0 x R              12    +4.875683    4    8     0
+  JUL      Deckel 1.0 x ATR             9    +4.242177    7    2     0
+  JUL      Deckel 2.0 x ATR             9    +4.872004    5    4     0
+  JUL      Deckel 3.0 x ATR            10    +3.231873    4    6     0
+  JUL      EXTREMUM (Bestand)          21    -4.325355    1   19     1
+
+====================================================================================================
+SPEZIFIKATIONS-KONSEQUENZEN (Kurzfassung)
+  S1  '0.50 * ATR' ist ohne neues, kausales ATR nicht darstellbar.
+      Entweder ATR(14) M15 kausal in den Scan aufnehmen (Empfehlung:
+      scan['atr'], einmal, kausal) oder die Klammer auf 1.5*|entry-sl|
+      reduzieren. Beides ist eine Freigabeentscheidung.
+  S2  Der POC wird ueber [Basis, Gegenbasis] berechnet. Wandert die
+      Gegenbasis naeher, wird das Band schmaler -> der POC-Raum-Check
+      kann haeufiger scheitern. Zahlen siehe F3 ('Ordnung erfuellt').
+  S3  Der Ordnungstest 'sl < entry < poc < tp2' ist im Bestand eine
+      HARTE Bedingung; die naechste Kante muss sie ebenfalls erfuellen,
+      sonst faellt das Setup (nicht: Kante tauschen).
+
+PROTOKOLL: F:\Python\PyLab\test\_chk_u3_spec_beleg_out.txt

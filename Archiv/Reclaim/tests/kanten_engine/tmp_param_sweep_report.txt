@@ -1,0 +1,60 @@
+============================================================================================================
+PARAMETER-STABILITAETS-AUDIT (SILVER M15, Baseline v0.4.0-baseline-frozen)
+Fenster: AUG 2026-08-10..28 | S1 2026-02-05..08-28 | S2 2025-01-01..12-01
+Hinweis: AUG ist Teilmenge von S1 -> Gesamtaggregat = S1+S2 (AUG nur Kontrolle).
+============================================================================================================
+
+SANITY-CHECK (Baseline-Defaultlauf)
+Fenster           Soll R     Ist R Soll Tr  Ist Tr      Status
+------------------------------------------------------------------------------------------------------------
+AUG               +24.97    +24.97      27      27          OK
+S1               +197.26   +197.26     201     201          OK
+S2                +99.88    +99.88     210     210          OK
+GESAMT S1+S2     +297.14   +297.14     411     411          OK
+
+SWEEP-TABELLEN  |  Spalten: R(AUG) R(S1) R(S2) R(S1+S2) Delta-vs-Base(S1+S2) | Trades WR% PF
+
+--- LAUF 1: VA_PCT (Value-Area-Quantil, Default 0.93) ---
+Parameter Wert        R(AUG)     R(S1)     R(S2)    R(S1+S2)       Delta     Tr    WR%     PF
+------------------------------------------------------------------------------------------------------------
+VA_PCT    0.93 (B)   +24.97  +197.26   +99.88   +297.14      +0.00     411   39.7   2.33
+VA_PCT    0.88        -6.99   +79.43   +57.85   +137.28    -159.86     388   35.8   1.60
+VA_PCT    0.96       +23.19  +114.64   +79.96   +194.60    -102.54     415   35.4   1.79
+VA_PCT    0.98       +21.99  +128.61  +106.65   +235.26     -61.88     385   35.3   2.07
+
+--- LAUF 2: TOL (Kanten-/Zonen-Toleranz, Default 0.34) ---
+Parameter Wert        R(AUG)     R(S1)     R(S2)    R(S1+S2)       Delta     Tr    WR%     PF
+------------------------------------------------------------------------------------------------------------
+TOL       0.34 (B)   +24.97  +197.26   +99.88   +297.14      +0.00     411   39.7   2.33
+TOL       0.26       +20.54  +177.50   +63.26   +240.76     -56.38     458   37.8   1.93
+TOL       0.42       +21.07  +140.80   +74.59   +215.39     -81.75     388   35.3   1.96
+
+--- LAUF 3: MIN_CANDLES (min. Phasenlaenge handelbar, Default 46) ---
+Parameter Wert        R(AUG)     R(S1)     R(S2)    R(S1+S2)       Delta     Tr    WR%     PF
+------------------------------------------------------------------------------------------------------------
+MIN_CAND  46 (B)     +24.97  +197.26   +99.88   +297.14      +0.00     411   39.7   2.33
+MIN_CAND  35         +15.87  +177.03   +80.12   +257.15     -39.99     443   37.9   2.04
+MIN_CAND  58         +27.56  +144.71   +95.51   +240.22     -56.92     407   35.6   2.02
+
+TOPLOGISCHE BEWERTUNG (±10-15% Plateau vs. Klippe, Basis = S1+S2)
+------------------------------------------------------------------------------------------------------------
+Baseline R(S1+S2) = +297.14R (411 Trades)
+  VA_PCT: R-Bereich +137.28..+235.26 | Spanne 33.0% von Base
+    VA_PCT=0.88: R +137.28 (-53.8% vs Base)
+    VA_PCT=0.96: R +194.60 (-34.5% vs Base)
+    VA_PCT=0.98: R +235.26 (-20.8% vs Base)
+    Klippe: VA_PCT 0.88->0.96: Schritt +19.3% von Base
+  TOL: R-Bereich +215.39..+240.76 | Spanne 8.5% von Base
+    TOL=0.26: R +240.76 (-19.0% vs Base)
+    TOL=0.42: R +215.39 (-27.5% vs Base)
+    Keine Klippe (>15% Schritt) zwischen benachbarten Werten.
+  MIN_CANDLES: R-Bereich +240.22..+257.15 | Spanne 5.7% von Base
+    MIN_CANDLES=35: R +257.15 (-13.5% vs Base)
+    MIN_CANDLES=58: R +240.22 (-19.2% vs Base)
+    Keine Klippe (>15% Schritt) zwischen benachbarten Werten.
+
+GESAMTFAZIT
+------------------------------------------------------------------------------------------------------------
+Erfolgreiche Laeufe: 24/24
+Interpretation: Plateau = alle Varianten innerhalb ±15% des Baseline-R(S1+S2);
+Klippe = starker Einbruch bei kleiner Abweichung (Robustheits-Warnung).

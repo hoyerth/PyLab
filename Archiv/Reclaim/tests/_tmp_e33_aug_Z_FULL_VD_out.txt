@@ -1,0 +1,92 @@
+==============================================================================================================
+E-33 AUG-ZIELERREICHUNG -- Variante Z_FULL_VD
+==============================================================================================================
+Engine : tmp_kanten_engine_replay.py  SHA 4a576a766670d684c3038196...
+n 1288  box_end(Kalender) 644  Laufgrenze 1288
+Segmente: [('P9', 848, 1020), ('ZIEL', 1021, 1287)]
+Schalter: VC=True M6=True UEB=True SB=True  ueberdehnung=0.8
+Laufzeit 0.9s   Setups 29
+
+   Schnitt                n             R     USD/Tr   Q_stop
+   gesamt                29    +59.808032    +0.5444    0.448
+   H1 (entry<644)         9    +30.549055    +0.9603    0.444
+   H2 (entry>=644)       20    +29.258977    +0.3572    0.450
+   H2b (entry>=966)      11    +32.591856    +0.6674    0.182
+   ZIELZONE (bar)         7    +13.276519    +0.3892    0.286
+
+   ABLEHNUNGS-TRICHTER (Signal-Bar):
+   Schnitt                Q29    F3  Blocker  Stufe0  Zyklus  keinRaum  Vakuum  keinGeg  SETUP
+   gesamt                  91     0       84       0      28        18       0        0     28
+   H1 (entry<644)          35     0       43       0       9         2       0        0     10
+   H2 (entry>=644)         56     0       41       0      19        16       0        0     18
+   H2b (entry>=966)        40     0       15       0       3         9       0        0     10
+   ZIELZONE (bar)          40     0       13       0       3         5       0        0      7
+
+   ALLE SETUPS (Signal-Bar, Entry-Bar, Richtung, kid, R):
+      bar   114 entry   115 SHORT  K16   R   -1.00000 STUFE_1_IN_BAR  
+      bar   220 entry   221 SHORT  K15   R   -1.00000 STUFE_1_IN_BAR  
+      bar   229 entry   231 SHORT  K20   R   +6.88930 STUFE_2_KERZE_2 
+      bar   242 entry   245 SHORT  K20   R   +3.92512 STUFE_3_KERZE_3 
+      bar   245 entry   247 SHORT  K16   R   -0.49535 STUFE_2_KERZE_2 
+      bar   527 entry   528 SHORT  K31   R   -1.00000 STUFE_1_IN_BAR  
+      bar   529 entry   531 SHORT  K20   R   +8.35994 STUFE_2_KERZE_2 
+      bar   564 entry   565 SHORT  K20   R  +15.87003 STUFE_1_IN_BAR  
+      bar   639 entry   640 LONG   K1    R   -1.00000 STUFE_1_IN_BAR  
+      bar   643 entry   644 LONG   K4    R   -1.00000 STUFE_1_IN_BAR   H2
+      bar   650 entry   653 LONG   K3    R   -1.00000 STUFE_3_KERZE_3  H2
+      bar   680 entry   681 LONG   K45   R   -1.00000 STUFE_1_IN_BAR   H2
+      bar   710 entry   711 SHORT  K16   R   -0.45265 STUFE_1_IN_BAR   H2
+      bar   711 entry   714 SHORT  K33   R   -1.00000 STUFE_3_KERZE_3  H2
+      bar   727 entry   728 SHORT  K15   R   -1.00000 STUFE_1_IN_BAR   H2
+      bar   728 entry   729 SHORT  K31   R   -1.00000 STUFE_1_IN_BAR   H2
+      bar   760 entry   762 SHORT  K51   R   -1.00000 STUFE_2_KERZE_2  H2
+      bar   903 entry   905 SHORT  K67   R   +4.11977 STUFE_2_KERZE_2  H2
+      bar   980 entry   981 SHORT  K67   R   +9.98768 STUFE_1_IN_BAR   H2
+      bar   981 entry   982 SHORT  K73   R   +2.69549 STUFE_1_IN_BAR   H2
+      bar  1002 entry  1003 LONG   K77   R   +3.62902 STUFE_1_IN_BAR   H2
+      bar  1020 entry  1021 SHORT  K67   R   +3.00316 STUFE_1_IN_BAR   H2
+      bar  1028 entry  1029 LONG   K60   R   -0.47759 STUFE_1_IN_BAR   H2 ZIEL
+      bar  1075 entry  1077 LONG   K62   R   +1.99054 STUFE_2_KERZE_2  H2 ZIEL
+      bar  1122 entry  1123 SHORT  K73   R  +10.75247 STUFE_1_IN_BAR   H2 ZIEL
+      bar  1211 entry  1214 SHORT  K76   R   -1.00000 STUFE_3_KERZE_3  H2 ZIEL
+      bar  1268 entry  1269 SHORT  K76   R   -1.00000 STUFE_1_IN_BAR   H2 ZIEL
+      bar  1272 entry  1273 SHORT  K73   R   +1.25468 STUFE_1_IN_BAR   H2 ZIEL
+      bar  1280 entry  1281 SHORT  K76   R   +1.75641 STUFE_1_IN_BAR   H2 ZIEL
+
+   DIAGNOSE der drei avisierten Bars (1072/1073 - 1122/1123 - 1172/1173):
+   bar 1072 SHORT sweep=68.2300 kd=None
+   bar 1072 LONG sweep=67.4880 kd=K62 b=67.7830
+   bar 1072 LONG M6-Blocker=None
+   bar 1072 LONG Q29 -> durch
+   bar 1072 LONG Stufe=0
+   bar 1073 SHORT sweep=67.7430 kd=None
+   bar 1073 LONG sweep=67.4620 kd=K62 b=67.7830
+   bar 1073 LONG M6-Blocker=None
+   bar 1073 LONG Q29 -> durch
+   bar 1073 LONG Stufe=0
+   bar 1122 SHORT sweep=69.7090 kd=K73 b=69.6380
+   bar 1122 SHORT M6-Blocker=None
+   bar 1122 SHORT Q29 -> durch
+   bar 1122 SHORT Stufe=1
+   bar 1122 SHORT ==> SETUP K73 R=+10.75247
+   bar 1122 LONG sweep=69.2760 kd=None
+   bar 1123 SHORT sweep=69.6430 kd=K73 b=69.6380
+   bar 1123 SHORT M6-Blocker=None
+   bar 1123 SHORT Q29 -> durch
+   bar 1123 SHORT Stufe=1
+   bar 1123 SHORT Zyklus-Sperre
+   bar 1123 LONG sweep=69.3700 kd=None
+   bar 1172 SHORT sweep=67.9420 kd=None
+   bar 1172 LONG sweep=67.4940 kd=K62 b=67.7830
+   bar 1172 LONG M6-Blocker=None
+   bar 1172 LONG Q29 -> durch
+   bar 1172 LONG Stufe=2
+   bar 1172 LONG kein_raum
+   bar 1173 SHORT sweep=67.9490 kd=None
+   bar 1173 LONG sweep=67.5440 kd=K62 b=67.7830
+   bar 1173 LONG M6-Blocker=None
+   bar 1173 LONG Q29 -> durch
+   bar 1173 LONG Stufe=1
+   bar 1173 LONG kein_raum
+
+ENDE E-33 Z_FULL_VD

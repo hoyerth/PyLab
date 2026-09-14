@@ -1,0 +1,153 @@
+============================================================================================================
+S2-SEGMENTKANDIDATEN -- kausale Konsolidierungsgrenzen am Split
+============================================================================================================
+Engine-SHA : 4a576a766670d684c30381969e4d7349d5786b1b22ea6dda08b93b7d811bb38a
+Cache      : _tmp_s2_scan_cache.pkl a86ad1801c054ad039ee55a1...  (1254468 B)
+Split      : Bar 17692 = 2025-10-01T00:00 BKZ  |  n 21624  |  H1 17692  H2 3932 Bars
+close[K]   : 46.6240   (letzte Kerze VOR dem H2-Fenster)
+
+A  MARKTKONTEXT (kausal: nur Bars <= Split)
+   Fenster     von Bar      bis      Tief     Hoch Breite USD      %
+   L=96          17597    17692   45.7890  47.1510     1.3620   3.0%
+   L=240         17453    17692   44.9050  47.1580     2.2530   5.0%
+   L=480         17213    17692   43.6490  47.1580     3.5090   8.0%
+   L=960         16733    17692   41.1120  47.1580     6.0460  14.7%
+   L=1920        15773    17692   40.1220  47.1580     7.0360  17.5%
+   L=3840        13853    17692   36.7120  47.1580    10.4460  28.5%
+   L=7680        10013    17692   34.4120  47.1580    12.7460  37.0%
+   L=17693           0    17692   28.2860  47.1580    18.8720  66.7%
+   JAHR               0    17692   28.2860  47.1580    18.8720  66.7%  <-- Riesenband
+
+   Tageskerzen der letzten 12 Kalendertage vor dem Split:
+      2025-09-16  H  42.6710  L  42.6050  Range  0.0660
+      2025-09-17  H  42.5710  L  42.5290  Range  0.0420
+      2025-09-18  H  41.6700  L  41.5760  Range  0.0940
+      2025-09-19  H  41.7970  L  41.7550  Range  0.0420
+      2025-09-22  H  43.1260  L  43.0460  Range  0.0800
+      2025-09-23  H  44.0500  L  43.9870  Range  0.0630
+      2025-09-24  H  44.1000  L  43.9910  Range  0.1090
+      2025-09-25  H  43.9190  L  43.8350  Range  0.0840
+      2025-09-26  H  45.1580  L  45.0900  Range  0.0680
+      2025-09-29  H  46.2710  L  46.0840  Range  0.1870
+      2025-09-30  H  46.9230  L  46.8300  Range  0.0930
+      2025-10-01  H  46.7090  L  46.6110  Range  0.0980
+
+B  KANTENLAGE AM SPLIT
+   kausal existent (Pivot+2 <= K+1) : 339
+   davon LEBEND (letzter Docht>K-96): 14
+   Kanten im Scan gesamt            : 448 (edges 411 + seeds 37)
+
+   aeusserste KAUSALE Kanten (die 6 hoechsten / 6 tiefsten):
+      OBEN  K408  basis  47.1221  pivot  17630  letzter Docht  17630  LEBEND   status SCHLAFEND touches 8  Abstand  0.4981 USD
+      OBEN  K401  basis  46.9805  pivot  17530  letzter Docht  17619  LEBEND   status SCHLAFEND touches 7  Abstand  0.3565 USD
+      OBEN  K403  basis  46.9335  pivot  17548  letzter Docht  17609  LEBEND   status SCHLAFEND touches 11  Abstand  0.3095 USD
+      OBEN  K406  basis  46.8353  pivot  17570  letzter Docht  17639  LEBEND   status SCHLAFEND touches 3  Abstand  0.2113 USD
+      OBEN  K404  basis  46.7691  pivot  17555  letzter Docht  17617  LEBEND   status AKTIV     touches 8  Abstand  0.1451 USD
+      OBEN  K411  basis  46.7280  pivot  17667  letzter Docht  17692  LEBEND   status SCHLAFEND touches 4  Abstand  0.1040 USD
+      UNTEN K172  basis  28.4255  pivot   6146  letzter Docht   6155  dormant  status AKTIV     touches 2  Abstand 18.1985 USD
+      UNTEN K175  basis  28.7110  pivot   6158  letzter Docht   6158  dormant  status AKTIV     touches 1  Abstand 17.9130 USD
+      UNTEN K0    basis  28.9210  pivot      3  letzter Docht      3  dormant  status AKTIV     touches 1  Abstand 17.7030 USD
+      UNTEN K4    basis  29.1500  pivot     38  letzter Docht     38  dormant  status AKTIV     touches 1  Abstand 17.4740 USD
+      UNTEN K2    basis  29.1758  pivot     11  letzter Docht   6131  dormant  status SCHLAFEND touches 4  Abstand 17.4483 USD
+      UNTEN K3    basis  29.2585  pivot     29  letzter Docht     44  dormant  status SCHLAFEND touches 2  Abstand 17.3655 USD
+
+C  KANDIDATEN-SEGMENTGRENZEN
+   Restriktion               decke              boden  Band USD      %  Position zu close 46.6240
+   L96          K408     47.1221   K409     45.7890     1.3331   2.9%  INNEN
+   L240         K408     47.1221   K409     45.7890     1.3331   2.9%  INNEN
+   L480         K408     47.1221   K409     45.7890     1.3331   2.9%  INNEN
+   L960         K408     47.1221   K409     45.7890     1.3331   2.9%  INNEN
+   L1920        K408     47.1221   K409     45.7890     1.3331   2.9%  INNEN
+   L3840        K408     47.1221   K409     45.7890     1.3331   2.9%  INNEN
+   JAHR         K408     47.1221   K172     28.4255    18.6966  65.8%  INNEN
+   PREISNAH     K408     47.1221   K409     45.7890     1.3331   2.9%  INNEN
+
+   Lookback-Fenster der Restriktionen (Grundlage der Auswahl):
+      L96          Fenster 45.7890 .. 47.1510
+      L240         Fenster 44.9050 .. 47.1580
+      L480         Fenster 43.6490 .. 47.1580
+      L960         Fenster 41.1120 .. 47.1580
+      L1920        Fenster 40.1220 .. 47.1580
+      L3840        Fenster 36.7120 .. 47.1580
+      JAHR         Fenster 28.2860 .. 47.1580
+      PREISNAH     Fenster 28.2860 .. 47.1580
+
+D  WAND-RESONANZ IM H2-FENSTER (Mass, keine Definition)
+   'nah' = Docht innerhalb 0,25 % der Wand (Beruehrung).
+   'durch' = Docht jenseits der Wand (Durchstich).
+   Restriktion  Seite   Kante   Basis@K    nah  durch    von   % nah
+   L96          OBEN   K408     47.1221     53   3741   3932    1.3%
+   L96          UNTEN  K409     45.7890      1      5   3932    0.0%
+   L240         OBEN   K408     47.1221     53   3741   3932    1.3%
+   L240         UNTEN  K409     45.7890      1      5   3932    0.0%
+   L480         OBEN   K408     47.1221     53   3741   3932    1.3%
+   L480         UNTEN  K409     45.7890      1      5   3932    0.0%
+   L960         OBEN   K408     47.1221     53   3741   3932    1.3%
+   L960         UNTEN  K409     45.7890      1      5   3932    0.0%
+   L1920        OBEN   K408     47.1221     53   3741   3932    1.3%
+   L1920        UNTEN  K409     45.7890      1      5   3932    0.0%
+   L3840        OBEN   K408     47.1221     53   3741   3932    1.3%
+   L3840        UNTEN  K409     45.7890      1      5   3932    0.0%
+   JAHR         OBEN   K408     47.1221     53   3741   3932    1.3%
+   JAHR         UNTEN  K172     28.4255      0      0   3932    0.0%
+   PREISNAH     OBEN   K408     47.1221     53   3741   3932    1.3%
+   PREISNAH     UNTEN  K409     45.7890      1      5   3932    0.0%
+
+E  KALIBRIERUNG AN AUG (gleiches Verfahren, Sollwerte P9)
+   Soll: P9 decke K67 69,9140 / boden K77 68,3700  (Band 1,5440 USD)
+   --- AUG-Bar 644 ---
+      L96      K20    66.4590 / K45    63.1560  Band  3.3030
+      L240     K20    66.4590 / K45    63.1560  Band  3.3030
+      L480     K20    66.4590 / K45    63.1560  Band  3.3030
+      L960     K20    66.4590 / K45    63.1560  Band  3.3030
+      JAHR     K20    66.4590 / K3     62.9670  Band  3.4920
+      PREISNAH K20    66.4590 / K45    63.1560  Band  3.3030
+      kausal existent 36 | lebend 14
+   --- AUG-Bar 848 ---
+      L96      K59    68.9890 / K55    66.4550  Band  2.5340
+      L240     K59    68.9890 / K17    65.6024  Band  3.3866
+      L480     K59    68.9890 / K17    65.6024  Band  3.3866
+      L960     K59    68.9890 / K17    65.6024  Band  3.3866
+      JAHR     K59    68.9890 / K48    62.5625  Band  6.4265
+      PREISNAH K59    68.9890 / K17    65.6024  Band  3.3866
+      kausal existent 52 | lebend 12
+   --- AUG-Bar 1020 ---
+      L96      K73    69.6785 / K77    68.3597  Band  1.3188
+      L240     K67    69.9458 / K77    68.3597  Band  1.5861
+      L480     K67    69.9458 / K77    68.3597  Band  1.5861
+      L960     K67    69.9458 / K77    68.3597  Band  1.5861
+      JAHR     K67    69.9458 / K48    62.5625  Band  7.3833
+      PREISNAH K67    69.9458 / K77    68.3597  Band  1.5861
+      kausal existent 65 | lebend 13
+
+F  H2-STRUKTUR (Wohin laeuft der Markt nach dem Split?)
+   H2-Hoch   56.5250 @ Bar 21620 (2025-11-28T19:45)
+   H2-Tief   45.5300 @ Bar 19480 (2025-10-28T10:00)
+   Spanne    10.9950 USD (24.1%)
+   Position des Splits im H2-Korridor: close 46.6240 -> 9.9% vom H2-Tief
+
+   Quartalsbloecke in H2 (je ~983 Bars):
+      Bar  17692..18674  (2025-10-01..2025-10-15)  Tief  45.8910  Hoch  53.5030  Breite  7.6120  close  52.7240
+      Bar  18675..19657  (2025-10-15..2025-10-30)  Tief  45.5300  Hoch  54.4460  Breite  8.9160  close  47.7650
+      Bar  19658..20640  (2025-10-30..2025-11-14)  Tief  46.8390  Hoch  54.3680  Breite  7.5290  close  52.6000
+      Bar  20641..21623  (2025-11-14..2025-11-28)  Tief  48.6210  Hoch  56.5250  Breite  7.9040  close  56.3550
+
+   Laufende 96-Bar-Range in H2 -- die 5 engsten Fenster (Konsolidierungs-Kandidaten):
+      Bar  17980..18076  (2025-10-06..2025-10-07)   48.0420 ..  48.7500  Breite  0.7080
+      Bar  17740..17836  (2025-10-01..2025-10-02)   46.9520 ..  47.8100  Breite  0.8580
+      Bar  20164..20260  (2025-11-06..2025-11-07)   47.9190 ..  48.8580  Breite  0.9390
+      Bar  19780..19876  (2025-10-31..2025-11-03)   48.1400 ..  49.0940  Breite  0.9540
+      Bar  19756..19852  (2025-10-31..2025-11-03)   48.1900 ..  49.1510  Breite  0.9610
+
+   Neu-Aufloesung der lokalen Grenzen im H2-Verlauf (gleiches Verfahren, Lookback 960):
+          Bar Datum                     decke              boden     Band     close
+        17692 2025-10-01   K408     47.1221  K409     45.7890    1.3331   46.6240
+        18172 2025-10-08   K436     48.6289  K424     47.3247    1.3043   48.3500
+        18652 2025-10-15   K494     52.4444  K493     50.4759    1.9685   52.7310
+        19612 2025-10-29   K429     48.3972  K404     46.7691    1.6281   47.8570
+        20572 2025-11-13   K547     54.2750  K484     51.4427    2.8323   54.1290
+        21623 2025-11-28   K561     56.4050  K514     53.4280    2.9770   56.3550
+
+============================================================================================================
+Engine-SHA nach Lauf: 4a576a766670d684c30381969e4d7349d5786b1b22ea6dda08b93b7d811bb38a  UNVERAENDERT
+============================================================================================================

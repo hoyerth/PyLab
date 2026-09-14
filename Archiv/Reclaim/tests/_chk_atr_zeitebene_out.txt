@@ -1,0 +1,87 @@
+ATR-ZEITEBENEN-SONDE (read-only, keine Handelswirkung)
+====================================================================================================
+SHA Baseline 53f28e1b6971a64d...  OK
+SHA V021     cda9e5b189ed4137...  OK
+
+Kausalitaet: index-basiertes Bucketing (keine Zeitzonen-Projektion),
+nur der LETZTE ABGESCHLOSSENE Bucket geht ein. Wilder RMA, Seed =
+mean(TR[1..14]) -- identisch zu _chk_u3_spec_beleg._atr_wilder.
+
+===== MAI  2026-05-01 .. 2026-06-01 exkl.  |  n=1922  |  Trades 35 / +38.318126 R  |  Ueberhang ab 2026-04-01 (offset 1932 Bars) =====
+  Stop |sl-entry| USD:  min 0.1130  median 0.3220  max 1.2190
+
+  Aufl Var  ATR@bar med  ATR@entry med   ATR min   ATR max  nan@bar  k*ATR>Stop 0.50        1.00
+  ------------------------------------------------------------------------------------------------
+   M15   a       0.3554         0.3531    0.2554    0.4963        0       5/35          21/35     
+   M15   b       0.3554         0.3531    0.2554    0.4963        0       5/35          21/35     
+    H1   a       0.7433         0.7552    0.5284    1.0281        1      20/35          32/35     
+    H1   b       0.7416         0.7596    0.4482    1.0282        0      20/35          32/35     
+    H4   a       1.5479         1.5479    1.2355    1.9265        3      30/35          32/35     
+    H4   b       1.4797         1.4797    1.1289    1.9143        0      32/35          35/35     
+
+  KREUZPROBE M15 (a):
+    Median ueber ALLE gueltigen Bars (F2-Population) 0.3521 vs. F2-Soll 0.3521  ->  OK (Konvention bit-identisch)
+    Median an den TRADE-Bars (andere Population): 0.3554  (n=35)  -- nicht F2-vergleichbar
+
+===== JUN  2026-06-01 .. 2026-07-01 exkl.  |  n=2009  |  Trades 28 / -11.421155 R  |  Ueberhang ab 2026-05-01 (offset 1922 Bars) =====
+  Stop |sl-entry| USD:  min 0.0770  median 0.2965  max 0.8510
+
+  Aufl Var  ATR@bar med  ATR@entry med   ATR min   ATR max  nan@bar  k*ATR>Stop 0.50        1.00
+  ------------------------------------------------------------------------------------------------
+   M15   a       0.3105         0.3178    0.2246    0.4856        0       5/28          15/28     
+   M15   b       0.3105         0.3178    0.2246    0.4856        0       5/28          15/28     
+    H1   a       0.6250         0.6238    0.4885    0.9043        0      15/28          25/28     
+    H1   b       0.6562         0.6503    0.5250    0.9239        0      15/28          26/28     
+    H4   a       1.3685         1.3685    1.1779    1.6165        2      25/28          26/28     
+    H4   b       1.3715         1.3715    1.1561    1.6059        0      27/28          28/28     
+
+  KREUZPROBE M15 (a):
+    Median ueber ALLE gueltigen Bars (F2-Population) 0.3054 vs. F2-Soll 0.3054  ->  OK (Konvention bit-identisch)
+    Median an den TRADE-Bars (andere Population): 0.3105  (n=28)  -- nicht F2-vergleichbar
+
+===== JUL  2026-07-01 .. 2026-08-01 exkl.  |  n=2100  |  Trades 21 / -4.325355 R  |  Ueberhang ab 2026-06-01 (offset 2009 Bars) =====
+  Stop |sl-entry| USD:  min 0.0890  median 0.2760  max 0.4960
+
+  Aufl Var  ATR@bar med  ATR@entry med   ATR min   ATR max  nan@bar  k*ATR>Stop 0.50        1.00
+  ------------------------------------------------------------------------------------------------
+   M15   a       0.2333         0.2374    0.1414    0.3990        0       2/21          11/21     
+   M15   b       0.2343         0.2383    0.1414    0.3990        0       2/21          11/21     
+    H1   a       0.4824         0.4799    0.3633    0.6739        1      11/21          18/21     
+    H1   b       0.4782         0.4782    0.3749    0.7013        0      11/21          19/21     
+    H4   a       0.9872         0.9872    0.8037    1.2190        1      20/21          20/21     
+    H4   b       1.0188         1.0188    0.8607    1.3581        0      21/21          21/21     
+
+  KREUZPROBE M15 (a):
+    Median ueber ALLE gueltigen Bars (F2-Population) 0.2210 vs. F2-Soll 0.2210  ->  OK (Konvention bit-identisch)
+    Median an den TRADE-Bars (andere Population): 0.2333  (n=21)  -- nicht F2-vergleichbar
+
+====================================================================================================
+WARMUP-BIAS: Median-ATR@bar, Variante (a) fensterlokal vs. (b) Ueberhang
+  Fenster Aufl    (a) med    (b) med      Delta   Delta %
+  --------------------------------------------------------
+      MAI  M15     0.3554     0.3554    +0.0000    +0.00%
+      MAI   H1     0.7433     0.7416    -0.0018    -0.24%
+      MAI   H4     1.5479     1.4797    -0.0683    -4.41%
+      JUN  M15     0.3105     0.3105    +0.0000    +0.00%
+      JUN   H1     0.6250     0.6562    +0.0312    +4.99%
+      JUN   H4     1.3685     1.3715    +0.0030    +0.22%
+      JUL  M15     0.2333     0.2343    +0.0010    +0.44%
+      JUL   H1     0.4824     0.4782    -0.0043    -0.89%
+      JUL   H4     0.9872     1.0188    +0.0317    +3.21%
+
+====================================================================================================
+GESAMTLAGE (84 Trades) -- wie oft bindet k*ATR die reale Stop-Distanz?
+  Aufl Var   ATR med  Stop med  0.50*ATR med  1.00*ATR med  bindet 0.50  bindet 1.00
+  ------------------------------------------------------------------------------------
+   M15   a    0.3159    0.2815        0.1579        0.3159     12/84        47/84   
+   M15   b    0.3163    0.2815        0.1581        0.3163     12/84        47/84   
+    H1   a    0.6332    0.2810        0.3166        0.6332     46/82        75/82   
+    H1   b    0.6475    0.2815        0.3238        0.6475     46/84        77/84   
+    H4   a    1.3472    0.2800        0.6736        1.3472     75/78        78/78   
+    H4   b    1.3534    0.2815        0.6767        1.3534     80/84        84/84   
+
+LESEHILFE: 'bindet x' zaehlt Trades, bei denen k*ATR die reale
+Stop-Distanz UEBERSTEIGT. Nur dann wuerde die Klammer wirken. Die
+Sonde beantwortet 'KANN', nicht 'SOLL' -- kein Wert darf in die Engine.
+
+PROTOKOLL: F:\Python\PyLab\test\_chk_atr_zeitebene_out.txt

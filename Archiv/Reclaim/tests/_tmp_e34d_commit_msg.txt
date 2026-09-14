@@ -1,0 +1,50 @@
+docs(handoff): E-34d Kandidaten-Gate — (a) global reisst H1, (a) segment-lokal haelt H1 bit-identisch (+4,645353 R), Trade 1172 = +7,12112 R
+
+Auftrag: Anwender-Schritt 1/2 — die drei Korrektur-Kandidaten gegen das
+H1-Gate pruefen und den K82-Pfad messen. Alle Varianten sind als isolierte
+Schalter in _tmp_e34_auto.py implementiert (--poola, --poolalok, --seglast).
+
+Schritt 1 (drei Kandidaten, AUG, MIN48):
+- (a) global: H1 VERLETZT — ein neuer H1-Trade (Bar 252 / K28 / -0,42572),
+  8 -> 9 Trades, H1 +38,919584 -> +38,493863; zusaetzlich neuer H2-Trade
+  (Bar 710 / K43 / -0,38597). Gate-Verwurf.
+- (a) segment-lokal (--poolalok): H1 BIT-IDENTISCH (8 / +38,919584); gesamt
+  +87,259738 (Delta +4,645353), H2 +48,340154, ZIEL 7 / +21,424162.
+  Segmentgrenzen unveraendert. Q_stop 0,217 -> 0,250 und USD/Trade
+  +0,9819 -> +0,9522 verschlechtern sich beide.
+- (c) --seglast: H1 identisch, aber H2 -10,035728 R und ZIEL 5 / +6,743081
+  -> verworfen.
+
+Schritt 2 (K82-Pfad gemessen): unter --poolalok wird an Bar 1172 K82 zum
+Kandidaten (Trace: KANDIDAT = K82 wirksam=67.5530) und der dritte avisierte
+Trade entsteht: bar 1172 / entry 1173 / LONG K82 / R +7,12112. Der in E-34c
+als geometrisch zulaessig vorhergesagte Pfad ist damit beziffert.
+
+Kernbefund (Tausch): --poolalok tauscht den 25.08.-Trade (1075 / K62 /
++1,47577) gegen den 26.08.-17:00-Trade (1172 / K82 / +7,12112) und ergaenzt
+einen neuen Verlust (1120 / K75 / -1,00000). Netto +4,645353 R; der
+Einzeltreffer 1172 ueberkompensiert den Netto-Zuwachs. Beide Trades sind mit
+Kandidat (a) nicht gleichzeitig erreichbar.
+
+Zerlegung (c): --seglast aendert die Ketten-Etiketten A1 von (K67,K82) auf
+(K78,K85); dadurch aendert sich fuer den SHORT 1122 der PHASE-Zielpreis tp2
+von 67,5530 auf 67,4200 und R von +10,75247 auf +2,19251. Mit den
+Engine-Funktionen bei identischem sl/entry bit-exakt reproduziert (+2,19251).
+
+Kritik am Kontrakt-Entwurf filtere_aktive_pool_kandidaten: ist_aktiv
+(Schlaf-Fenster) ist NICHT das betroffene Praedikat — der Defekt liegt bei
+_lebt (Marktpraesenz) zusammen mit dist < 0. Ein ist_aktiv-Filter haette an
+Bar 1172 nichts bewirkt; abstand_atr/touch_conf werden nicht konsumiert.
+
+Plateau: die Wahl 48 vs 77 ist PnL-frei (jeder Wert in [41,114] liefert
+bit-identisch +82,614385 R). Empfehlung: Intervall [41,114] als SSoT,
+Referenzwert 77 (36/38 Bars Abstand zu beiden Klippen), 48 als strenge
+Alternative. Die 12-h-Erzaehlung bleibt verworfen.
+
+Kandidat (b) (Sweep-Bar-Kausalitaet im Touch-Gate) bewusst nicht gebaut.
+V019 bleibt unspezifiziert. Kein §75, kein S1, keine S2-Laeufe. Artefakte
+(test/, gitignored) mit SHA256 in §R6.
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

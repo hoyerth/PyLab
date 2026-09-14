@@ -1,0 +1,64 @@
+====================================================================================================================
+PARAMETER-REIHE retest_zyklus_bars auf S1/S2  (SE-Pfad direkt, read-only)
+Kandidaten: [24, 15, 12, 0]
+ACHTUNG: box_end_bar hart auf 2026-08-19 (Z. 2132) -> S1 'Box' = 6,5 Monate,
+         S2 = ganzes Jahr. NICHT arretierbar, reine Sensitivitaets-Diagnose.
+====================================================================================================================
+
+--------------------------------------------------------------------------------------------------------------------
+FENSTER S1: Bars 13289 | box_end_bar 12645 | erste 2026-02-05 00:00:00 | letzte 2026-08-27 22:45:00
+  Loop-Bereich: k in [2, 12642)
+--------------------------------------------------------------------------------------------------------------------
+ zyklus    n     SummeR  GEW  VERL      PF  Zyklus  Blocker  Quartil  keinRaum  keinGeg   F3       Gate
+     24  139      +1.97   13   126    1.02     125       25      611         2        0    0   VERFEHLT
+     15  149      -8.03   13   136    0.94     115       25      611         2        0    0   VERFEHLT
+     12  152     -11.03   13   139    0.92     112       25      611         2        0    0   VERFEHLT
+      0  216     +17.41   16   200    1.09       0       25      611         4        0    0   VERFEHLT
+
+DIFF gegen Basis 24 (Trades hinzu/entfallen):
+  24 ->  15: +11 neu, -1 entfallen, DeltaR   -10.00
+  24 ->  12: +13 neu, -0 entfallen, DeltaR   -13.00
+  24 ->   0: +78 neu, -1 entfallen, DeltaR   +15.44
+
+TRADE-VERTEILUNG je Kante (Top 12 nach |SummeR|):
+  K438   n=  2 SummeR=   +30.56 GEW=  1 VERL=  1
+  K15    n=  2 SummeR=   +25.94 GEW=  1 VERL=  1
+  K268   n=  4 SummeR=   +18.80 GEW=  1 VERL=  3
+  K186   n=  2 SummeR=   +14.12 GEW=  1 VERL=  1
+  K182   n=  2 SummeR=   +13.01 GEW=  1 VERL=  1
+  K163   n=  2 SummeR=   +10.38 GEW=  1 VERL=  1
+  K262   n=  5 SummeR=    -5.00 GEW=  0 VERL=  5
+  K180   n=  1 SummeR=    +4.46 GEW=  1 VERL=  0
+  K362   n=  5 SummeR=    -3.71 GEW=  1 VERL=  4
+  K16    n=  3 SummeR=    -3.00 GEW=  0 VERL=  3
+  K265   n=  3 SummeR=    -3.00 GEW=  0 VERL=  3
+  K441   n=  3 SummeR=    -3.00 GEW=  0 VERL=  3
+
+--------------------------------------------------------------------------------------------------------------------
+FENSTER S2: Bars 21624 | box_end_bar 21624 | erste 2025-01-02 00:00:00 | letzte 2025-11-28 20:30:00
+  Loop-Bereich: k in [2, 21621)
+--------------------------------------------------------------------------------------------------------------------
+ zyklus    n     SummeR  GEW  VERL      PF  Zyklus  Blocker  Quartil  keinRaum  keinGeg   F3       Gate
+     24  127     -42.72    8   119    0.60      85      173      583        10        0    0   VERFEHLT
+     15  127     -42.72    8   119    0.60      85      173      583        10        0    0   VERFEHLT
+     12  129     -44.72    8   121    0.59      83      173      583        10        0    0   VERFEHLT
+      0  157     -53.47   10   147    0.60       0      173      583        12        0    0   VERFEHLT
+
+DIFF gegen Basis 24 (Trades hinzu/entfallen):
+  24 ->  15: +0 neu, -0 entfallen, DeltaR    +0.00
+  24 ->  12: +2 neu, -0 entfallen, DeltaR    -2.00
+  24 ->   0: +30 neu, -0 entfallen, DeltaR   -10.75
+
+TRADE-VERTEILUNG je Kante (Top 12 nach |SummeR|):
+  K6     n=  1 SummeR=   +16.68 GEW=  1 VERL=  0
+  K173   n=  1 SummeR=   +16.29 GEW=  1 VERL=  0
+  K160   n=  1 SummeR=   +15.62 GEW=  1 VERL=  0
+  K175   n=  1 SummeR=   +13.20 GEW=  1 VERL=  0
+  K21    n=  4 SummeR=    -3.48 GEW=  0 VERL=  4
+  K111   n=  3 SummeR=    -3.00 GEW=  0 VERL=  3
+  K145   n=  2 SummeR=    -2.00 GEW=  0 VERL=  2
+  K230   n=  2 SummeR=    -2.00 GEW=  0 VERL=  2
+  K279   n=  2 SummeR=    -2.00 GEW=  0 VERL=  2
+  K275   n=  2 SummeR=    -2.00 GEW=  0 VERL=  2
+  K330   n=  2 SummeR=    -2.00 GEW=  0 VERL=  2
+  K335   n=  2 SummeR=    -2.00 GEW=  0 VERL=  2

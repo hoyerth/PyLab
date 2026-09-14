@@ -1,0 +1,47 @@
+docs(handoff): E-34e Entscheidung — (a) lokal verworfen, Plateau [41,114] mit Referenz 77, Kontrakt-Entwurf gemessen widerlegt
+
+Entscheidung §R8.1: (a) lokal VERWORFEN. Vier gemessene Gruende:
+(1) der Zielzustand wird ohnehin nicht erreicht — (a) lokal tauscht 1075
+(+1,47577) gegen 1172 (+7,12112), nie beide; (2) beide Pflichtmetriken
+degradieren (Q_stop 0,217 -> 0,250, USD/Trade +0,9819 -> +0,9522);
+(3) der Netto-Gewinn (+4,645353) ruht auf einem Einzeltreffer (+7,12112
+brutto) gegen zwei gegenlaeufige Posten (1120 -1,00000, 1075 -1,47577);
+(4) der Eingriff haelt nur lokal (global: H1-Gate gerissen, Bar 252/K28).
+Basis bleibt: gesamt +82,614385 / H1 8 +38,919584 / H2 +43,694801 /
+ZIEL 6 +16,778809.
+
+Entscheidung §R8.4: Plateau [41,114] als SSoT, Referenzwert 77 (36/38 Bars
+Klippenabstand), 48 als dokumentierte strenge Alternative; 12-h-Erzaehlung
+bleibt verworfen. Neue Einschraenkung: die Plateau-Invarianz gilt NUR fuer
+die Basis-Konfiguration — unter (a) lokal entsteht eine Klippe bei 49
+(+87,259738 in [41,48] vs +85,640859 in [49,114]), womit MIN48 genau eine
+Bar unter der neuen Klippe liegt. Weiterer unabhaengiger Grund gegen (a).
+Nebenbefund: MIN77 erzeugt 2 statt 3 Segmente (A1 1033..1173) bei
+identischem Ergebnis — die Etiketten, nicht die Schnittstellen tragen.
+
+Kandidat (b) bleibt bestaetigt vom Tisch.
+
+Der korrigierte Kontrakt-Entwurf (behalten nur lebt AND dist >= 0) wurde als
+Schalter --poolhart implementiert und gemessen: n 35, gesamt +76,798219,
+H1 8 +38,919584 (identisch), H2 +37,878635, ZIEL 18 / +10,962643,
+Q_stop 0,457, USD/Trade +0,5865. Er ist zwei Fehler von der Messung
+entfernt: (1) er ist NICHT (a) — (a) entfernt nur dist<0 AND not lebt,
+der Entwurf zusaetzlich dist>=0 AND not lebt, also die erreichten
+Schlaf-Linien, die die Q1-Regel tragen; (2) er zerstoert den Mechanismus
+(12 zusaetzliche ZIEL-Trades vernichten +5,816166 R). Kontrakt verworfen.
+
+V019-Vertrag nur als ENTWURF dokumentiert (rein deskriptiv, kein Einbrand,
+phasen_regime_adapter.py unberuehrt): PhasenReifeKonfiguration mit
+verschmelzungs_schwelle (Semantik: Schwelle, nicht Segmentlaenge) und
+Sollwerten gesamt +82,614385, H1 8/+38,919584, H2 +43,694801,
+ZIEL 6/+16,778809, Segmenten P9 (arretiert) + A1 1033..1173 (K67/K82) +
+A2 1174..1287 (K73/K82).
+
+Fidelity-Hinweis: ein Schalter-Parsing-Fehler (erste --poolhart-Messung lief
+als Basis) wurde korrigiert; nach Fix reproduziert --poolalok exakt die
+E-34d-Werte. Kein §75, kein S1, keine S2-Laeufe. Artefakte (test/,
+gitignored) mit SHA256 in §S5.
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

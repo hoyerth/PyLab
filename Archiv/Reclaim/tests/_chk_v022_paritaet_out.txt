@@ -1,0 +1,57 @@
+====================================================================================================
+V022-PARITAET GEGEN DIE ARRETIERTE BASELINE (F43/F47/F48)
+====================================================================================================
+V022-Modul   27466 B  SHA256 c69de6a2151d848c90d11e667fb33f950b270fb170a87aca4d992e7570dc65ec
+Baseline     53f28e1b6971a64df59beaf3292b466fb37ac86b870278f238a1b385084fd006
+Ein-Instanz  B = V022._engine()  -> tmp_kanten_engine_replay.py
+P2 Paritaet  tp_mindist_pct 1.5 vs Baseline V3_TP_MINDIST_PCT 1.5 -> True
+
+_SESetup-Felder (23): bar, richtung, kid, basis, sweep, trigger_close, touch_n, poc, tp2, sl, entry, r, resultat, stufe, reclaim_bar, entry_bar, ist_prim_anker, grund1, exit1_bar, exit2_bar, grund2, r1, r2
+
+----------------------------------------------------------------------------------------------------
+P3/P4/P5  FELD- UND STATS-PARITAET AUF DEN VIER V022-FENSTERN
+----------------------------------------------------------------------------------------------------
+  MAI       box_end 1922  Baseline  35/ +38.318126   V022  35/ +38.318126
+    MAI 23-Feld: 35 Setups, 23/23 Felder bit-identisch, Reihenfolge identisch  OK
+    11 Zaehler + 4 Listen identisch  OK   (v_s 35 == len(setups) True)
+    ENDE-Exits (Fensterrand, geerbt): 2
+  JUN       box_end 2009  Baseline  28/ -11.421155   V022  28/ -11.421155
+    JUN 23-Feld: 28 Setups, 23/23 Felder bit-identisch, Reihenfolge identisch  OK
+    11 Zaehler + 4 Listen identisch  OK   (v_s 28 == len(setups) True)
+    ENDE-Exits (Fensterrand, geerbt): 2
+  JUL       box_end 2100  Baseline  21/  -4.325355   V022  21/  -4.325355
+    JUL 23-Feld: 21 Setups, 23/23 Felder bit-identisch, Reihenfolge identisch  OK
+    11 Zaehler + 4 Listen identisch  OK   (v_s 21 == len(setups) True)
+    ENDE-Exits (Fensterrand, geerbt): 1
+  AUG_BASE  box_end 1288  Baseline  14/ +42.450970   V022  14/ +42.450970
+    AUG_BASE 23-Feld: 14 Setups, 23/23 Felder bit-identisch, Reihenfolge identisch  OK
+    11 Zaehler + 4 Listen identisch  OK   (v_s 14 == len(setups) True)
+    ENDE-Exits (Fensterrand, geerbt): 1
+
+----------------------------------------------------------------------------------------------------
+P6  F48-KONTROLLLAUF: SEGMENTWAND IST NICHT IN V022
+----------------------------------------------------------------------------------------------------
+  V022 auf AUG-Scan         14/ +42.450970   (Soll Baseline 14/+42.450970)
+  Adapter-Segmente         3 -> [(848, 1020), (1033, 1249), (1174, 1287)]
+  V021+AUG_WAND (Pfad 2)    18/ +52.876174   (Soll 18/+52.876174)
+  H1 (< 644)                 8/ +38.919584   (Soll 8/38.919584)
+  H2 (>= 644)               10/ +13.956589   (Soll 10/13.956589)
+  => Die 18 Trades existieren AUSSCHLIESSLICH im V021-Patchpfad.
+     V022 liefert auf demselben Scan 14 -- keine Segmentwand-Altlast.
+
+----------------------------------------------------------------------------------------------------
+P7  FENSTER-ANHANG: BUDGET (II) AUS H20.53 PARAGRAPH 4
+----------------------------------------------------------------------------------------------------
+  ``2 * (box_end - 5)`` muss die im Notariat gemessenen Eintritte
+  treffen -- Beleg, dass diese Harness EXAKT dieselben Fenster
+  aufspannt wie die Zulassungs-Sonde.
+  MAI       box_end 1922  -> (II) 3834   (H20.53 Paragraph 4: 3834)  OK
+  JUN       box_end 2009  -> (II) 4008   (H20.53 Paragraph 4: 4008)  OK
+  JUL       box_end 2100  -> (II) 4190   (H20.53 Paragraph 4: 4190)  OK
+  AUG_BASE  box_end 1288  -> (II) 2566   (H20.53 Paragraph 4: 2566)  OK
+
+====================================================================================================
+ALLE PARITAETSPRUEFUNGEN OK -- V022 ist bit-identisch zur Baseline
+auf MAI/JUN/JUL/AUG_BASE (23 Felder x N Trades, 11 Zaehler,
+4 Listen) und frei von Segmentwand-Altlasten.
+====================================================================================================

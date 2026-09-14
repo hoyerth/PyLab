@@ -1,0 +1,55 @@
+======================================================================================================================
+KANTEN-LISTE (Modus C / V3 statisch) | Fenster AUG (2026-08-10 .. 2026-08-28)
+======================================================================================================================
+Parameter: touch_band_pct 0.23 | geburts_sperr_pct 0.50 | min_touch_abstand 3 | tp_mindist_pct 1.5 | sl_buffer_usd 0.05 | tp1_anteil_pct 50 | next_bar-Split an
+Bars: 1288 | Kanten gesamt: 39 (OBEN 20 / UNTEN 19) | Typ A (>=2): 35 | Typ B (>=3): 33 | Ring-Verwerfungen: 63
+Signale: 66 (LONG 37 / SHORT 29) | Summe R -6.41 | PF   0.88
+
+--- KANTEN (alle, chronologisch nach kanten_id) ---
+K  0 OBEN  basis=  63.906 geb=   5 (10.08 01:15) status=SCHLAFEND typ=B touch= 6 bars=[5, 9, 25, 629, 634, 638]
+K  1 UNTEN basis=  63.464 geb=   7 (10.08 01:45) status=SCHLAFEND typ=B touch= 4 bars=[7, 60, 398, 621]
+K  2 UNTEN basis=  62.967 geb=  14 (10.08 03:30) status=AKTIV    typ=B touch= 3 bars=[14, 682, 689]
+K  3 OBEN  basis=  64.312 geb=  31 (10.08 07:45) status=SCHLAFEND typ=B touch= 6 bars=[31, 39, 42, 45, 390, 400]
+K  4 UNTEN basis=  64.071 geb=  43 (10.08 10:45) status=SCHLAFEND typ=B touch= 5 bars=[43, 126, 316, 361, 406]   <== ~LOWER-MINOR 64.20
+K  5 UNTEN basis=  63.797 geb=  52 (10.08 13:00) status=SCHLAFEND typ=B touch= 8 bars=[52, 57, 380, 386, 392, 627, 632, 635]   <== ~LOWER-MAIN 63.67
+K  6 OBEN  basis=  64.863 geb=  67 (10.08 16:45) status=SCHLAFEND typ=B touch=10 bars=[67, 135, 175, 179, 187, 315, 352, 357, 416, 444]
+K  7 UNTEN basis=  64.515 geb=  69 (10.08 17:15) status=SCHLAFEND typ=B touch=16 bars=[69, 122, 136, 172, 177, 184, 312, 342, 349, 356, 372, 410, 414, 420, 452, 458]
+K  8 OBEN  basis=  65.256 geb=  72 (10.08 18:00) status=SCHLAFEND typ=B touch=17 bars=[72, 78, 141, 144, 148, 155, 160, 165, 196, 211, 275, 343, 463, 578, 603, 609, 614]
+K  9 UNTEN basis=  65.009 geb=  81 (10.08 20:15) status=SCHLAFEND typ=B touch=10 bars=[81, 209, 214, 259, 279, 294, 300, 437, 520, 606]
+K 10 OBEN  basis=  66.046 geb=  85 (10.08 21:15) status=SCHLAFEND typ=B touch=10 bars=[85, 114, 220, 492, 495, 498, 547, 710, 716, 724]
+K 11 UNTEN basis=  65.590 geb=  92 (11.08 00:00) status=AKTIV    typ=B touch=18 bars=[92, 98, 111, 242, 246, 252, 255, 475, 493, 497, 500, 512, 544, 550, 553, 721, 725, 792]
+K 12 OBEN  basis=  66.223 geb= 101 (11.08 02:15) status=SCHLAFEND typ=B touch= 3 bars=[101, 286, 473]
+K 13 UNTEN basis=  65.400 geb= 104 (11.08 03:00) status=SCHLAFEND typ=B touch= 6 bars=[104, 291, 479, 485, 503, 508]
+K 14 OBEN  basis=  66.459 geb= 107 (11.08 03:45) status=SCHLAFEND typ=B touch= 7 bars=[107, 237, 249, 529, 536, 565, 730]   <== ~UPPER 66.46
+K 15 OBEN  basis=  66.776 geb= 229 (12.08 11:15) status=SCHLAFEND typ=B touch= 4 bars=[229, 242, 777, 781]
+K 16 UNTEN basis=  66.076 geb= 235 (12.08 12:45) status=SCHLAFEND typ=- touch= 1 bars=[235]
+K 17 OBEN  basis=  65.554 geb= 262 (12.08 19:30) status=SCHLAFEND typ=B touch= 9 bars=[262, 267, 296, 306, 336, 433, 572, 585, 706]
+K 18 OBEN  basis=  64.464 geb= 365 (13.08 22:15) status=SCHLAFEND typ=- touch= 1 bars=[365]
+K 19 OBEN  basis=  63.248 geb= 648 (19.08 01:00) status=SCHLAFEND typ=B touch= 6 bars=[648, 655, 658, 666, 682, 687]
+K 20 UNTEN basis=  62.721 geb= 650 (19.08 01:30) status=AKTIV    typ=B touch= 3 bars=[650, 657, 665]
+K 21 OBEN  basis=  62.878 geb= 672 (19.08 07:00) status=SCHLAFEND typ=- touch= 1 bars=[672]
+K 22 UNTEN basis=  62.548 geb= 673 (19.08 07:15) status=AKTIV    typ=- touch= 1 bars=[673]
+K 23 OBEN  basis=  67.076 geb= 736 (20.08 00:00) status=SCHLAFEND typ=A touch= 2 bars=[736, 786]
+K 24 UNTEN basis=  66.892 geb= 744 (20.08 02:00) status=SCHLAFEND typ=A touch= 2 bars=[744, 762]
+K 25 OBEN  basis=  67.288 geb= 745 (20.08 02:15) status=SCHLAFEND typ=B touch= 6 bars=[745, 752, 756, 759, 764, 769]
+K 26 UNTEN basis=  66.592 geb= 751 (20.08 03:45) status=SCHLAFEND typ=B touch= 5 bars=[751, 766, 774, 779, 782]
+K 27 OBEN  basis=  68.972 geb= 805 (20.08 17:15) status=SCHLAFEND typ=B touch=11 bars=[805, 847, 963, 996, 1083, 1091, 1113, 1140, 1143, 1162, 1229]
+K 28 UNTEN basis=  67.897 geb= 810 (20.08 18:30) status=AKTIV    typ=B touch=11 bars=[810, 813, 820, 828, 840, 1063, 1165, 1176, 1183, 1193, 1244]
+K 29 OBEN  basis=  68.280 geb= 812 (20.08 19:00) status=SCHLAFEND typ=B touch=11 bars=[812, 823, 832, 1041, 1059, 1067, 1072, 1175, 1190, 1253, 1258]
+K 30 UNTEN basis=  67.726 geb= 817 (20.08 20:15) status=SCHLAFEND typ=B touch= 3 bars=[817, 1039, 1052]
+K 31 OBEN  basis=  69.172 geb= 853 (21.08 06:15) status=SCHLAFEND typ=B touch=13 bars=[853, 859, 942, 949, 956, 968, 986, 989, 1012, 1097, 1107, 1202, 1225]
+K 32 UNTEN basis=  68.712 geb= 858 (21.08 07:30) status=SCHLAFEND typ=B touch=16 bars=[858, 864, 894, 920, 930, 939, 946, 950, 962, 966, 972, 985, 1012, 1094, 1138, 1222]
+K 33 OBEN  basis=  69.975 geb= 873 (21.08 11:15) status=AKTIV    typ=B touch= 6 bars=[873, 881, 891, 904, 980, 1020]
+K 34 UNTEN basis=  69.155 geb= 876 (21.08 12:00) status=SCHLAFEND typ=B touch= 6 bars=[876, 886, 890, 1021, 1124, 1214]
+K 35 OBEN  basis=  69.613 geb= 912 (21.08 21:00) status=AKTIV    typ=B touch=13 bars=[912, 928, 932, 974, 1023, 1122, 1126, 1211, 1217, 1268, 1272, 1280, 1283]
+K 36 UNTEN basis=  68.392 geb= 934 (24.08 03:30) status=SCHLAFEND typ=B touch=10 bars=[934, 991, 1000, 1085, 1103, 1149, 1153, 1157, 1208, 1227]
+K 37 UNTEN basis=  67.535 geb=1031 (25.08 04:45) status=AKTIV    typ=B touch= 6 bars=[1031, 1056, 1075, 1172, 1256, 1259]
+K 38 OBEN  basis=  68.548 geb=1169 (26.08 16:15) status=SCHLAFEND typ=B touch= 5 bars=[1169, 1236, 1240, 1247, 1250]
+
+--- SOLL-EBENEN-ZUORDNUNG (AUG, Band-Aequivalenz <= 0.23 %) ---
+[UPPER 66.46] (OBEN, Soll-Anker 66.46) -> 1 Kante(n) im Band:
+    K 14 basis=  66.459 (dist 0.002%) geb= 107 status=SCHLAFEND touch= 7 bars=[107, 237, 249, 529, 536, 565, 730]
+[LOWER-MAIN 63.67] (UNTEN, Soll-Anker 63.67) -> 1 Kante(n) im Band:
+    K  5 basis=  63.797 (dist 0.199%) geb=  52 status=SCHLAFEND touch= 8 bars=[52, 57, 380, 386, 392, 627, 632, 635]
+[LOWER-MINOR 64.20] (UNTEN, Soll-Anker 64.20) -> 1 Kante(n) im Band:
+    K  4 basis=  64.071 (dist 0.201%) geb=  43 status=SCHLAFEND touch= 5 bars=[43, 126, 316, 361, 406]

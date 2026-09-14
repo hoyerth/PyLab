@@ -1,0 +1,64 @@
+========================================================================================================
+S2 (2025-01-01..2025-12-01) -- SCAN / PICKLE / EBENE-2-ROLLENPROBE
+========================================================================================================
+Engine-SHA   : 4a576a766670d684c30381969e4d7349d5786b1b22ea6dda08b93b7d811bb38a
+VD-Entwurf   : 1615a4aff5b1231be652ffc418d981662a049508cc9a82aa8c420cee7a20983a
+Loader-Name  : tmp_kanten_engine_replay  (fixiert)
+
+1  SCAN
+   _se_scan('S2') in 410.7 s
+   n                        = 21624
+   box_end (hart 2026-08-19) = 21624   (== n -> ausserhalb, B1)
+   Split 2025-10-01          = Bar 17692  (2025-10-01T00:00)
+   >> scan['box_end_bar']   = 17692
+   H1 (bars <   17692) =  17692 Bars
+   H2 (bars >=  17692) =   3932 Bars
+   edges=411 seeds=37
+   kid-Bereich              = 0..562  (448 Kanten, fensterlokal -> B4)
+   Preisspanne S2           = 28.2860 .. 56.5250  (mean close 37.7355)
+   August-Literale (67.6355, 68.37, 69.87, 69.914)
+   >> alle Literale oberhalb des S2-Maximums? True  (B3)
+
+2  PICKLE
+   Datei  : _tmp_s2_scan_cache.pkl
+   Bytes  : 1254468
+   SHA256 : a86ad1801c054ad039ee55a11f44f661eb9f651afb1e702af4e690548b1b2e2b
+   Klasse : tmp_kanten_engine_replay._SEEdgeH
+
+3  ROUNDTRIP
+   Keys identisch           : True
+   box_end_bar (reload)     : 17692  (erwartet 17692)
+   n (reload)               : 21624
+   Kanten (reload)          : 411 edges + 37 seeds
+
+   Fidelity-Lauf box_end= 3000 in 12.0 s
+   Trades/Summe (Original)  : 27 / -16.939020
+   Trades/Summe (reload)    : 27 / -16.939020
+   bit-identisch            : True
+
+4  EBENE-2-ROLLENPROBE im H2-Fenster (relativ, KEIN August-Literal)
+   Rollen werden je Bar kausal aus dem Scan aufgeloest:
+   decke = AUSSEN_OBEN (Rang 0), boden = AUSSEN_UNTEN (Rang 0);
+   Gegenkante = PHASE_EIGEN; Innenrang = RangModus.NAEHE.
+
+   geprueft (Stride 3)      : 1311 Bars in 1.7 s  (H2 gesamt 3932)
+   leerer kausaler Pool     : 0
+   AUSSEN_OBEN aufloesbar   : 1311
+   AUSSEN_UNTEN aufloesbar  : 1311
+   PHASE_EIGEN SHORT/LONG   : 1311 / 1311
+   RECLAIM_AT_OPENING       : 890  (Kids {395: 2, 396: 2, 398: 1, 400: 3, 401: 5, 402: 1, 403: 3, 404: 2, 405: 2, 406: 4, 407: 8, 408: 4, 410: 3, 411: 2, 412: 2, 414: 5, 415: 7, 416: 4, 417: 10, 418: 6, 419: 7, 420: 6, 421: 11, 422: 4, 423: 3, 424: 5, 425: 6, 428: 6, 429: 16, 430: 8, 431: 9, 432: 14, 433: 16, 434: 12, 435: 18, 436: 17, 437: 22, 438: 14, 439: 26, 440: 10, 442: 12, 444: 14, 446: 8, 449: 14, 450: 11, 451: 19, 452: 6, 453: 4, 457: 9, 459: 8, 462: 7, 463: 12, 464: 12, 465: 15, 468: 11, 469: 10, 470: 6, 472: 13, 474: 4, 477: 16, 478: 12, 479: 11, 480: 6, 483: 11, 484: 12, 486: 8, 487: 3, 489: 9, 490: 12, 491: 7, 492: 9, 493: 7, 494: 7, 495: 13, 496: 4, 498: 8, 500: 12, 501: 7, 502: 9, 503: 7, 504: 6, 505: 3, 506: 7, 507: 1, 508: 3, 509: 6, 510: 4, 512: 10, 513: 4, 514: 4, 516: 5, 518: 4, 519: 2, 520: 4, 521: 7, 522: 9, 524: 5, 525: 1, 527: 6, 530: 17, 533: 4, 536: 9, 537: 10, 538: 6, 539: 10, 540: 8, 542: 5, 544: 3, 547: 1, 548: 2, 551: 9, 552: 11, 555: 1, 556: 5, 558: 5, 561: 2})
+
+      bar  17701 (2025-10-01T02:15) K411 OBEN basis=46.6970 (STUFE_1_IN_BAR) decke=411 boden=402 ziel_short=46.709
+      bar  17704 (2025-10-01T03:00) K407 UNTEN basis=46.7090 (STUFE_1_IN_BAR) decke=406 boden=402 ziel_short=46.786
+      bar  17722 (2025-10-01T07:30) K401 OBEN basis=46.9805 (STUFE_1_IN_BAR) decke=401 boden=416 ziel_short=46.937
+      bar  17725 (2025-10-01T08:15) K415 UNTEN basis=46.8410 (STUFE_1_IN_BAR) decke=403 boden=402 ziel_short=46.937
+      bar  17728 (2025-10-01T09:00) K416 UNTEN basis=46.9370 (STUFE_1_IN_BAR) decke=408 boden=415 ziel_short=46.937
+      bar  17749 (2025-10-01T14:15) K419 OBEN basis=47.3210 (STUFE_1_IN_BAR) decke=417 boden=418 ziel_short=47.186
+      bar  17752 (2025-10-01T15:00) K419 OBEN basis=47.3210 (STUFE_1_IN_BAR) decke=417 boden=418 ziel_short=47.186
+      bar  17758 (2025-10-01T16:30) K421 OBEN basis=47.7500 (STUFE_1_IN_BAR) decke=421 boden=418 ziel_short=47.186
+
+   >> Alle Groessen sind AUGUST-FREI (reine Scan-/Marktwerte).
+
+========================================================================================================
+Engine-SHA nach Lauf: 4a576a766670d684c30381969e4d7349d5786b1b22ea6dda08b93b7d811bb38a  UNVERAENDERT
+========================================================================================================

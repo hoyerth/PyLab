@@ -1,0 +1,442 @@
+﻿E-34n/7  _kandidat-POOL (nach ZP-4), bars 1070..1080
+==============================================================================================================
+
+bar 1070 (25.08. 14:30) SHORT L67.7640 H67.9850 | freigabe_kid=-1
+    K67  dist=-2.7382%  touch_conf=5  <== POS 0
+    K73  dist=-2.3737%  touch_conf=3
+    K76  dist=-2.2094%  touch_conf=2
+    K65  dist=-0.9658%  touch_conf=3
+    K51  dist=+1.3552%  touch_conf=2
+    K20  dist=+2.2962%  touch_conf=3
+    K31  dist=+2.5600%  touch_conf=5
+    K15  dist=+2.9358%  touch_conf=3
+    K16  dist=+3.2893%  touch_conf=12
+    K28  dist=+3.5031%  touch_conf=2
+    K33  dist=+3.7084%  touch_conf=4
+    K44  dist=+3.8938%  touch_conf=3
+    K26  dist=+4.0895%  touch_conf=2
+    K12  dist=+4.2539%  touch_conf=9
+    K25  dist=+4.4349%  touch_conf=7
+    K36  dist=+4.6551%  touch_conf=2
+    K10  dist=+4.9297%  touch_conf=7
+    K6   dist=+5.7112%  touch_conf=3
+    K9   dist=+6.0989%  touch_conf=4
+    K0   dist=+6.4961%  touch_conf=4
+    K2   dist=+6.7771%  touch_conf=2
+    K46  dist=+7.4896%  touch_conf=4
+    K47  dist=+7.6666%  touch_conf=2
+
+bar 1070 (25.08. 14:30) LONG L67.7640 H67.9850 | freigabe_kid=-1
+    K48  dist=-8.2890%  touch_conf=2  <== POS 0
+    K3   dist=-7.6183%  touch_conf=3
+    K17  dist=-3.2138%  touch_conf=13
+    K82  dist=-0.3123%  touch_conf=2
+    K62  dist=+0.0280%  touch_conf=4
+    K63  dist=+0.0988%  touch_conf=1
+    K60  dist=+0.3104%  touch_conf=3
+    K64  dist=+0.4013%  touch_conf=1
+    K77  dist=+0.9182%  touch_conf=3
+    K79  dist=+1.2777%  touch_conf=5
+    K66  dist=+1.5244%  touch_conf=7
+    K71  dist=+1.6516%  touch_conf=3
+    K68  dist=+2.1148%  touch_conf=2
+    K72  dist=+2.3208%  touch_conf=3
+
+bar 1071 (25.08. 14:45) SHORT L67.9150 H68.2100 | freigabe_kid=-1
+    K67  dist=-2.4163%  touch_conf=5  <== POS 0
+    K73  dist=-2.0506%  touch_conf=3
+    K76  dist=-1.8858%  touch_conf=2
+    K65  dist=-0.6380%  touch_conf=3
+    K83  dist=+0.2263%  touch_conf=1
+    K51  dist=+1.6906%  touch_conf=2
+    K20  dist=+2.6347%  touch_conf=3
+    K31  dist=+2.8995%  touch_conf=5
+    K15  dist=+3.2765%  touch_conf=3
+    K16  dist=+3.6311%  touch_conf=12
+    K28  dist=+3.8457%  touch_conf=2
+    K33  dist=+4.0516%  touch_conf=4
+    K44  dist=+4.2377%  touch_conf=3
+    K26  dist=+4.4340%  touch_conf=2
+    K12  dist=+4.5989%  touch_conf=9
+    K25  dist=+4.7805%  touch_conf=7
+    K36  dist=+5.0015%  touch_conf=2
+    K10  dist=+5.2770%  touch_conf=7
+    K6   dist=+6.0611%  touch_conf=3
+    K9   dist=+6.4501%  touch_conf=4
+    K0   dist=+6.8486%  touch_conf=4
+    K2   dist=+7.1305%  touch_conf=2
+    K46  dist=+7.8453%  touch_conf=4
+    K47  dist=+8.0229%  touch_conf=2
+
+bar 1071 (25.08. 14:45) LONG L67.9150 H68.2100 | freigabe_kid=-1
+    K48  dist=-8.5303%  touch_conf=2  <== POS 0
+    K3   dist=-7.8581%  touch_conf=3
+    K17  dist=-3.4438%  touch_conf=13
+    K82  dist=-0.5359%  touch_conf=2
+    K62  dist=-0.1947%  touch_conf=4
+    K60  dist=+0.0883%  touch_conf=3
+    K64  dist=+0.1793%  touch_conf=1
+    K77  dist=+0.6974%  touch_conf=3
+    K79  dist=+1.0577%  touch_conf=5
+    K66  dist=+1.3050%  touch_conf=7
+    K71  dist=+1.4325%  touch_conf=3
+    K68  dist=+1.8966%  touch_conf=2
+    K72  dist=+2.1031%  touch_conf=3
+
+bar 1072 (25.08. 15:00) SHORT L67.4880 H68.2300 | freigabe_kid=-1
+    K67  dist=-2.3877%  touch_conf=5  <== POS 0
+    K73  dist=-2.0219%  touch_conf=3
+    K76  dist=-1.8570%  touch_conf=2
+    K65  dist=-0.6089%  touch_conf=3
+    K83  dist=+0.2557%  touch_conf=1
+    K51  dist=+1.7204%  touch_conf=2
+    K20  dist=+2.6648%  touch_conf=3
+    K31  dist=+2.9296%  touch_conf=5
+    K15  dist=+3.3068%  touch_conf=3
+    K16  dist=+3.6615%  touch_conf=12
+    K28  dist=+3.8761%  touch_conf=2
+    K33  dist=+4.0821%  touch_conf=4
+    K44  dist=+4.2682%  touch_conf=3
+    K26  dist=+4.4646%  touch_conf=2
+    K12  dist=+4.6296%  touch_conf=9
+    K25  dist=+4.8112%  touch_conf=7
+    K36  dist=+5.0323%  touch_conf=2
+    K10  dist=+5.3078%  touch_conf=7
+    K6   dist=+6.0922%  touch_conf=3
+    K9   dist=+6.4813%  touch_conf=4
+    K0   dist=+6.8799%  touch_conf=4
+    K2   dist=+7.1619%  touch_conf=2
+    K46  dist=+7.8769%  touch_conf=4
+    K47  dist=+8.0546%  touch_conf=2
+
+bar 1072 (25.08. 15:00) LONG L67.4880 H68.2300 | freigabe_kid=-1
+    K48  dist=-7.8479%  touch_conf=2  <== POS 0
+    K3   dist=-7.1800%  touch_conf=3
+    K17  dist=-2.7934%  touch_conf=13
+    K82  dist=+0.0962%  touch_conf=2
+    K62  dist=+0.4352%  touch_conf=4
+    K63  dist=+0.5057%  touch_conf=1
+    K60  dist=+0.7164%  touch_conf=3
+    K77  dist=+1.3218%  touch_conf=3
+    K79  dist=+1.6798%  touch_conf=5
+    K66  dist=+1.9255%  touch_conf=7
+    K71  dist=+2.0522%  touch_conf=3
+    K68  dist=+2.5134%  touch_conf=2
+    K72  dist=+2.7186%  touch_conf=3
+
+bar 1073 (25.08. 15:15) SHORT L67.4620 H67.7430 | freigabe_kid=-1
+    K67  dist=-3.0845%  touch_conf=5  <== POS 0
+    K73  dist=-2.7212%  touch_conf=3
+    K76  dist=-2.5575%  touch_conf=2
+    K65  dist=-1.3183%  touch_conf=3
+    K51  dist=+0.9944%  touch_conf=2
+    K20  dist=+1.9320%  touch_conf=3
+    K31  dist=+2.1950%  touch_conf=5
+    K15  dist=+2.5694%  touch_conf=3
+    K16  dist=+2.9216%  touch_conf=12
+    K28  dist=+3.1347%  touch_conf=2
+    K33  dist=+3.3392%  touch_conf=4
+    K44  dist=+3.5240%  touch_conf=3
+    K26  dist=+3.7190%  touch_conf=2
+    K12  dist=+3.8828%  touch_conf=9
+    K25  dist=+4.0631%  touch_conf=7
+    K36  dist=+4.2826%  touch_conf=2
+    K10  dist=+4.5562%  touch_conf=7
+    K6   dist=+5.3349%  touch_conf=3
+    K9   dist=+5.7212%  touch_conf=4
+    K0   dist=+6.1170%  touch_conf=4
+    K2   dist=+6.3970%  touch_conf=2
+    K46  dist=+7.1069%  touch_conf=4
+    K47  dist=+7.2834%  touch_conf=2
+
+bar 1073 (25.08. 15:15) LONG L67.4620 H67.7430 | freigabe_kid=-1
+    K48  dist=-7.8064%  touch_conf=2  <== POS 0
+    K3   dist=-7.1387%  touch_conf=3
+    K17  dist=-2.7538%  touch_conf=13
+    K82  dist=+0.1347%  touch_conf=2
+    K62  dist=+0.4736%  touch_conf=4
+    K63  dist=+0.5440%  touch_conf=1
+    K60  dist=+0.7547%  touch_conf=3
+    K77  dist=+1.3598%  touch_conf=3
+    K79  dist=+1.7176%  touch_conf=5
+    K66  dist=+1.9633%  touch_conf=7
+    K71  dist=+2.0899%  touch_conf=3
+    K68  dist=+2.5510%  touch_conf=2
+    K72  dist=+2.7561%  touch_conf=3
+
+bar 1074 (25.08. 15:30) SHORT L67.4550 H67.8020 | freigabe_kid=-1
+    K67  dist=-3.0000%  touch_conf=5  <== POS 0
+    K73  dist=-2.6365%  touch_conf=3
+    K76  dist=-2.4726%  touch_conf=2
+    K65  dist=-1.2324%  touch_conf=3
+    K51  dist=+1.0824%  touch_conf=2
+    K20  dist=+2.0208%  touch_conf=3
+    K31  dist=+2.2840%  touch_conf=5
+    K15  dist=+2.6588%  touch_conf=3
+    K16  dist=+3.0112%  touch_conf=12
+    K28  dist=+3.2245%  touch_conf=2
+    K33  dist=+3.4292%  touch_conf=4
+    K44  dist=+3.6142%  touch_conf=3
+    K26  dist=+3.8093%  touch_conf=2
+    K12  dist=+3.9733%  touch_conf=9
+    K25  dist=+4.1537%  touch_conf=7
+    K36  dist=+4.3734%  touch_conf=2
+    K10  dist=+4.6473%  touch_conf=7
+    K6   dist=+5.4267%  touch_conf=3
+    K9   dist=+5.8133%  touch_conf=4
+    K0   dist=+6.2095%  touch_conf=4
+    K2   dist=+6.4897%  touch_conf=2
+    K46  dist=+7.2002%  touch_conf=4
+    K47  dist=+7.3768%  touch_conf=2
+
+bar 1074 (25.08. 15:30) LONG L67.4550 H67.8020 | freigabe_kid=-1
+    K48  dist=-7.7952%  touch_conf=2  <== POS 0
+    K3   dist=-7.1275%  touch_conf=3
+    K17  dist=-2.7432%  touch_conf=13
+    K82  dist=+0.1451%  touch_conf=2
+    K62  dist=+0.4839%  touch_conf=4
+    K63  dist=+0.5543%  touch_conf=1
+    K60  dist=+0.7650%  touch_conf=3
+    K77  dist=+1.3700%  touch_conf=3
+    K79  dist=+1.7278%  touch_conf=5
+    K66  dist=+1.9735%  touch_conf=7
+    K71  dist=+2.1001%  touch_conf=3
+    K68  dist=+2.5611%  touch_conf=2
+    K72  dist=+2.7662%  touch_conf=3
+
+bar 1075 (25.08. 15:45) SHORT L67.4200 H67.6910 | freigabe_kid=-1
+    K67  dist=-3.1588%  touch_conf=5  <== POS 0
+    K73  dist=-2.7959%  touch_conf=3
+    K76  dist=-2.6323%  touch_conf=2
+    K65  dist=-1.3941%  touch_conf=3
+    K51  dist=+0.9169%  touch_conf=2
+    K20  dist=+1.8538%  touch_conf=3
+    K31  dist=+2.1165%  touch_conf=5
+    K15  dist=+2.4907%  touch_conf=3
+    K16  dist=+2.8426%  touch_conf=12
+    K28  dist=+3.0555%  touch_conf=2
+    K33  dist=+3.2599%  touch_conf=4
+    K44  dist=+3.4445%  touch_conf=3
+    K26  dist=+3.6393%  touch_conf=2
+    K12  dist=+3.8030%  touch_conf=9
+    K25  dist=+3.9832%  touch_conf=7
+    K36  dist=+4.2025%  touch_conf=2
+    K10  dist=+4.4759%  touch_conf=7
+    K6   dist=+5.2541%  touch_conf=3
+    K9   dist=+5.6401%  touch_conf=4
+    K0   dist=+6.0356%  touch_conf=4
+    K2   dist=+6.3154%  touch_conf=2
+    K46  dist=+7.0247%  touch_conf=4
+    K47  dist=+7.2010%  touch_conf=2
+
+bar 1075 (25.08. 15:45) LONG L67.4200 H67.6910 | freigabe_kid=-1
+    K48  dist=-7.7393%  touch_conf=2  <== POS 0
+    K3   dist=-7.0720%  touch_conf=3
+    K17  dist=-2.6899%  touch_conf=13
+    K82  dist=+0.1969%  touch_conf=2
+    K62  dist=+0.5355%  touch_conf=4
+    K60  dist=+0.8165%  touch_conf=3
+    K77  dist=+1.4212%  touch_conf=3
+    K79  dist=+1.7788%  touch_conf=5
+    K66  dist=+2.0243%  touch_conf=7
+    K71  dist=+2.1509%  touch_conf=3
+    K68  dist=+2.6117%  touch_conf=2
+    K72  dist=+2.8166%  touch_conf=3
+
+bar 1076 (25.08. 16:00) SHORT L67.6730 H67.9730 | freigabe_kid=-1
+    K67  dist=-2.7554%  touch_conf=5  <== POS 0
+    K73  dist=-2.3909%  touch_conf=3
+    K76  dist=-2.2267%  touch_conf=2
+    K65  dist=-0.9833%  touch_conf=3
+    K51  dist=+1.3373%  touch_conf=2
+    K20  dist=+2.2781%  touch_conf=3
+    K31  dist=+2.5419%  touch_conf=5
+    K15  dist=+2.9177%  touch_conf=3
+    K16  dist=+3.2710%  touch_conf=12
+    K28  dist=+3.4849%  touch_conf=2
+    K33  dist=+3.6901%  touch_conf=4
+    K44  dist=+3.8755%  touch_conf=3
+    K26  dist=+4.0711%  touch_conf=2
+    K12  dist=+4.2355%  touch_conf=9
+    K25  dist=+4.4164%  touch_conf=7
+    K36  dist=+4.6366%  touch_conf=2
+    K10  dist=+4.9112%  touch_conf=7
+    K6   dist=+5.6926%  touch_conf=3
+    K9   dist=+6.0802%  touch_conf=4
+    K0   dist=+6.4773%  touch_conf=4
+    K2   dist=+6.7583%  touch_conf=2
+    K46  dist=+7.4706%  touch_conf=4
+    K47  dist=+7.6476%  touch_conf=2
+
+bar 1076 (25.08. 16:00) LONG L67.6730 H67.9730 | freigabe_kid=-1
+    K48  dist=-8.1436%  touch_conf=2  <== POS 0
+    K3   dist=-7.4738%  touch_conf=3
+    K17  dist=-3.0752%  touch_conf=13
+    K62  dist=+0.1623%  touch_conf=4
+    K63  dist=+0.2329%  touch_conf=1
+    K60  dist=+0.4443%  touch_conf=3
+    K64  dist=+0.5350%  touch_conf=1
+    K77  dist=+1.0513%  touch_conf=3
+    K79  dist=+1.4102%  touch_conf=5
+    K66  dist=+1.6567%  touch_conf=7
+    K71  dist=+1.7837%  touch_conf=3
+    K68  dist=+2.2462%  touch_conf=2
+    K72  dist=+2.4519%  touch_conf=3
+
+bar 1077 (25.08. 16:15) SHORT L67.6890 H68.0310 | freigabe_kid=-1
+    K67  dist=-2.6724%  touch_conf=5  <== POS 0
+    K73  dist=-2.3076%  touch_conf=3
+    K76  dist=-2.1432%  touch_conf=2
+    K65  dist=-0.8988%  touch_conf=3
+    K51  dist=+1.4238%  touch_conf=2
+    K20  dist=+2.3654%  touch_conf=3
+    K31  dist=+2.6294%  touch_conf=5
+    K15  dist=+3.0055%  touch_conf=3
+    K16  dist=+3.3592%  touch_conf=12
+    K28  dist=+3.5732%  touch_conf=2
+    K33  dist=+3.7786%  touch_conf=4
+    K44  dist=+3.9641%  touch_conf=3
+    K26  dist=+4.1599%  touch_conf=2
+    K12  dist=+4.3244%  touch_conf=9
+    K25  dist=+4.5055%  touch_conf=7
+    K36  dist=+4.7259%  touch_conf=2
+    K10  dist=+5.0007%  touch_conf=7
+    K6   dist=+5.7827%  touch_conf=3
+    K9   dist=+6.1707%  touch_conf=4
+    K0   dist=+6.5682%  touch_conf=4
+    K2   dist=+6.8494%  touch_conf=2
+    K46  dist=+7.5623%  touch_conf=4
+    K47  dist=+7.7395%  touch_conf=2
+
+bar 1077 (25.08. 16:15) LONG L67.6890 H68.0310 | freigabe_kid=-1
+    K48  dist=-8.1691%  touch_conf=2  <== POS 0
+    K3   dist=-7.4992%  touch_conf=3
+    K17  dist=-3.0996%  touch_conf=13
+    K62  dist=+0.1387%  touch_conf=4
+    K63  dist=+0.2093%  touch_conf=1
+    K60  dist=+0.4207%  touch_conf=3
+    K64  dist=+0.5115%  touch_conf=1
+    K77  dist=+1.0279%  touch_conf=3
+    K79  dist=+1.3869%  touch_conf=5
+    K66  dist=+1.6334%  touch_conf=7
+    K71  dist=+1.7605%  touch_conf=3
+    K68  dist=+2.2231%  touch_conf=2
+    K72  dist=+2.4289%  touch_conf=3
+
+bar 1078 (25.08. 16:30) SHORT L67.6820 H68.2070 | freigabe_kid=-1
+    K67  dist=-2.4206%  touch_conf=5  <== POS 0
+    K73  dist=-2.0549%  touch_conf=3
+    K76  dist=-1.8901%  touch_conf=2
+    K65  dist=-0.6424%  touch_conf=3
+    K83  dist=+0.2219%  touch_conf=1
+    K51  dist=+1.6861%  touch_conf=2
+    K20  dist=+2.6302%  touch_conf=3
+    K31  dist=+2.8949%  touch_conf=5
+    K15  dist=+3.2720%  touch_conf=3
+    K16  dist=+3.6266%  touch_conf=12
+    K28  dist=+3.8411%  touch_conf=2
+    K33  dist=+4.0470%  touch_conf=4
+    K44  dist=+4.2331%  touch_conf=3
+    K26  dist=+4.4294%  touch_conf=2
+    K12  dist=+4.5943%  touch_conf=9
+    K25  dist=+4.7759%  touch_conf=7
+    K36  dist=+4.9968%  touch_conf=2
+    K10  dist=+5.2723%  touch_conf=7
+    K6   dist=+6.0564%  touch_conf=3
+    K9   dist=+6.4454%  touch_conf=4
+    K0   dist=+6.8439%  touch_conf=4
+    K2   dist=+7.1258%  touch_conf=2
+    K46  dist=+7.8406%  touch_conf=4
+    K47  dist=+8.0182%  touch_conf=2
+
+bar 1078 (25.08. 16:30) LONG L67.6820 H68.2070 | freigabe_kid=-1
+    K48  dist=-8.1579%  touch_conf=2  <== POS 0
+    K3   dist=-7.4880%  touch_conf=3
+    K17  dist=-3.0889%  touch_conf=13
+    K62  dist=+0.1490%  touch_conf=4
+    K63  dist=+0.2197%  touch_conf=1
+    K60  dist=+0.4310%  touch_conf=3
+    K64  dist=+0.5218%  touch_conf=1
+    K77  dist=+1.0381%  touch_conf=3
+    K79  dist=+1.3971%  touch_conf=5
+    K66  dist=+1.6436%  touch_conf=7
+    K71  dist=+1.7706%  touch_conf=3
+    K68  dist=+2.2332%  touch_conf=2
+    K72  dist=+2.4390%  touch_conf=3
+
+bar 1079 (25.08. 16:45) SHORT L68.0570 H68.2180 | freigabe_kid=-1
+    K67  dist=-2.4049%  touch_conf=5  <== POS 0
+    K73  dist=-2.0391%  touch_conf=3
+    K76  dist=-1.8743%  touch_conf=2
+    K65  dist=-0.6264%  touch_conf=3
+    K83  dist=+0.2380%  touch_conf=1
+    K51  dist=+1.7025%  touch_conf=2
+    K20  dist=+2.6467%  touch_conf=3
+    K31  dist=+2.9115%  touch_conf=5
+    K15  dist=+3.2886%  touch_conf=3
+    K16  dist=+3.6433%  touch_conf=12
+    K28  dist=+3.8579%  touch_conf=2
+    K33  dist=+4.0638%  touch_conf=4
+    K44  dist=+4.2499%  touch_conf=3
+    K26  dist=+4.4462%  touch_conf=2
+    K12  dist=+4.6112%  touch_conf=9
+    K25  dist=+4.7928%  touch_conf=7
+    K36  dist=+5.0138%  touch_conf=2
+    K10  dist=+5.2893%  touch_conf=7
+    K6   dist=+6.0735%  touch_conf=3
+    K9   dist=+6.4625%  touch_conf=4
+    K0   dist=+6.8611%  touch_conf=4
+    K2   dist=+7.1431%  touch_conf=2
+    K46  dist=+7.8580%  touch_conf=4
+    K47  dist=+8.0356%  touch_conf=2
+
+bar 1079 (25.08. 16:45) LONG L68.0570 H68.2180 | freigabe_kid=-1
+    K48  dist=-8.7572%  touch_conf=2  <== POS 0
+    K3   dist=-8.0836%  touch_conf=3
+    K17  dist=-3.6601%  touch_conf=13
+    K77  dist=+0.4898%  touch_conf=3
+    K79  dist=+0.8508%  touch_conf=5
+    K66  dist=+1.0986%  touch_conf=7
+    K71  dist=+1.2264%  touch_conf=3
+    K68  dist=+1.6915%  touch_conf=2
+    K72  dist=+1.8984%  touch_conf=3
+
+bar 1080 (25.08. 17:00) SHORT L67.9960 H68.2120 | freigabe_kid=-1
+    K67  dist=-2.4135%  touch_conf=5  <== POS 0
+    K73  dist=-2.0477%  touch_conf=3
+    K76  dist=-1.8829%  touch_conf=2
+    K65  dist=-0.6351%  touch_conf=3
+    K83  dist=+0.2292%  touch_conf=1
+    K51  dist=+1.6936%  touch_conf=2
+    K20  dist=+2.6377%  touch_conf=3
+    K31  dist=+2.9025%  touch_conf=5
+    K15  dist=+3.2795%  touch_conf=3
+    K16  dist=+3.6342%  touch_conf=12
+    K28  dist=+3.8487%  touch_conf=2
+    K33  dist=+4.0547%  touch_conf=4
+    K44  dist=+4.2407%  touch_conf=3
+    K26  dist=+4.4370%  touch_conf=2
+    K12  dist=+4.6020%  touch_conf=9
+    K25  dist=+4.7836%  touch_conf=7
+    K36  dist=+5.0045%  touch_conf=2
+    K10  dist=+5.2801%  touch_conf=7
+    K6   dist=+6.0642%  touch_conf=3
+    K9   dist=+6.4532%  touch_conf=4
+    K0   dist=+6.8517%  touch_conf=4
+    K2   dist=+7.1337%  touch_conf=2
+    K46  dist=+7.8485%  touch_conf=4
+    K47  dist=+8.0261%  touch_conf=2
+
+bar 1080 (25.08. 17:00) LONG L67.9960 H68.2120 | freigabe_kid=-1
+    K48  dist=-8.6597%  touch_conf=2  <== POS 0
+    K3   dist=-7.9867%  touch_conf=3
+    K17  dist=-3.5672%  touch_conf=13
+    K64  dist=+0.0603%  touch_conf=1
+    K77  dist=+0.5790%  touch_conf=3
+    K79  dist=+0.9397%  touch_conf=5
+    K66  dist=+1.1873%  touch_conf=7
+    K71  dist=+1.3149%  touch_conf=3
+    K68  dist=+1.7796%  touch_conf=2
+    K72  dist=+1.9863%  touch_conf=3
+
+ENDE E-34n/7

@@ -1,0 +1,136 @@
+======================================================================================================================
+  MODUS V019 (ZP-5(D), arretiert)  (n=1288, box_end=644, FENSTERENDE Bar 1287)
+======================================================================================================================
+    bar         zeit  kid ri    e_bar    x1 g1           r1    x2 g2           r2      r_gew offen 
+    229 12.08. 11:15 K20  SHORT   231   386 TP1     +6.8010   398 TP2     +6.9776  +6.889303       
+    242 12.08. 14:30 K20  SHORT   245   386 TP1     +3.8680   398 TP2     +3.9823  +3.925121       
+    398 14.08. 07:30 K5   LONG    399   415 TP1     +3.1759   529 TP2     +8.2195  +5.697713       
+    490 17.08. 07:30 K16  SHORT   491   491 TP1     +0.0498   492 SL      -1.0000  -0.475084       
+    509 17.08. 12:15 K16  SHORT   510   510 TP1     +0.3051   525 SL      -1.0000  -0.347446       
+    529 17.08. 17:15 K20  SHORT   531   582 TP1     +5.9661   639 TP2    +10.7538  +8.359943       
+    564 18.08. 03:00 K20  SHORT   565   582 TP1    +11.5414   639 TP2    +20.1986 +15.870034       
+    639 18.08. 21:45 K1   LONG    640   643 SL      -1.0000   643 SL      -1.0000  -1.000000       
+    650 19.08. 01:30 K3   LONG    653   656 SL      -1.0000   656 SL      -1.0000  -1.000000       
+    679 19.08. 08:45 K45  LONG    681   702 TP1     +4.5350   733 TP2     +8.4267  +6.480880       
+    714 19.08. 17:30 K16  SHORT   715   715 SL      -1.0000   715 SL      -1.0000  -1.000000       
+    760 20.08. 06:00 K51  SHORT   762   764 SL      -1.0000   764 SL      -1.0000  -1.000000       
+    903 21.08. 18:45 K67  SHORT   905   934 TP1     +4.0595   991 TP2     +4.1801  +4.119775       
+    980 24.08. 15:00 K67  SHORT   981   991 TP1     +9.8556   991 TP2    +10.1197  +9.987676       
+    981 24.08. 15:15 K73  SHORT   982   991 TP1     +2.6568   991 TP2     +2.7341  +2.695488       
+   1002 24.08. 20:30 K77  LONG   1003  1011 TP1     +1.7841  1020 TP2     +5.4739  +3.629016       
+   1020 25.08. 02:00 K67  SHORT  1021  1028 TP1     +2.9558  1028 TP2     +3.0505  +3.003157       
+   1075 25.08. 15:45 K62  LONG   1077  1077 TP1     +0.0217  1287 ENDE    +2.9298  +1.475768 h2    
+   1122 26.08. 04:30 K73  SHORT  1123  1172 TP1    +10.6119  1172 TP2    +10.8930 +10.752473       
+   1172 26.08. 17:00 K82  LONG   1173  1173 TP1     +0.1562  1287 ENDE   +10.8483  +5.502241 h2    
+   1211 27.08. 03:45 K76  SHORT  1214  1259 TP1     +6.0790  1272 SL      -1.0000  +2.539476       
+   1268 27.08. 18:00 K76  SHORT  1269  1272 SL      -1.0000  1272 SL      -1.0000  -1.000000       
+   1272 27.08. 19:00 K73  SHORT  1273  1287 ENDE    +1.2547  1287 ENDE    +1.2547  +1.254682 BEIDE 
+   1280 27.08. 21:00 K76  SHORT  1281  1287 ENDE    +1.7564  1287 ENDE    +1.7564  +1.756410 BEIDE 
+----------------------------------------------------------------------------------------------------------------------
+  Trades gesamt            : 24
+  R_brutto (Mark-to-Market): +88.116626   <-- aktueller Sollwert
+  R_realisiert (a) Trade mit offener Haelfte voll ausgeschlossen: +78.127525  (20 vollstaendige Trades)
+  R_realisiert (b) nur geschlossene Haelften (offene = 0, gewichtet): +78.216484
+  R_realisiert (c) offene Haelfte h1 ignoriert (h2 zaehlt voll): +78.127525
+
+  OFFENE HAELFTEN (4 Trades):
+    bar 1075 25.08. 15:45 K62  LONG  e_bar=1077 [h2] r1=+0.0217 (x1077/TP1) r2=+2.9298 (x1287/ENDE) r_gew=+1.475768
+    bar 1172 26.08. 17:00 K82  LONG  e_bar=1173 [h2] r1=+0.1562 (x1173/TP1) r2=+10.8483 (x1287/ENDE) r_gew=+5.502241
+    bar 1272 27.08. 19:00 K73  SHORT e_bar=1273 [BEIDE] r1=+1.2547 (x1287/ENDE) r2=+1.2547 (x1287/ENDE) r_gew=+1.254682
+    bar 1280 27.08. 21:00 K76  SHORT e_bar=1281 [BEIDE] r1=+1.7564 (x1287/ENDE) r2=+1.7564 (x1287/ENDE) r_gew=+1.756410
+
+======================================================================================================================
+  CONCURRENCY V019: max gleichzeitig offen = 4 (LONG max 2, SHORT max 3)
+  Peak bei Bar 1269 (27.08. 18:15): 2 LONG / 2 SHORT
+    LONG  K62  bar 1075 Intervall [1077..1287]  (25.08. 16:15 .. 27.08. 22:45)
+    LONG  K82  bar 1172 Intervall [1173..1287]  (26.08. 17:15 .. 27.08. 22:45)
+    SHORT K76  bar 1211 Intervall [1214..1272]  (27.08. 04:30 .. 27.08. 19:00)
+    SHORT K76  bar 1268 Intervall [1269..1272]  (27.08. 18:15 .. 27.08. 19:00)
+  Ueberlappende Paare (gleiche Richtung):
+    SHORT K20 bar229 [231..398]  X  K20 bar242 [245..398]  -> Ueberlappung Bars 245..398 (154)
+    SHORT K20 bar529 [531..639]  X  K20 bar564 [565..639]  -> Ueberlappung Bars 565..639 (75)
+    SHORT K67 bar903 [905..991]  X  K67 bar980 [981..991]  -> Ueberlappung Bars 981..991 (11)
+    SHORT K67 bar903 [905..991]  X  K73 bar981 [982..991]  -> Ueberlappung Bars 982..991 (10)
+    SHORT K67 bar980 [981..991]  X  K73 bar981 [982..991]  -> Ueberlappung Bars 982..991 (10)
+    LONG  K62 bar1075 [1077..1287]  X  K82 bar1172 [1173..1287]  -> Ueberlappung Bars 1173..1287 (115)
+    SHORT K76 bar1211 [1214..1272]  X  K76 bar1268 [1269..1272]  -> Ueberlappung Bars 1269..1272 (4)
+    SHORT K73 bar1272 [1273..1287]  X  K76 bar1280 [1281..1287]  -> Ueberlappung Bars 1281..1287 (7)
+    Summe ueberlappender gleichgerichteter Paare: 8
+
+======================================================================================================================
+  CAP-SIMULATION V019 (First-Order, Einstiegs-Reihenfolge)
+    global max 2 je Richtung    : 23 Trades / +85.421139 R  | H1 8/+38.919584  [V018-INVARIANT]
+        WEG  bar  981 K73  SHORT e_bar= 982 r=+2.695488
+    global max 1 je Richtung    : 17 Trades / +49.379656 R  | H1 6/+19.124429  [H1 BETROFFEN]
+        WEG  bar  242 K20  SHORT e_bar= 245 r=+3.925121
+        WEG  bar  564 K20  SHORT e_bar= 565 r=+15.870034
+        WEG  bar  980 K67  SHORT e_bar= 981 r=+9.987676
+        WEG  bar  981 K73  SHORT e_bar= 982 r=+2.695488
+        WEG  bar 1172 K82  LONG  e_bar=1173 r=+5.502241
+        WEG  bar 1268 K76  SHORT e_bar=1269 r=-1.000000
+        WEG  bar 1280 K76  SHORT e_bar=1281 r=+1.756410
+    je Kante max 1              : 20 Trades / +59.333795 R  | H1 6/+19.124429  [H1 BETROFFEN]
+        WEG  bar  242 K20  SHORT e_bar= 245 r=+3.925121
+        WEG  bar  564 K20  SHORT e_bar= 565 r=+15.870034
+        WEG  bar  980 K67  SHORT e_bar= 981 r=+9.987676
+        WEG  bar 1268 K76  SHORT e_bar=1269 r=-1.000000
+
+======================================================================================================================
+  MODUS V018 (Gegenprobe)  (n=1288, box_end=644, FENSTERENDE Bar 1287)
+======================================================================================================================
+    bar         zeit  kid ri    e_bar    x1 g1           r1    x2 g2           r2      r_gew offen 
+    229 12.08. 11:15 K20  SHORT   231   386 TP1     +6.8010   398 TP2     +6.9776  +6.889303       
+    242 12.08. 14:30 K20  SHORT   245   386 TP1     +3.8680   398 TP2     +3.9823  +3.925121       
+    398 14.08. 07:30 K5   LONG    399   415 TP1     +3.1759   529 TP2     +8.2195  +5.697713       
+    490 17.08. 07:30 K16  SHORT   491   491 TP1     +0.0498   492 SL      -1.0000  -0.475084       
+    509 17.08. 12:15 K16  SHORT   510   510 TP1     +0.3051   525 SL      -1.0000  -0.347446       
+    529 17.08. 17:15 K20  SHORT   531   582 TP1     +5.9661   639 TP2    +10.7538  +8.359943       
+    564 18.08. 03:00 K20  SHORT   565   582 TP1    +11.5414   639 TP2    +20.1986 +15.870034       
+    639 18.08. 21:45 K1   LONG    640   643 SL      -1.0000   643 SL      -1.0000  -1.000000       
+    650 19.08. 01:30 K3   LONG    653   656 SL      -1.0000   656 SL      -1.0000  -1.000000       
+    679 19.08. 08:45 K45  LONG    681   702 TP1     +4.5350   733 TP2     +8.4267  +6.480880       
+    714 19.08. 17:30 K16  SHORT   715   715 SL      -1.0000   715 SL      -1.0000  -1.000000       
+    760 20.08. 06:00 K51  SHORT   762   764 SL      -1.0000   764 SL      -1.0000  -1.000000       
+    903 21.08. 18:45 K67  SHORT   905   934 TP1     +4.0595   991 TP2     +4.1801  +4.119775       
+    980 24.08. 15:00 K67  SHORT   981   991 TP1     +9.8556   991 TP2    +10.1197  +9.987676       
+    981 24.08. 15:15 K73  SHORT   982   991 TP1     +2.6568   991 TP2     +2.7341  +2.695488       
+   1002 24.08. 20:30 K77  LONG   1003  1011 TP1     +1.7841  1020 TP2     +5.4739  +3.629016       
+   1020 25.08. 02:00 K67  SHORT  1021  1028 TP1     +2.9558  1028 TP2     +3.0505  +3.003157       
+----------------------------------------------------------------------------------------------------------------------
+  Trades gesamt            : 17
+  R_brutto (Mark-to-Market): +65.835576   <-- aktueller Sollwert
+  R_realisiert (a) Trade mit offener Haelfte voll ausgeschlossen: +65.835576  (17 vollstaendige Trades)
+  R_realisiert (b) nur geschlossene Haelften (offene = 0, gewichtet): +65.835576
+  R_realisiert (c) offene Haelfte h1 ignoriert (h2 zaehlt voll): +65.835576
+
+  OFFENE HAELFTEN (0 Trades):
+
+======================================================================================================================
+  CONCURRENCY V018: max gleichzeitig offen = 3 (LONG max 1, SHORT max 3)
+  Peak bei Bar 982 (24.08. 15:30): 0 LONG / 3 SHORT
+    SHORT K67  bar  903 Intervall [905..991]  (21.08. 19:15 .. 24.08. 17:45)
+    SHORT K67  bar  980 Intervall [981..991]  (24.08. 15:15 .. 24.08. 17:45)
+    SHORT K73  bar  981 Intervall [982..991]  (24.08. 15:30 .. 24.08. 17:45)
+  Ueberlappende Paare (gleiche Richtung):
+    SHORT K20 bar229 [231..398]  X  K20 bar242 [245..398]  -> Ueberlappung Bars 245..398 (154)
+    SHORT K20 bar529 [531..639]  X  K20 bar564 [565..639]  -> Ueberlappung Bars 565..639 (75)
+    SHORT K67 bar903 [905..991]  X  K67 bar980 [981..991]  -> Ueberlappung Bars 981..991 (11)
+    SHORT K67 bar903 [905..991]  X  K73 bar981 [982..991]  -> Ueberlappung Bars 982..991 (10)
+    SHORT K67 bar980 [981..991]  X  K73 bar981 [982..991]  -> Ueberlappung Bars 982..991 (10)
+    Summe ueberlappender gleichgerichteter Paare: 5
+
+======================================================================================================================
+  CAP-SIMULATION V018 (First-Order, Einstiegs-Reihenfolge)
+    global max 2 je Richtung    : 16 Trades / +63.140088 R  | H1 8/+38.919584  [V018-INVARIANT]
+        WEG  bar  981 K73  SHORT e_bar= 982 r=+2.695488
+    global max 1 je Richtung    : 13 Trades / +33.357257 R  | H1 6/+19.124429  [H1 BETROFFEN]
+        WEG  bar  242 K20  SHORT e_bar= 245 r=+3.925121
+        WEG  bar  564 K20  SHORT e_bar= 565 r=+15.870034
+        WEG  bar  980 K67  SHORT e_bar= 981 r=+9.987676
+        WEG  bar  981 K73  SHORT e_bar= 982 r=+2.695488
+    je Kante max 1              : 14 Trades / +36.052745 R  | H1 6/+19.124429  [H1 BETROFFEN]
+        WEG  bar  242 K20  SHORT e_bar= 245 r=+3.925121
+        WEG  bar  564 K20  SHORT e_bar= 565 r=+15.870034
+        WEG  bar  980 K67  SHORT e_bar= 981 r=+9.987676
+
+ENDE E-34n/13-Forensik

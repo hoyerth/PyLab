@@ -1,0 +1,144 @@
+SHA-Guards OK: Baseline 53f28e1b / V020 e79c5c29
+FENSTER AUG n=1288 box_end_nativ=644 edges=59 seeds=14 V3_TP_MINDIST_PCT=1.5
+Zielkante K45 (LONG-Fade) | Fenster k=676..684 | Trace-box_end=688
+
+Rekonstruktions-Assert OK (Fail-Loud): V0 10 Setups == Reko; V020-A 17 Setups == Reko
+
+===== GATE-KETTE V0 (k=676..684) =====
+k=676 SHORT sweep=  62.7860 kd=   - basis=      nan pool=7[K46,K0,K9,K25,K12,K44,K20] blocker=- quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist= -0.5859% touch=1 aktiv=1 lebt=1 pool_pre=0 pool_idx=-1
+      gate: lebende Wand K44 nicht erreicht
+k=676 LONG  sweep=  62.6160 kd=   - basis=      nan pool=0[] blocker=- quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist=  0.8550% touch=1 aktiv=1 lebt=1 pool_pre=0 pool_idx=-1
+      gate: kein Kandidat
+k=677 SHORT sweep=  63.0230 kd=   - basis=      nan pool=7[K46,K0,K9,K25,K12,K44,K20] blocker=- quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist= -0.2106% touch=1 aktiv=1 lebt=1 pool_pre=0 pool_idx=-1
+      gate: lebende Wand K44 nicht erreicht
+k=677 LONG  sweep=  62.6160 kd=   - basis=      nan pool=0[] blocker=- quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist=  0.8550% touch=1 aktiv=1 lebt=1 pool_pre=0 pool_idx=-1
+      gate: kein Kandidat
+k=678 SHORT sweep=  62.9640 kd=   - basis=      nan pool=7[K46,K0,K9,K25,K12,K44,K20] blocker=- quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist= -0.3040% touch=1 aktiv=1 lebt=1 pool_pre=0 pool_idx=-1
+      gate: lebende Wand K44 nicht erreicht
+k=678 LONG  sweep=  62.7360 kd=   - basis=      nan pool=0[] blocker=- quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist=  0.6650% touch=1 aktiv=1 lebt=1 pool_pre=0 pool_idx=-1
+      gate: kein Kandidat
+k=679 SHORT sweep=  63.1280 kd=   - basis=      nan pool=8[K47,K46,K0,K9,K25,K12,K44,K20] blocker=- quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist= -0.0443% touch=1 aktiv=1 lebt=1 pool_pre=0 pool_idx=-1
+      gate: lebende Wand K44 nicht erreicht
+k=679 LONG  sweep=  62.8420 kd= K45 basis=  63.1560 pool=1[K45] blocker=- quartil=PASS stufe=2 f3=0 zyklus=0 geg=K20
+      K45: exist=1 etabliert=1 basis=63.1560 dist=  0.4972% touch=1 aktiv=1 lebt=1 pool_pre=1 pool_idx=0
+      gate: ex_hi=66.776 ex_lo=62.548 spanne=4.228 dist=6.954% / 25.0%
+      KETTE K45: geg=K20 gegen_basis=66.4590 tp2=66.4590 poc=64.9451 entry=63.1810 sl=62.7920 risk=0.3890 r=+6.480880 grund1=TP1 grund2=TP2 exit1=702 exit2=733 r1=+4.535026 r2=+8.426735
+k=680 SHORT sweep=  63.2080 kd=   - basis=      nan pool=8[K47,K46,K0,K9,K25,K12,K44,K20] blocker=- quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist=  0.0823% touch=1 aktiv=1 lebt=1 pool_pre=0 pool_idx=-1
+      gate: lebende Wand K44 nicht erreicht
+k=680 LONG  sweep=  63.0670 kd= K45 basis=  63.1560 pool=2[K45,K4] blocker=- quartil=PASS stufe=1 f3=0 zyklus=1 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist=  0.1409% touch=1 aktiv=1 lebt=1 pool_pre=1 pool_idx=0
+      gate: ex_hi=66.776 ex_lo=62.548 spanne=4.228 dist=12.275% / 25.0%
+      KETTE K45: geg=- gegen_basis=nan tp2=nan poc=nan entry=nan sl=nan risk=nan r=+nan grund1= grund2= exit1=-1 exit2=-1 r1=+nan r2=+nan
+k=681 SHORT sweep=  63.2160 kd=   - basis=      nan pool=8[K47,K46,K0,K9,K25,K12,K44,K20] blocker=- quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist=  0.0950% touch=1 aktiv=1 lebt=1 pool_pre=0 pool_idx=-1
+      gate: lebende Wand K44 nicht erreicht
+k=681 LONG  sweep=  63.0710 kd=   - basis=      nan pool=3[K48,K45,K4] blocker=- quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist=  0.1346% touch=1 aktiv=1 lebt=1 pool_pre=1 pool_idx=1
+      gate: lebende Wand K48 nicht erreicht
+k=682 SHORT sweep=  63.2820 kd=   - basis=      nan pool=8[K47,K46,K0,K9,K25,K12,K44,K20] blocker=- quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist=  0.1995% touch=1 aktiv=1 lebt=1 pool_pre=0 pool_idx=-1
+      gate: lebende Wand K12 nicht erreicht
+k=682 LONG  sweep=  63.0150 kd=   - basis=      nan pool=3[K48,K45,K4] blocker=- quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist=  0.2233% touch=1 aktiv=1 lebt=1 pool_pre=1 pool_idx=1
+      gate: lebende Wand K48 nicht erreicht
+k=683 SHORT sweep=  63.1040 kd=   - basis=      nan pool=8[K47,K46,K0,K9,K25,K12,K44,K20] blocker=- quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist= -0.0823% touch=1 aktiv=1 lebt=1 pool_pre=0 pool_idx=-1
+      gate: lebende Wand K12 nicht erreicht
+k=683 LONG  sweep=  63.0310 kd=   - basis=      nan pool=3[K48,K45,K4] blocker=- quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist=  0.1979% touch=1 aktiv=1 lebt=1 pool_pre=1 pool_idx=1
+      gate: lebende Wand K48 nicht erreicht
+k=684 SHORT sweep=  63.2540 kd=   - basis=      nan pool=8[K47,K46,K0,K9,K25,K12,K44,K20] blocker=- quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist=  0.1552% touch=1 aktiv=1 lebt=1 pool_pre=0 pool_idx=-1
+      gate: lebende Wand K12 nicht erreicht
+k=684 LONG  sweep=  63.0220 kd=   - basis=      nan pool=4[K48,K3,K45,K4] blocker=- quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist=  0.2122% touch=1 aktiv=1 lebt=1 pool_pre=1 pool_idx=2
+      gate: lebende Wand K48 nicht erreicht
+
+===== GATE-KETTE V020-A (k=676..684) =====
+k=676 SHORT sweep=  62.7860 kd=   - basis=      nan pool=7[K46,K0,K9,K25,K12,K44,K20] blocker=- quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist= -0.5859% touch=1 aktiv=1 lebt=1 pool_pre=0 pool_idx=-1
+      gate: lebende Wand K44 nicht erreicht
+k=676 LONG  sweep=  62.6160 kd=  K3 basis=  62.9670 pool=13[K3,K1,K5,K8,K21,K23,K11,K24,K13,K29,K14,K34,K17] blocker=K48(62.577) quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist=  0.8550% touch=1 aktiv=1 lebt=1 pool_pre=0 pool_idx=-1
+      gate: 
+k=677 SHORT sweep=  63.0230 kd=   - basis=      nan pool=7[K46,K0,K9,K25,K12,K44,K20] blocker=- quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist= -0.2106% touch=1 aktiv=1 lebt=1 pool_pre=0 pool_idx=-1
+      gate: lebende Wand K44 nicht erreicht
+k=677 LONG  sweep=  62.6160 kd=  K3 basis=  62.9670 pool=13[K3,K1,K5,K8,K21,K23,K11,K24,K13,K29,K14,K34,K17] blocker=K48(62.577) quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist=  0.8550% touch=1 aktiv=1 lebt=1 pool_pre=0 pool_idx=-1
+      gate: 
+k=678 SHORT sweep=  62.9640 kd=   - basis=      nan pool=7[K46,K0,K9,K25,K12,K44,K20] blocker=- quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist= -0.3040% touch=1 aktiv=1 lebt=1 pool_pre=0 pool_idx=-1
+      gate: lebende Wand K44 nicht erreicht
+k=678 LONG  sweep=  62.7360 kd=  K3 basis=  62.9670 pool=13[K3,K1,K5,K8,K21,K23,K11,K24,K13,K29,K14,K34,K17] blocker=K48(62.577) quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist=  0.6650% touch=1 aktiv=1 lebt=1 pool_pre=0 pool_idx=-1
+      gate: 
+k=679 SHORT sweep=  63.1280 kd=   - basis=      nan pool=8[K47,K46,K0,K9,K25,K12,K44,K20] blocker=- quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist= -0.0443% touch=1 aktiv=1 lebt=1 pool_pre=0 pool_idx=-1
+      gate: lebende Wand K44 nicht erreicht
+k=679 LONG  sweep=  62.8420 kd=  K3 basis=  62.9670 pool=14[K3,K1,K5,K8,K21,K23,K11,K24,K13,K29,K14,K34,K17,K45] blocker=K48(62.577) quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist=  0.4972% touch=1 aktiv=1 lebt=1 pool_pre=1 pool_idx=1
+      gate: 
+k=680 SHORT sweep=  63.2080 kd=   - basis=      nan pool=8[K47,K46,K0,K9,K25,K12,K44,K20] blocker=- quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist=  0.0823% touch=1 aktiv=1 lebt=1 pool_pre=0 pool_idx=-1
+      gate: lebende Wand K44 nicht erreicht
+k=680 LONG  sweep=  63.0670 kd= K45 basis=  63.1560 pool=14[K1,K5,K8,K21,K23,K11,K24,K13,K29,K14,K34,K17,K45,K4] blocker=- quartil=PASS stufe=1 f3=0 zyklus=0 geg=K20
+      K45: exist=1 etabliert=1 basis=63.1560 dist=  0.1409% touch=1 aktiv=1 lebt=1 pool_pre=1 pool_idx=0
+      gate: decke=65.437 boden=62.577 spanne=2.860 quelle=lebende_kanten dist=17.133% / 25.0%
+      KETTE K45: geg=K20 gegen_basis=66.4590 tp2=66.4590 poc=64.9451 entry=63.1810 sl=63.0170 risk=0.1640 r=-1.000000 grund1=SL grund2=SL exit1=682 exit2=682 r1=-1.000000 r2=-1.000000
+k=681 SHORT sweep=  63.2160 kd=   - basis=      nan pool=8[K47,K46,K0,K9,K25,K12,K44,K20] blocker=- quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist=  0.0950% touch=1 aktiv=1 lebt=1 pool_pre=0 pool_idx=-1
+      gate: lebende Wand K44 nicht erreicht
+k=681 LONG  sweep=  63.0710 kd=   - basis=      nan pool=15[K48,K1,K5,K8,K21,K23,K11,K24,K13,K29,K14,K34,K17,K45,K4] blocker=- quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist=  0.1346% touch=1 aktiv=1 lebt=1 pool_pre=1 pool_idx=1
+      gate: lebende Wand K48 nicht erreicht
+k=682 SHORT sweep=  63.2820 kd=   - basis=      nan pool=8[K47,K46,K0,K9,K25,K12,K44,K20] blocker=- quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist=  0.1995% touch=1 aktiv=1 lebt=1 pool_pre=0 pool_idx=-1
+      gate: lebende Wand K12 nicht erreicht
+k=682 LONG  sweep=  63.0150 kd=   - basis=      nan pool=15[K48,K1,K5,K8,K21,K23,K11,K24,K13,K29,K14,K34,K17,K45,K4] blocker=- quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist=  0.2233% touch=1 aktiv=1 lebt=1 pool_pre=1 pool_idx=1
+      gate: lebende Wand K48 nicht erreicht
+k=683 SHORT sweep=  63.1040 kd=   - basis=      nan pool=8[K47,K46,K0,K9,K25,K12,K44,K20] blocker=- quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist= -0.0823% touch=1 aktiv=1 lebt=1 pool_pre=0 pool_idx=-1
+      gate: lebende Wand K12 nicht erreicht
+k=683 LONG  sweep=  63.0310 kd=   - basis=      nan pool=15[K48,K1,K5,K8,K21,K23,K11,K24,K13,K29,K14,K34,K17,K45,K4] blocker=- quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist=  0.1979% touch=1 aktiv=1 lebt=1 pool_pre=1 pool_idx=1
+      gate: lebende Wand K48 nicht erreicht
+k=684 SHORT sweep=  63.2540 kd=   - basis=      nan pool=8[K47,K46,K0,K9,K25,K12,K44,K20] blocker=- quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist=  0.1552% touch=1 aktiv=1 lebt=1 pool_pre=0 pool_idx=-1
+      gate: lebende Wand K12 nicht erreicht
+k=684 LONG  sweep=  63.0220 kd=   - basis=      nan pool=16[K48,K3,K1,K5,K8,K21,K23,K11,K24,K13,K29,K14,K34,K17,K45,K4] blocker=- quartil=BLOCK stufe=0 f3=0 zyklus=0 geg=-
+      K45: exist=1 etabliert=1 basis=63.1560 dist=  0.2122% touch=1 aktiv=1 lebt=1 pool_pre=1 pool_idx=2
+      gate: lebende Wand K48 nicht erreicht
+
+===== FOKUS K45: k=679 (V0-Einstieg) vs. k=680 (V020-Einstieg) =====
+  V0     k=679 LONG sweep=62.8420 kd=K45 pool=1 blocker=- quartil=PASS stufe=2 f3=0 zyklus=0
+         ex_hi=66.776 ex_lo=62.548 spanne=4.228 dist=6.954% / 25.0%
+         tp2=66.4590 poc=64.9451 entry=63.1810 sl=62.7920 r=+6.480880 (TP1/TP2) exits=702/733
+  V0     k=680 LONG sweep=63.0670 kd=K45 pool=2 blocker=- quartil=PASS stufe=1 f3=0 zyklus=1
+         ex_hi=66.776 ex_lo=62.548 spanne=4.228 dist=12.275% / 25.0%
+         tp2=nan poc=nan entry=nan sl=nan r=+nan (/) exits=-1/-1
+  V0     k=681 LONG sweep=63.0710 kd=- pool=3 blocker=- quartil=BLOCK stufe=0 f3=0 zyklus=0
+         lebende Wand K48 nicht erreicht
+  V020-A k=679 LONG sweep=62.8420 kd=K3 pool=14 blocker=K48 quartil=BLOCK stufe=0 f3=0 zyklus=0
+         
+  V020-A k=680 LONG sweep=63.0670 kd=K45 pool=14 blocker=- quartil=PASS stufe=1 f3=0 zyklus=0
+         decke=65.437 boden=62.577 spanne=2.860 quelle=lebende_kanten dist=17.133% / 25.0%
+         tp2=66.4590 poc=64.9451 entry=63.1810 sl=63.0170 r=-1.000000 (SL/SL) exits=682/682
+  V020-A k=681 LONG sweep=63.0710 kd=- pool=15 blocker=- quartil=BLOCK stufe=0 f3=0 zyklus=0
+         lebende Wand K48 nicht erreicht
+
+===== ECHTE SETUPS im Fenster =====
+  V0     bar=679 entry_bar=681 K45 LONG  stufe=STUFE_2_KERZE_2 basis=63.1560 sweep=62.8420 sl=62.7920 entry=63.1810 tp2=66.4590 poc=64.9451 r=+6.480880 GEWONNEN (TP1/TP2) r1=+4.535026 r2=+8.426735 exits=702/733
+  V020-A bar=680 entry_bar=681 K45 LONG  stufe=STUFE_1_IN_BAR basis=63.1560 sweep=63.0670 sl=63.0170 entry=63.1810 tp2=66.4590 poc=64.9451 r=-1.000000 VERLOREN (SL/SL) r1=-1.000000 r2=-1.000000 exits=682/682
+
+  K45 in V0    : [(679, 681, 6.480880462725022)]
+  K45 in V020-A: [(680, 681, -1.0)]

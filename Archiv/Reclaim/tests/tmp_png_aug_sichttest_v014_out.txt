@@ -1,0 +1,83 @@
+==============================================================================================================
+AUG-SICHTTEST -- PNG-SATZ (Modus V014, Adapter v0.14)
+==============================================================================================================
+  n=1288 | box_end=640 | Kanten 59 edges + 14 seeds
+  Baseline V0    : 14 Trades / +40.445143 R  (H1 8/+38.964262 | H2 6/+1.480880)
+  V1_basis (v0.1): 15 Trades / +46.866348 R
+  V1_aktiv (V014) : 17 Trades / +61.250064 R  (H1 8/+38.964262 | H2 9/+22.285802)
+  Quartett       : K67@903 +4.1198 | K67@980 +9.9877 | K73@981 +2.6943 | K67@1020 +3.0032 | QUARTETT +19.804922 R
+  Delta V014-v0.1: +14.383717 R  (Soll +14.383717)
+  Referenz-Marker (entfallene V01-Trades): K73@980 +2.4119, K73@1020 +3.0093
+  Neu im V014-Lauf: K67@903 +4.1198, K67@980 +9.9877, K73@981 +2.6943, K67@1020 +3.0032
+  Override-Info  : {67: (69.87, 'P9', 848, 1020)}
+  Sperr-Marker: Q29 x 57 | M6 ^ 23
+    Q29-Bars (H2) = [709, 939, 950, 951, 959, 961, 962, 991, 992, 997, 998, 1002, 1028, 1029, 1030, 1031, 1056, 1072, 1073, 1103, 1104, 1145, 1146, 1153, 1154, 1155, 1156, 1157, 1158, 1163, 1164, 1171]
+    M6-Bars  (H2) = [643, 644, 645, 646, 647, 658, 662, 663, 664, 665, 668, 669, 727, 728, 729, 732, 1122, 1272]
+  Preiswechsel-Linien (Label 'v0 -> v1 *'): 54
+    K0    63.9060 -> 63.8845  (delta -0.0215, 4 Stufen)
+    K1    63.4640 -> 63.4853  (delta +0.0213, 3 Stufen)
+    K2    63.6700 -> 63.6785  (delta +0.0085, 2 Stufen)
+    K5    63.6180 -> 63.6326  (delta +0.0146, 5 Stufen)
+    K8    63.7970 -> 63.7582  (delta -0.0388, 5 Stufen)
+    K9    64.1090 -> 64.1082  (delta -0.0007, 4 Stufen)
+    K10   64.8630 -> 64.8453  (delta -0.0177, 7 Stufen)
+    K11   64.5150 -> 64.4570  (delta -0.0580, 6 Stufen)
+    K12   65.2560 -> 65.2570  (delta +0.0010, 9 Stufen)
+    K13   64.7530 -> 64.7295  (delta -0.0235, 10 Stufen)
+    K14   65.0090 -> 65.0310  (delta +0.0220, 7 Stufen)
+    K16   65.8470 -> 65.9047  (delta +0.0577, 12 Stufen)
+    K17   65.5900 -> 65.6024  (delta +0.0124, 13 Stufen)
+    K21   64.2080 -> 64.2057  (delta -0.0023, 4 Stufen)
+    K23   64.2990 -> 64.3311  (delta +0.0321, 7 Stufen)
+    K24   64.6000 -> 64.6065  (delta +0.0065, 8 Stufen)
+    K25   65.1220 -> 65.1264  (delta +0.0044, 7 Stufen)
+    K26   65.3140 -> 65.3260  (delta +0.0120, 2 Stufen)
+    K28   65.7340 -> 65.7090  (delta -0.0250, 2 Stufen)
+    K29   64.9120 -> 64.9100  (delta -0.0020, 3 Stufen)
+    K31   66.3640 -> 66.3602  (delta -0.0038, 5 Stufen)
+    K33   65.5540 -> 65.5935  (delta +0.0395, 4 Stufen)
+    K34   65.2230 -> 65.2125  (delta -0.0105, 2 Stufen)
+    K36   65.0240 -> 64.9925  (delta -0.0315, 2 Stufen)
+    K44   65.4900 -> 65.4617  (delta -0.0283, 3 Stufen)
+    K46   63.2480 -> 63.2815  (delta +0.0335, 4 Stufen)
+    K47   63.1440 -> 63.1615  (delta +0.0175, 2 Stufen)
+    K48   62.5770 -> 62.5625  (delta -0.0145, 2 Stufen)
+    K51   67.0760 -> 67.1070  (delta +0.0310, 2 Stufen)
+    K52   66.8920 -> 66.8610  (delta -0.0310, 2 Stufen)
+    K54   66.5920 -> 66.5680  (delta -0.0240, 4 Stufen)
+    K60   67.8970 -> 67.9081  (delta +0.0111, 7 Stufen)
+    K61   68.2800 -> 68.3283  (delta +0.0483, 6 Stufen)
+    K62   67.7260 -> 67.7328  (delta +0.0068, 6 Stufen)
+    K65   68.6730 -> 68.6768  (delta +0.0038, 5 Stufen)
+    K66   68.7120 -> 68.7559  (delta +0.0439, 8 Stufen)
+    K67   69.8700 -> 69.9458  (delta +0.0758, 3 Stufen)
+    K68   69.1550 -> 69.1915  (delta +0.0365, 2 Stufen)
+    K71   68.8700 -> 68.8912  (delta +0.0212, 5 Stufen)
+    K72   69.3160 -> 69.3247  (delta +0.0087, 3 Stufen)
+    K73   69.7150 -> 69.6785  (delta -0.0365, 6 Stufen)
+    K75   69.4250 -> 69.4210  (delta -0.0040, 2 Stufen)
+    K76   69.5210 -> 69.5183  (delta -0.0027, 7 Stufen)
+    K77   68.3920 -> 68.3597  (delta -0.0323, 6 Stufen)
+    K78   69.3320 -> 69.2880  (delta -0.0440, 5 Stufen)
+    K79   68.6320 -> 68.6260  (delta -0.0060, 6 Stufen)
+    K80   69.1890 -> 69.1265  (delta -0.0625, 4 Stufen)
+    K81   68.8840 -> 68.8590  (delta -0.0250, 4 Stufen)
+    K82   67.5350 -> 67.5455  (delta +0.0105, 4 Stufen)
+    K83   68.0560 -> 68.0895  (delta +0.0335, 2 Stufen)
+    K84   68.2140 -> 68.2200  (delta +0.0060, 3 Stufen)
+    K86   68.4990 -> 68.4750  (delta -0.0240, 4 Stufen)
+    K87   68.1830 -> 68.2080  (delta +0.0250, 2 Stufen)
+    K88   68.5480 -> 68.5286  (delta -0.0194, 5 Stufen)
+  Norm-Vergleich (Option b, Referenz-Bar 1259, Quelle Gesamtbestand P9 + P12_RESERVE):
+    K67   kausal 69.9458 vs Norm 69.9140  delta +0.0318  ABWEICHUNG (Label traegt Norm)
+    K73   kausal 69.6714 vs Norm 69.5550  delta +0.1164  ABWEICHUNG (Label traegt Norm)
+    K77   kausal 68.3597 vs Norm 68.3700  delta -0.0103  ABWEICHUNG (Label traegt Norm)
+    K82   kausal 67.5273 vs Norm 67.6355  delta -0.1082  ABWEICHUNG (Label traegt Norm)
+  Plateau-Label K67 (gerendert): K67 69.975 -> 69.870 (P9-Override) -> 69.946 *  Norm 69.9140
+  PNG -> _ab_prep_aug_sichttest_v014_01_gesamt.png  (2,049,763 B)
+  PNG -> _ab_prep_aug_sichttest_v014_02_h1_box.png  (899,249 B)
+  PNG -> _ab_prep_aug_sichttest_v014_03_h2_phasen.png  (1,694,382 B)
+  PNG -> _ab_prep_aug_sichttest_v014_04_p9_regime.png  (1,151,700 B)
+  PNG -> _ab_prep_aug_sichttest_v014_05_kantenkarte.png  (2,063,329 B)
+
+Satz vollstaendig: _ab_prep_aug_sichttest_v014_01_gesamt.png, _ab_prep_aug_sichttest_v014_02_h1_box.png, _ab_prep_aug_sichttest_v014_03_h2_phasen.png, _ab_prep_aug_sichttest_v014_04_p9_regime.png, _ab_prep_aug_sichttest_v014_05_kantenkarte.png

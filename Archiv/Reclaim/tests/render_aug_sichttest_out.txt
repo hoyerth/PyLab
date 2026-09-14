@@ -1,0 +1,29 @@
+SICHTPRUEFUNG AUGUST 2026 -- MAI/JUN/JUL-Logik (V020, Modus A)
+Zeitbasis: BKZ = time AT TIME ZONE 'UTC' (Kanon K1/K4); X-Achse = Bar-Zeit ohne Offset.
+Fenster 2026-08-10..2026-08-28 (exkl.) | n=1288 | box_end_bar(2026-08-19)=644
+Modus A (hook=None) | touch_band_pct 0.12 | sl_buffer_usd 0.05 | tp1_anteil_pct 50
+
+===== AUG_BOX | n=1288 | box_end_bar=644 | edges=59 seeds=14 =====
+  AUG  2026-08-10 .. 2026-08-27 (BKZ, ohne Offset)   |   Bars 0..1287   |   box_end_bar = 644 (Box 2026-08-19)   |   Modus A (hook=None, V020-Engine, akt. Stand)
+  Trades 14   |   SumR +27.327383 R   |   Win-Rate 28.57 % (4/10)   |   Profit-Faktor 4.5412
+  H1 (< 644): 14 / +27.327383 R   |   H2 (>= 644): 0 / +0.000000 R
+  Risiko |sl-entry| USD:  min 0.0760   median 0.1875   max 0.6210   |   TP2 distinct: 3 (63.4850, 63.6190, 66.4590)
+  Exits  1. Haelfte: TP1 8 / SL 6 / ENDE 0   |   2. Haelfte: TP2 4 / SL 10 / ENDE 0   |   magenta Ringe = ENDE-Glattstellung am Fensterrand (0 Trades betroffen)
+  KONZENTRATION: bester Trade K20 (+15.870034 R, Risiko 0.1460 USD) = 58.1 % des SumR   ->   SumR OHNE diesen Trade +11.457349 R
+  DATEI-SHA256: 53f28e1b6971a64d...   (Basis/V020/Adapter byte-identisch arretiert)
+  getradete Kids  : K1, K11, K14, K15, K16, K20, K21, K23, K31, K33
+  Gegenkanten-Kids: K1, K5, K20
+  PNG: F:\Python\PyLab\test\render_aug_box_sichttest.png
+
+===== AUG_VOLL | n=1288 | box_end_bar=1288 | edges=59 seeds=14 =====
+  AUG  2026-08-10 .. 2026-08-27 (BKZ, ohne Offset)   |   Bars 0..1287   |   box_end_bar = 1288 (Vollauf)   |   Modus A (hook=None, V020-Engine, akt. Stand)
+  Trades 29   |   SumR +23.389914 R   |   Win-Rate 27.59 % (8/21)   |   Profit-Faktor 2.3269
+  H1 (< 644): 14 / +27.327383 R   |   H2 (>= 644): 15 / -3.937470 R
+  Risiko |sl-entry| USD:  min 0.0620   median 0.1900   max 0.6210   |   TP2 distinct: 5 (62.5770, 63.4850, 63.6190, 66.4590, 69.8990)
+  Exits  1. Haelfte: TP1 11 / SL 15 / ENDE 3   |   2. Haelfte: TP2 4 / SL 21 / ENDE 4   |   magenta Ringe = ENDE-Glattstellung am Fensterrand (4 Trades betroffen)
+  KONZENTRATION: bester Trade K20 (+15.870034 R, Risiko 0.1460 USD) = 67.8 % des SumR   ->   SumR OHNE diesen Trade +7.519879 R
+  DATEI-SHA256: 53f28e1b6971a64d...   (Basis/V020/Adapter byte-identisch arretiert)
+  getradete Kids  : K1, K3, K4, K11, K12, K14, K15, K16, K20, K21, K23, K31, K33, K45, K51, K59, K60, K62, K67, K73
+  Gegenkanten-Kids: K1, K5, K20, K48, K67
+  PNG: F:\Python\PyLab\test\render_aug_voll_sichttest.png
+

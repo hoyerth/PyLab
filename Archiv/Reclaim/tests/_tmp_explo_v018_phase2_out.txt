@@ -1,0 +1,132 @@
+================================================================================================================
+PHASE 2 / H2-MARKTANALYSE -- ISOLIERTE HEBEL-ANALYSE (Read-Only / In-Memory)
+================================================================================================================
+Engine (Disk, unveraendert) : tmp_kanten_engine_replay.py  SHA256 4a576a766670d684c30381969e4d7349d5786b1b22ea6dda08b93b7d811bb38a
+Zeitbasis                   : BKZ = "time" AT TIME ZONE 'UTC'
+n=1288 | H1/H2-Split bei 644 | iteriertes Fenster 1021..1284
+Adapter V015  : [('P9', 848, 1020)]
+Adapter HYP   : [('P9', 848, 1020), ('P10_HYP', 1021, 1287)]  (P10_HYP = Hypothese, KEINE Arretierung)
+H1-Invarianz-Gate: 8 Trades / +38.919584 R (entry_bar < 644)
+
+-- Uebersicht aller Varianten ----------------------------------------------------------------------------------
+Variante                           Trd     R gesamt |                  H1 |                  H2 |  KN | Deltas (bar,kid)
+V015 (Baseline)                     17   +65.835576 | H1  8/+38.919584 [H1-HALTEN ] | H2  9/+26.915992 | KN 503 | (Referenz)
+V015 + K67-Freigabe@1122/1123       17   +65.835576 | H1  8/+38.919584 [H1-HALTEN ] | H2  9/+26.915992 | KN 503 | +[] -[]
+V015 + M6-nur-lebende               18   +56.960394 | H1  7/+32.044402 [H1-VERLETZT] | H2 11/+24.915992 | KN 503 | +[(223, 15), (527, 31), (643, 4), (727, 15)] -[(398, 5), (490, 16), (509, 16)]
+V015 + pos-nur-lebende              15   +55.595430 | H1  7/+27.679438 [H1-VERLETZT] | H2  8/+27.915992 | KN 491 | +[(252, 28)] -[(229, 20), (242, 20), (650, 3)]
+V015 + Q29-lokal 848..1020          18   +64.835576 | H1  8/+38.919584 [H1-HALTEN ] | H2 10/+25.915992 | KN 503 | +[(960, 66)] -[]
+V015 + Q29-lokal 1021..1287         17   +65.835576 | H1  8/+38.919584 [H1-HALTEN ] | H2  9/+26.915992 | KN 503 | +[] -[]
+HYP-P10 (Baseline)                  17   +65.835576 | H1  8/+38.919584 [H1-HALTEN ] | H2  9/+26.915992 | KN 502 | +[] -[]
+HYP-P10 + K67-Freigabe@1122/1123    18   +76.057334 | H1  8/+38.919584 [H1-HALTEN ] | H2 10/+37.137750 | KN 502 | +[(1122, 73)] -[]
+HYP-P10 + M6-nur-lebende            20   +68.436833 | H1  7/+32.044402 [H1-VERLETZT] | H2 13/+36.392432 | KN 502 | +[(223, 15), (527, 31), (643, 4), (727, 15), (1122, 73), (1272, 73)] -[(398, 5), (490, 16), (509, 16)]
+HYP-P10 + pos-nur-lebende           15   +55.595430 | H1  7/+27.679438 [H1-VERLETZT] | H2  8/+27.915992 | KN 490 | +[(252, 28)] -[(229, 20), (242, 20), (650, 3)]
+HYP-P10 + M6-live + pos-live        18   +58.196687 | H1  7/+19.804256 [H1-VERLETZT] | H2 11/+38.392432 | KN 490 | +[(223, 15), (252, 28), (525, 42), (527, 31), (727, 15), (1122, 73), (1272, 73)] -[(229, 20), (242, 20), (398, 5), (490, 16), (509, 16), (650, 3)]
+
+################################################################################################################
+# 2.2.1  K67-M6-FREIGABE an K73@1122/1123 -- isoliert (Hook-1-Scope)
+################################################################################################################
+
+Befund vorab: K67 ist an Bar 1122 DORMANT (lebt=False, letzter Kontakt 1020).
+M6 prueft nur ``_existiert`` -- eine dormante Wand sperrt also den Innen-
+Sweep, obwohl die Engine dormante Linien in ``_kandidat`` ausdruecklich
+ignoriert ('dormante Linie ignorieren'). Das ist die Inkonsistenz.
+
+-- Alle M6-Blocker im Fenster (mit Liveness des Blockers) --
+   bar 1122 SHORT M6(K67,dorm)
+   bar 1123 SHORT M6(K67,dorm)
+   bar 1272 SHORT M6(K67,dorm)
+
+-- Wirkung der K67-Freigabe (V015-Kontext) --
+V015 + K67-Freigabe@1122/1123       17   +65.835576 | H1  8/+38.919584 [H1-HALTEN ] | H2  9/+26.915992 | KN 503 | +[] -[]
+   K73@1122/1123 im Ergebnis enthalten? False
+   >> Grund: Hook-2 (Adapter-V015) liefert fuer 1122/1123 BLOCKIERT
+      (kein Segment deckt den Bar) -> der Trade ist DOPPELT gesperrt.
+
+-- Wirkung der M6-Liveness-Regel (V015-Kontext) --
+V015 + M6-nur-lebende               18   +56.960394 | H1  7/+32.044402 [H1-VERLETZT] | H2 11/+24.915992 | KN 503 | +[(223, 15), (527, 31), (643, 4), (727, 15)] -[(398, 5), (490, 16), (509, 16)]
+
+-- Hypothesenkontext P10_HYP (1021..1287, NICHT arretiert) --
+HYP-P10 (Baseline)                  17   +65.835576 | H1  8/+38.919584 [H1-HALTEN ] | H2  9/+26.915992 | KN 502 | +[] -[]
+HYP-P10 + K67-Freigabe@1122/1123    18   +76.057334 | H1  8/+38.919584 [H1-HALTEN ] | H2 10/+37.137750 | KN 502 | +[(1122, 73)] -[]
+HYP-P10 + M6-nur-lebende            20   +68.436833 | H1  7/+32.044402 [H1-VERLETZT] | H2 13/+36.392432 | KN 502 | +[(223, 15), (527, 31), (643, 4), (727, 15), (1122, 73), (1272, 73)] -[(398, 5), (490, 16), (509, 16)]
+
+   [HYP-P10 (Baseline)] neue Schluessel im H2-Fenster: []
+   [HYP-P10 + K67-Freigabe@1122/1123] neue Schluessel im H2-Fenster: [(1122, 73)]
+       bar 1122 entry 1123 SHORT K73  R +10.221758 STUFE_1_IN_BAR (tp2 67.6355)
+   [HYP-P10 + M6-nur-lebende] neue Schluessel im H2-Fenster: [(1122, 73), (1272, 73)]
+       bar 1122 entry 1123 SHORT K73  R +10.221758 STUFE_1_IN_BAR (tp2 67.6355)
+       bar 1272 entry 1273 SHORT K73  R +1.254682 STUFE_1_IN_BAR (tp2 67.6355)
+
+################################################################################################################
+# 2.2.2  pos-SORTIERUNG -- Zaehlung nur LEBENDER Kanten (In-Memory-Gegenprobe)
+################################################################################################################
+
+Fix-Semantik: ``_outer_live`` = erste LEBENDE Linie in der aussen->innen-
+Sortierung; nur sie erhaelt das Q1-Privileg 'pos 0 handelt'. Dormante
+Aussenlinien (K48/K3/K17) verbrauchen KEIN pos mehr.
+
+KANDIDAT_NONE im Fenster 1021..1284:  Baseline V015 = 503
+                                  V015+pos-live = 491   (Delta -12)
+                                  HYP-P10       = 502
+                                  HYP+pos-live  = 490   (Delta -12)
+
+-- Wirkung V015-Kontext --
+V015 + pos-nur-lebende              15   +55.595430 | H1  7/+27.679438 [H1-VERLETZT] | H2  8/+27.915992 | KN 491 | +[(252, 28)] -[(229, 20), (242, 20), (650, 3)]
+-- Wirkung HYP-P10-Kontext --
+HYP-P10 + pos-nur-lebende           15   +55.595430 | H1  7/+27.679438 [H1-VERLETZT] | H2  8/+27.915992 | KN 490 | +[(252, 28)] -[(229, 20), (242, 20), (650, 3)]
+HYP-P10 + M6-live + pos-live        18   +58.196687 | H1  7/+19.804256 [H1-VERLETZT] | H2 11/+38.392432 | KN 490 | +[(223, 15), (252, 28), (525, 42), (527, 31), (727, 15), (1122, 73), (1272, 73)] -[(229, 20), (242, 20), (398, 5), (490, 16), (509, 16), (650, 3)]
+
+-- K82@1072 LONG unter HYP+pos-live: Kaskade --
+   [HYP-P10 (Baseline)] Trades an 1072/1073: keine
+   [HYP-P10 + pos-nur-lebende] Trades an 1072/1073: keine
+   [HYP-P10 + M6-live + pos-live] Trades an 1072/1073: keine
+
+################################################################################################################
+# 2.2.3  PHASENLOKALES Q29 -- Intervalle getrennt ausgewiesen
+################################################################################################################
+
+Q29 global nutzt Range-Extrema ueber ALLE kausalen Bars ``hi[:k+1]``.
+Phasenlokal: Extrema nur aus [_Q29_LO, k]. Wirkung ausserhalb des
+Intervalls bleibt unveraendert (if-Guard).
+
+Intervall 1 (848..1020 = P9-Struktur), arretiertes V015-Segment:
+V015 + Q29-lokal 848..1020          18   +64.835576 | H1  8/+38.919584 [H1-HALTEN ] | H2 10/+25.915992 | KN 503 | +[(960, 66)] -[]
+Intervall 2 (1021..1287 = Vakuum), reiner Hypothesenlauf ohne Segment:
+V015 + Q29-lokal 1021..1287         17   +65.835576 | H1  8/+38.919584 [H1-HALTEN ] | H2  9/+26.915992 | KN 503 | +[] -[]
+
+-- Q29-Sperren im Fenster (Baseline) --
+   Anzahl: 21  ->  [(1028, 'LONG'), (1029, 'LONG'), (1030, 'LONG'), (1056, 'LONG'), (1072, 'LONG'), (1073, 'LONG'), (1102, 'LONG'), (1103, 'LONG'), (1104, 'LONG'), (1145, 'LONG'), (1146, 'LONG'), (1152, 'LONG'), (1153, 'LONG'), (1154, 'LONG'), (1155, 'LONG'), (1156, 'LONG'), (1157, 'LONG'), (1158, 'LONG'), (1163, 'LONG'), (1164, 'LONG'), (1171, 'LONG')]
+
+  Deutung: Eine Q29-Sperre ist NUR dann strukturell relevant, wenn der
+  Sweep ueberhaupt einen Kandidaten erzeugt und danach an Q29 scheitert.
+  Ohne Segment (V015) ist der Bar bereits durch Hook-2 BLOCKIERT; die
+  Q29-Sperre wirkt dann nur als vorgelagerter Zaehler.
+
+################################################################################################################
+# 2.2.4  H1-INVARIANZ-GATE (verbindlich)
+################################################################################################################
+
+Soll: H1 = 8 Trades / +38.919584 R
+   V015 (Baseline)                          H1  8/+38.919584  OK
+   V015 + K67-Freigabe@1122/1123            H1  8/+38.919584  OK
+   V015 + M6-nur-lebende                    H1  7/+32.044402  *** VERLETZT ***
+   V015 + pos-nur-lebende                   H1  7/+27.679438  *** VERLETZT ***
+   V015 + Q29-lokal 848..1020               H1  8/+38.919584  OK
+   V015 + Q29-lokal 1021..1287              H1  8/+38.919584  OK
+   HYP-P10 (Baseline)                       H1  8/+38.919584  OK
+   HYP-P10 + K67-Freigabe@1122/1123         H1  8/+38.919584  OK
+   HYP-P10 + M6-nur-lebende                 H1  7/+32.044402  *** VERLETZT ***
+   HYP-P10 + pos-nur-lebende                H1  7/+27.679438  *** VERLETZT ***
+   HYP-P10 + M6-live + pos-live             H1  7/+19.804256  *** VERLETZT ***
+
+-- H1-Schluessel je Variante (nur bei Abweichung zur Baseline) --
+   V015 + M6-nur-lebende: +[(223, 15), (527, 31)] -[(398, 5), (490, 16), (509, 16)]
+   V015 + pos-nur-lebende: +[(252, 28)] -[(229, 20), (242, 20)]
+   HYP-P10 + M6-nur-lebende: +[(223, 15), (527, 31)] -[(398, 5), (490, 16), (509, 16)]
+   HYP-P10 + pos-nur-lebende: +[(252, 28)] -[(229, 20), (242, 20)]
+   HYP-P10 + M6-live + pos-live: +[(223, 15), (252, 28), (525, 42), (527, 31)] -[(229, 20), (242, 20), (398, 5), (490, 16), (509, 16)]
+
+-- SHA-Kontrolle der Engine-Datei --
+   4a576a766670d684c30381969e4d7349d5786b1b22ea6dda08b93b7d811bb38a  UNVERAENDERT
+
+ENDE PHASE 2

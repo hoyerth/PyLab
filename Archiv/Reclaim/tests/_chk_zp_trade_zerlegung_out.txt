@@ -1,0 +1,75 @@
+====================================================================================================
+FENSTER AUG (n=1288, box_end=644)  ZP-Fenster =1033..1287  P9=848..1020
+V0       : 14 Trades / +42.450970 R
+V1_basis : 14 Trades / +47.815697 R
+V1_kausal: 23 Trades / +85.577150 R
+ZP-Injekt (kausal - basis)  : 10 / +40.173529 R
+Basis-Neu (basis - v0)      :  1 / +2.412991 R
+Native entfaellt (v0-kausal):  1 / -1.000000 R
+====================================================================================================
+TRADES V0 (native, unpatched):
+ #  entry    bar  kid richtung           R in_kausal
+ 1    231    229   20 SHORT    +6.889303 True     
+ 2    245    242   20 SHORT    +3.925121 True     
+ 3    399    398    5 LONG     +5.697713 True     
+ 4    491    490   16 SHORT    -0.475084 True     
+ 5    510    509   16 SHORT    -0.347446 True     
+ 6    531    529   20 SHORT    +8.359943 True     
+ 7    565    564   20 SHORT   +15.870034 True     
+ 8    640    639    1 LONG     -1.000000 True     
+ 9    653    650    3 LONG     -1.000000 True     
+10    681    679   45 LONG     +6.480880 True     
+11    715    714   16 SHORT    -1.000000 True     
+12    762    760   51 SHORT    -1.000000 True     
+13    855    853   59 SHORT    -1.000000 False    
+14   1021   1020   67 SHORT    +1.050505 True     
+====================================================================================================
+TRADES V1_kausal (Basis + ZP):
+ #  entry    bar  kid richtung           R in_V0 in_basis im_ZP-Fenster status      
+ 1    231    229   20 SHORT    +6.889303 True  True     False         NATIV       
+ 2    245    242   20 SHORT    +3.925121 True  True     False         NATIV       
+ 3    399    398    5 LONG     +5.697713 True  True     False         NATIV       
+ 4    491    490   16 SHORT    -0.475084 True  True     False         NATIV       
+ 5    510    509   16 SHORT    -0.347446 True  True     False         NATIV       
+ 6    531    529   20 SHORT    +8.359943 True  True     False         NATIV       
+ 7    565    564   20 SHORT   +15.870034 True  True     False         NATIV       
+ 8    640    639    1 LONG     -1.000000 True  True     False         NATIV       
+ 9    653    650    3 LONG     -1.000000 True  True     False         NATIV       
+10    681    679   45 LONG     +6.480880 True  True     False         NATIV       
+11    715    714   16 SHORT    -1.000000 True  True     False         NATIV       
+12    762    760   51 SHORT    -1.000000 True  True     False         NATIV       
+13    905    903   67 SHORT    +4.119775 False False    False         ZP-INJEKT   
+14    981    980   67 SHORT    +9.987676 False False    False         ZP-INJEKT   
+15    982    981   73 SHORT    +2.695488 False False    False         ZP-INJEKT   
+16   1003   1002   77 LONG     +3.629016 False False    False         ZP-INJEKT   
+17   1021   1020   67 SHORT    +3.003157 True  True     False         NATIV       
+18   1077   1075   62 LONG     +1.475768 False False    True          ZP-INJEKT   
+19   1123   1122   73 SHORT   +10.752473 False False    True          ZP-INJEKT   
+20   1173   1172   82 LONG     +5.502241 False False    True          ZP-INJEKT   
+21   1269   1268   76 SHORT    -1.000000 False False    True          ZP-INJEKT   
+22   1273   1272   73 SHORT    +1.254682 False False    True          ZP-INJEKT   
+23   1281   1280   76 SHORT    +1.756410 False False    True          ZP-INJEKT   
+====================================================================================================
+R-Delta (V1_kausal - V0) fuer gemeinsame Schluessel:
+  bar   229 K20   SHORT  V0   +6.889303 -> V019   +6.889303  delta   +0.000000
+  bar   242 K20   SHORT  V0   +3.925121 -> V019   +3.925121  delta   +0.000000
+  bar   398 K5    LONG   V0   +5.697713 -> V019   +5.697713  delta   +0.000000
+  bar   490 K16   SHORT  V0   -0.475084 -> V019   -0.475084  delta   +0.000000
+  bar   509 K16   SHORT  V0   -0.347446 -> V019   -0.347446  delta   +0.000000
+  bar   529 K20   SHORT  V0   +8.359943 -> V019   +8.359943  delta   +0.000000
+  bar   564 K20   SHORT  V0  +15.870034 -> V019  +15.870034  delta   +0.000000
+  bar   639 K1    LONG   V0   -1.000000 -> V019   -1.000000  delta   +0.000000
+  bar   650 K3    LONG   V0   -1.000000 -> V019   -1.000000  delta   +0.000000
+  bar   679 K45   LONG   V0   +6.480880 -> V019   +6.480880  delta   +0.000000
+  bar   714 K16   SHORT  V0   -1.000000 -> V019   -1.000000  delta   +0.000000
+  bar   760 K51   SHORT  V0   -1.000000 -> V019   -1.000000  delta   +0.000000
+  bar  1020 K67   SHORT  V0   +1.050505 -> V019   +3.003157  delta   +1.952652  <== geaendert
+====================================================================================================
+RICHTUNGSBILANZ
+  V0        : LONG  4 / +10.178594 R  |  SHORT 10 / +32.272376 R
+  V1_basis  : LONG  4 / +10.178594 R  |  SHORT 10 / +37.637103 R
+  V1_kausal : LONG  7 / +20.785619 R  |  SHORT 16 / +64.791532 R
+  ZP-Injekt : LONG  3 / +10.607025 R  |  SHORT  7 / +29.566504 R
+====================================================================================================
+Probe-PNGs entfernt: 5 | Protokoll: F:\Python\PyLab\test\_chk_zp_trade_zerlegung_out.txt
+ARRETIERTE SATZ-DATEIEN UNBERUEHRT: aug_sichttest_v019_*

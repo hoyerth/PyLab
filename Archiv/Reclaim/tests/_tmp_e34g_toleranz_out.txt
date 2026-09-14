@@ -1,0 +1,50 @@
+============================================================================================================
+E-34g TOLERANZ-/PROVENIENZ-NACHWEIS (read-only, Engine unberuehrt)
+============================================================================================================
+Engine: tmp_kanten_engine_replay.py  box_end(AUG)=644  n=1288
+
+--- basis_bei(k) je Kante an den Audit-Bars ---
+kid |       848 |       980 |      1021 |      1033 |      1174 |      1259 |      1287
+---------------------------------------------------------------------------------------
+K67 |   69.9750 |   69.9310 |   69.8990 |   69.8990 |   69.8990 |   69.8990 |   69.8990
+K73 |   69.7150 |   69.6380 |   69.6380 |   69.6380 |   69.6380 |   69.6110 |   69.6110
+K77 |   68.3920 |   68.3920 |   68.3920 |   68.3920 |   68.3920 |   68.4130 |   68.4130
+K82 |   67.5350 |   67.5350 |   67.5350 |   67.5350 |   67.5530 |   67.5530 |   67.6000
+
+--- Abweichung provenienz_basis (Spec) vs basis_bei(REF) ---
+Phase      Rolle  Kante  prov_basis  seite    dev%@848    dev%@980   dev%@1021   dev%@1033   dev%@1174   dev%@1259   dev%@1287
+P9         decke  K67       69.9140   OBEN      0.0873      0.0243      0.0215      0.0215      0.0215      0.0215      0.0215
+P9         boden  K77       68.3700  UNTEN      0.0322      0.0322      0.0322      0.0322      0.0322      0.0629      0.0629
+A1_AUTO_77 decke  K67       69.8990   OBEN      0.1087      0.0458      0.0000      0.0000      0.0000      0.0000      0.0000
+A1_AUTO_77 boden  K82       67.5350  UNTEN      0.0000      0.0000      0.0000      0.0000      0.0267      0.0267      0.0962
+A2_AUTO_77 decke  K73       69.6380   OBEN      0.1106      0.0000      0.0000      0.0000      0.0000      0.0388      0.0388
+A2_AUTO_77 boden  K82       67.5530  UNTEN      0.0266      0.0266      0.0266      0.0266      0.0000      0.0000      0.0696
+
+--- Traegt die 1-%-Toleranz? (max. Abweichung ueber alle REF_BARS) ---
+  P9         decke  K67   max 0.0873 % (an Bar 848) -> OK
+  P9         boden  K77   max 0.0629 % (an Bar 1259) -> OK
+  A1_AUTO_77 decke  K67   max 0.1087 % (an Bar 848) -> OK
+  A1_AUTO_77 boden  K82   max 0.0962 % (an Bar 1287) -> OK
+  A2_AUTO_77 decke  K73   max 0.1106 % (an Bar 848) -> OK
+  A2_AUTO_77 boden  K82   max 0.0696 % (an Bar 1287) -> OK
+
+--- K82-Doppelrolle: zwei Segmente, zwei Provenienz-Werte ---
+  A@1033: prov 67.5350  basis_bei(1033) 67.5350  dev 0.0000 %
+  A@1174: prov 67.5530  basis_bei(1174) 67.5530  dev 0.0000 %
+  Differenz der beiden Provenienz-Werte: 1.80 Cent (Konta-Hinweis: entscheidet dist<0 vs dist>=0)
+
+--- Endgueltigkeit: verifiziere_gegen_scan mit 1-%-Default ---
+  REF-Bar  848: verifiziere_gegen_scan OK
+  REF-Bar  980: verifiziere_gegen_scan OK
+  REF-Bar 1259: verifiziere_gegen_scan OK
+  verifiziere_niveau_overrides   OK
+  verifiziere_boden_literale     OK
+
+--- Inertheit-Isolation: DEFAULT/V014/V015 unveraendert ---
+  DEFAULT_ADAPTER Soll: () .. bleibt P9-only-Konstante (unberuehrt)
+  ADAPTER_V015 segmente: ['P9']
+  V019-Entwurf segmente: ['P9', 'A1_AUTO_77', 'A2_AUTO_77']
+
+  1-%-Toleranz ueber alle Kanten/Ref-Bars: OK
+
+ENDE E-34g

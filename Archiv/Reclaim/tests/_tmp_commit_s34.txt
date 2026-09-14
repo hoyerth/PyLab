@@ -1,0 +1,21 @@
+docs(zeitbasis): S3.4 - Inline-Marker 'historisch ueberholt' in 3 Alt-Protokollen
+
+Stufe S3.4 der Zeitbasis-Bereinigung: additive Inline-Marker
+(<!-- historisch ueberholt: siehe docs/ZEITBASIS_KANON.md -->) an den
+Stellen, die die alte Europe/Berlin-Projektion (Zeile 600) bzw. die
+statische Box-Grenze (box_end_bar = 644/640 als Bar-Konstante) noch
+zitieren. Keine Loeschung, keine Umschreibung - die Zeitzeugen bleiben
+in voller Laenge erhalten (Archiv-Doktrin), nur als ueberholt markiert.
+
+- docs/reclaim_kanten_engine_spez.md: 3 Marker (Z. 2915, 2932, 2936).
+- docs/session_checkpoint_kanten_engine_v3_2026-09-08.md: 1 Marker (Z. 22).
+- docs/session_checkpoint_kanten_engine_v3_2026-09-08_teil2.md: 1 Marker (Z. 143).
+
+Diff: 5 insertions / 0 deletions (rein additiv). Idempotent gesetzt via
+test/_tmp_s3_doku_marker.py (gitignored). V018-Kanon: BKZ =
+time AT TIME ZONE 'UTC' ist Rechenbasis; box_end_bar wird dynamisch via
+searchsorted(ts_bkz, "2026-08-19") abgeleitet (AUG = Bar 644).
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

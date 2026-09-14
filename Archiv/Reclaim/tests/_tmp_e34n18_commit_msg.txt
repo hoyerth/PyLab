@@ -1,0 +1,18 @@
+feat(v019): Stufe 4 arretiert (4a+4b) - Realwert-Kennzahlen, Concurrency-Cap>=3 mit Bindetest, G4-Bypass geschlossen
+
+- Engine: _SESetup + grund2/r1/r2; _konkurrenz_aktiv + max_gleichzeitig_je_richtung=3
+  (Guard im Regel-Loop UND im G4-Pfad); stats concurrency_blockiert.
+  neuer SHA 53f28e1b... (200.433 B).
+- Messung Phase 1: R_brutto +85.577150 | R_realisiert (b) +75.677008 |
+  Untergrenze (a) +75.588050 (19). Die 78.2er-Vormerkung war Batch (24er).
+- Kanten-Ereignis-Regel als Ersatz widerlegt (20/+50.662485, H1 6/+9.764486)
+  -> Anwender-Entscheid: 12-Bar-Sperre bleibt, keine Variante arretiert.
+- Bindetest T1/T2/T3: AUG inert (0 blockiert); Cap 2 blockiert K73@981.
+- Renderer: Re-Pin auf 53f28e1b + ziel_r_realisiert/-untergrenze/-trades mit
+  harten 1e-6-Asserts + Protokollzeile. neuer SHA 341253ed... (120.955 B).
+- Panel 02 byte-identisch; 5 neue V019-PNG-SHA256 im Handoff beurkundet.
+- Handoff: E-34n/18.
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

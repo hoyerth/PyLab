@@ -1,0 +1,52 @@
+## H20.18 — Whole-August AUG26: Altlast-Test der §O1-Regel (2026-09-12)
+
+**Auftrag (Anwender):** Prüfen, ob ein Whole-August-Durchlauf die erforschten Bereiche automatisch wiedergefunden wird, **wenn keine alten Kanten mitgeschleppt werden** und Balance-Phasen sicher als aktiv/nicht aktiv erkannt werden.
+
+**Werkzeug:** `test/_chk_aug26_altlast.py` (read-only, Engine physisch unberührt) · Out `test/_chk_aug26_altlast_out.txt` (9.925 B, UTF-8) · exit 0. Engine-SHA `53f28e1b…` unverändert.
+
+**Drei Katalog-Varianten** — identische §O1-Regel (`lebt`: letzter bestätigter Docht `b+2<=k`, `b >= k-96`), **START = 0 (kein Anker)**:
+
+| Variante | Vorrat |
+|---|---|
+| V_full | `edges + seeds` (Baseline) |
+| V_noseed | nur `edges` (Fensterende-Singletons entfernt) |
+| V_kausal | nur `edges` mit `geburts_bar <= k` |
+
+### Befund 1 — Altlast quantifiziert (Divergenz der Ecken-Reihe)
+- **V_full vs. V_noseed:** 498 abweichende Bars, erster **Bar 64** `03.08(64)`: full=`(1,7)`, noseed=`(1,3)`.
+- **V_full vs. V_kausal:** 1.037 abweichende Bars, erster **Bar 10**: full=`(1,None)`, kausal=`(None,None)`.
+- **Ursache:** `_lebt_kausal` zählt jeden bestätigten Docht `b` des Objekts — auch wenn `b` **vor der Keimung** (`geburts_bar` = Pivot des 2. Dochts) liegt. Vor der Keimung existiert nur ein Seed (1 Docht). Die Fensterende-Singletons (`scan["seeds"]`, Engine Z. 2339/2342) werden dadurch als **lebende äußere Linie** behandelt — das ist die „mitgeschleppte alte Kante".
+
+### Befund 2 — Balance aktiv / nicht aktiv
+- **V_full / V_noseed:** 12 inaktive Bars (0,6 %), einzig Block **2..13** (Warmup).
+- **V_kausal:** 28 inaktive Bars (1,5 %), Block **2..29** (streng kausal später warm).
+- Nach dem Warmup ist in **allen** Varianten lückenlos ein Paar vorhanden ⇒ die §O1-Regel ist ein **lückenloser** Balance-Detektor; Z1→(Transition)→Z1' hat Länge 0 (kein fail-closed-Zwang im Regelbetrieb).
+
+### Befund 3 — Segmentgrenzen (Schwelle 77, START = 0)
+- **V_full:** 3 Segmente `[(14,1396),(1397,1633),(1634,1931)]` → Grenzen `[14,1397,1634]`
+- **V_noseed:** 4 Segmente `[(14,1396),(1397,1492),(1493,1633),(1634,1931)]` → Grenzen `[14,1397,1493,1634]`
+- **V_kausal:** 2 Segmente `[(30,1633),(1634,1931)]` → Grenzen `[30,1634]`
+
+### Befund 4 — Abgleich mit arretiertem AUG-Stand (+460)
+| Soll | V_full | V_noseed | V_kausal |
+|---|---|---|---|
+| P9 1308..1480 | ~14..1396 (Δ +89) | ~14..1396 (Δ +89) | ~30..1633 (Δ +326) |
+| A1 1493..1633 | ~1397..1633 (Δ +96) | **=1493..1633 (Δ 0)** | ~30..1633 (Δ +141) |
+| A2 1634..1747 | ~1634..1931 (Δ 0) | **=1634..1931 (Δ 0)** | ~1634..1931 (Δ 0) |
+
+⇒ **Ohne die Fensterende-Singletons reproduziert die reine §O1-Regel auf AUG26 die arretierten Grenzen A1 (1493) und A2 (1634) BIT-EXAKT — mit START = 0, also ohne jeden Anker und ohne alte Kante.**
+Das P9-Analogon 1308..1480 bleibt in **keiner** Variante reproduziert (Δ +89 bzw. +326) → F1-Ankerfrage bestätigt sich erneut.
+
+### Befund 5 — Schwellenstabilität
+`1493` bleibt in V_noseed für die Schwellen 41/48/60/77 erhalten und verschwindet erst bei 114 (2 Segmente). In V_full tritt `1493` nur als instabiles Kurzsegment bei 41 auf (`(1493,1583)`) und ist bei 48/60/77 **weg** — die Seeds zerstören die A1-Grenze. `1634` ist in allen Varianten und Schwellen stabil.
+
+### Deutung
+Die Fensterende-Singletons sind die „alten Kanten", die den Zustand mitschleppen. Nach ihrer Entfernung (V_noseed) findet die erforschte Struktur sich **automatisch** wieder — der Whole-August-Lauf ist damit für A1/A2 **positiv** belegt. Die strikt kausale Keimung (V_kausal) kollabiert die Struktur, weil sie die Äußere-Linie-Existenz erst ab dem 2. Docht zulässt; die Frage „ab wann existiert eine Linie" ist damit entscheidungsrelevant.
+
+### Offene Entscheidungsfragen H20.18
+- **E1 (Existenz-Definition):** Zählt eine Linie ab Keimung (`geburts_bar`, 2. Docht) oder ab dem 1. bestätigten Docht? V_noseed lässt die zweite Lesart zu, V_kausal erzwingt die erste.
+- **E2 (Fensterende-Singletons):** aus dem Zustands-Katalog **verbannen** (V_noseed) oder als schlafende Kandidaten führen, die **nie** äußere Linie werden dürfen?
+- **E3 (P9-Analogon):** bleibt 1308..1480 arretierte Setzung (Weg c) oder soll der Anker automatisch abgeleitet werden (F1/a oder F1/b)? Hängt direkt an der Δ +89.
+- **E4 (Schwelle):** 77 ist für A1/A2 bestätigt; soll die Schwelle fix bleiben oder aus der Struktur abgeleitet werden?
+
+**Anker:** Handoff-Kopf vor diesem Append = `e9ed06c6781afed61e795b5a816ccec9a54819592d7434c06ca24c37f339ee45` / 452.356 B / 8.001 CRLF. Engine/Adapter/Renderer-SHA unverändert (`53f28e1b…` / `983192b3…` / `500b5576…`).

@@ -1,0 +1,80 @@
+================================================================================================================
+E-34 ENDOGENE SEGMENTBILDUNG -- MIN51   (AUG, n = 1288)
+================================================================================================================
+Engine tmp_kanten_engine_replay.py  SHA 4a576a766670d684c3038196...
+Regel: aeusserste LEBENDE Linie, kausal (bestaetigte Dochte b+2<=k); LIVE = 96 (arretiert), BAND = 0.12 %
+
+A. WECHSELPUNKTE der zielfreien Regel (Auszug ab Bar 600):
+     Bar  decke                 boden                 
+     623  K20  66.4590          K1   63.5070          
+     645  K20  66.4590          K45  63.1560          
+     659  K20  66.4590          K48  62.5770          
+     662  K44  65.4370          K48  62.5770          
+     682  K12  65.2110          K48  62.5770          
+     708  K44  65.4370          K48  62.5770          
+     712  K16  65.8200          K48  62.5770          
+     718  K15  66.0460          K48  62.5770          
+     732  K31  66.2880          K48  62.5770          
+     738  K51  67.0760          K48  62.5770          
+     770  K51  67.0760          K3   62.9670          
+     786  K51  67.0760          K17  65.6540          
+     807  K59  68.9890          K17  65.6540          
+     875  K67  69.9750          K17  65.6540          
+     889  K67  69.9750          K62  67.7260          
+     914  K67  69.9310          K63  67.8310          
+     917  K67  69.9310          K60  67.9750          
+     937  K67  69.9310          K77  68.3920          
+    1033  K67  69.8990          K82  67.5350          
+    1077  K67  69.8990          K85  67.4200          
+    1117  K73  69.6380          K85  67.4200          
+    1120  K78  69.2630          K85  67.4200          
+    1124  K73  69.6380          K85  67.4200          
+    1172  K73  69.6380          K60  67.9750          
+    1174  K73  69.6380          K82  67.5530          
+
+B. VALIDIERUNG gegen die ARRETIERTEN (ziel-freien) Definitionen:
+   arretiert P9        : 848..1020  decke K67 boden K77
+   arretiert P12_RESERVE: 1171..1272 decke K73 boden K82
+   Regel 848..1020: [(875, 67, 17), (889, 67, 62), (914, 67, 63), (917, 67, 60), (937, 67, 77)]
+   Regel 1171..1272: [(1172, 73, 60), (1174, 73, 82)]
+
+C. SEGMENTE (MIN_BARS = 51):
+   A1    1033..1173  ( 141 Bars)  decke K67  69.8990   boden K82  67.5350
+   A2    1174..1287  ( 114 Bars)  decke K73  69.6380   boden K82  67.5530
+
+D. ERGEBNIS (MIN51, 23 Setups, 0.7s; Auto-Fenster 1033..1287)
+   Schnitt     n             R     USD/Tr   Q_stop
+   gesamt     23    +82.614385    +0.9819    0.217
+   H1          8    +38.919584    +1.4077    0.125
+   H2         15    +43.694801    +0.7549    0.267
+   ZIEL        6    +16.778809    +0.6001    0.167
+
+   ABLEHNUNGEN (Zielzone):
+      {'quartil_blockiert': 43, 'blocker': 12, 'kein_raum': 5, 'frisch_blockiert': 2, 'zyklus_blockiert': 3}
+
+   SETUPS (Signal-Bar, Entry-Bar, Richtung, Kante, R):
+      bar   229 entry   231 SHORT  K20   R   +6.88930
+      bar   242 entry   245 SHORT  K20   R   +3.92512
+      bar   398 entry   399 LONG   K5    R   +5.69771
+      bar   490 entry   491 SHORT  K16   R   -0.47508
+      bar   509 entry   510 SHORT  K16   R   -0.34745
+      bar   529 entry   531 SHORT  K20   R   +8.35994
+      bar   564 entry   565 SHORT  K20   R  +15.87003
+      bar   639 entry   640 LONG   K1    R   -1.00000
+      bar   650 entry   653 LONG   K3    R   -1.00000 H2
+      bar   679 entry   681 LONG   K45   R   +6.48088 H2
+      bar   714 entry   715 SHORT  K16   R   -1.00000 H2
+      bar   760 entry   762 SHORT  K51   R   -1.00000 H2
+      bar   903 entry   905 SHORT  K67   R   +4.11977 H2
+      bar   980 entry   981 SHORT  K67   R   +9.98768 H2
+      bar   981 entry   982 SHORT  K73   R   +2.69549 H2
+      bar  1002 entry  1003 LONG   K77   R   +3.62902 H2
+      bar  1020 entry  1021 SHORT  K67   R   +3.00316 H2
+      bar  1075 entry  1077 LONG   K62   R   +1.47577 H2 ZIEL
+      bar  1122 entry  1123 SHORT  K73   R  +10.75247 H2 ZIEL
+      bar  1211 entry  1214 SHORT  K76   R   +2.53948 H2 ZIEL
+      bar  1268 entry  1269 SHORT  K76   R   -1.00000 H2 ZIEL
+      bar  1272 entry  1273 SHORT  K73   R   +1.25468 H2 ZIEL
+      bar  1280 entry  1281 SHORT  K76   R   +1.75641 H2 ZIEL
+
+ENDE E-34 MIN51

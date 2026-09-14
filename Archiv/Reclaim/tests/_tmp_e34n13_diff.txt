@@ -1,0 +1,133 @@
+--- tmp_png_aug_sichttest.py(PRE_ZP5)
++++ tmp_png_aug_sichttest.py(ZP5)
+@@ -395,10 +395,10 @@
+     mode="V019",
+     ausgabe_praefix="aug_sichttest_v019_",
+     protokoll_datei="test/tmp_png_aug_sichttest_v019_out.txt",
+-    ziel_trades_gesamt=23,
+-    ziel_r_gesamt=82.614385,
++    ziel_trades_gesamt=24,
++    ziel_r_gesamt=88.116626,
+     ziel_r_h1=38.919584,          # Invariante (bit-identisch V017/V018)
+-    ziel_r_h2=43.694801,
++    ziel_r_h2=49.197042,          # ZP-5(D): +5.502241 (K82@1172, entry 1173)
+     ziel_p9_beitrag=23.435111,    # P9 arretiert, unveraendert
+     k67_override_aktiv=True,
+     niveau_override_wert=K67_OVERRIDE_69_87,
+@@ -411,10 +411,11 @@
+     ziel_v1_basis_trades=14,
+     ziel_v1_basis_r=47.815697,
+     ziel_h1_trades=8,
+-    ziel_delta_rb=34.798688,      # = 82.614385 - 47.815697
++    ziel_delta_rb=40.300929,      # = 88.116626 - 47.815697 (ZP-5(D))
+     # --- adapter-abhaengige Sollwerte (E-34i/3, MESSUNG) ------------------
+     neu_basis_soll=((903, 67), (980, 67), (981, 73), (1075, 62), (1122, 73),
+-                    (1211, 76), (1268, 76), (1272, 73), (1280, 76)),
++                    (1172, 82), (1211, 76), (1268, 76), (1272, 73),
++                    (1280, 76)),
+     referenz_soll=((980, 73),),
+     quartett_r_soll=((903, 4.119775), (980, 9.987676), (981, 2.695488),
+                      (1020, 3.003157)),
+@@ -706,7 +707,7 @@
+ #       (ns["_hook"]), nicht den Modus -> V0/V1_basis (DEFAULT_ADAPTER,
+ #       1 Segment) bleiben unberuehrt.
+ def _wende_zielzonen_patches_v019(src: str) -> str:
+-    """Webt die vier Zielzonen-Engine-Regeln in den ``_se_trades``-Quelltext.
++    """Webt die Zielzonen-Engine-Regeln in den ``_se_trades``-Quelltext.
+ 
+     Args:
+         src: Quelltextsegment der Funktion ``_se_trades`` (bereits mit den
+@@ -714,7 +715,7 @@
+ 
+     Returns:
+         Quelltext mit ZP-4 (Ueberdehnung, Quartil-Reset, M6-Schlaf-Filter,
+-        Sweep-Basis-Aktivierung).
++        Sweep-Basis-Aktivierung) + Kantenlaeufer-Durchstich (ZP-5, E-34n).
+ 
+     Raises:
+         AssertionError: ein Anker kommt nicht genau einmal vor (Fail-Loud).
+@@ -753,6 +754,59 @@
+          "            if not (_zv(k) and _ev):\n"
+          "                return False\n"
+          "        return e.erster_pivot_bar + 2 <= k + 1"),
++        # (5) ZP-5(D), arretiert in E-34n/10+11: Kantenlaeufer-Durchstich auf
++        #     deklarierten Segmentwaenden (OBEN+UNTEN), P9 ueber sein
++        #     Boden-Literal ausgenommen, nur echte Durchstiche (d > Band).
++        #     INVARIANT: b0 = basis_bei(seg.start_bar) ist TRAGEND. Mit der
++        #     statischen .basis (67.5455) kippt Bar 1073 (1073 + 2 = 1075 <=
++        #     1075), touch_conf(1075) steigt 2 -> 4 und Variante D kollabiert
++        #     auf Variante B (23 / +86.640859 statt 24 / +88.116626).
++        #     Schwellen AUS cfg (kein Literal): unten cfg.touch_band_pct,
++        #     oben der ZP-4-Helfer _ueb (segment-lokale 0.80).
++        ("A_KL_DOCHT",
++         '    seite_edges: Dict[KantenSeite, List[_SEEdgeH]] = {\n'
++         '        "OBEN": [e for e in alle if e.seite == "OBEN"],\n'
++         '        "UNTEN": [e for e in alle if e.seite == "UNTEN"]}',
++         '    seite_edges: Dict[KantenSeite, List[_SEEdgeH]] = {\n'
++         '        "OBEN": [e for e in alle if e.seite == "OBEN"],\n'
++         '        "UNTEN": [e for e in alle if e.seite == "UNTEN"]}\n'
++         '    # --- ZP-5(D): Kantenlaeufer-Durchstich auf Segmentwaenden\n'
++         '    # ZWEISTUFIG GEGATET: diese Funktion laeuft nur bei mode == "V019"\n'
++         '    # (Quelltext-Stufe, Aufruf weiter unten) UND der Laufzeit-Gate\n'
++         '    # len(hook.segmente) > 1 haelt V0/V1_basis inert.\n'
++         '    _kl_hook = globals().get("_hook")\n'
++         '    if _kl_hook is not None and len(getattr(_kl_hook,\n'
++         '                                            "segmente", ())) > 1:\n'
++         '        _kl_idx = {int(e.kid): e for e in alle}\n'
++         '        for _seg in _kl_hook.segmente:\n'
++         '            if _seg.boden_deklariert_literal is not None:\n'
++         '                continue          # P9 & Co: eigenes Boden-Literal\n'
++         '            for _ki, _kl_seite in ((_seg.boden, "UNTEN"),\n'
++         '                                   (_seg.decke, "OBEN")):\n'
++         '                _ek = _kl_idx.get(int(_ki.kid))\n'
++         '                if _ek is None:\n'
++         '                    continue\n'
++         '                _s0, _s1 = int(_seg.start_bar), int(_seg.end_bar)\n'
++         '                _b0 = float(_ek.basis_bei(_s0))   # TRAGENDE Wahl\n'
++         '                _have = {b for b, _ in _ek.wicks}\n'
++         '                for _kb in range(max(_s0, _ek.erster_pivot_bar + 2),\n'
++         '                                 _s1 + 1):\n'
++         '                    _ext = (float(lo[_kb])\n'
++         '                            if _kl_seite == "UNTEN"\n'
++         '                            else float(hi[_kb]))\n'
++         '                    _dkl = ((_b0 - _ext) if _kl_seite == "UNTEN"\n'
++         '                            else (_ext - _b0)) / _b0 * 100.0\n'
++         '                    if _dkl <= cfg.touch_band_pct:\n'
++         '                        continue      # Band-Rauschen, kein Sweep\n'
++         '                    if _dkl <= _ueb(_kb) and _kb not in _have:\n'
++         '                        _ek.wicks.append((_kb, _ext))\n'
++         '                        _have.add(_kb)\n'
++         '                if _ek.schlaf_windows:      # Segmentwand schlaeft\n'
++         '                    _ek.schlaf_windows = [  # nicht im eign. Segment\n'
++         '                        _w for _w in _ek.schlaf_windows\n'
++         '                        if not (_w[0] < _s1\n'
++         '                                and (_w[1] is None or _w[1] > _s0))]\n'
++         '                _ek.status = "AKTIV"'),
+     )
+     for _nm, _alt, _neu in paare:
+         assert src.count(_alt) == 1, (_nm, src.count(_alt))
+@@ -901,7 +955,23 @@
+     assert KONF.niveau_override_wert == 69.87, KONF.niveau_override_wert
+     if KONF.mode == "V019":
+         # E-34i: 23 - 14 = 9 (Zielzone A1/A2 traegt 6, G4 1, Quartett 2).
+-        assert len(V1) - len(V1_basis) == 9, len(V1) - len(V1_basis)
++        # E-34n/12: 24 - 14 = 10 (+1 K82@1172 aus ZP-5(D)).
++        assert len(V1) - len(V1_basis) == 10, len(V1) - len(V1_basis)
++        # --- ZP-5(D) Geometrie-Waechter (E-34n/11+12): KEIN Wert-Pin.
++        # Modus-isoliert (nur V019); scan["d"]["low"] liegt seit Z. 538 vor.
++        # TRAGENDE Wahl ist b0 = basis_bei(seg.start_bar). Mit der statischen
++        # .basis (67.5455) kippt Bar 1073 (1073 + 2 = 1075 <= 1075),
++        # touch_conf(1075) steigt 2 -> 4 und Variante D kollabiert auf
++        # Variante B (23 / +86.640859 statt 24 / +88.116626).
++        _w82 = next(e for e in list(scan["edges"]) + list(scan["seeds"])
++                    if int(e.kid) == 82)
++        _b0w = float(_w82.basis_bei(ADAPTER_V019.segmente[1].start_bar))
++        _lw = scan["d"]["low"].to_numpy(dtype=float)
++        _dw = {b: (_b0w - float(_lw[b])) / _b0w * 100.0
++               for b in (1072, 1073, 1074, 1075)}
++        assert _dw[1073] <= cfg.touch_band_pct, _dw   # 1073 im Rauschen
++        assert _dw[1074] <= cfg.touch_band_pct, _dw   # 1074 im Rauschen
++        assert _dw[1075] > cfg.touch_band_pct, _dw    # 1075 ist der Durchstich
+     else:
+         assert len(V1) - len(V1_basis) in (2, 3), len(V1) - len(V1_basis)
+     _dsoll = KONF.ziel_delta_rb if KONF.g4_aktiv else BENCHMARK_V014_DELTA_R

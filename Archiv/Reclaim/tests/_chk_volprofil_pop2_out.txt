@@ -1,0 +1,65 @@
+﻿Fenster ('2026-01-01', '2026-09-12'): n=16489, edges=357
+frische Bodenbraeuche: 324   mit Exkursion >= 0.25%: 292
+
+====================================================================================================================
+GRUNDGESAMTHEIT (n=292)  |  Perzentile
+====================================================================================================================
+Merkmal              p05       p25       p50       p75       p95       min       max
+exc_pct           0.3719    0.8650    1.3157    2.5098    5.9783    0.2570   24.6162
+vol_low_ratio     0.7563    0.9984    1.0858    1.4082    1.9073    0.4474    2.8473
+vol_h2_h1         0.6126    0.8620    1.0183    1.2912    2.1530    0.3672    4.0575
+vol_peak_pos      0.0000    0.0000    0.5000    1.0000    1.0000    0.0000    1.0000
+delta_norm       -0.4396   -0.2076   -0.1076    0.0038    0.2757   -0.8952    0.9932
+quote_unter       0.0000    0.3571    0.7500    1.0000    1.0000    0.0000    1.0000
+vol_slope        -0.0574   -0.0156    0.0000    0.0468    0.1256   -0.2414    0.3839
+reclaim_bars     -1.0000    0.0000    0.0000    1.0000    8.4500   -1.0000   17.0000
+vol_cv            0.0000    0.1061    0.2196    0.3555    0.5087    0.0000    0.8669
+
+====================================================================================================================
+ZIEL-EREIGNISSE (Zeitstempel -> POP-Bar)
+====================================================================================================================
+  A    2026-08-14T02:30  POP-Bar  14577  (2026-08-14 02:30:00)  Wand 64.2680  exc=1.218%
+  B_f  2026-08-18T16:30  POP-Bar  14817  (2026-08-18 16:30:00)  Wand 64.7980  exc=2.293%
+  B_l  2026-08-19T00:30  POP-Bar  14845  (2026-08-19 00:30:00)  Wand 63.1560  exc=0.917%
+  C    2026-08-28T18:00  POP-Bar  15559  (2026-08-28 18:00:00)  Wand 67.6000  exc=3.078%
+  D    2026-09-01T10:00  POP-Bar  15711  (2026-09-01 10:00:00)  Wand 66.4140  exc=3.263%
+
+====================================================================================================================
+EINORDNUNG IN DER GRUNDGESAMTHEIT  (Perzentil, 0 = niedrigster Wert)
+====================================================================================================================
+Merkmal                 A        B_f        B_l          C          D
+exc_pct               44%        72%        27%        84%        86%
+vol_low_ratio         74%         0%        88%         7%        79%
+vol_h2_h1              1%         5%        97%         5%        24%
+vol_peak_pos          33%        35%        69%        29%        73%
+delta_norm            61%        31%        89%        47%        37%
+quote_unter           72%        72%        72%        72%        72%
+vol_slope              8%         9%        93%         8%        27%
+reclaim_bars         100%         0%        98%         0%         0%
+vol_cv                85%        74%        88%        67%        52%
+
+====================================================================================================================
+A GEGEN DIE POPULATION: liegt A ausserhalb des 5-95%-Kerns?
+====================================================================================================================
+exc_pct        A=   1.2183  p05=   0.3719 p95=   5.9783  im 5-95-Kern     -
+vol_low_ratio  A=   1.4045  p05=   0.7563 p95=   1.9073  im 5-95-Kern     -
+vol_h2_h1      A=   0.5075  p05=   0.6126 p95=   2.1530  AUSSERHALB unten POTENZIELL TRENNEND
+vol_peak_pos   A=   0.1000  p05=   0.0000 p95=   1.0000  im 5-95-Kern     -
+delta_norm     A=  -0.0712  p05=  -0.4396 p95=   0.2757  im 5-95-Kern     -
+quote_unter    A=   1.0000  p05=   0.0000 p95=   1.0000  im 5-95-Kern     -
+vol_slope      A=  -0.0462  p05=  -0.0574 p95=   0.1256  im 5-95-Kern     -
+reclaim_bars   A=  22.0000  p05=  -1.0000 p95=   8.4500  AUSSERHALB oben  POTENZIELL TRENNEND
+vol_cv         A=   0.4239  p05=   0.0000 p95=   0.5087  im 5-95-Kern     -
+
+====================================================================================================================
+KERN-FRAGE: Kann ein Merkmal A gegen B/C/D trennen UND A von der Population?
+====================================================================================================================
+  exc_pct        A-Perzentil=  44%  A_ausserhalb=False  B/C/D im selben Aussenbereich: 4/4
+  vol_low_ratio  A-Perzentil=  74%  A_ausserhalb=False  B/C/D im selben Aussenbereich: 3/4
+  vol_h2_h1      A-Perzentil=   1%  A_ausserhalb=True   B/C/D im selben Aussenbereich: 2/4
+  vol_peak_pos   A-Perzentil=  33%  A_ausserhalb=False  B/C/D im selben Aussenbereich: 4/4
+  delta_norm     A-Perzentil=  61%  A_ausserhalb=False  B/C/D im selben Aussenbereich: 4/4
+  quote_unter    A-Perzentil=  72%  A_ausserhalb=False  B/C/D im selben Aussenbereich: 4/4
+  vol_slope      A-Perzentil=   8%  A_ausserhalb=False  B/C/D im selben Aussenbereich: 4/4
+  reclaim_bars   A-Perzentil= 100%  A_ausserhalb=True   B/C/D im selben Aussenbereich: 1/4
+  vol_cv         A-Perzentil=  85%  A_ausserhalb=False  B/C/D im selben Aussenbereich: 4/4

@@ -1,0 +1,106 @@
+﻿====================================================================================================================
+A) K20-KASKADE: ist K20 an den vier Sweep-Bars die AEUSSERSTE Linie?
+====================================================================================================================
+    bar         zeit     high  K20 basis  K20 dist%  K31 basis  K31 dist%  Pool(OBEN, absteigend)
+    229  12.08 11:15   66.776     66.459    +0.4770        nan       +nan  K20/66.459, K15/66.046, K16/65.891, K26/65.326
+    242  12.08 14:30   66.663     66.459    +0.3070     66.364    +0.4505  K20/66.459, K15/66.046, K16/65.891, K26/65.326
+    244  12.08 15:00   66.662     66.459    +0.3055     66.364    +0.4490  K20/66.459, K15/66.046, K16/65.891, K26/65.326
+    529  17.08 17:15   66.538     66.459    +0.1189     66.327    +0.3176  K20/66.459, K31/66.327, K15/66.046, K16/65.892
+    565  18.08 03:15   66.536     66.459    +0.1159     66.345    +0.2875  K20/66.459, K31/66.345, K15/66.046, K16/65.899
+
+  -> K20 (66.459) ist an ALLEN fuenf Bars die aeusserste OBEN-Linie
+     (K15 66.046 liegt darunter, erreicht -> kein Blocker).
+
+====================================================================================================================
+B) GATE-WALK je Bar (Code-Reihenfolge). Erster BLOCKIERER wird ausgewiesen.
+====================================================================================================================
+  Legende Gates: (1) _kandidat-Kaskade/In-Band  (2) M6 Blocker
+                 (3) Q29 Quartil  (4) _reclaim_stufe  (5) F3-Frische
+                 (6) Zyklus 12  (7) _gegenkante  (8) Geometrie  (9) Stacking
+
+  --- Bar 229 (12.08 11:15) high=66.776 K20-basis=66.459 dist=+0.4770 % ---
+    (1) Kaskade: aeusserste OBEN-Linie = K20 (66.459) -> das ist K20.
+        (1b) In-Band-Vorrang (dist <= 0.12 %): nein -> K20 handelt (Wand = pos 0)
+        (4) _reclaim_stufe arretiert (band=0.12)   : stufe=2 (STUFE_2_KERZE_2) -> entry=231
+        (4) _reclaim_stufe spec-konform (band=0)   : stufe=2 (STUFE_2_KERZE_2) -> entry=231
+    (2) M6 Blocker: OBEN-Linien oberhalb des Sweeps: keine -> pass
+    (3) Q29 Quartil: dist 0.00 % <= 25 % -> pass
+    (5) F3-Frische: k=229 > letzter_sweep_bar=-1000 -> pass
+    (6) Zyklus: 229 - -1000 = 1229 >= 12 -> pass
+    (7) Gegenkante: aeusserste UNTEN = ['K5 (63.605)', 'K8 (63.770)'] -> pass
+    (8) Geometrie: SL=66.826 E=66.424 POC=63.676 TP2=63.605 -> pass
+    (9) Stacking: keine offene Position -> pass
+        -> hypothetischer Trade: entry=231 R=+6.92 (TP1@386, TP2@398, exit_final=398)
+        -> De-Risking-Freigabe waere erst ab TP1-Bar 386 
+
+  --- Bar 242 (12.08 14:30) high=66.663 K20-basis=66.459 dist=+0.3070 % ---
+    (1) Kaskade: aeusserste OBEN-Linie = K20 (66.459) -> das ist K20.
+        (1b) In-Band-Vorrang (dist <= 0.12 %): nein -> K20 handelt (Wand = pos 0)
+        (4) _reclaim_stufe arretiert (band=0.12)   : stufe=3 (STUFE_3_KERZE_3) -> entry=245
+        (4) _reclaim_stufe spec-konform (band=0)   : stufe=3 (STUFE_3_KERZE_3) -> entry=245
+    (2) M6 Blocker: OBEN-Linien oberhalb des Sweeps: keine -> pass
+    (3) Q29 Quartil: dist 2.97 % <= 25 % -> pass
+    (5) F3-Frische: k=242 > letzter_sweep_bar=229 -> pass
+    (6) Zyklus: 242 - 229 = 13 >= 12 -> pass
+    (7) Gegenkante: aeusserste UNTEN = ['K5 (63.605)', 'K8 (63.770)'] -> pass
+    (8) Geometrie: SL=66.713 E=66.092 POC=63.676 TP2=63.605 -> pass
+    (9) Stacking: Position 231 (Trade 229) offen bis 398 -> entry 245 <= 398 -> BLOCK
+        -> hypothetischer Trade: entry=245 R=+3.95 (TP1@386, TP2@398, exit_final=398)
+        -> De-Risking-Freigabe waere erst ab TP1-Bar 386 
+
+  --- Bar 244 (12.08 15:00) high=66.662 K20-basis=66.459 dist=+0.3055 % ---
+    (1) Kaskade: aeusserste OBEN-Linie = K20 (66.459) -> das ist K20.
+        (1b) In-Band-Vorrang (dist <= 0.12 %): nein -> K20 handelt (Wand = pos 0)
+        (4) _reclaim_stufe arretiert (band=0.12)   : stufe=1 (STUFE_1_IN_BAR) -> entry=245
+        (4) _reclaim_stufe spec-konform (band=0)   : stufe=1 (STUFE_1_IN_BAR) -> entry=245
+    (2) M6 Blocker: OBEN-Linien oberhalb des Sweeps: keine -> pass
+    (3) Q29 Quartil: dist 2.99 % <= 25 % -> pass
+    (5) F3-Frische: k=244 > letzter_sweep_bar=229 -> pass
+    (6) Zyklus: 244 - 229 = 15 >= 12 -> pass
+    (7) Gegenkante: aeusserste UNTEN = ['K5 (63.605)', 'K8 (63.770)'] -> pass
+    (8) Geometrie: SL=66.712 E=66.092 POC=63.676 TP2=63.605 -> pass
+    (9) Stacking: Position 231 (Trade 229) offen bis 398 -> entry 245 <= 398 -> BLOCK
+        -> hypothetischer Trade: entry=245 R=+3.95 (TP1@386, TP2@398, exit_final=398)
+        -> De-Risking-Freigabe waere erst ab TP1-Bar 386 
+
+  --- Bar 529 (17.08 17:15) high=66.538 K20-basis=66.459 dist=+0.1189 % ---
+    (1) Kaskade: aeusserste OBEN-Linie = K20 (66.459) -> das ist K20.
+        (1b) In-Band-Vorrang (dist <= 0.12 %): JA -> K20 uebersprungen (Skip), Kaskade faellt nach innen
+        (4) _reclaim_stufe arretiert (band=0.12)   : stufe=0 (kein Reclaim)
+        (4) _reclaim_stufe spec-konform (band=0)   : stufe=2 (STUFE_2_KERZE_2) -> entry=531
+    (2) M6 Blocker: OBEN-Linien oberhalb des Sweeps: keine -> pass
+    (3) Q29 Quartil: dist 6.25 % <= 25 % -> pass
+    (5) F3-Frische: k=529 > letzter_sweep_bar=229 -> pass
+    (6) Zyklus: 529 - 229 = 300 >= 12 -> pass
+    (7) Gegenkante: aeusserste UNTEN = ['K1 (63.474)', 'K5 (63.619)'] -> pass
+    (8) Geometrie: SL=66.588 E=66.324 POC=64.743 TP2=63.474 -> pass
+    (9) Stacking: keine offene Position -> pass
+        -> hypothetischer Trade: entry=531 R=+8.39 (TP1@582, TP2@639, exit_final=639)
+        -> De-Risking-Freigabe waere erst ab TP1-Bar 582 
+
+  --- Bar 565 (18.08 03:15) high=66.536 K20-basis=66.459 dist=+0.1159 % ---
+    (1) Kaskade: aeusserste OBEN-Linie = K20 (66.459) -> das ist K20.
+        (1b) In-Band-Vorrang (dist <= 0.12 %): JA -> K20 uebersprungen (Skip), Kaskade faellt nach innen
+        (4) _reclaim_stufe arretiert (band=0.12)   : stufe=0 (kein Reclaim)
+        (4) _reclaim_stufe spec-konform (band=0)   : stufe=1 (STUFE_1_IN_BAR) -> entry=566
+    (2) M6 Blocker: OBEN-Linien oberhalb des Sweeps: keine -> pass
+    (3) Q29 Quartil: dist 6.30 % <= 25 % -> pass
+    (5) F3-Frische: k=565 > letzter_sweep_bar=229 -> pass
+    (6) Zyklus: 565 - 229 = 336 >= 12 -> pass
+    (7) Gegenkante: aeusserste UNTEN = ['K1 (63.474)', 'K5 (63.619)'] -> pass
+    (8) Geometrie: SL=66.586 E=66.417 POC=64.743 TP2=63.474 -> pass
+    (9) Stacking: Position 531 (Trade 529) offen bis 639 -> entry 566 <= 639 -> BLOCK
+        -> hypothetischer Trade: entry=566 R=+13.66 (TP1@582, TP2@639, exit_final=639)
+        -> De-Risking-Freigabe waere erst ab TP1-Bar 582 
+
+====================================================================================================================
+C) FAZIT: erster Blockierer je Bar
+====================================================================================================================
+  Bar 229 (12.08 11:15): ALLE Gates pass -> TRADE genommen (+6,92 R).
+  Bar 242 (12.08 14:30): Gate (9) STACKING (Position 231 offen bis 398).
+  Bar 244 (12.08 15:00): Gate (9) STACKING (zusaetzlich Dedup entry_bar 245).
+  Bar 529 (17.08 17:15): Gate (1) IN-BAND (dist +0,1189 % <= 0,12 %).
+  Bar 565 (18.08 03:15): Gate (1) IN-BAND (dist +0,1159 % <= 0,12 %),
+                         danach zusaetzlich Gate (9) STACKING.
+
+  Die ZYKLUS-Regel blockiert KEINEN der vier Bars (13/15/300/336 >= 12).

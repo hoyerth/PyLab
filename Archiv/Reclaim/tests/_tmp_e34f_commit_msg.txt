@@ -1,0 +1,30 @@
+docs(handoff): E-34f Audit der V019-Spezifikation — Adapter weist die Anwender-Fassung zurueck, P9 ist aus P9_BODEN_RECLAIM zu uebernehmen
+
+Schritt 2 (rein lesend). Adapter und Engine bit-identisch unberuehrt.
+
+Befund:
+- Anwender-Fassung (P9 als decke=K77/boden=K67) scheitert an
+  verifiziere_gegen_scan: "K77 (P9_BODEN_RECLAIM) hat falsche Seite:
+  erwartet OBEN, gefunden UNTEN".
+- Audit-Fassung (P9 = P9_BODEN_RECLAIM) besteht alle drei Fail-Loud-Pruefer.
+- Ohne Uebernahme gingen Niveau-Override 69,87 und Boden-Literal 68,40
+  verloren, Trade bei Bar 1020 entfaellt.
+
+Segment-Nahtstellen: 1021/1032 BLOCKIERT, 1033/1173/1174/1287 PHASE,
+1288 BLOCKIERT; aktive Phasen 255/267 (Luecke 1021..1032 = E-33-Trade 1028).
+
+Verdrahtung: einziger Produktionskonsument ist test/tmp_png_aug_sichttest.py
+(AdapterMode V01..V018, box_end_bar = n); backtest_lab/ konsumiert den
+Adapter nirgends. V019 braucht Adapter-Generation UND Renderer-Mode.
+
+Ratifiziert: §S0 (+82,614385 R = Standard), §S1 (Plateau [41,114]/77),
+MIN48 nur dokumentarisch, --poolhart endgueltig verworfen.
+
+Sollwerte V019: gesamt +82,614385 (23) | H1 8/+38,919584 (Invariante) |
+H2 +43,694801 | ZIEL 6/+16,778809 | Q_stop 0,217 | USD/Trade +0,9819.
+
+Artefakte: _tmp_e34f_audit.py 87a9483f... | _tmp_e34f_audit_out.txt 224f8a56...
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

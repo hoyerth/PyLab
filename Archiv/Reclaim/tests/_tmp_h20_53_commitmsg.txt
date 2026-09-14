@@ -1,0 +1,27 @@
+docs(handoff): H20.53 Zulassungs-Funnel-Telemetrie - Aufloesung Juni-Asymmetrie, Erratum K7 Zielraum
+
+Read-only Sonde test/_chk_zulassung_funnel.py: 29 Anker, 5 Fenster,
+17164 (k, richtung)-Einheiten, _se_trades verbatim instrumentiert.
+
+Inhalt des Notariats (Paragraph 0-11):
+- Erratum K7: der Zielraum-Vertrag zerfaellt in zwei ungleiche Teile.
+  (a) Halbraum = KONSERVIERT (0 Bindungen; Tripwire-Mit-Nullinie, reisst
+      unter NAECHSTE in 22/84 Zeilen -- Erratum K3).
+  (b) tp_mindist_pct = INERT und strukturell unbindbar (Extremwahl vs.
+      Mindestabstand stehen in Opposition). Falsifikationsvermerk.
+- kein_raum ist 6/8-fach tot: nur das Ordnungs-Gate feuert (8 S / 16 L).
+- Juni-Asymmetrie zweistufig: Kandidatenstufe Faktor 6.29x Survivors
+  (Netto nur 185 Einheiten), dann Q29 mit 94.29 % vs. 26.36 %.
+- Budgetidentitaet 15/15 geschlossen, G4 == 0 in allen 5 Fenstern.
+- Sonden-Diagnose: erster Lauf fail-loud durch Sentinel-Kollision im
+  Werkzeug (nicht im Motor), belegt durch read-only Wrapper.
+
+Keine Handelswirkung: kein Motorwert geaendert, kein Gate verschoben.
+Alle arretierten Fremdstaende (Baseline/V021/Adapter/Renderer) unberuehrt.
+
+Handoff: 783840 B / e7325e4399d52224 -> 803493 B / d0e7ad8407f0a1cb
+(387 CRLF, reiner Anhang, Praefix-Byte-Identitaet gegen HEAD-Blob geprueft).
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

@@ -1,0 +1,32 @@
+docs(handoff): E-29 Binning-Audit + H2-Stop-Out-Anatomie — zwei Hypothesen falsifiziert
+
+Kernstandard geg960poc arretiert (D1 gilt fuer die Gesamtbilanz; H2-Q_stop
+bleibt sekundaer). E-29 reproduziert E-28 bit-identisch (271 Setups,
+R +55,871446, USD/Tr +0,0526, Q_stop 0,742).
+
+Binning: bei 10..60 Bins kein einziges leeres Bin — die Rauschhypothese ist
+falsifiziert (Binnung laeuft ueber den Preisraum, nicht ueber die Zeit).
+num_bins ist jedoch AUG-kritisch: b40 verschiebt den V018-Anker
+(+38,919584 -> +36,488272), b<=30 erzeugt einen 9. Trade -> 60 bleibt.
+
+Anatomie: Q_stop ist exakt der Anteil der Trades, die den POC nie vor dem
+Stop beruehrt haben (rm = 0,5*r1 + 0,5*r2 <= -1 erfordert beide Haelften am
+SL). H2 n=39: 32 STOP / 3 Teil-SL / 4 ok; d_POC median 13,29 R; 18 von 32
+Stop-Outs hatten MFE >= 1 R.
+
+Risiko: risk/ATR14 in H2 = 0,96 (med) — der Stop ist NICHT degeneriert
+(E-22-Hypothese falsifiziert). Das Missverhaeltnis sitzt im Ziel (~13 ATR).
+
+Break-Even pfadgenau: kein Schwellwert verbessert USD/Trade. Q_stop faellt
+0,742 -> 0,269 (BE +0,25 R), waehrend USD/Tr auf +0,0010 kollabiert;
+BE +1,50 R steigert R (+63,01), senkt aber USD/Tr (+0,0457). Q_stop ist als
+Optimierungsziel untauglich, bleibt aber Ausschlusskriterium.
+
+Hybrid-Proxy: obere Schranke (ex post, nur Verluste) +115,10 R / USD/Tr
++0,0836; untere Schranke (mechanisch, alle Trades) -52,61 R, 18 von 35
+Gewinnern getoetet (AUG 4 von 5). Die Diskrimination ist die Aufgabe des
+Zustandsautomaten — quantifizierte Arbeitsanweisung fuer Schritt 3.
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

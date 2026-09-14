@@ -1,0 +1,33 @@
+docs(spez): Addendum v0.23 / §73 - Engine-Generation V018 (BKZ statt Berlin-Projektion)
+
+Arretierung der Stufe S3 (Zeitbasis-Bereinigung) im Adapter-Spez und im
+Session-Handoff. Rein additive Doku (360 insertions / 0 deletions); der
+Code wurde bereits in 64fc154 (S3.4) und 50912f2 (S4) committet.
+
+Inhalt (H2_PHASENREGIME_ADAPTER_SPEZ.md, # Addendum v0.23, §73.0-§73.9):
+- Anlass: SELECT nutzte Europe/Berlin, WHERE war UTC -> zwei Zeitbasen,
+  DST-abhaengiger Offset (+1h Winter / +2h Sommer); Weg A = 'UTC' gewaehlt.
+- Motoraenderung: genau EIN Bezeichner im SELECT; Diff V017->V018
+  21+/8-, 2 Hunks (Rest Kommentar/Docstring). n = 1288 unveraendert.
+- box_end dynamisch via searchsorted(ts_bkz, "2026-08-19"): 640 -> 644.
+  Grenztrade K1@640 (r = -1,000000) kippt H2 -> H1.
+- Neuarretierte Sollwerte V018: V0 14/+42.450970, V1_basis 14/+47.815697,
+  V1_aktiv 17/+65.835576 (H1 8/+38.919584 | H2 9/+26.915992).
+- E-15 (neu): H1/H2-Split ist ab V018 generationsgebunden.
+- Fail-Loud-Generationsbindung V017 <-> V018 (EXIT 1 vor dem ersten PNG),
+  expliziter Rueckweg via --engine _tmp_backup_engine_pre_v018.py.
+- Artefakt-Arretierung per SHA256 (Engine, Renderer, Adapter, 5 PNG,
+  Protokoll); Adapter unveraendert 0f3f8765...
+- Offener Punkt: kein Renderer-Backup pre_v018 (in place ueberschrieben).
+
+Inhalt (test/SESSION_HANDOFF.md): Append-Abschnitt "Einbrand 2026-09-11"
+mit Antworten auf die N5-Zeitbasis-Entscheidungsfragen, S0-S4-Uebersicht,
+S4-Dateiliste, Verifikationsstand (test/test.py 48 OK / 0 FAIL) und
+SHA-Ankern.
+
+test/ bleibt gitignored: Engine, Renderer, Backups, PNG und Protokolle
+sind untracked; Arretierung urkundlich per SHA256 (kein git add -f).
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

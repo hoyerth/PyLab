@@ -1,0 +1,73 @@
+==============================================================================================================
+AUG-SICHTTEST -- PNG-SATZ (Modus V017, Adapter v0.17 (Kanten-Extremum + M6-Heilung))
+==============================================================================================================
+  ENGINE         : _tmp_backup_engine_pre_v018.py  SHA256 4a3567659990586cb507f51e10575bdc9b64d82745523034c206b188e19f7298
+  Sichtbare Niveauwechsel (maskiert, §72.8): 66 (Baseline 205)
+  n=1288 | box_end=640 | Kanten 59 edges + 14 seeds
+  Baseline V0    : 14 Trades / +42.450970 R  (H1 7/+39.919584 | H2 7/+2.531386)
+  V1_basis (v0.1): 14 Trades / +47.815697 R
+  V1_aktiv (V017) : 17 Trades / +65.835576 R  (H1 7/+39.919584 | H2 10/+25.915992)
+  Quartett       : K67@903 +4.1198 | K67@980 +9.9877 | K73@981 +2.6955 | K67@1020 +3.0032 | QUARTETT +19.806095 R
+  G4-PHASENBODEN (§69.8): K77@1002 entry 68.5070 sl 68.2580 tp2 69.8700 | R +3.629016 | literaler Boden 68.4000 | LONG
+  Delta V017-v0.1: +18.019879 R  (Soll +18.019879)
+  Referenz-Marker (entfallene V01-Trades): K73@980 +2.4130
+  Neu im V017-Lauf: K67@903 +4.1198, K67@980 +9.9877, K73@981 +2.6955, K77@1002 +3.6290
+  Override-Info  : {67: (69.87, 'P9', 848, 1020)}
+  Sperr-Marker: Q29 x 69 | M6 ^ 24
+    Q29-Bars (H2) = [705, 706, 709, 792, 939, 940, 949, 950, 951, 959, 960, 961, 962, 985, 991, 992, 997, 998, 1002, 1028, 1029, 1030, 1056, 1072, 1073, 1102, 1103, 1104, 1145, 1146, 1152, 1153, 1154, 1155, 1156, 1157, 1158, 1163, 1164, 1171]
+    M6-Bars  (H2) = [643, 644, 645, 646, 647, 658, 662, 663, 664, 665, 668, 669, 727, 728, 729, 732, 1122, 1123, 1272]
+  Linien mit Netto-Preiswechsel: 41 (Baseline 54) | Niveauwechsel gesamt: 66 (Baseline 205)
+    K0    63.9060 -> 63.8380  (delta -0.0680, 3 Stufen)
+    K1    63.4640 -> 63.5070  (delta +0.0430, 3 Stufen)
+    K5    63.6180 -> 63.6860  (delta +0.0680, 4 Stufen)
+    K8    63.7970 -> 63.8150  (delta +0.0180, 2 Stufen)
+    K9    64.1090 -> 64.0770  (delta -0.0320, 2 Stufen)
+    K10   64.8630 -> 64.7910  (delta -0.0720, 3 Stufen)
+    K12   65.2560 -> 65.2110  (delta -0.0450, 2 Stufen)
+    K13   64.7530 -> 64.7980  (delta +0.0450, 2 Stufen)
+    K14   65.0090 -> 65.0670  (delta +0.0580, 4 Stufen)
+    K16   65.8470 -> 65.8200  (delta -0.0270, 2 Stufen)
+    K17   65.5900 -> 65.6540  (delta +0.0640, 5 Stufen)
+    K21   64.2080 -> 64.2130  (delta +0.0050, 2 Stufen)
+    K23   64.2990 -> 64.3880  (delta +0.0890, 4 Stufen)
+    K24   64.6000 -> 64.6470  (delta +0.0470, 5 Stufen)
+    K25   65.1220 -> 65.0980  (delta -0.0240, 3 Stufen)
+    K28   65.7340 -> 65.6840  (delta -0.0500, 2 Stufen)
+    K29   64.9120 -> 64.9250  (delta +0.0130, 2 Stufen)
+    K31   66.3640 -> 66.2880  (delta -0.0760, 3 Stufen)
+    K36   65.0240 -> 64.9610  (delta -0.0630, 2 Stufen)
+    K44   65.4900 -> 65.4370  (delta -0.0530, 2 Stufen)
+    K54   66.5920 -> 66.5980  (delta +0.0060, 2 Stufen)
+    K60   67.8970 -> 67.9750  (delta +0.0780, 2 Stufen)
+    K62   67.7260 -> 67.8070  (delta +0.0810, 3 Stufen)
+    K65   68.6730 -> 68.6480  (delta -0.0250, 2 Stufen)
+    K66   68.7120 -> 68.8130  (delta +0.1010, 3 Stufen)
+    K67   69.8700 -> 69.8990  (delta +0.0290, 2 Stufen)
+    K68   69.1550 -> 69.2280  (delta +0.0730, 2 Stufen)
+    K71   68.8700 -> 68.9580  (delta +0.0880, 4 Stufen)
+    K72   69.3160 -> 69.3740  (delta +0.0580, 2 Stufen)
+    K73   69.7150 -> 69.6110  (delta -0.1040, 3 Stufen)
+    K75   69.4250 -> 69.4130  (delta -0.0120, 2 Stufen)
+    K76   69.5210 -> 69.4740  (delta -0.0470, 2 Stufen)
+    K77   68.3920 -> 68.4130  (delta +0.0210, 2 Stufen)
+    K78   69.3320 -> 69.2630  (delta -0.0690, 2 Stufen)
+    K79   68.6320 -> 68.6410  (delta +0.0090, 2 Stufen)
+    K80   69.1890 -> 69.0820  (delta -0.1070, 3 Stufen)
+    K81   68.8840 -> 68.8140  (delta -0.0700, 2 Stufen)
+    K82   67.5350 -> 67.6000  (delta +0.0650, 3 Stufen)
+    K86   68.4990 -> 68.5250  (delta +0.0260, 2 Stufen)
+    K87   68.1830 -> 68.2330  (delta +0.0500, 2 Stufen)
+    K88   68.5480 -> 68.4770  (delta -0.0710, 2 Stufen)
+  Norm-Vergleich (Option b, Referenz-Bar 1259, Quelle Gesamtbestand P9 + P12_RESERVE):
+    K67   kausal 69.8990 vs Norm 69.9140  delta -0.0150  ABWEICHUNG (Label traegt Norm)
+    K73   kausal 69.6110 vs Norm 69.5550  delta +0.0560  ABWEICHUNG (Label traegt Norm)
+    K77   kausal 68.4130 vs Norm 68.3700  delta +0.0430  ABWEICHUNG (Label traegt Norm)
+    K82   kausal 67.5530 vs Norm 67.6355  delta -0.0825  ABWEICHUNG (Label traegt Norm)
+  Plateau-Label K67 (gerendert): K67 69.975 -> 69.870 (P9-Override) -> 69.899 *  Norm 69.9140
+  PNG -> probe_v017_01_gesamt.png  (2,069,808 B)
+  PNG -> probe_v017_02_h1_box.png  (872,335 B)
+  PNG -> probe_v017_03_h2_phasen.png  (1,715,697 B)
+  PNG -> probe_v017_04_p9_regime.png  (1,193,351 B)
+  PNG -> probe_v017_05_kantenkarte.png  (2,067,831 B)
+
+Satz vollstaendig: probe_v017_01_gesamt.png, probe_v017_02_h1_box.png, probe_v017_03_h2_phasen.png, probe_v017_04_p9_regime.png, probe_v017_05_kantenkarte.png

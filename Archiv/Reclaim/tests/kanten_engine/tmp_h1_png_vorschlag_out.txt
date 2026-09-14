@@ -1,0 +1,11 @@
+﻿========================================================================================================================
+VORSCHAU-PNG: Ist-Regel vs. entkoppelte Regel
+========================================================================================================================
+  IST  | Trades  9 | Netto-R  +23.02 | Zyklus 11 | Stacking  4 | -> kanten_engine_trades_AUG_VORSCHAU_ist.png
+  NEU  | Trades 14 | Netto-R  +40.45 | Zyklus 36 | Stacking  0 | -> kanten_engine_trades_AUG_VORSCHAU_neu.png
+
+  K20-Pfade 12.08. (Vergleich):
+    IST : bar 229->entry 231 +6.92R
+    NEU : bar 229->entry 231 +6.92R | bar 242->entry 245 +3.95R
+
+  Arretierte Datei unberuehrt: kanten_engine_trades_AUG_mC.png

@@ -1,0 +1,53 @@
+﻿E-34n/6  Hook 1 / wirksame Basis (V019) im Fenster 1072..1078
+================================================================================================================
+
+bar 1072 (25.08. 15:00) H68.2300 L67.4880 | Segment=A1_AUTO_77 boden=82
+   Hook1 FREIGABE  LONG=None  SHORT=None
+   K82  basis_bei=67.5530 wirksam=67.5530 tc=2 lo<base=True diff=0.0650 tol=0.0811 imBand=True dist_u%=+0.096
+   K62  basis_bei=67.7830 wirksam=67.7830 tc=4 lo<base=True diff=0.2950 tol=0.0813 imBand=False dist_u%=+0.435
+   K85  basis_bei=67.4200 wirksam=67.4200 tc=0 lo<base=False diff=-0.0680 tol=0.0809 imBand=True dist_u%=-0.101
+   K60  basis_bei=67.9750 wirksam=67.9750 tc=3 lo<base=True diff=0.4870 tol=0.0816 imBand=False dist_u%=+0.716
+
+bar 1073 (25.08. 15:15) H67.7430 L67.4620 | Segment=A1_AUTO_77 boden=82
+   Hook1 FREIGABE  LONG=None  SHORT=None
+   K82  basis_bei=67.5530 wirksam=67.5530 tc=2 lo<base=True diff=0.0910 tol=0.0811 imBand=False dist_u%=+0.135
+   K62  basis_bei=67.7830 wirksam=67.7830 tc=4 lo<base=True diff=0.3210 tol=0.0813 imBand=False dist_u%=+0.474
+   K85  basis_bei=67.4200 wirksam=67.4200 tc=0 lo<base=False diff=-0.0420 tol=0.0809 imBand=True dist_u%=-0.062
+   K60  basis_bei=67.9750 wirksam=67.9750 tc=3 lo<base=True diff=0.5130 tol=0.0816 imBand=False dist_u%=+0.755
+
+bar 1074 (25.08. 15:30) H67.8020 L67.4550 | Segment=A1_AUTO_77 boden=82
+   Hook1 FREIGABE  LONG=None  SHORT=None
+   K82  basis_bei=67.5530 wirksam=67.5530 tc=2 lo<base=True diff=0.0980 tol=0.0811 imBand=False dist_u%=+0.145
+   K62  basis_bei=67.7830 wirksam=67.7830 tc=4 lo<base=True diff=0.3280 tol=0.0813 imBand=False dist_u%=+0.484
+   K85  basis_bei=67.4200 wirksam=67.4200 tc=0 lo<base=False diff=-0.0350 tol=0.0809 imBand=True dist_u%=-0.052
+   K60  basis_bei=67.9750 wirksam=67.9750 tc=3 lo<base=True diff=0.5200 tol=0.0816 imBand=False dist_u%=+0.765
+
+bar 1075 (25.08. 15:45) H67.6910 L67.4200 | Segment=A1_AUTO_77 boden=82
+   Hook1 FREIGABE  LONG=None  SHORT=None
+   K82  basis_bei=67.5530 wirksam=67.5530 tc=2 lo<base=True diff=0.1330 tol=0.0811 imBand=False dist_u%=+0.197
+   K62  basis_bei=67.7830 wirksam=67.7830 tc=4 lo<base=True diff=0.3630 tol=0.0813 imBand=False dist_u%=+0.536
+   K85  basis_bei=67.4200 wirksam=67.4200 tc=0 lo<base=False diff=0.0000 tol=0.0809 imBand=True dist_u%=+0.000
+   K60  basis_bei=67.9750 wirksam=67.9750 tc=3 lo<base=True diff=0.5550 tol=0.0816 imBand=False dist_u%=+0.816
+
+bar 1076 (25.08. 16:00) H67.9730 L67.6730 | Segment=A1_AUTO_77 boden=82
+   Hook1 FREIGABE  LONG=None  SHORT=None
+   K82  basis_bei=67.5530 wirksam=67.5530 tc=2 lo<base=False diff=-0.1200 tol=0.0811 imBand=False dist_u%=-0.178
+   K62  basis_bei=67.7830 wirksam=67.7830 tc=4 lo<base=True diff=0.1100 tol=0.0813 imBand=False dist_u%=+0.162
+   K85  basis_bei=67.4200 wirksam=67.4200 tc=0 lo<base=False diff=-0.2530 tol=0.0809 imBand=False dist_u%=-0.375
+   K60  basis_bei=67.9750 wirksam=67.9750 tc=3 lo<base=True diff=0.3020 tol=0.0816 imBand=False dist_u%=+0.444
+
+bar 1077 (25.08. 16:15) H68.0310 L67.6890 | Segment=A1_AUTO_77 boden=82
+   Hook1 FREIGABE  LONG=None  SHORT=None
+   K82  basis_bei=67.5530 wirksam=67.5530 tc=2 lo<base=False diff=-0.1360 tol=0.0811 imBand=False dist_u%=-0.201
+   K62  basis_bei=67.7830 wirksam=67.7830 tc=4 lo<base=True diff=0.0940 tol=0.0813 imBand=False dist_u%=+0.139
+   K85  basis_bei=67.4200 wirksam=67.4200 tc=1 lo<base=False diff=-0.2690 tol=0.0809 imBand=False dist_u%=-0.399
+   K60  basis_bei=67.9750 wirksam=67.9750 tc=3 lo<base=True diff=0.2860 tol=0.0816 imBand=False dist_u%=+0.421
+
+bar 1078 (25.08. 16:30) H68.2070 L67.6820 | Segment=A1_AUTO_77 boden=82
+   Hook1 FREIGABE  LONG=None  SHORT=None
+   K82  basis_bei=67.5530 wirksam=67.5530 tc=2 lo<base=False diff=-0.1290 tol=0.0811 imBand=False dist_u%=-0.191
+   K62  basis_bei=67.7830 wirksam=67.7830 tc=4 lo<base=True diff=0.1010 tol=0.0813 imBand=False dist_u%=+0.149
+   K85  basis_bei=67.4200 wirksam=67.4200 tc=1 lo<base=False diff=-0.2620 tol=0.0809 imBand=False dist_u%=-0.389
+   K60  basis_bei=67.9750 wirksam=67.9750 tc=3 lo<base=True diff=0.2930 tol=0.0816 imBand=False dist_u%=+0.431
+
+ENDE E-34n/6

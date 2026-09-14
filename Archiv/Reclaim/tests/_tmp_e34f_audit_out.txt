@@ -1,0 +1,41 @@
+====================================================================================================
+E-34f AUDIT DER V019-SPEZIFIKATION GEGEN DIE ADAPTER-PRUEFER (read-only)
+====================================================================================================
+Adapter: backtest_lab/phasen_regime_adapter.py (unveraendert)
+Engine : tmp_kanten_engine_replay.py
+
+--- A) Anwender-Fassung (P9 als 77/67) ---
+   verifiziere_gegen_scan         FEHLER: Phasen-Kante K77 (P9_BODEN_RECLAIM) hat falsche Seite: erwartet OBEN, gefunden UNTEN.
+   verifiziere_niveau_overrides   OK
+   verifiziere_boden_literale     OK
+
+--- B) Audit-Fassung (P9 = P9_BODEN_RECLAIM) ---
+   verifiziere_gegen_scan         OK
+   verifiziere_niveau_overrides   OK
+   verifiziere_boden_literale     OK
+
+====================================================================================================
+SEGMENT-DATEN (Audit-Fassung)
+====================================================================================================
+phasen_id           start   ende   decke   boden  ziel_short   ziel_long  override   literal
+P9                    848   1020     K67     K77     68.3700     69.9140     69.87      68.4
+A1_AUTO_77           1033   1173     K67     K82     67.5350     69.8990      None      None
+A2_AUTO_77           1174   1287     K73     K82     67.5530     69.6380      None      None
+
+====================================================================================================
+SOLLWERT-ABGLEICH
+====================================================================================================
+   hook_2_ziel-Modus an den Nahtstellen:
+      bar  1021: BLOCKIERT
+      bar  1032: BLOCKIERT
+      bar  1033: PHASE
+      bar  1173: PHASE
+      bar  1174: PHASE
+      bar  1287: PHASE
+      bar  1288: BLOCKIERT
+   aktive Phasen (Anzahl): 255 / 267
+
+   Ergebnis A) bestanden: False
+   Ergebnis B) bestanden: True
+
+ENDE E-34f

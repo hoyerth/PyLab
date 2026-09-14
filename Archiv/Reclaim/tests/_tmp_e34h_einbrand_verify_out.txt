@@ -1,0 +1,79 @@
+====================================================================================================
+E-34h VERIFIKATION DES V019-EINBRANDS (read-only)
+====================================================================================================
+Adapter: phasen_regime_adapter.py  30663 B  SHA256 4f50b6b0829ad031613acb9edcfd79c6316a2082cda35152821bf010cb861e83
+Zeilen: 691  CRLF: 0  endet mit NL: True
+
+--- Schritt 1: Konstruktion (Import hat die Fail-Loud-Pruefer bereits durchlaufen) ---
+  [OK ] ADAPTER_V019 existiert
+  [OK ] AKTIVE_SEGMENTE_V019 existiert
+  [OK ] Plateau-Konstanten 41/114/77
+  [OK ] P9 is P9_BODEN_RECLAIM (uebernommen, nicht neu)
+  [OK ] P9-Override 69.87 erhalten
+  [OK ] P9-Boden-Literal 68.40 erhalten
+  [OK ] A1 ohne Boden-Literal (G4 inert)
+  [OK ] A2 ohne Boden-Literal (G4 inert)
+  [OK ] A1/A2 toleranz == 1.0
+
+--- Schritt 1b: Fail-Loud-Pruefer gegen den echten Scan ---
+  [OK ] verifiziere_gegen_scan @REF 848
+  [OK ] verifiziere_gegen_scan @REF 980
+  [OK ] verifiziere_gegen_scan @REF 1259
+  [OK ] verifiziere_niveau_overrides
+  [OK ] verifiziere_boden_literale
+
+--- Schritt 1c: Nahtstellen + aktive Phasen ---
+  [OK ] bar 1020: PHASE
+        -> PHASE      phase=P9
+  [OK ] bar 1021: BLOCKIERT
+        -> BLOCKIERT  phase=None
+  [OK ] bar 1032: BLOCKIERT
+        -> BLOCKIERT  phase=None
+  [OK ] bar 1033: PHASE
+        -> PHASE      phase=A1_AUTO_77
+  [OK ] bar 1173: PHASE
+        -> PHASE      phase=A1_AUTO_77
+  [OK ] bar 1174: PHASE
+        -> PHASE      phase=A2_AUTO_77
+  [OK ] bar 1287: PHASE
+        -> PHASE      phase=A2_AUTO_77
+  [OK ] bar 1288: BLOCKIERT
+        -> BLOCKIERT  phase=None
+  [OK ] aktive Phasen 1021..1287 == 255/267 (ist 255)
+
+--- Schritt 1d: Plateau-SSoT ---
+  [OK ] d=40 -> ist_im_plateau=False
+  [OK ] d=41 -> ist_im_plateau=True
+  [OK ] d=77 -> ist_im_plateau=True
+  [OK ] d=114 -> ist_im_plateau=True
+  [OK ] d=115 -> ist_im_plateau=False
+
+--- Schritt 2: Integritaets-Audit (Altsatz unberuehrt) ---
+  [OK ] DEFAULT_ADAPTER == (P9,)
+  [OK ] AKTIVE_DEFAULT_SEGMENTE == (P9,)
+  [OK ] ADAPTER_V014 == (P9_DIRECT_69_87,)
+  [OK ] ADAPTER_V015 == (P9_BODEN_RECLAIM,)
+  [OK ] RESERVE_SEGMENTE == (P12_RESERVE,)
+  [OK ] ADAPTER_V019.segmente == (P9_BODEN_RECLAIM, A1, A2)
+  [OK ] Benchmark-Konstanten unveraendert
+  [OK ] QUARTETT_V014_BARS == (903, 980, 981, 1020)
+  [OK ] K67_OVERRIDE_69_87 == 69.87
+  [OK ] P9_BODEN_LITERAL == 68.4000
+  [OK ] P9 / P9_DIRECT_69_87 / P12_RESERVE Rollen unveraendert
+
+--- Schritt 3: Datenbasis fuer die 9 Renderer-Stellen ---
+  (1) AdapterMode: 'V019' ergaenzen
+  (2) Import: ADAPTER_V019
+  (3) _KONFIGURATIONEN['V019']
+  (4) KONFIGURATION_V019 anlegen
+  (5) Adapter-Wahl: V019-Zweig VOR der g4_aktiv-Kette
+  (6) _V19/_NEU/_VTAG/_VER_TEXT
+  (7) Engine-Guard: V019 -> box_end == 644
+  (8) assert len(V1)-len(V1_basis): V019-Zweig (23-14=9)
+  (9) neu_basis_soll / referenz_soll / quartett_r_soll: MESSEN
+
+  gemessene Sollwerte V019: gesamt 23 / +82.614385 | H1 8 / +38.919584 | H2 +43.694801 | ZIEL 6 / +16.778809 | P9 +23.435111
+
+ERGEBNIS: ALLE PRUEFUNGEN OK
+
+ENDE E-34h

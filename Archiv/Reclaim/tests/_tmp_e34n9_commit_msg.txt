@@ -1,0 +1,21 @@
+docs(handoff): E-34n — Kantenlaeufer-Docht forensisch geklaert (Root Cause ist die Pool-Ordnung), ZP-5-Varianten A–D gemessen
+
+- E-34n/1..8: Geometrie, Entscheidungs-Trace (78 V019-Kandidaten),
+  K82-Fall Kante/Docht, Konfiguration, Vier-Bar-Gegenrechnung,
+  Hook-1-Freigabe, `_kandidat`-Pool-Dump.
+- Root Cause: dormante Linien (K48/K3/K17) belegen POS 0-2 => die Wand-Regel
+  `if pos == 0` faellt fuer K82 weg => `touch_conf` 2 < `min_touches_handelbar`
+  => K62 handelt. Zusaetzlich `schlaf_windows` [(1074,1174)].
+- E-34n/9: ZP-5-Varianten A (Spec) / B (+P9-Ausnahme) / C (+nur UNTEN) /
+  D (+nur echter Durchstich) gemessen. Arretierte ZP-4-Sollwerte
+  23 / +82.614385 (H1 8/+38.919584, H2 15/+43.694801, P9 5/+23.435111) und die
+  V018-Gegenprobe 17 / +65.835576 exakt reproduziert.
+- Erratum zu E-34n/8: die gemeldete "H1-Verletzung" war ein Fehletikett
+  (Partition ist `entry_bar < box_end` = 644); H1 ist in allen Varianten
+  bit-identisch 8 / +38.919584. Betroffen ist allein P9 (nur Variante A).
+- Rein lesend: Engine, Renderer und Adapter unveraendert (SHA-Anker im Handoff).
+- Offen: Variantenwahl A/B/D vor dem Einbrand von ZP-5 (Y7).
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

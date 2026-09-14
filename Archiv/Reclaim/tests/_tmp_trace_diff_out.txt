@@ -1,0 +1,17 @@
+﻿[ist] 17 Trades / +65.835576 R
+[p12] 14 Trades / +47.815697 R
+
+[Trace] ist 261 Zeilen | p12 243 Zeilen
+====================================================================================================
+ERSTE ABWEICHUNG im Trace
+====================================================================================================
+  Zeile 17:
+    [ist] ==  900 SHORT poolsort freigabe None kd None
+    [ist] ==  900 LONG poolsort freigabe None kd None
+    [ist] ==  901 SHORT poolsort freigabe None kd None
+    [ist] ==  901 LONG poolsort freigabe None kd None
+    [ist] ==  902 SHORT poolsort freigabe None kd None
+    [ist] ==  902 LONG poolsort freigabe None kd None
+    [ist] ==  903 SHORT poolsort freigabe None kd 67
+    [p12] ==  903 SHORT poolsort freigabe 67 kd None
+====================================================================================================

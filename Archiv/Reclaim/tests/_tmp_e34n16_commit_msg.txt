@@ -1,0 +1,17 @@
+feat(v019): Kausalitaet arretiert (Stufen 1a/1b/2a/2b) - dualer Lauf 23/+85.577150, Hindsight-Marker
+
+- Adapter: kausale_segmentfenster() + ADAPTER_V019_KAUSAL (A1 1033..1249);
+  AUTO_VERSCHMELZUNG_SCHWELLE an PhasenReifeKonfiguration gebunden
+  (_verifiziere_reife_bindung, raise statt assert -> -O-sicher).
+- Renderer: verifiziere_gegen_scan (V019, datengetrieben); dualer Lauf
+  V1_kausal (primaer) vs V1_batch (HINDSIGHT); duale <1e-6-Asserts;
+  Hindsight-Marker (mfc=none, grau, ls=-- nur an Spanne) auf Panels 01/03/05.
+- Spiegelspez: Paragraph 54.4 (Regeln 15-20) + Paragraph 55.1 (S11-S13).
+- Handoff: E-34n/16-Urkunde (Erst-Arretierung der fuenf PNG-SHA256).
+
+Invariante: Panels 02/04 byte-groessenidentisch; Engine unveraendert.
+Keine UI-/Regressionstests.
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

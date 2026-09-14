@@ -1,0 +1,128 @@
+====================================================================================================================
+H20.18 -- WHOLE-AUGUST AUG26 | AL TLAST-TEST DER O1-REGEL | n = 1932 | box_end(nativ) = Bar 1104
+====================================================================================================================
+Engine-SHA 53f28e1b6971a64df59beaf3... (UNVERAENDERT)
+Katalog: 90 edges + 26 seeds = 116 Linien | lebt: letzter bestaetigter Docht b+2<=k, b >= k-96 | Band 0.12 %
+Fenster 2026-08-03..2026-09-01 (endexklusiv) | ts[0] = 2026-08-03 00:00:00 | ts[-1] = 2026-08-31 22:45:00
+
+--------------------------------------------------------------------------------------------------------------------
+A. KATALOG-DIVERGENZ (entlarvt Lookahead / Altlast)
+--------------------------------------------------------------------------------------------------------------------
+   V_full  vs. V_noseed:  498 abweichende Bars | erster 64 (03.08(64))
+        Bar    64 03.08(64)  full=(1, 7) | V_noseed=(1, 3)
+        Bar    65 03.08(65)  full=(1, 7) | V_noseed=(1, 3)
+        Bar    66 03.08(66)  full=(1, 7) | V_noseed=(1, 3)
+        Bar    67 03.08(67)  full=(1, 7) | V_noseed=(1, 3)
+        Bar    68 03.08(68)  full=(1, 7) | V_noseed=(1, 3)
+        Bar    69 03.08(69)  full=(1, 7) | V_noseed=(1, 3)
+        Bar    70 03.08(70)  full=(1, 7) | V_noseed=(1, 3)
+        Bar    71 03.08(71)  full=(1, 7) | V_noseed=(1, 3)
+        Bar    72 03.08(72)  full=(1, 7) | V_noseed=(1, 3)
+        Bar    73 03.08(73)  full=(1, 7) | V_noseed=(1, 3)
+        Bar    74 03.08(74)  full=(1, 7) | V_noseed=(1, 3)
+        Bar    75 03.08(75)  full=(1, 7) | V_noseed=(1, 3)
+        ... (+486 weitere)
+   V_full  vs. V_kausal: 1037 abweichende Bars | erster 10 (03.08(10))
+        Bar    10 03.08(10)  full=(1, None) | V_kausal=(None, None)
+        Bar    11 03.08(11)  full=(1, None) | V_kausal=(None, None)
+        Bar    12 03.08(12)  full=(1, None) | V_kausal=(None, None)
+        Bar    13 03.08(13)  full=(1, None) | V_kausal=(None, None)
+        Bar    14 03.08(14)  full=(1, 3) | V_kausal=(None, None)
+        Bar    15 03.08(15)  full=(1, 3) | V_kausal=(None, None)
+        Bar    16 03.08(16)  full=(1, 3) | V_kausal=(2, None)
+        Bar    17 03.08(17)  full=(1, 3) | V_kausal=(2, None)
+        Bar    18 03.08(18)  full=(1, 3) | V_kausal=(2, None)
+        Bar    19 03.08(19)  full=(1, 3) | V_kausal=(2, None)
+        Bar    20 03.08(20)  full=(1, 3) | V_kausal=(2, None)
+        Bar    21 03.08(21)  full=(1, 3) | V_kausal=(2, None)
+        ... (+1025 weitere)
+
+--------------------------------------------------------------------------------------------------------------------
+B. BALANCE AKTIV / INAKTIV -- Bars ohne gueltiges Paar (eine Seite None)
+--------------------------------------------------------------------------------------------------------------------
+   V_full   :   12 inaktive Bars (  0.6 %) in 1 Block/Luecken
+            2..13    (  12 Bars)  03.08(02)..03.08(13)
+   V_noseed :   12 inaktive Bars (  0.6 %) in 1 Block/Luecken
+            2..13    (  12 Bars)  03.08(02)..03.08(13)
+   V_kausal :   28 inaktive Bars (  1.5 %) in 1 Block/Luecken
+            2..29    (  28 Bars)  03.08(02)..03.08(29)
+
+--------------------------------------------------------------------------------------------------------------------
+C. SEGMENTE je Schwelle (START = 0, KEIN Anker) -- je Variante
+--------------------------------------------------------------------------------------------------------------------
+
+   V_full -- 97 Umschaltpunkte, 96 Rohsegmente
+      Schwelle  41: 11 Segmente -> [(14, 63), (64, 576), (577, 619), (620, 777), (778, 1266), (1267, 1396), (1397, 1492), (1493, 1583), (1584, 1633), (1634, 1860), (1861, 1931)]
+      Schwelle  48:  6 Segmente -> [(14, 777), (778, 1266), (1267, 1396), (1397, 1583), (1584, 1633), (1634, 1931)]
+      Schwelle  60:  5 Segmente -> [(14, 777), (778, 1266), (1267, 1396), (1397, 1633), (1634, 1931)]
+      Schwelle  77:  3 Segmente -> [(14, 1396), (1397, 1633), (1634, 1931)]
+      Schwelle 114:  2 Segmente -> [(14, 1633), (1634, 1931)]
+         S1     14..1396  (1383) 03.08(14)..24.08(16)  K1 58.3970 / K3 57.7990
+         S2   1397..1633  ( 237) 24.08(17)..26.08(69)  K117 69.9310 / K127 68.3920
+         S3   1634..1931  ( 298) 26.08(70)..31.08(91)  K123 69.6380 / K132 67.5530
+
+   V_noseed -- 89 Umschaltpunkte, 88 Rohsegmente
+      Schwelle  41: 12 Segmente -> [(14, 151), (152, 338), (339, 576), (577, 619), (620, 777), (778, 894), (895, 1266), (1267, 1396), (1397, 1492), (1493, 1633), (1634, 1860), (1861, 1931)]
+      Schwelle  48:  7 Segmente -> [(14, 151), (152, 777), (778, 1266), (1267, 1396), (1397, 1492), (1493, 1633), (1634, 1931)]
+      Schwelle  60:  6 Segmente -> [(14, 777), (778, 1266), (1267, 1396), (1397, 1492), (1493, 1633), (1634, 1931)]
+      Schwelle  77:  4 Segmente -> [(14, 1396), (1397, 1492), (1493, 1633), (1634, 1931)]
+      Schwelle 114:  2 Segmente -> [(14, 1633), (1634, 1931)]
+         S1     14..1396  (1383) 03.08(14)..24.08(16)  K1 58.3970 / K3 57.7990
+         S2   1397..1492  (  96) 24.08(17)..25.08(20)  K117 69.9310 / K127 68.3920
+         S3   1493..1633  ( 141) 25.08(21)..26.08(69)  K117 69.8990 / K132 67.5350
+         S4   1634..1931  ( 298) 26.08(70)..31.08(91)  K123 69.6380 / K132 67.5530
+
+   V_kausal -- 85 Umschaltpunkte, 84 Rohsegmente
+      Schwelle  41: 15 Segmente -> [(30, 44), (45, 294), (295, 338), (339, 492), (493, 576), (577, 619), (620, 777), (778, 894), (895, 1348), (1349, 1409), (1410, 1450), (1451, 1515), (1516, 1633), (1634, 1860), (1861, 1931)]
+      Schwelle  48: 10 Segmente -> [(30, 44), (45, 338), (339, 492), (493, 619), (620, 777), (778, 1348), (1349, 1450), (1451, 1515), (1516, 1633), (1634, 1931)]
+      Schwelle  60:  6 Segmente -> [(30, 44), (45, 492), (493, 777), (778, 1515), (1516, 1633), (1634, 1931)]
+      Schwelle  77:  2 Segmente -> [(30, 1633), (1634, 1931)]
+      Schwelle 114:  2 Segmente -> [(30, 1633), (1634, 1931)]
+         S1     30..1633  (1604) 03.08(30)..26.08(69)  K2 58.2690 / K3 57.7990
+         S2   1634..1931  ( 298) 26.08(70)..31.08(91)  K123 69.6380 / K132 67.5530
+
+--------------------------------------------------------------------------------------------------------------------
+D. ABGLEICH mit dem arretierten AUG-Stand (+460)
+--------------------------------------------------------------------------------------------------------------------
+   Soll                V_full                    V_noseed                  V_kausal                  
+   P9 1308..1480       ~14..1396                ~14..1396                ~30..1633                
+   A1 1493..1633       ~1397..1633                =1493..1633                ~30..1633                
+   A2 1634..1747       ~1634..1931                ~1634..1931                ~1634..1931                
+
+   Grenzen-Delta je Variante (naechste Regelgrenze zur Sollgrenze):
+   V_full   : P9 +89 | A1 +96 | A2 +0  | Grenzen [14, 1397, 1634]
+   V_noseed : P9 +89 | A1 +0 | A2 +0  | Grenzen [14, 1397, 1493, 1634]
+   V_kausal : P9 +326 | A1 +141 | A2 +0  | Grenzen [30, 1634]
+
+--------------------------------------------------------------------------------------------------------------------
+E. FENSTERENDE-SINGLETONS (seeds) -- wo liegen sie?
+--------------------------------------------------------------------------------------------------------------------
+   K7    UNTEN basis=  56.5470 geburts_bar=   62 (03.08(62)) erster_docht=   62 n_dochte=1
+   K10   UNTEN basis=  57.1480 geburts_bar=   70 (03.08(70)) erster_docht=   70 n_dochte=1
+   K11   UNTEN basis=  57.5960 geburts_bar=   80 (03.08(80)) erster_docht=   80 n_dochte=1
+   K17   UNTEN basis=  58.8740 geburts_bar=  130 (04.08(38)) erster_docht=  130 n_dochte=1
+   K18   UNTEN basis=  59.1140 geburts_bar=  149 (04.08(57)) erster_docht=  149 n_dochte=1
+   K25   UNTEN basis=  59.3760 geburts_bar=  191 (05.08(07)) erster_docht=  191 n_dochte=1
+   K21   UNTEN basis=  59.5930 geburts_bar=  165 (04.08(73)) erster_docht=  165 n_dochte=1
+   K27   UNTEN basis=  60.6440 geburts_bar=  211 (05.08(27)) erster_docht=  211 n_dochte=1
+   K41   UNTEN basis=  60.8510 geburts_bar=  349 (06.08(73)) erster_docht=  349 n_dochte=1
+   K44   UNTEN basis=  61.1200 geburts_bar=  379 (07.08(11)) erster_docht=  379 n_dochte=1
+   K39   UNTEN basis=  61.6180 geburts_bar=  315 (06.08(39)) erster_docht=  315 n_dochte=1
+   K97   UNTEN basis=  62.7210 geburts_bar= 1110 (19.08(06)) erster_docht= 1110 n_dochte=1
+   K100  UNTEN basis=  62.8590 geburts_bar= 1125 (19.08(21)) erster_docht= 1125 n_dochte=1
+   K64   UNTEN basis=  64.0710 geburts_bar=  503 (10.08(43)) erster_docht=  503 n_dochte=1
+   K91   OBEN  basis=  65.4090 geburts_bar=  796 (13.08(60)) erster_docht=  796 n_dochte=1
+   K95   OBEN  basis=  65.7910 geburts_bar= 1012 (18.08(00)) erster_docht= 1012 n_dochte=1
+   K94   OBEN  basis=  66.2060 geburts_bar=  933 (17.08(13)) erster_docht=  933 n_dochte=1
+   K105  UNTEN basis=  66.4550 geburts_bar= 1234 (20.08(38)) erster_docht= 1234 n_dochte=1
+   K144  OBEN  basis=  67.2080 geburts_bar= 1825 (28.08(77)) erster_docht= 1825 n_dochte=1
+   K135  UNTEN basis=  67.4200 geburts_bar= 1535 (25.08(63)) erster_docht= 1535 n_dochte=1
+   K145  OBEN  basis=  67.4520 geburts_bar= 1896 (31.08(56)) erster_docht= 1896 n_dochte=1
+   K113  UNTEN basis=  67.8310 geburts_bar= 1280 (20.08(84)) erster_docht= 1280 n_dochte=1
+   K114  UNTEN basis=  68.0370 geburts_bar= 1288 (21.08(00)) erster_docht= 1288 n_dochte=1
+   K143  UNTEN basis=  70.0990 geburts_bar= 1803 (28.08(55)) erster_docht= 1803 n_dochte=1
+   K141  UNTEN basis=  70.1880 geburts_bar= 1791 (28.08(43)) erster_docht= 1791 n_dochte=1
+   K142  OBEN  basis=  70.6200 geburts_bar= 1797 (28.08(49)) erster_docht= 1797 n_dochte=1
+
+ENDE H20.18 (Altlast-Test AUG26)
+

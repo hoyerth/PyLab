@@ -1,0 +1,152 @@
+SICHTPRUEFUNG MAI / JUN / JUL -- V021-BASELINE (F3), je Monat ein PNG, KEINE Equity-Grafik (H20.52 Paragraph 8)
+Zeitbasis: BKZ = time AT TIME ZONE 'UTC' (Kanon K1/K4), keine
+           Zeitzonen-Projektion, X-Achse = Bar-Zeit ohne Offset.
+STAND BASELINE | touch_band_pct 0.12 | sl_buffer_usd 0.05 | tp1_anteil_pct 50
+
+===== MAI (2026-05-01 .. 2026-06-01 exkl.) | n=1922 | edges=78 seeds=27 | STAND BASELINE =====
+  MAI  2026-05-01 .. 2026-05-29 (BKZ, ohne Offset)   |   Bars 0..1921   |   Vollauf box_end_bar = n   |   STAND BASELINE (F3): V021-Defaults, ist_legacy=True, Delegation an B._se_trades
+  Trades 35   |   SumR +38.318126 R   |   Win-Rate 17.14 % (6/29)   |   Profit-Faktor 2.6115
+  Risiko |sl-entry| USD:  min 0.1130   median 0.3220   max 1.2190   |   TP2 distinct: 4 (72.6220, 73.1280, 75.8790, 87.9720)
+  Exits  1. Haelfte: TP1 14 / SL 21 / ENDE 0   |   2. Haelfte: TP2 1 / SL 32 / ENDE 2   |   magenta Ringe = ENDE-Glattstellung am Fensterrand (2 Trades betroffen)
+  KONZENTRATION: bester Trade K103 (+51.668268 R, Risiko 0.2160 USD) = 134.8 % des SumR   ->   SumR OHNE diesen Trade -13.350142 R
+  
+  DIAGNOSTIK (F5, keine Handelswirkung): crvExt = dist(entry,Extremum)/Risiko | crvNae = dist(entry,NAECHSTE Kante)/Risiko (K1: Signal-Bar) | ordN = sl<entry<poc<naechste bzw. gespiegelt
+    crvExt : min   2.07 median  29.63 max 119.31   (n=35)
+    crvNae : min   0.08 median   2.09 max  10.42   (n=35)
+    ordN erfuellt: 6 von 35   |   Gegenkanten-Pool leer (nan): 0   |   crvNae < 1.0: 7   |   < 1.5: 13
+  
+    #   Bar  Kante Richt    entry       SL  Risiko      poc      tp2          R  crvExt  crvNae  ordN
+    1    58     K1 SHORT  74.3650  74.9630  0.5980  73.1638  73.1280    -1.0000   2.07   0.54  nein
+    2   142     K6  LONG  73.3090  72.8350  0.4740  75.8102  75.8790    -1.0000   5.42   2.64  nein
+    3   162     K6  LONG  73.3630  73.0340  0.3290  75.8102  75.8790    -1.0000   7.65   0.80  nein
+    4   301    K17 SHORT  75.6800  75.8630  0.1830  75.6308  72.6220    -0.3657  16.71   0.23  nein
+    5   309    K14 SHORT  75.8350  75.9770  0.1420  75.7976  72.6220    -0.3682  22.63   1.39    JA
+    6   316    K12 SHORT  76.1460  76.3700  0.2240  73.6562  72.6220    -1.0000  15.73   2.09  nein
+    7   319     K8 SHORT  76.9120  77.2230  0.3110  73.6691  72.6220    -1.0000  13.79   3.97  nein
+    8   331     K8 SHORT  76.8350  77.3690  0.5340  73.6691  72.6220    -1.0000   7.89   2.17  nein
+    9   381    K41 SHORT  77.6730  78.1350  0.4620  73.6005  72.6220    -1.0000  10.93   1.26  nein
+   10   441    K52 SHORT  79.7940  80.2210  0.4270  73.6489  72.6220    -1.0000  16.80   5.23  nein
+   11   456    K52 SHORT  79.6450  79.8820  0.2370  79.6098  72.6220    -0.4258  29.63   0.98    JA
+   12   472    K52 SHORT  79.7690  80.0320  0.2630  79.6098  72.6220    -0.1974  27.17   1.36    JA
+   13   482    K52 SHORT  79.7190  80.1750  0.4560  79.6098  72.6220    -0.3803  15.56   0.67    JA
+   14   516    K62 SHORT  80.4840  80.8660  0.3820  73.6310  72.6220    -1.0000  20.58   1.17  nein
+   15   540    K65 SHORT  80.8100  80.9230  0.1130  80.6443  72.6220    +0.2332  72.46   4.25    JA
+   16   541    K62 SHORT  80.6320  80.8980  0.2660  80.4922  72.6220    -0.2372  30.11   1.14    JA
+   17   728    K84 SHORT  86.3500  86.5460  0.1960  80.3287  72.6220    -1.0000  70.04   4.21  nein
+   18   743    K81 SHORT  87.1300  87.3370  0.2070  80.2697  72.6220    -1.0000  70.09   7.75  nein
+   19   758    K96 SHORT  86.8330  86.9880  0.1550  80.3212  72.6220    -1.0000  91.68   5.61  nein
+   20   786    K82 SHORT  86.8170  87.0190  0.2020  80.3678  72.6220    -1.0000  70.27   1.95  nein
+   21   816    K99 SHORT  87.7250  88.3590  0.6340  80.3339  72.6220    -1.0000  23.82   1.79  nein
+   22   825   K103 SHORT  87.5860  87.8370  0.2510  80.2353  72.6220    -1.0000  59.62   3.96  nein
+   23   831    K99 SHORT  87.7020  88.0240  0.3220  80.3339  72.6220    -1.0000  46.83   3.45  nein
+   24   841   K103 SHORT  87.5890  87.8050  0.2160  80.2353  72.6220   +51.6683  69.29   4.62  nein
+   25   844   K102 SHORT  87.1790  87.5510  0.3720  80.4151  72.6220    -1.0000  39.13   1.58  nein
+   26  1150    K11  LONG  75.7900  75.4520  0.3380  76.0273  87.9720    -1.0000  36.04   8.71  nein
+   27  1214     K6  LONG  73.1770  73.0530  0.1240  73.4991  87.9720    +0.7988 119.31   2.68  nein
+   28  1319     K9  LONG  75.3760  74.8760  0.5000  75.5973  87.9720    -1.0000  25.19   5.06  nein
+   29  1345    K40  LONG  74.7840  74.5980  0.1860  74.9869  87.9720    +0.0456  70.90  10.42  nein
+   30  1600    K11  LONG  75.9540  75.5930  0.3610  76.0643  87.9720    -0.3472  33.29   8.61  nein
+   31  1685    K40  LONG  74.9650  74.5630  0.4020  75.0006  87.9720    -0.4557  32.36   5.27  nein
+   32  1700    K37  LONG  74.2390  73.3450  0.8940  75.9988  87.9720    -1.0000  15.36   1.56  nein
+   33  1754     K6  LONG  73.1530  72.9150  0.2380  75.9731  87.9720    -1.0000  62.26   1.29  nein
+   34  1766    K24  LONG  72.9370  71.7180  1.2190  75.9979  87.9720    +2.2104  12.33   0.08  nein
+   35  1793    K30  LONG  73.0150  72.6550  0.3600  75.9054  87.9720    +7.1395  41.55   0.47  nein
+  
+  DATEI-SHA256: 53f28e1b6971a64d...   (Basis/V020/V021/Adapter byte-identisch arretiert)
+  PNG: F:\Python\PyLab\test\render_mai_baseline.png
+  Gegenkanten-Kids: K6, K14, K29, K108
+  getradete Kids  : K1, K6, K8, K9, K11, K12, K14, K17, K24, K30, K37, K40, K41, K52, K62, K65, K81, K82, K84, K96, K99, K102, K103
+  cumR-Endstand (nur Zahl, keine Grafik): +38.318126 R
+  TRAEGER (F20, optisch markiert): K103@842 +51.668268 R  [+134.8 % des SumR]
+
+===== JUN (2026-06-01 .. 2026-07-01 exkl.) | n=2009 | edges=117 seeds=40 | STAND BASELINE =====
+  JUN  2026-06-01 .. 2026-06-30 (BKZ, ohne Offset)   |   Bars 0..2008   |   Vollauf box_end_bar = n   |   STAND BASELINE (F3): V021-Defaults, ist_legacy=True, Delegation an B._se_trades
+  Trades 28   |   SumR -11.421155 R   |   Win-Rate 14.29 % (4/24)   |   Profit-Faktor 0.5131
+  Risiko |sl-entry| USD:  min 0.0770   median 0.2965   max 0.8510   |   TP2 distinct: 1 (76.8490)
+  Exits  1. Haelfte: TP1 3 / SL 23 / ENDE 2   |   2. Haelfte: TP2 0 / SL 26 / ENDE 2   |   magenta Ringe = ENDE-Glattstellung am Fensterrand (2 Trades betroffen)
+  KONZENTRATION: bester Trade K170 (+10.014019 R, Risiko 0.2140 USD) = -87.7 % des SumR   ->   SumR OHNE diesen Trade -21.435173 R
+  
+  DIAGNOSTIK (F5, keine Handelswirkung): crvExt = dist(entry,Extremum)/Risiko | crvNae = dist(entry,NAECHSTE Kante)/Risiko (K1: Signal-Bar) | ordN = sl<entry<poc<naechste bzw. gespiegelt
+    crvExt : min   3.69 median  37.80 max 118.93   (n=28)
+    crvNae : min   0.07 median   3.27 max  17.83   (n=28)
+    ordN erfuellt: 4 von 28   |   Gegenkanten-Pool leer (nan): 0   |   crvNae < 1.0: 6   |   < 1.5: 8
+  
+    #   Bar  Kante Richt    entry       SL  Risiko      poc      tp2          R  crvExt  crvNae  ordN
+    1   189    K12  LONG  74.7900  74.2320  0.5580  75.7190  76.8490    -1.0000   3.69   0.77  nein
+    2   214    K12  LONG  74.5640  74.3030  0.2610  74.5870  76.8490    -0.4559   8.75   2.50    JA
+    3   271    K27  LONG  73.1850  73.1080  0.0770  75.7186  76.8490    -1.0000  47.58  17.83  nein
+    4   309    K27  LONG  73.2300  72.9510  0.2790  73.3107  76.8490    -1.0000  12.97   0.56    JA
+    5   386    K31  LONG  72.5840  72.3030  0.2810  73.3081  76.8490    -1.0000  15.18   2.85    JA
+    6   421    K31  LONG  72.7380  72.4080  0.3300  73.3081  76.8490    +0.3638  12.46   0.07  nein
+    7   492    K50  LONG  66.9730  66.5230  0.4500  73.2994  76.8490    -1.0000  21.95   2.20  nein
+    8   504    K50  LONG  66.9860  66.8250  0.1610  73.2994  76.8490    -1.0000  61.26   6.07  nein
+    9   620    K54  LONG  66.1950  65.8830  0.3120  68.3758  76.8490    -1.0000  34.15   3.50  nein
+   10   684    K77  LONG  63.8030  63.6130  0.1900  68.2499  76.8490    -1.0000  68.66   6.53  nein
+   11   696    K77  LONG  64.1770  63.7170  0.4600  68.2499  76.8490    -1.0000  27.55   0.12  nein
+   12   732    K81  LONG  63.4080  63.2460  0.1620  68.4134  76.8490    -1.0000  82.97   5.10  nein
+   13   773    K85  LONG  64.4510  64.0070  0.4440  64.7473  76.8490    -1.0000  27.92   0.49  nein
+   14   792    K92  LONG  63.6020  63.4450  0.1570  63.8483  76.8490    -1.0000  84.38   3.12    JA
+   15   793    K89  LONG  62.9340  62.8170  0.1170  68.3603  76.8490    -1.0000 118.93   9.90  nein
+   16  1300    K72  LONG  65.1090  64.9630  0.1460  65.3235  76.8490    -1.0000  80.41   6.97  nein
+   17  1316    K81  LONG  63.4170  63.2340  0.1830  70.2130  76.8490    -1.0000  73.40   3.69  nein
+   18  1438   K139  LONG  65.6020  65.2130  0.3890  65.7369  76.8490    -1.0000  28.91   3.88  nein
+   19  1451    K72  LONG  65.1370  64.9250  0.2120  65.3235  76.8490    -1.0000  55.25   4.93  nein
+   20  1478    K96  LONG  62.9860  62.6630  0.3230  70.1677  76.8490    -1.0000  42.92   3.42  nein
+   21  1487    K86  LONG  62.9280  62.3080  0.6200  70.2206  76.8490    -1.0000  22.45   1.88  nein
+   22  1501    K86  LONG  62.3920  61.9930  0.3990  70.2206  76.8490    -1.0000  36.23   4.26  nein
+   23  1540    K88  LONG  61.6530  61.2670  0.3860  70.0621  76.8490    -1.0000  39.37   1.40  nein
+   24  1597   K151  LONG  60.9180  60.7630  0.1550  70.0528  76.8490    -1.0000 102.78   5.37  nein
+   25  1657   K164  LONG  56.9680  56.2790  0.6890  70.2287  76.8490    -1.0000  28.85   1.19  nein
+   26  1754   K170  LONG  56.4060  56.1920  0.2140  64.3660  76.8490   +10.0140  95.53   3.64  nein
+   27  1766   K175  LONG  57.3060  56.4550  0.8510  64.2678  76.8490    +1.4606  22.96   0.14  nein
+   28  1872   K178  LONG  57.6630  57.3480  0.3150  58.1017  76.8490    +0.1963  60.91   1.51  nein
+  
+  DATEI-SHA256: 53f28e1b6971a64d...   (Basis/V020/V021/Adapter byte-identisch arretiert)
+  PNG: F:\Python\PyLab\test\render_jun_baseline.png
+  Gegenkanten-Kids: K14
+  getradete Kids  : K12, K27, K31, K50, K54, K72, K77, K81, K85, K86, K88, K89, K92, K96, K139, K151, K164, K170, K175, K178
+  cumR-Endstand (nur Zahl, keine Grafik): -11.421155 R
+  TRAEGER (F20, optisch markiert): K170@1755 +10.014019 R  [-87.7 % des SumR]
+
+===== JUL (2026-07-01 .. 2026-08-01 exkl.) | n=2100 | edges=79 seeds=14 | STAND BASELINE =====
+  JUL  2026-07-01 .. 2026-07-31 (BKZ, ohne Offset)   |   Bars 0..2099   |   Vollauf box_end_bar = n   |   STAND BASELINE (F3): V021-Defaults, ist_legacy=True, Delegation an B._se_trades
+  Trades 21   |   SumR -4.325355 R   |   Win-Rate 14.29 % (3/18)   |   Profit-Faktor 0.7174
+  Risiko |sl-entry| USD:  min 0.0890   median 0.2760   max 0.4960   |   TP2 distinct: 2 (57.4460, 62.6740)
+  Exits  1. Haelfte: TP1 7 / SL 14 / ENDE 0   |   2. Haelfte: TP2 1 / SL 19 / ENDE 1   |   magenta Ringe = ENDE-Glattstellung am Fensterrand (1 Trades betroffen)
+  KONZENTRATION: bester Trade K38 (+10.155643 R, Risiko 0.2370 USD) = -234.8 % des SumR   ->   SumR OHNE diesen Trade -14.480998 R
+  
+  DIAGNOSTIK (F5, keine Handelswirkung): crvExt = dist(entry,Extremum)/Risiko | crvNae = dist(entry,NAECHSTE Kante)/Risiko (K1: Signal-Bar) | ordN = sl<entry<poc<naechste bzw. gespiegelt
+    crvExt : min   2.47 median  18.98 max  64.99   (n=21)
+    crvNae : min   0.19 median   1.90 max  15.04   (n=21)
+    ordN erfuellt: 0 von 21   |   Gegenkanten-Pool leer (nan): 0   |   crvNae < 1.0: 8   |   < 1.5: 10
+  
+    #   Bar  Kante Richt    entry       SL  Risiko      poc      tp2          R  crvExt  crvNae  ordN
+    1    55     K0 SHORT  58.6690  59.1650  0.4960  57.4811  57.4460    -1.0000   2.47   2.08  nein
+    2   243    K25 SHORT  61.9870  62.4800  0.4930  61.9456  57.4460    -1.0000   9.21   0.47  nein
+    3   276    K38 SHORT  62.2470  62.4840  0.2370  62.2342  57.4460   +10.1556  20.26   0.72  nein
+    4   279    K25 SHORT  61.9930  62.1310  0.1380  61.9456  57.4460    -0.3284  32.95   3.07  nein
+    5   509     K1  LONG  58.2660  57.9840  0.2820  58.3372  62.6740    -1.0000  15.63   1.50  nein
+    6   511     K4  LONG  57.7950  57.5380  0.2570  60.8687  62.6740    -1.0000  18.98   0.19  nein
+    7   519     K8  LONG  57.8970  57.7450  0.1520  58.0096  62.6740    -0.1296  31.43   0.35  nein
+    8   785     K4  LONG  57.9590  57.4630  0.4960  59.8611  62.6740    -1.0000   9.51   0.23  nein
+    9   794     K3  LONG  57.6160  57.3350  0.2810  59.9293  62.6740    -1.0000  18.00   0.81  nein
+   10   806     K3  LONG  57.5480  57.3240  0.2240  59.9293  62.6740    -1.0000  22.88   1.32  nein
+   11   818     K3  LONG  57.6040  57.3280  0.2760  59.9293  62.6740    -1.0000  18.37   0.87  nein
+   12   982    K72  LONG  57.6170  57.2090  0.4080  58.4275  62.6740    -1.0000  12.39   0.46  nein
+   13  1008    K72  LONG  57.3230  57.1800  0.1430  58.4275  62.6740    -1.0000  37.42   3.36  nein
+   14  1048    K76  LONG  56.6160  56.3340  0.2820  58.4507  62.6740    -1.0000  21.48   1.90  nein
+   15  1082    K85  LONG  55.4640  55.2970  0.1670  59.9372  62.6740    -1.0000  43.17  10.11  nein
+   16  1098    K85  LONG  55.7370  55.2810  0.4560  59.9372  62.6740    -1.0000  15.21   3.11  nein
+   17  1146    K96  LONG  55.1110  54.9390  0.1720  59.9327  62.6740    -1.0000  43.97   2.56  nein
+   18  1762    K77  LONG  56.9560  56.6470  0.3090  56.9985  62.6740    -0.4312  18.50   4.55  nein
+   19  1797    K77  LONG  56.9660  56.5960  0.3700  56.9985  62.6740    +0.7142  15.43   3.82  nein
+   20  1827    K77  LONG  56.8900  56.8010  0.0890  56.9985  62.6740    +0.1097  64.99  15.04  nein
+   21  1887    K77  LONG  56.9650  56.7660  0.1990  56.9985  62.6740    -0.4158  28.69   7.11  nein
+  
+  DATEI-SHA256: 53f28e1b6971a64d...   (Basis/V020/V021/Adapter byte-identisch arretiert)
+  PNG: F:\Python\PyLab\test\render_jul_baseline.png
+  Gegenkanten-Kids: K3, K35
+  getradete Kids  : K0, K1, K3, K4, K8, K25, K38, K72, K76, K77, K85, K96
+  cumR-Endstand (nur Zahl, keine Grafik): -4.325355 R
+  TRAEGER (F20, optisch markiert): K38@277 +10.155643 R  [-234.8 % des SumR]
+

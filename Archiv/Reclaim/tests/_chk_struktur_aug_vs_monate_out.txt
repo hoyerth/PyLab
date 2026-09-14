@@ -1,0 +1,186 @@
+FORENSIK -- AUG vs MAI/JUN/JUL (Baseline-Pfad, read-only)
+========================================================================================================
+SHA Baseline  53f28e1b6971a64d...  OK
+SHA Adapter   770eda2c75aaa135...  OK
+Adapter-Segmente (ADAPTER_V019_KAUSAL): [(848, 1020), (1033, 1249), (1174, 1287)]
+
+MAI: n=1922  edges=78 seeds=27  Trades=35  SumR=+38.318126
+JUN: n=2009  edges=117 seeds=40  Trades=28  SumR=-11.421155
+JUL: n=2100  edges=79 seeds=14  Trades=21  SumR=-4.325355
+AUG: n=1288  edges=59 seeds=14  Trades=14  SumR=+42.450970  (Vollauf)
+
+========================================================================================================
+KENNZAHLEN JE FENSTER (Baseline-Pfad)
+
+Fenster      n  Trades        SumR  LONG  SHORT   SL  TP2  ENDE  Top1-Anteil        Kursbereich
+MAI       1922      35  +38.318126    12     23   32    1     2       134.8%    71.77..89.36   
+JUN       2009      28  -11.421155    28      0   26    0     2       -87.7%    55.59..77.00   
+JUL       2100      21   -4.325355    17      4   19    1     1      -234.8%    54.75..63.25   
+AUG       1288      14  +42.450970     4     10    7    6     1        37.4%    62.55..70.00   
+
+========================================================================================================
+B1 -- AUTONOMIE: traegt der August-Erfolg ohne externe Segmentgrenzen?
+  AUG Baseline (autonom, ohne Segmentgrenzen): 14 Trades / +42.450970 R
+  AUG mit Segmentwand (setzt EXTERNE Adapter-Grenzen voraus, segmentwand_modus='AN'):
+      18 Trades / +52.876174 R  ->  Delta +4 Trades / +10.425204 R
+  Die vier Zuwaechse entstehen NUR mit den handgepflegten ADAPTER_V019_KAUSAL-Segmenten
+  [(848,1020),(1033,1249),(1174,1287)]. Diese Tabelle enthaelt ausschliesslich AUG-Zeitraeume;
+  fuer MAI/JUN/JUL existiert nichts dergleichen.
+  -> Aussage: die Engine ist NICHT autark. Der Zuwachs ist an eine externe, monatsspezifische Tabelle gebunden.
+
+========================================================================================================
+B2/B3/B4 -- STRUKTURPRUEFUNG DER SETUPS
+
+--------------------------------------------------------------------------------------------------------
+MAI   n=1922   Trades=35   SumR=+38.318126
+  B2 Richtung: LONG 12 / SHORT 23   (34 % LONG)
+  B3 Durchstichtiefe (dist, %) an den Signalbars:  min 0.00804  median 0.17808  max 0.58775
+     Verteilung: <0.02%: 1   <0.05%: 5   <0.10%: 12   <0.20%: 20
+     Schranke cfg.sweep_mindestdurchstich_pct = 0.0  ->  jede Tiefe > 0 zaehlt
+     Reclaim-Stufen: {'STUFE_1_IN_BAR': 26, 'STUFE_2_KERZE_2': 5, 'STUFE_3_KERZE_3': 4}
+     Signalbars mit Koerper GEGEN die Trade-Richtung: 20/35
+  B4 tp2: Zielpreis im Restfenster NIE erreicht: 10/35
+     davon hatte eine NAECHSTGELEGENE Gegenkante: 10   ->  diese waere erreicht worden: 10
+     tp2-Abstand USD: min 1.2370  median 12.1820  max 15.1030
+     Risiko USD     : min 0.1130  median 0.3220  max 1.2190   ->  Chance/Risiko median 37.83x
+     Trendausrichtung (Vorlauf 96 Bars, close[k]-close[k-96]):  mit dem Trend 3/35   gegen 32
+  B5 Kanten-Konzentration (Top-4 nach |R|):
+       K103  +50.668268 R   ( +132.2 % des SumR)
+       K30    +7.139468 R   (  +18.6 % des SumR)
+       K24    +2.210384 R   (   +5.8 % des SumR)
+       K6     -2.201210 R   (   -5.7 % des SumR)
+     Kanten mit Trades: 23 von 105 Linien
+
+--------------------------------------------------------------------------------------------------------
+JUN   n=2009   Trades=28   SumR=-11.421155
+  B2 Richtung: LONG 28 / SHORT 0   (100 % LONG)
+  B3 Durchstichtiefe (dist, %) an den Signalbars:  min 0.01449  median 0.15938  max 0.58972
+     Verteilung: <0.02%: 1   <0.05%: 7   <0.10%: 10   <0.20%: 16
+     Schranke cfg.sweep_mindestdurchstich_pct = 0.0  ->  jede Tiefe > 0 zaehlt
+     Reclaim-Stufen: {'STUFE_1_IN_BAR': 20, 'STUFE_2_KERZE_2': 5, 'STUFE_3_KERZE_3': 3}
+     Signalbars mit Koerper GEGEN die Trade-Richtung: 20/28
+  B4 tp2: Zielpreis im Restfenster NIE erreicht: 28/28
+     davon hatte eine NAECHSTGELEGENE Gegenkante: 28   ->  diese waere erreicht worden: 22
+     tp2-Abstand USD: min 2.0590  median 13.0460  max 20.4430
+     Risiko USD     : min 0.0770  median 0.3120  max 0.8510   ->  Chance/Risiko median 41.81x
+     Trendausrichtung (Vorlauf 96 Bars, close[k]-close[k-96]):  mit dem Trend 2/28   gegen 26
+  B5 Kanten-Konzentration (Top-4 nach |R|):
+       K170  +10.014019 R   (  -87.7 % des SumR)
+       K27    -2.000000 R   (  +17.5 % des SumR)
+       K50    -2.000000 R   (  +17.5 % des SumR)
+       K77    -2.000000 R   (  +17.5 % des SumR)
+     Kanten mit Trades: 20 von 157 Linien
+
+--------------------------------------------------------------------------------------------------------
+JUL   n=2100   Trades=21   SumR=-4.325355
+  B2 Richtung: LONG 17 / SHORT 4   (81 % LONG)
+  B3 Durchstichtiefe (dist, %) an den Signalbars:  min 0.00352  median 0.12348  max 0.58169
+     Verteilung: <0.02%: 1   <0.05%: 2   <0.10%: 8   <0.20%: 14
+     Schranke cfg.sweep_mindestdurchstich_pct = 0.0  ->  jede Tiefe > 0 zaehlt
+     Reclaim-Stufen: {'STUFE_1_IN_BAR': 16, 'STUFE_2_KERZE_2': 4, 'STUFE_3_KERZE_3': 1}
+     Signalbars mit Koerper GEGEN die Trade-Richtung: 14/21
+  B4 tp2: Zielpreis im Restfenster NIE erreicht: 17/21
+     davon hatte eine NAECHSTGELEGENE Gegenkante: 17   ->  diese waere erreicht worden: 17
+     tp2-Abstand USD: min 1.2230  median 5.0700  max 7.5630
+     Risiko USD     : min 0.0890  median 0.2760  max 0.4960   ->  Chance/Risiko median 18.37x
+     Trendausrichtung (Vorlauf 96 Bars, close[k]-close[k-96]):  mit dem Trend 0/21   gegen 21
+  B5 Kanten-Konzentration (Top-4 nach |R|):
+       K38   +10.155643 R   ( -234.8 % des SumR)
+       K3     -3.000000 R   (  +69.4 % des SumR)
+       K4     -2.000000 R   (  +46.2 % des SumR)
+       K72    -2.000000 R   (  +46.2 % des SumR)
+     Kanten mit Trades: 12 von 93 Linien
+
+--------------------------------------------------------------------------------------------------------
+AUG   n=1288   Trades=14   SumR=+42.450970
+  B2 Richtung: LONG 4 / SHORT 10   (29 % LONG)
+  B3 Durchstichtiefe (dist, %) an den Signalbars:  min 0.01975  median 0.25037  max 0.49718
+     Verteilung: <0.02%: 1   <0.05%: 3   <0.10%: 4   <0.20%: 7
+     Schranke cfg.sweep_mindestdurchstich_pct = 0.0  ->  jede Tiefe > 0 zaehlt
+     Reclaim-Stufen: {'STUFE_1_IN_BAR': 7, 'STUFE_2_KERZE_2': 5, 'STUFE_3_KERZE_3': 2}
+     Signalbars mit Koerper GEGEN die Trade-Richtung: 9/14
+  B4 tp2: Zielpreis im Restfenster NIE erreicht: 4/14
+     davon hatte eine NAECHSTGELEGENE Gegenkante: 4   ->  diese waere erreicht worden: 4
+     tp2-Abstand USD: min 2.2840  median 2.9490  max 7.0010
+     Risiko USD     : min 0.0930  median 0.2640  max 0.6210   ->  Chance/Risiko median 11.17x
+     Trendausrichtung (Vorlauf 96 Bars, close[k]-close[k-96]):  mit dem Trend 0/14   gegen 14
+  B5 Kanten-Konzentration (Top-4 nach |R|):
+       K20   +35.044402 R   (  +82.6 % des SumR)
+       K45    +6.480880 R   (  +15.3 % des SumR)
+       K5     +5.697713 R   (  +13.4 % des SumR)
+       K16    -1.822531 R   (   -4.3 % des SumR)
+     Kanten mit Trades: 9 von 73 Linien
+
+========================================================================================================
+HEBEL-GEGENUEBERSTELLUNG (post-hoc auf den vorhandenen Setups)
+  Kein Engine-Eingriff: gefiltert werden die bereits erzeugten Trades.
+
+--------------------------------------------------------------------------------------------------------
+MAI   Ausgang: 35 Trades / +38.318126 R
+  U2-Hebel -- Mindest-Durchstichtiefe:
+     >=  0.02 %  ->   34 Trades / +38.272561 R   (entfernt   1 /  +0.045565 R)
+     >=  0.05 %  ->   30 Trades / +31.101117 R   (entfernt   5 /  +7.217008 R)
+     >=  0.10 %  ->   23 Trades / +36.350852 R   (entfernt  12 /  +1.967274 R)
+     >=  0.20 %  ->   15 Trades / -10.367292 R   (entfernt  20 / +48.685418 R)
+     >=  0.30 %  ->    9 Trades /  -5.169906 R   (entfernt  26 / +43.488032 R)
+  U2b-Hebel -- Trendausrichtung (Vorlauf 96 Bars):
+     mit dem Trend :   3 Trades /  -3.000000 R
+     gegen den Trend:  32 Trades / +41.318126 R
+  U3-Hebel -- Zielpreis in der Naehe statt am Extremum:
+     Setups, deren tp2 im Restfenster ueberhaupt erreichbar war:  25 / 35
+     SumR dieser Setups: +32.926836 R  (nicht: SumR der tp2-Treffer)
+
+--------------------------------------------------------------------------------------------------------
+JUN   Ausgang: 28 Trades / -11.421155 R
+  U2-Hebel -- Mindest-Durchstichtiefe:
+     >=  0.02 %  ->   27 Trades / -11.784936 R   (entfernt   1 /  +0.363782 R)
+     >=  0.05 %  ->   21 Trades /  -5.784936 R   (entfernt   7 /  -5.636218 R)
+     >=  0.10 %  ->   18 Trades /  -2.784936 R   (entfernt  10 /  -8.636218 R)
+     >=  0.20 %  ->   12 Trades /  -7.798955 R   (entfernt  16 /  -3.622200 R)
+     >=  0.30 %  ->    6 Trades /  -2.343016 R   (entfernt  22 /  -9.078138 R)
+  U2b-Hebel -- Trendausrichtung (Vorlauf 96 Bars):
+     mit dem Trend :   2 Trades /  -2.000000 R
+     gegen den Trend:  26 Trades /  -9.421155 R
+  U3-Hebel -- Zielpreis in der Naehe statt am Extremum:
+     Setups, deren tp2 im Restfenster ueberhaupt erreichbar war:   0 / 28
+     SumR dieser Setups:  +0.000000 R  (nicht: SumR der tp2-Treffer)
+
+--------------------------------------------------------------------------------------------------------
+JUL   Ausgang: 21 Trades / -4.325355 R
+  U2-Hebel -- Mindest-Durchstichtiefe:
+     >=  0.02 %  ->   20 Trades /  -4.435046 R   (entfernt   1 /  +0.109691 R)
+     >=  0.05 %  ->   19 Trades /  -4.106694 R   (entfernt   2 /  -0.218660 R)
+     >=  0.10 %  ->   13 Trades /  +1.309072 R   (entfernt   8 /  -5.634427 R)
+     >=  0.20 %  ->    7 Trades /  -4.716966 R   (entfernt  14 /  +0.391611 R)
+     >=  0.30 %  ->    5 Trades /  -3.285777 R   (entfernt  16 /  -1.039578 R)
+  U2b-Hebel -- Trendausrichtung (Vorlauf 96 Bars):
+     mit dem Trend :   0 Trades /  +0.000000 R
+     gegen den Trend:  21 Trades /  -4.325355 R
+  U3-Hebel -- Zielpreis in der Naehe statt am Extremum:
+     Setups, deren tp2 im Restfenster ueberhaupt erreichbar war:   4 / 21
+     SumR dieser Setups:  +7.827292 R  (nicht: SumR der tp2-Treffer)
+
+--------------------------------------------------------------------------------------------------------
+AUG   Ausgang: 14 Trades / +42.450970 R
+  U2-Hebel -- Mindest-Durchstichtiefe:
+     >=  0.02 %  ->   13 Trades / +42.798416 R   (entfernt   1 /  -0.347446 R)
+     >=  0.05 %  ->   11 Trades / +42.747911 R   (entfernt   3 /  -0.296941 R)
+     >=  0.10 %  ->   10 Trades / +43.222996 R   (entfernt   4 /  -0.772026 R)
+     >=  0.20 %  ->    7 Trades / +19.993018 R   (entfernt   7 / +22.457952 R)
+     >=  0.30 %  ->    4 Trades / +16.295305 R   (entfernt  10 / +26.155665 R)
+  U2b-Hebel -- Trendausrichtung (Vorlauf 96 Bars):
+     mit dem Trend :   0 Trades /  +0.000000 R
+     gegen den Trend:  14 Trades / +42.450970 R
+  U3-Hebel -- Zielpreis in der Naehe statt am Extremum:
+     Setups, deren tp2 im Restfenster ueberhaupt erreichbar war:  10 / 14
+     SumR dieser Setups: +44.400465 R  (nicht: SumR der tp2-Treffer)
+
+========================================================================================================
+BEFUNDE (Kurzfassung)
+  B1  Autonomie: WIDERLEGT fuer den Zuwachs. Die 18/+52.876174 sind an
+      die externe AUG-Tabelle ADAPTER_V019_KAUSAL gebunden. Ohne sie
+      bleiben 14/+42.450970 (AUG) -- und fuer MAI/JUN/JUL gibt es
+      ueberhaupt keine Grenzen (segmentwand_modus='AN' -> ValueError).
+  B2/B3/B4/B5: siehe Tabellen oben.
+
+PROTOKOLL: F:\Python\PyLab\test\_chk_struktur_aug_vs_monate_out.txt

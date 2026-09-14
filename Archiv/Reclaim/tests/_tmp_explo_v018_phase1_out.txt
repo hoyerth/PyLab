@@ -1,0 +1,862 @@
+====================================================================================================
+PHASE 1 / H2-MARKTANALYSE 1021..1287 -- READ-ONLY, Generation V018 (BKZ)
+====================================================================================================
+Engine   : tmp_kanten_engine_replay.py  SHA256 4a576a766670d684c30381969e4d7349d5786b1b22ea6dda08b93b7d811bb38a
+Zeitbasis: BKZ = "time" AT TIME ZONE 'UTC' (docs/ZEITBASIS_KANON.md)
+n=1288 | box_end_bar=644 (Kalendergrenze, H1/H2-Split) | Renderer-Voll-Lauf: scan['box_end_bar']:=n (Z. 507)
+Analysefenster: Bars 1021..1287 | Lookback ab 848 (Adapter-Scope)
+Adapter  : ADAPTER_V015 (V018-Modus) | segmente=[('P9', 848, 1020)]
+           start_scope_bar=848 | aktive_phase_bei(1021)=None
+cfg      : band=0.12% | V-S>=3 | max_sweep=0.6% | Q29=25.0% | M6 max_seed_dist=0.75% | wall_live=96
+Validierung: V0=14 Trades (SOLL 14), V1_aktiv=17 Trades / +65.835576 R (SOLL 17 / +65.835576)
+            H1=8/+38.919584 | H2=9/+26.915992
+
+####################################################################################################
+# 1.1 KANTEN-STATUS-MATRIX (Fokus-Sextett + dynamische Aussenkanten)
+####################################################################################################
+
+-- Kantenkatalog (alle Kanten, die im Analysefenster existieren) --
+ kid seite     basis touches erster_piv geburts anker  promov letzter_wick
+  38  OBEN   65.4090       1        336     336 False      -1          336
+  42  OBEN   66.2060       1        473     473 False      -1          473
+  43  OBEN   65.7910       1        552     552 False      -1          552
+  59  OBEN   68.9890      10        805     847  True     853         1202
+  61  OBEN   68.3283       6        812     823 False      -1         1258
+  65  OBEN   68.6768       5        842    1001 False      -1         1151
+  67  OBEN   69.9458       5        873     881 False      -1         1020
+  73  OBEN   69.6785       6        909     928 False      -1         1272
+  75  OBEN   69.4210       3        920     953 False      -1         1134
+  76  OBEN   69.5183       7        932     974 False      -1         1283
+  78  OBEN   69.2880       5        938     956 False      -1         1097
+  80  OBEN   69.1265       4        942    1012 False      -1         1225
+  81  OBEN   68.8590       4        996    1083 False      -1         1229
+  83  OBEN   68.0895       2       1034    1175 False      -1         1175
+  84  OBEN   68.2200       3       1059    1067 False      -1         1072
+  88  OBEN   68.5286       5       1169    1236 False      -1         1250
+  89  OBEN   68.4320       1       1253    1253 False      -1         1253
+   3 UNTEN   62.9670       3         14     682  True     650          689
+   4 UNTEN   63.2520       1         20      20 False      -1           20
+   7 UNTEN   64.0710       1         43      43 False      -1           43
+  17 UNTEN   65.6024      13         92     111 False      -1          792
+  41 UNTEN   63.9160       1        392     392 False      -1          392
+  45 UNTEN   63.1560       1        643     643 False      -1          643
+  48 UNTEN   62.5625       2        657     673 False      -1          673
+  49 UNTEN   62.8590       1        665     665 False      -1          665
+  53 UNTEN   66.3710       1        748     748 False      -1          748
+  55 UNTEN   66.4550       1        774     774 False      -1          774
+  60 UNTEN   67.9081       7        810     813 False      -1         1244
+  62 UNTEN   67.7328       6        817    1039 False      -1         1256
+  63 UNTEN   67.8310       1        820     820 False      -1          820
+  64 UNTEN   68.0370       1        828     828 False      -1          828
+  66 UNTEN   68.7559       8        858     864 False      -1         1094
+  71 UNTEN   68.8912       5        894     924 False      -1         1222
+  72 UNTEN   69.3247       3        900     905 False      -1         1021
+  77 UNTEN   68.3597       6        934     991 False      -1         1227
+  79 UNTEN   68.6260       6        939     950 False      -1         1138
+  82 UNTEN   67.5455       4       1031    1056 False      -1         1259
+  85 UNTEN   67.4200       1       1075    1075 False      -1         1075
+  86 UNTEN   68.4750       4       1085    1103 False      -1         1153
+  87 UNTEN   68.2080       2       1116    1234 False      -1         1234
+
+-- Fokus-Sextett: Statuswechsel-Timeline (nur Aenderungen) --
+  bar  kid exists  lebt aktiv t_conf basis_bei letzter_piv
+ 1021   67   True  True  True      4   69.8990         980
+ 1022   67   True  True  True      5   69.8990        1020
+ 1117   67   True False  True      5   69.8990        1020
+ 1021   73   True  True  True      2   69.6380         928
+ 1025   73   True  True  True      3   69.6380        1023
+ 1120   73   True False  True      3   69.6380        1023
+ 1122   73   True  True  True      3   69.6380        1023
+ 1124   73   True  True  True      4   69.6380        1122
+ 1213   73   True  True  True      5   69.6110        1211
+ 1274   73   True  True  True      6   69.6110        1272
+ 1021   76   True  True  True      2   69.5210         974
+ 1071   76   True False  True      2   69.5210         974
+ 1126   76   True  True  True      2   69.5210         974
+ 1128   76   True  True  True      3   69.4740        1126
+ 1219   76   True  True  True      4   69.4740        1217
+ 1270   76   True  True  True      5   69.4740        1268
+ 1282   76   True  True  True      6   69.4740        1280
+ 1285   76   True  True  True      7   69.4740        1283
+ 1021   77   True  True  True      3   68.3920        1000
+ 1031   77  False  True False      3   68.3920        1000
+ 1097   77  False False False      3   68.3920        1000
+ 1157   77  False  True False      3   68.3920        1000
+ 1159   77   True  True  True      4   68.3920        1157
+ 1165   77  False  True False      4   68.3920        1157
+ 1210   77   True  True  True      5   68.4130        1208
+ 1229   77   True  True  True      6   68.4130        1227
+ 1244   77  False  True False      6   68.4130        1227
+ 1021   82  False False  True      0   67.5350       -1000
+ 1031   82  False  True  True      0   67.5350       -1000
+ 1032   82   True  True  True      0   67.5350       -1000
+ 1033   82   True  True  True      1   67.5350        1031
+ 1058   82   True  True  True      2   67.5530        1056
+ 1074   82  False  True False      2   67.5530        1056
+ 1153   82  False False False      2   67.5530        1056
+ 1172   82  False  True False      2   67.5530        1056
+ 1174   82   True  True  True      3   67.5530        1172
+ 1261   82   True  True  True      4   67.6000        1259
+ 1021   85  False False  True      0   67.4200       -1000
+ 1075   85  False  True  True      0   67.4200       -1000
+ 1076   85   True  True  True      0   67.4200       -1000
+ 1077   85   True  True  True      1   67.4200        1075
+ 1172   85   True False  True      1   67.4200        1075
+
+-- Dynamische Aussenkanten (existierende OBEN-Decke / UNTEN-Boden) --
+   (nur Wechsel; 'erreicht' = Docht-Extremum von k beruehrt/ueberschreitet)
+  bar decke_kid     decke decke_lebt boden_kid     boden boden_lebt
+ 1021        67   69.8990       True        48   62.5770      False
+ 1117        67   69.8990      False        48   62.5770      False
+
+####################################################################################################
+# 1.2 PIVOT-CHRONOLOGIE & 2-BAR-BESTAETIGUNG (Monatstief-Bereich)
+####################################################################################################
+
+Fenster-Extrema: Tief 67.4200 @ Bar 1075 | Hoch 69.7140 @ Bar 1272
+Bestaetigungslauf: L-Pivot an Bar m wird erst bei m+2 wirksam (mbar=k-2; _pivot_dual prueft +-2).
+
+-- Pivots (mbar) im Bereich 1040..1140 mit Wick-Aufnahme --
+ mbar typ     preis bestaetigt_ab_bar      aufgenommen_von   dist_%
+ 1041   H   68.2900              1043                  K61   0.0561
+ 1046   H   68.6480              1048                  K65   0.0419
+ 1052   L   67.7050              1054                  K62   0.0411
+ 1056   L   67.5530              1058                  K82   0.0111
+ 1059   H   68.2140              1061                  K84   0.0088
+ 1063   L   67.7830              1065                  K62   0.0741
+ 1067   H   68.2160              1069                  K84   0.0059
+ 1072   H   68.2300              1074                  K84   0.0147
+ 1075   L   67.4200              1077                  K85   0.0000
+ 1083   H   68.8860              1085                  K81   0.0392
+ 1085   L   68.4990              1087                  K86   0.0350
+ 1091   H   68.9430              1093                  K59   0.0667
+ 1094   L   68.7440              1096                  K66   0.0173
+ 1097   H   69.2740              1099                  K78   0.0202
+ 1103   L   68.5250              1105                  K86   0.0730
+ 1107   H   69.0820              1109                  K80   0.0644
+ 1113   H   68.8140              1115                  K81   0.0654
+ 1116   L   68.1830              1118                  K87   0.0367
+ 1122   H   69.7090              1124                  K73   0.0438
+ 1124   L   69.0840              1126   <neu/Sweep-Sperre>        -
+ 1126   H   69.4740              1128                  K76   0.0637
+ 1131   L   68.9580              1133                  K71   0.0970
+ 1134   H   69.4130              1136                  K75   0.0115
+ 1138   L   68.6080              1140                  K79   0.0262
+ 1140   H   68.9440              1142                  K59   0.0652
+
+-- Extremum 1075 im Detail --
+lo[1075]=67.4200 hi[1075]=67.6910 cl[1075]=67.6780 ts=2026-08-25T15:45
+Pivots @ 1075: ['L']
+   K84  seite=OBEN  basis=68.2200 touches=3 erster_pivot=1059 anker=False wicks@+-5=[1072]
+   K85  seite=UNTEN basis=67.4200 touches=1 erster_pivot=1075 anker=False wicks@+-5=[1075]
+
+####################################################################################################
+# 1.3 GATE-BARRIERE-PROTOKOLL 1021..1287 (kausale Kaskade je Bar x Richtung)
+####################################################################################################
+
+Reihenfolge der Gates (Engine-Z. 2564 ff.):
+  KANDIDAT_NONE -> M6(aussenkante) -> Q29(Quartil) -> STUFE0 -> F3 -> ZYKLUS -> KEIN_GEGNER -> HOOK2_BLOCKIERT/RAUM -> DEDUP -> TRADE
+
+-- Barriere-Histogramm (erstes schlagendes Gate, V1_aktiv/ADAPTER_V015) --
+   (534 = 267 Bars x 2 Richtungen; Engine-Laufgrenze: range(2, box_end-3) -> Bars 1285..1287 werden NICHT iteriert)
+                  KANDIDAT_NONE:  503
+                            Q29:   21
+                           PASS:    6
+                        M6(K67):    3
+                         STUFE0:    1
+
+-- KANDIDAT_NONE: Grund-Histogramm (alle 267 Bars x 2 Richtungen; inkl. der 6 nicht iterierten Bars) --
+      WAND_LEBT_UNERREICHT(K73):  166
+      WAND_LEBT_UNERREICHT(K82):  128
+      WAND_LEBT_UNERREICHT(K67):   96
+                POOL_ERSCHOEPFT:   44
+      WAND_LEBT_UNERREICHT(K86):   33
+      WAND_LEBT_UNERREICHT(K62):   15
+      WAND_LEBT_UNERREICHT(K77):   11
+      WAND_LEBT_UNERREICHT(K66):   10
+      WAND_LEBT_UNERREICHT(K60):    4
+                   UEBERDEHNUNG:    2
+
+-- WAND_LEBT_UNERREICHT: blockierende lebende Aussenwand je Kante --
+      WAND_LEBT_UNERREICHT(K73):  166
+      WAND_LEBT_UNERREICHT(K82):  128
+      WAND_LEBT_UNERREICHT(K67):   96
+      WAND_LEBT_UNERREICHT(K86):   33
+      WAND_LEBT_UNERREICHT(K62):   15
+      WAND_LEBT_UNERREICHT(K77):   11
+      WAND_LEBT_UNERREICHT(K66):   10
+      WAND_LEBT_UNERREICHT(K60):    4
+
+-- Alle Bars mit EXISTIERENDEM Kandidaten (Kaskade laeuft weiter) --
+  bar richtung    kd                    warum   dist_%     M6  Q29  stufe                  erstes_gate     sweep
+ 1028   LONG   K60                    INNEN   0.1250      - False      1                          Q29   67.8900
+ 1029   LONG   K77                    INNEN   0.5936      - False      0                          Q29   67.9860
+ 1030   LONG   K60                    INNEN   0.5399      - False      0                          Q29   67.6080
+ 1056   LONG   K62                    INNEN   0.2554      - False      1                          Q29   67.5530
+ 1072   LONG   K62                    INNEN   0.4352      - False      0                          Q29   67.4880
+ 1073   LONG   K62                    INNEN   0.4736      - False      0                          Q29   67.4620
+ 1102   LONG   K66                    INNEN   0.0305      - False      1                          Q29   68.7920
+ 1103   LONG   K66                    INNEN   0.4185      - False      2                          Q29   68.5250
+ 1104   LONG   K66                    INNEN   0.1904      - False      1                          Q29   68.6820
+ 1120  SHORT   K78                    INNEN   0.2613      - True      0                       STUFE0   69.4440
+ 1122  SHORT   K73                    INNEN   0.1020    K67 True      1                      M6(K67)   69.7090
+ 1123  SHORT   K73                    INNEN   0.0072    K67 True      1                      M6(K67)   69.6430
+ 1145   LONG   K79                    INNEN   0.2375      - False      0                          Q29   68.4780
+ 1146   LONG   K79                    INNEN   0.2375      - False      0                          Q29   68.4780
+ 1152   LONG   K86                    INNEN   0.0175      - False      0                          Q29   68.5130
+ 1153   LONG   K86                    INNEN   0.1240      - False      2                          Q29   68.4400
+ 1154   LONG   K86                    INNEN   0.1211      - False      1                          Q29   68.4420
+ 1155   LONG   K86                    INNEN   0.1182      - False      0                          Q29   68.4440
+ 1156   LONG   K86                    INNEN   0.1109      - False      0                          Q29   68.4490
+ 1157   LONG   K86                    INNEN   0.2452      - False      3                          Q29   68.3570
+ 1158   LONG   K86                    INNEN   0.1591      - False      2                          Q29   68.4160
+ 1163   LONG   K77                    INNEN   0.1214      - False      0                          Q29   68.3090
+ 1164   LONG   K77                    INNEN   0.5439      - False      0                          Q29   68.0200
+ 1171   LONG   K60                    INNEN   0.1442      - False      0                          Q29   67.8770
+ 1272  SHORT   K73                    INNEN   0.1480    K67 True      1                      M6(K67)   69.7140
+
+-- Kandidaten-Katalog: welche Kante stellt wann die aeusserste Wand? --
+   K60: 3 Bars -> 1028/L:Q29, 1030/L:Q29, 1171/L:Q29
+   K62: 3 Bars -> 1056/L:Q29, 1072/L:Q29, 1073/L:Q29
+   K66: 3 Bars -> 1102/L:Q29, 1103/L:Q29, 1104/L:Q29
+   K73: 3 Bars -> 1122/S:M6, 1123/S:M6, 1272/S:M6
+   K77: 3 Bars -> 1029/L:Q29, 1163/L:Q29, 1164/L:Q29
+   K78: 1 Bars -> 1120/S:STUFE0
+   K79: 2 Bars -> 1145/L:Q29, 1146/L:Q29
+   K86: 7 Bars -> 1152/L:Q29, 1153/L:Q29, 1154/L:Q29, 1155/L:Q29, 1156/L:Q29, 1157/L:Q29, 1158/L:Q29
+
+-- PRUEFSTEINE (avisiert) im Detail --
+   [K73 Short 1122] bar=1122 SHORT  ts=2026-08-26T04:30 O=69.3310 H=69.7090 L=69.2760 C=69.5730
+     sweep_px=69.7090 | _kandidat -> K73 (INNEN)
+     M6 -> BLOCKER K67 69.8990
+     Q29 -> True (Quartil-Grenze 25.0%)
+     _reclaim_stufe -> 1 (STUFE_1_IN_BAR)
+     _gegenkante -> K48 62.5770
+     hook_2_ziel -> BLOCKIERT (vacuum: kein Segment deckt den Bar)
+     erstes_gate (instrumentiert) -> M6(K67)
+     Roh-Pool (aussen->innen; pos | kid | dist_% | lebt) -- 'pos' zaehlt AUCH dormante Linien:
+        pos  0 | K67  |  -0.2718 | lebt=False
+        pos  1 | K73  |  +0.1020 | lebt=True   <-- Kandidat
+        pos  2 | K76  |  +0.2704 | lebt=False
+     Aussen: Decke K67 69.8990 (lebt=False) | Boden K48 62.5770 (lebt=False)
+     K67  exists=True  lebt=False aktiv=True  V-S=5 basis_bei=69.8990 erster_pivot=873
+     K73  exists=True  lebt=True  aktiv=True  V-S=3 basis_bei=69.6380 erster_pivot=909
+     K76  exists=True  lebt=False aktiv=True  V-S=2 basis_bei=69.5210 erster_pivot=932
+     K77  exists=False lebt=False aktiv=False V-S=3 basis_bei=68.3920 erster_pivot=934
+     K82  exists=False lebt=True  aktiv=False V-S=2 basis_bei=67.5530 erster_pivot=1031
+     K85  exists=True  lebt=True  aktiv=True  V-S=1 basis_bei=67.4200 erster_pivot=1075
+
+   [K82 Long 1072] bar=1072 LONG  ts=2026-08-25T15:00 O=68.2060 H=68.2300 L=67.4880 C=67.5010
+     sweep_px=67.4880 | _kandidat -> K62 (INNEN)
+     M6 -> frei
+     Q29 -> False (Quartil-Grenze 25.0%)
+     _reclaim_stufe -> 0 (None)
+     _gegenkante -> K67 69.8990
+     hook_2_ziel -> BLOCKIERT (vacuum: kein Segment deckt den Bar)
+     erstes_gate (instrumentiert) -> Q29
+     Roh-Pool (aussen->innen; pos | kid | dist_% | lebt) -- 'pos' zaehlt AUCH dormante Linien:
+        pos  0 | K48  |  -7.8479 | lebt=False
+        pos  1 | K3   |  -7.1800 | lebt=False
+        pos  2 | K17  |  -2.7934 | lebt=False
+        pos  3 | K82  |  +0.0962 | lebt=True 
+        pos  4 | K62  |  +0.4352 | lebt=True   <-- Kandidat
+        pos  5 | K63  |  +0.5057 | lebt=False
+     Aussen: Decke K67 69.8990 (lebt=True) | Boden K48 62.5770 (lebt=False)
+     K67  exists=True  lebt=True  aktiv=True  V-S=5 basis_bei=69.8990 erster_pivot=873
+     K73  exists=True  lebt=True  aktiv=True  V-S=3 basis_bei=69.6380 erster_pivot=909
+     K76  exists=True  lebt=False aktiv=True  V-S=2 basis_bei=69.5210 erster_pivot=932
+     K77  exists=False lebt=True  aktiv=False V-S=3 basis_bei=68.3920 erster_pivot=934
+     K82  exists=True  lebt=True  aktiv=True  V-S=2 basis_bei=67.5530 erster_pivot=1031
+     K85  exists=False lebt=False aktiv=True  V-S=0 basis_bei=67.4200 erster_pivot=1075
+
+   [K82 Long 1172] bar=1172 LONG  ts=2026-08-26T17:00 O=67.8750 H=67.9420 L=67.4940 C=67.5980
+     sweep_px=67.4940 | _kandidat -> UEBERDEHNUNG
+     hook_2_ziel -> BLOCKIERT (vacuum: kein Segment deckt den Bar)
+     erstes_gate (instrumentiert) -> KANDIDAT_NONE
+     Roh-Pool (aussen->innen; pos | kid | dist_% | lebt) -- 'pos' zaehlt AUCH dormante Linien:
+        pos  0 | K48  |  -7.8575 | lebt=False
+        pos  1 | K3   |  -7.1895 | lebt=False
+        pos  2 | K17  |  -2.8026 | lebt=False
+        pos  3 | K63  |  +0.4968 | lebt=False
+        pos  4 | K60  |  +0.7076 | lebt=True 
+     Aussen: Decke K67 69.8990 (lebt=False) | Boden K48 62.5770 (lebt=False)
+     K67  exists=True  lebt=False aktiv=True  V-S=5 basis_bei=69.8990 erster_pivot=873
+     K73  exists=True  lebt=True  aktiv=True  V-S=4 basis_bei=69.6380 erster_pivot=909
+     K76  exists=True  lebt=True  aktiv=True  V-S=3 basis_bei=69.4740 erster_pivot=932
+     K77  exists=False lebt=True  aktiv=False V-S=4 basis_bei=68.3920 erster_pivot=934
+     K82  exists=False lebt=True  aktiv=False V-S=2 basis_bei=67.5530 erster_pivot=1031
+     K85  exists=True  lebt=False aktiv=True  V-S=1 basis_bei=67.4200 erster_pivot=1075
+
+   [K82 Long 1259] bar=1259 LONG  ts=2026-08-27T15:45 O=67.8920 H=68.0970 L=67.6000 C=67.9290
+     sweep_px=67.6000 | _kandidat -> WAND_LEBT_UNERREICHT(K82)
+     hook_2_ziel -> BLOCKIERT (vacuum: kein Segment deckt den Bar)
+     erstes_gate (instrumentiert) -> KANDIDAT_NONE
+     Roh-Pool (aussen->innen; pos | kid | dist_% | lebt) -- 'pos' zaehlt AUCH dormante Linien:
+        pos  0 | K48  |  -8.0269 | lebt=False
+        pos  1 | K3   |  -7.3578 | lebt=False
+        pos  2 | K17  |  -2.9640 | lebt=False
+        pos  3 | K82  |  -0.0696 | lebt=True 
+        pos  4 | K62  |  +0.3053 | lebt=True 
+        pos  5 | K63  |  +0.3406 | lebt=False
+        pos  6 | K60  |  +0.5517 | lebt=True 
+     Aussen: Decke K67 69.8990 (lebt=False) | Boden K48 62.5770 (lebt=False)
+     K67  exists=True  lebt=False aktiv=True  V-S=5 basis_bei=69.8990 erster_pivot=873
+     K73  exists=True  lebt=True  aktiv=True  V-S=5 basis_bei=69.6110 erster_pivot=909
+     K76  exists=True  lebt=True  aktiv=True  V-S=4 basis_bei=69.4740 erster_pivot=932
+     K77  exists=False lebt=True  aktiv=False V-S=6 basis_bei=68.4130 erster_pivot=934
+     K82  exists=True  lebt=True  aktiv=True  V-S=3 basis_bei=67.5530 erster_pivot=1031
+     K85  exists=True  lebt=False aktiv=True  V-S=1 basis_bei=67.4200 erster_pivot=1075
+
+-- Trades im Analysefenster (V0 / ungepatcht) --
+-- Trades im Analysefenster (V1_aktiv / ADAPTER_V015) --
+
+-- V1_aktiv: alle 17 Trades (Kontext) --
+   bar  229 entry  231 H1 SHORT K20  R +6.889303 STUFE_2_KERZE_2
+   bar  242 entry  245 H1 SHORT K20  R +3.925121 STUFE_3_KERZE_3
+   bar  398 entry  399 H1 LONG  K5   R +5.697713 STUFE_1_IN_BAR
+   bar  490 entry  491 H1 SHORT K16  R -0.475084 STUFE_1_IN_BAR
+   bar  509 entry  510 H1 SHORT K16  R -0.347446 STUFE_1_IN_BAR
+   bar  529 entry  531 H1 SHORT K20  R +8.359943 STUFE_2_KERZE_2
+   bar  564 entry  565 H1 SHORT K20  R +15.870034 STUFE_1_IN_BAR
+   bar  639 entry  640 H1 LONG  K1   R -1.000000 STUFE_1_IN_BAR
+   bar  650 entry  653 H2 LONG  K3   R -1.000000 STUFE_3_KERZE_3
+   bar  679 entry  681 H2 LONG  K45  R +6.480880 STUFE_2_KERZE_2
+   bar  714 entry  715 H2 SHORT K16  R -1.000000 STUFE_1_IN_BAR
+   bar  760 entry  762 H2 SHORT K51  R -1.000000 STUFE_2_KERZE_2
+   bar  903 entry  905 H2 SHORT K67  R +4.119775 STUFE_2_KERZE_2
+   bar  980 entry  981 H2 SHORT K67  R +9.987676 STUFE_1_IN_BAR
+   bar  981 entry  982 H2 SHORT K73  R +2.695488 STUFE_1_IN_BAR
+   bar 1002 entry 1003 H2 LONG  K77  R +3.629016 STUFE_1_IN_BAR
+   bar 1020 entry 1021 H2 SHORT K67  R +3.003157 STUFE_1_IN_BAR
+
+-- Gate-Barrieren V1_aktiv (vollstaendige Rohliste, Bars >= 1021) --
+   bar 1021 SHORT KANDIDAT_NONE
+   bar 1021 LONG  KANDIDAT_NONE
+   bar 1022 SHORT KANDIDAT_NONE
+   bar 1022 LONG  KANDIDAT_NONE
+   bar 1023 SHORT KANDIDAT_NONE
+   bar 1023 LONG  KANDIDAT_NONE
+   bar 1024 SHORT KANDIDAT_NONE
+   bar 1024 LONG  KANDIDAT_NONE
+   bar 1025 SHORT KANDIDAT_NONE
+   bar 1025 LONG  KANDIDAT_NONE
+   bar 1026 SHORT KANDIDAT_NONE
+   bar 1026 LONG  KANDIDAT_NONE
+   bar 1027 SHORT KANDIDAT_NONE
+   bar 1027 LONG  KANDIDAT_NONE
+   bar 1028 SHORT KANDIDAT_NONE
+   bar 1028 LONG  Q29
+   bar 1029 SHORT KANDIDAT_NONE
+   bar 1029 LONG  Q29
+   bar 1030 SHORT KANDIDAT_NONE
+   bar 1030 LONG  Q29
+   bar 1031 SHORT KANDIDAT_NONE
+   bar 1031 LONG  KANDIDAT_NONE
+   bar 1032 SHORT KANDIDAT_NONE
+   bar 1032 LONG  KANDIDAT_NONE
+   bar 1033 SHORT KANDIDAT_NONE
+   bar 1033 LONG  KANDIDAT_NONE
+   bar 1034 SHORT KANDIDAT_NONE
+   bar 1034 LONG  KANDIDAT_NONE
+   bar 1035 SHORT KANDIDAT_NONE
+   bar 1035 LONG  KANDIDAT_NONE
+   bar 1036 SHORT KANDIDAT_NONE
+   bar 1036 LONG  KANDIDAT_NONE
+   bar 1037 SHORT KANDIDAT_NONE
+   bar 1037 LONG  KANDIDAT_NONE
+   bar 1038 SHORT KANDIDAT_NONE
+   bar 1038 LONG  KANDIDAT_NONE
+   bar 1039 SHORT KANDIDAT_NONE
+   bar 1039 LONG  KANDIDAT_NONE
+   bar 1040 SHORT KANDIDAT_NONE
+   bar 1040 LONG  KANDIDAT_NONE
+   bar 1041 SHORT KANDIDAT_NONE
+   bar 1041 LONG  KANDIDAT_NONE
+   bar 1042 SHORT KANDIDAT_NONE
+   bar 1042 LONG  KANDIDAT_NONE
+   bar 1043 SHORT KANDIDAT_NONE
+   bar 1043 LONG  KANDIDAT_NONE
+   bar 1044 SHORT KANDIDAT_NONE
+   bar 1044 LONG  KANDIDAT_NONE
+   bar 1045 SHORT KANDIDAT_NONE
+   bar 1045 LONG  KANDIDAT_NONE
+   bar 1046 SHORT KANDIDAT_NONE
+   bar 1046 LONG  KANDIDAT_NONE
+   bar 1047 SHORT KANDIDAT_NONE
+   bar 1047 LONG  KANDIDAT_NONE
+   bar 1048 SHORT KANDIDAT_NONE
+   bar 1048 LONG  KANDIDAT_NONE
+   bar 1049 SHORT KANDIDAT_NONE
+   bar 1049 LONG  KANDIDAT_NONE
+   bar 1050 SHORT KANDIDAT_NONE
+   bar 1050 LONG  KANDIDAT_NONE
+   bar 1051 SHORT KANDIDAT_NONE
+   bar 1051 LONG  KANDIDAT_NONE
+   bar 1052 SHORT KANDIDAT_NONE
+   bar 1052 LONG  KANDIDAT_NONE
+   bar 1053 SHORT KANDIDAT_NONE
+   bar 1053 LONG  KANDIDAT_NONE
+   bar 1054 SHORT KANDIDAT_NONE
+   bar 1054 LONG  KANDIDAT_NONE
+   bar 1055 SHORT KANDIDAT_NONE
+   bar 1055 LONG  KANDIDAT_NONE
+   bar 1056 SHORT KANDIDAT_NONE
+   bar 1056 LONG  Q29
+   bar 1057 SHORT KANDIDAT_NONE
+   bar 1057 LONG  KANDIDAT_NONE
+   bar 1058 SHORT KANDIDAT_NONE
+   bar 1058 LONG  KANDIDAT_NONE
+   bar 1059 SHORT KANDIDAT_NONE
+   bar 1059 LONG  KANDIDAT_NONE
+   bar 1060 SHORT KANDIDAT_NONE
+   bar 1060 LONG  KANDIDAT_NONE
+   bar 1061 SHORT KANDIDAT_NONE
+   bar 1061 LONG  KANDIDAT_NONE
+   bar 1062 SHORT KANDIDAT_NONE
+   bar 1062 LONG  KANDIDAT_NONE
+   bar 1063 SHORT KANDIDAT_NONE
+   bar 1063 LONG  KANDIDAT_NONE
+   bar 1064 SHORT KANDIDAT_NONE
+   bar 1064 LONG  KANDIDAT_NONE
+   bar 1065 SHORT KANDIDAT_NONE
+   bar 1065 LONG  KANDIDAT_NONE
+   bar 1066 SHORT KANDIDAT_NONE
+   bar 1066 LONG  KANDIDAT_NONE
+   bar 1067 SHORT KANDIDAT_NONE
+   bar 1067 LONG  KANDIDAT_NONE
+   bar 1068 SHORT KANDIDAT_NONE
+   bar 1068 LONG  KANDIDAT_NONE
+   bar 1069 SHORT KANDIDAT_NONE
+   bar 1069 LONG  KANDIDAT_NONE
+   bar 1070 SHORT KANDIDAT_NONE
+   bar 1070 LONG  KANDIDAT_NONE
+   bar 1071 SHORT KANDIDAT_NONE
+   bar 1071 LONG  KANDIDAT_NONE
+   bar 1072 SHORT KANDIDAT_NONE
+   bar 1072 LONG  Q29
+   bar 1073 SHORT KANDIDAT_NONE
+   bar 1073 LONG  Q29
+   bar 1074 SHORT KANDIDAT_NONE
+   bar 1074 LONG  KANDIDAT_NONE
+   bar 1075 SHORT KANDIDAT_NONE
+   bar 1075 LONG  KANDIDAT_NONE
+   bar 1076 SHORT KANDIDAT_NONE
+   bar 1076 LONG  KANDIDAT_NONE
+   bar 1077 SHORT KANDIDAT_NONE
+   bar 1077 LONG  KANDIDAT_NONE
+   bar 1078 SHORT KANDIDAT_NONE
+   bar 1078 LONG  KANDIDAT_NONE
+   bar 1079 SHORT KANDIDAT_NONE
+   bar 1079 LONG  KANDIDAT_NONE
+   bar 1080 SHORT KANDIDAT_NONE
+   bar 1080 LONG  KANDIDAT_NONE
+   bar 1081 SHORT KANDIDAT_NONE
+   bar 1081 LONG  KANDIDAT_NONE
+   bar 1082 SHORT KANDIDAT_NONE
+   bar 1082 LONG  KANDIDAT_NONE
+   bar 1083 SHORT KANDIDAT_NONE
+   bar 1083 LONG  KANDIDAT_NONE
+   bar 1084 SHORT KANDIDAT_NONE
+   bar 1084 LONG  KANDIDAT_NONE
+   bar 1085 SHORT KANDIDAT_NONE
+   bar 1085 LONG  KANDIDAT_NONE
+   bar 1086 SHORT KANDIDAT_NONE
+   bar 1086 LONG  KANDIDAT_NONE
+   bar 1087 SHORT KANDIDAT_NONE
+   bar 1087 LONG  KANDIDAT_NONE
+   bar 1088 SHORT KANDIDAT_NONE
+   bar 1088 LONG  KANDIDAT_NONE
+   bar 1089 SHORT KANDIDAT_NONE
+   bar 1089 LONG  KANDIDAT_NONE
+   bar 1090 SHORT KANDIDAT_NONE
+   bar 1090 LONG  KANDIDAT_NONE
+   bar 1091 SHORT KANDIDAT_NONE
+   bar 1091 LONG  KANDIDAT_NONE
+   bar 1092 SHORT KANDIDAT_NONE
+   bar 1092 LONG  KANDIDAT_NONE
+   bar 1093 SHORT KANDIDAT_NONE
+   bar 1093 LONG  KANDIDAT_NONE
+   bar 1094 SHORT KANDIDAT_NONE
+   bar 1094 LONG  KANDIDAT_NONE
+   bar 1095 SHORT KANDIDAT_NONE
+   bar 1095 LONG  KANDIDAT_NONE
+   bar 1096 SHORT KANDIDAT_NONE
+   bar 1096 LONG  KANDIDAT_NONE
+   bar 1097 SHORT KANDIDAT_NONE
+   bar 1097 LONG  KANDIDAT_NONE
+   bar 1098 SHORT KANDIDAT_NONE
+   bar 1098 LONG  KANDIDAT_NONE
+   bar 1099 SHORT KANDIDAT_NONE
+   bar 1099 LONG  KANDIDAT_NONE
+   bar 1100 SHORT KANDIDAT_NONE
+   bar 1100 LONG  KANDIDAT_NONE
+   bar 1101 SHORT KANDIDAT_NONE
+   bar 1101 LONG  KANDIDAT_NONE
+   bar 1102 SHORT KANDIDAT_NONE
+   bar 1102 LONG  Q29
+   bar 1103 SHORT KANDIDAT_NONE
+   bar 1103 LONG  Q29
+   bar 1104 SHORT KANDIDAT_NONE
+   bar 1104 LONG  Q29
+   bar 1105 SHORT KANDIDAT_NONE
+   bar 1105 LONG  KANDIDAT_NONE
+   bar 1106 SHORT KANDIDAT_NONE
+   bar 1106 LONG  KANDIDAT_NONE
+   bar 1107 SHORT KANDIDAT_NONE
+   bar 1107 LONG  KANDIDAT_NONE
+   bar 1108 SHORT KANDIDAT_NONE
+   bar 1108 LONG  KANDIDAT_NONE
+   bar 1109 SHORT KANDIDAT_NONE
+   bar 1109 LONG  KANDIDAT_NONE
+   bar 1110 SHORT KANDIDAT_NONE
+   bar 1110 LONG  KANDIDAT_NONE
+   bar 1111 SHORT KANDIDAT_NONE
+   bar 1111 LONG  KANDIDAT_NONE
+   bar 1112 SHORT KANDIDAT_NONE
+   bar 1112 LONG  KANDIDAT_NONE
+   bar 1113 SHORT KANDIDAT_NONE
+   bar 1113 LONG  KANDIDAT_NONE
+   bar 1114 SHORT KANDIDAT_NONE
+   bar 1114 LONG  KANDIDAT_NONE
+   bar 1115 SHORT KANDIDAT_NONE
+   bar 1115 LONG  KANDIDAT_NONE
+   bar 1116 SHORT KANDIDAT_NONE
+   bar 1116 LONG  KANDIDAT_NONE
+   bar 1117 SHORT KANDIDAT_NONE
+   bar 1117 LONG  KANDIDAT_NONE
+   bar 1118 SHORT KANDIDAT_NONE
+   bar 1118 LONG  KANDIDAT_NONE
+   bar 1119 SHORT KANDIDAT_NONE
+   bar 1119 LONG  KANDIDAT_NONE
+   bar 1120 SHORT STUFE0
+   bar 1120 LONG  KANDIDAT_NONE
+   bar 1121 SHORT KANDIDAT_NONE
+   bar 1121 LONG  KANDIDAT_NONE
+   bar 1122 SHORT M6(K67)
+   bar 1122 LONG  KANDIDAT_NONE
+   bar 1123 SHORT M6(K67)
+   bar 1123 LONG  KANDIDAT_NONE
+   bar 1124 SHORT KANDIDAT_NONE
+   bar 1124 LONG  KANDIDAT_NONE
+   bar 1125 SHORT KANDIDAT_NONE
+   bar 1125 LONG  KANDIDAT_NONE
+   bar 1126 SHORT KANDIDAT_NONE
+   bar 1126 LONG  KANDIDAT_NONE
+   bar 1127 SHORT KANDIDAT_NONE
+   bar 1127 LONG  KANDIDAT_NONE
+   bar 1128 SHORT KANDIDAT_NONE
+   bar 1128 LONG  KANDIDAT_NONE
+   bar 1129 SHORT KANDIDAT_NONE
+   bar 1129 LONG  KANDIDAT_NONE
+   bar 1130 SHORT KANDIDAT_NONE
+   bar 1130 LONG  KANDIDAT_NONE
+   bar 1131 SHORT KANDIDAT_NONE
+   bar 1131 LONG  KANDIDAT_NONE
+   bar 1132 SHORT KANDIDAT_NONE
+   bar 1132 LONG  KANDIDAT_NONE
+   bar 1133 SHORT KANDIDAT_NONE
+   bar 1133 LONG  KANDIDAT_NONE
+   bar 1134 SHORT KANDIDAT_NONE
+   bar 1134 LONG  KANDIDAT_NONE
+   bar 1135 SHORT KANDIDAT_NONE
+   bar 1135 LONG  KANDIDAT_NONE
+   bar 1136 SHORT KANDIDAT_NONE
+   bar 1136 LONG  KANDIDAT_NONE
+   bar 1137 SHORT KANDIDAT_NONE
+   bar 1137 LONG  KANDIDAT_NONE
+   bar 1138 SHORT KANDIDAT_NONE
+   bar 1138 LONG  KANDIDAT_NONE
+   bar 1139 SHORT KANDIDAT_NONE
+   bar 1139 LONG  KANDIDAT_NONE
+   bar 1140 SHORT KANDIDAT_NONE
+   bar 1140 LONG  KANDIDAT_NONE
+   bar 1141 SHORT KANDIDAT_NONE
+   bar 1141 LONG  KANDIDAT_NONE
+   bar 1142 SHORT KANDIDAT_NONE
+   bar 1142 LONG  KANDIDAT_NONE
+   bar 1143 SHORT KANDIDAT_NONE
+   bar 1143 LONG  KANDIDAT_NONE
+   bar 1144 SHORT KANDIDAT_NONE
+   bar 1144 LONG  KANDIDAT_NONE
+   bar 1145 SHORT KANDIDAT_NONE
+   bar 1145 LONG  Q29
+   bar 1146 SHORT KANDIDAT_NONE
+   bar 1146 LONG  Q29
+   bar 1147 SHORT KANDIDAT_NONE
+   bar 1147 LONG  KANDIDAT_NONE
+   bar 1148 SHORT KANDIDAT_NONE
+   bar 1148 LONG  KANDIDAT_NONE
+   bar 1149 SHORT KANDIDAT_NONE
+   bar 1149 LONG  KANDIDAT_NONE
+   bar 1150 SHORT KANDIDAT_NONE
+   bar 1150 LONG  KANDIDAT_NONE
+   bar 1151 SHORT KANDIDAT_NONE
+   bar 1151 LONG  KANDIDAT_NONE
+   bar 1152 SHORT KANDIDAT_NONE
+   bar 1152 LONG  Q29
+   bar 1153 SHORT KANDIDAT_NONE
+   bar 1153 LONG  Q29
+   bar 1154 SHORT KANDIDAT_NONE
+   bar 1154 LONG  Q29
+   bar 1155 SHORT KANDIDAT_NONE
+   bar 1155 LONG  Q29
+   bar 1156 SHORT KANDIDAT_NONE
+   bar 1156 LONG  Q29
+   bar 1157 SHORT KANDIDAT_NONE
+   bar 1157 LONG  Q29
+   bar 1158 SHORT KANDIDAT_NONE
+   bar 1158 LONG  Q29
+   bar 1159 SHORT KANDIDAT_NONE
+   bar 1159 LONG  KANDIDAT_NONE
+   bar 1160 SHORT KANDIDAT_NONE
+   bar 1160 LONG  KANDIDAT_NONE
+   bar 1161 SHORT KANDIDAT_NONE
+   bar 1161 LONG  KANDIDAT_NONE
+   bar 1162 SHORT KANDIDAT_NONE
+   bar 1162 LONG  KANDIDAT_NONE
+   bar 1163 SHORT KANDIDAT_NONE
+   bar 1163 LONG  Q29
+   bar 1164 SHORT KANDIDAT_NONE
+   bar 1164 LONG  Q29
+   bar 1165 SHORT KANDIDAT_NONE
+   bar 1165 LONG  KANDIDAT_NONE
+   bar 1166 SHORT KANDIDAT_NONE
+   bar 1166 LONG  KANDIDAT_NONE
+   bar 1167 SHORT KANDIDAT_NONE
+   bar 1167 LONG  KANDIDAT_NONE
+   bar 1168 SHORT KANDIDAT_NONE
+   bar 1168 LONG  KANDIDAT_NONE
+   bar 1169 SHORT KANDIDAT_NONE
+   bar 1169 LONG  KANDIDAT_NONE
+   bar 1170 SHORT KANDIDAT_NONE
+   bar 1170 LONG  KANDIDAT_NONE
+   bar 1171 SHORT KANDIDAT_NONE
+   bar 1171 LONG  Q29
+   bar 1172 SHORT KANDIDAT_NONE
+   bar 1172 LONG  KANDIDAT_NONE
+   bar 1173 SHORT KANDIDAT_NONE
+   bar 1173 LONG  KANDIDAT_NONE
+   bar 1174 SHORT KANDIDAT_NONE
+   bar 1174 LONG  KANDIDAT_NONE
+   bar 1175 SHORT KANDIDAT_NONE
+   bar 1175 LONG  KANDIDAT_NONE
+   bar 1176 SHORT KANDIDAT_NONE
+   bar 1176 LONG  KANDIDAT_NONE
+   bar 1177 SHORT KANDIDAT_NONE
+   bar 1177 LONG  KANDIDAT_NONE
+   bar 1178 SHORT KANDIDAT_NONE
+   bar 1178 LONG  KANDIDAT_NONE
+   bar 1179 SHORT KANDIDAT_NONE
+   bar 1179 LONG  KANDIDAT_NONE
+   bar 1180 SHORT KANDIDAT_NONE
+   bar 1180 LONG  KANDIDAT_NONE
+   bar 1181 SHORT KANDIDAT_NONE
+   bar 1181 LONG  KANDIDAT_NONE
+   bar 1182 SHORT KANDIDAT_NONE
+   bar 1182 LONG  KANDIDAT_NONE
+   bar 1183 SHORT KANDIDAT_NONE
+   bar 1183 LONG  KANDIDAT_NONE
+   bar 1184 SHORT KANDIDAT_NONE
+   bar 1184 LONG  KANDIDAT_NONE
+   bar 1185 SHORT KANDIDAT_NONE
+   bar 1185 LONG  KANDIDAT_NONE
+   bar 1186 SHORT KANDIDAT_NONE
+   bar 1186 LONG  KANDIDAT_NONE
+   bar 1187 SHORT KANDIDAT_NONE
+   bar 1187 LONG  KANDIDAT_NONE
+   bar 1188 SHORT KANDIDAT_NONE
+   bar 1188 LONG  KANDIDAT_NONE
+   bar 1189 SHORT KANDIDAT_NONE
+   bar 1189 LONG  KANDIDAT_NONE
+   bar 1190 SHORT KANDIDAT_NONE
+   bar 1190 LONG  KANDIDAT_NONE
+   bar 1191 SHORT KANDIDAT_NONE
+   bar 1191 LONG  KANDIDAT_NONE
+   bar 1192 SHORT KANDIDAT_NONE
+   bar 1192 LONG  KANDIDAT_NONE
+   bar 1193 SHORT KANDIDAT_NONE
+   bar 1193 LONG  KANDIDAT_NONE
+   bar 1194 SHORT KANDIDAT_NONE
+   bar 1194 LONG  KANDIDAT_NONE
+   bar 1195 SHORT KANDIDAT_NONE
+   bar 1195 LONG  KANDIDAT_NONE
+   bar 1196 SHORT KANDIDAT_NONE
+   bar 1196 LONG  KANDIDAT_NONE
+   bar 1197 SHORT KANDIDAT_NONE
+   bar 1197 LONG  KANDIDAT_NONE
+   bar 1198 SHORT KANDIDAT_NONE
+   bar 1198 LONG  KANDIDAT_NONE
+   bar 1199 SHORT KANDIDAT_NONE
+   bar 1199 LONG  KANDIDAT_NONE
+   bar 1200 SHORT KANDIDAT_NONE
+   bar 1200 LONG  KANDIDAT_NONE
+   bar 1201 SHORT KANDIDAT_NONE
+   bar 1201 LONG  KANDIDAT_NONE
+   bar 1202 SHORT KANDIDAT_NONE
+   bar 1202 LONG  KANDIDAT_NONE
+   bar 1203 SHORT KANDIDAT_NONE
+   bar 1203 LONG  KANDIDAT_NONE
+   bar 1204 SHORT KANDIDAT_NONE
+   bar 1204 LONG  KANDIDAT_NONE
+   bar 1205 SHORT KANDIDAT_NONE
+   bar 1205 LONG  KANDIDAT_NONE
+   bar 1206 SHORT KANDIDAT_NONE
+   bar 1206 LONG  KANDIDAT_NONE
+   bar 1207 SHORT KANDIDAT_NONE
+   bar 1207 LONG  KANDIDAT_NONE
+   bar 1208 SHORT KANDIDAT_NONE
+   bar 1208 LONG  KANDIDAT_NONE
+   bar 1209 SHORT KANDIDAT_NONE
+   bar 1209 LONG  KANDIDAT_NONE
+   bar 1210 SHORT KANDIDAT_NONE
+   bar 1210 LONG  KANDIDAT_NONE
+   bar 1211 SHORT KANDIDAT_NONE
+   bar 1211 LONG  KANDIDAT_NONE
+   bar 1212 SHORT KANDIDAT_NONE
+   bar 1212 LONG  KANDIDAT_NONE
+   bar 1213 SHORT KANDIDAT_NONE
+   bar 1213 LONG  KANDIDAT_NONE
+   bar 1214 SHORT KANDIDAT_NONE
+   bar 1214 LONG  KANDIDAT_NONE
+   bar 1215 SHORT KANDIDAT_NONE
+   bar 1215 LONG  KANDIDAT_NONE
+   bar 1216 SHORT KANDIDAT_NONE
+   bar 1216 LONG  KANDIDAT_NONE
+   bar 1217 SHORT KANDIDAT_NONE
+   bar 1217 LONG  KANDIDAT_NONE
+   bar 1218 SHORT KANDIDAT_NONE
+   bar 1218 LONG  KANDIDAT_NONE
+   bar 1219 SHORT KANDIDAT_NONE
+   bar 1219 LONG  KANDIDAT_NONE
+   bar 1220 SHORT KANDIDAT_NONE
+   bar 1220 LONG  KANDIDAT_NONE
+   bar 1221 SHORT KANDIDAT_NONE
+   bar 1221 LONG  KANDIDAT_NONE
+   bar 1222 SHORT KANDIDAT_NONE
+   bar 1222 LONG  KANDIDAT_NONE
+   bar 1223 SHORT KANDIDAT_NONE
+   bar 1223 LONG  KANDIDAT_NONE
+   bar 1224 SHORT KANDIDAT_NONE
+   bar 1224 LONG  KANDIDAT_NONE
+   bar 1225 SHORT KANDIDAT_NONE
+   bar 1225 LONG  KANDIDAT_NONE
+   bar 1226 SHORT KANDIDAT_NONE
+   bar 1226 LONG  KANDIDAT_NONE
+   bar 1227 SHORT KANDIDAT_NONE
+   bar 1227 LONG  KANDIDAT_NONE
+   bar 1228 SHORT KANDIDAT_NONE
+   bar 1228 LONG  KANDIDAT_NONE
+   bar 1229 SHORT KANDIDAT_NONE
+   bar 1229 LONG  KANDIDAT_NONE
+   bar 1230 SHORT KANDIDAT_NONE
+   bar 1230 LONG  KANDIDAT_NONE
+   bar 1231 SHORT KANDIDAT_NONE
+   bar 1231 LONG  KANDIDAT_NONE
+   bar 1232 SHORT KANDIDAT_NONE
+   bar 1232 LONG  KANDIDAT_NONE
+   bar 1233 SHORT KANDIDAT_NONE
+   bar 1233 LONG  KANDIDAT_NONE
+   bar 1234 SHORT KANDIDAT_NONE
+   bar 1234 LONG  KANDIDAT_NONE
+   bar 1235 SHORT KANDIDAT_NONE
+   bar 1235 LONG  KANDIDAT_NONE
+   bar 1236 SHORT KANDIDAT_NONE
+   bar 1236 LONG  KANDIDAT_NONE
+   bar 1237 SHORT KANDIDAT_NONE
+   bar 1237 LONG  KANDIDAT_NONE
+   bar 1238 SHORT KANDIDAT_NONE
+   bar 1238 LONG  KANDIDAT_NONE
+   bar 1239 SHORT KANDIDAT_NONE
+   bar 1239 LONG  KANDIDAT_NONE
+   bar 1240 SHORT KANDIDAT_NONE
+   bar 1240 LONG  KANDIDAT_NONE
+   bar 1241 SHORT KANDIDAT_NONE
+   bar 1241 LONG  KANDIDAT_NONE
+   bar 1242 SHORT KANDIDAT_NONE
+   bar 1242 LONG  KANDIDAT_NONE
+   bar 1243 SHORT KANDIDAT_NONE
+   bar 1243 LONG  KANDIDAT_NONE
+   bar 1244 SHORT KANDIDAT_NONE
+   bar 1244 LONG  KANDIDAT_NONE
+   bar 1245 SHORT KANDIDAT_NONE
+   bar 1245 LONG  KANDIDAT_NONE
+   bar 1246 SHORT KANDIDAT_NONE
+   bar 1246 LONG  KANDIDAT_NONE
+   bar 1247 SHORT KANDIDAT_NONE
+   bar 1247 LONG  KANDIDAT_NONE
+   bar 1248 SHORT KANDIDAT_NONE
+   bar 1248 LONG  KANDIDAT_NONE
+   bar 1249 SHORT KANDIDAT_NONE
+   bar 1249 LONG  KANDIDAT_NONE
+   bar 1250 SHORT KANDIDAT_NONE
+   bar 1250 LONG  KANDIDAT_NONE
+   bar 1251 SHORT KANDIDAT_NONE
+   bar 1251 LONG  KANDIDAT_NONE
+   bar 1252 SHORT KANDIDAT_NONE
+   bar 1252 LONG  KANDIDAT_NONE
+   bar 1253 SHORT KANDIDAT_NONE
+   bar 1253 LONG  KANDIDAT_NONE
+   bar 1254 SHORT KANDIDAT_NONE
+   bar 1254 LONG  KANDIDAT_NONE
+   bar 1255 SHORT KANDIDAT_NONE
+   bar 1255 LONG  KANDIDAT_NONE
+   bar 1256 SHORT KANDIDAT_NONE
+   bar 1256 LONG  KANDIDAT_NONE
+   bar 1257 SHORT KANDIDAT_NONE
+   bar 1257 LONG  KANDIDAT_NONE
+   bar 1258 SHORT KANDIDAT_NONE
+   bar 1258 LONG  KANDIDAT_NONE
+   bar 1259 SHORT KANDIDAT_NONE
+   bar 1259 LONG  KANDIDAT_NONE
+   bar 1260 SHORT KANDIDAT_NONE
+   bar 1260 LONG  KANDIDAT_NONE
+   bar 1261 SHORT KANDIDAT_NONE
+   bar 1261 LONG  KANDIDAT_NONE
+   bar 1262 SHORT KANDIDAT_NONE
+   bar 1262 LONG  KANDIDAT_NONE
+   bar 1263 SHORT KANDIDAT_NONE
+   bar 1263 LONG  KANDIDAT_NONE
+   bar 1264 SHORT KANDIDAT_NONE
+   bar 1264 LONG  KANDIDAT_NONE
+   bar 1265 SHORT KANDIDAT_NONE
+   bar 1265 LONG  KANDIDAT_NONE
+   bar 1266 SHORT KANDIDAT_NONE
+   bar 1266 LONG  KANDIDAT_NONE
+   bar 1267 SHORT KANDIDAT_NONE
+   bar 1267 LONG  KANDIDAT_NONE
+   bar 1268 SHORT KANDIDAT_NONE
+   bar 1268 LONG  KANDIDAT_NONE
+   bar 1269 SHORT KANDIDAT_NONE
+   bar 1269 LONG  KANDIDAT_NONE
+   bar 1270 SHORT KANDIDAT_NONE
+   bar 1270 LONG  KANDIDAT_NONE
+   bar 1271 SHORT KANDIDAT_NONE
+   bar 1271 LONG  KANDIDAT_NONE
+   bar 1272 SHORT M6(K67)
+   bar 1272 LONG  KANDIDAT_NONE
+   bar 1273 SHORT KANDIDAT_NONE
+   bar 1273 LONG  KANDIDAT_NONE
+   bar 1274 SHORT KANDIDAT_NONE
+   bar 1274 LONG  KANDIDAT_NONE
+   bar 1275 SHORT KANDIDAT_NONE
+   bar 1275 LONG  KANDIDAT_NONE
+   bar 1276 SHORT KANDIDAT_NONE
+   bar 1276 LONG  KANDIDAT_NONE
+   bar 1277 SHORT KANDIDAT_NONE
+   bar 1277 LONG  KANDIDAT_NONE
+   bar 1278 SHORT KANDIDAT_NONE
+   bar 1278 LONG  KANDIDAT_NONE
+   bar 1279 SHORT KANDIDAT_NONE
+   bar 1279 LONG  KANDIDAT_NONE
+   bar 1280 SHORT KANDIDAT_NONE
+   bar 1280 LONG  KANDIDAT_NONE
+   bar 1281 SHORT KANDIDAT_NONE
+   bar 1281 LONG  KANDIDAT_NONE
+   bar 1282 SHORT KANDIDAT_NONE
+   bar 1282 LONG  KANDIDAT_NONE
+   bar 1283 SHORT KANDIDAT_NONE
+   bar 1283 LONG  KANDIDAT_NONE
+   bar 1284 SHORT KANDIDAT_NONE
+   bar 1284 LONG  KANDIDAT_NONE
+
+ENDE PHASE 1

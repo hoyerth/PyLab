@@ -1,0 +1,29 @@
+docs(handoff): E-31/E-31b Diskrimination der Hybrid-Schliessung — der Abstand trennt nicht, die Vorgeschichte trennt
+
+Schritt 2 der Zielsystem-Phase. Read-only ueber die E-29-Setup-Geometrien,
+praezise Schliessung je noch offener Haelfte (E-29/H8 hatte den Gesamt-R
+ersetzt).
+
+K2: Die 2D-Matrix (n_consec in {1,2,3} x d in {0;0,25;0,5;1,0} ATR) zeigt:
+der naive Bruch (n=1,d=0) verbessert S2 auf +0,0684 USD/Tr und Q_stop 0,299,
+verschlechtert AUG aber auf +1,0798 -> Nicht-Generalisierung (Regime-Wette
+statt Diskrimination; S2 feuert 254/271, AUG 3/8).
+
+K3: Der Abstand trennt nicht. Bruch-Distanz Basis-Gewinner vs -Verlierer:
+median 0,39 vs 0,36 ATR, Anteil <0,25 ATR 33,3 % vs 35,6 %. Verteilungen
+praktisch identisch. Antwort auf die Anwenderfrage: weder 2 Closes noch ein
+ATR-Mindestabstand ist der Diskriminator.
+
+K4/K5: Der Diskriminator ist die Vorgeschichte. Basis-Gewinner brechen nach
+median 84 Bars bei MFE 2,75 R; Basis-Verlierer nach 1 Bar bei MFE 0,23 R.
+Die MFE-bedingte Schliessung (nur wenn MFE vor dem Bruch < mfe_cap) hebt S2
+von +0,0526 auf +0,0727 USD/Tr (Cap 0,75) und halbiert dR Gewinner
+(-40,59 -> -17,77 R, getoetete Gewinner 8 -> 4). AUG: +1,4330 statt +1,0798,
+dR Gewinner 0 — keine Verschlechterung.
+
+K6: Damit sind ~65 % der Luecke zur ex-post-Schranke T4b (+0,0836 USD/Tr)
+geschlossen.
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

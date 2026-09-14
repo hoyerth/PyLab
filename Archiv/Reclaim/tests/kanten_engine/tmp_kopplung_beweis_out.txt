@@ -1,0 +1,27 @@
+﻿====================================================================================================================
+KOPPLUNGS-BEWEIS: sweep_min vs. touch_band_pct (0.12)
+====================================================================================================================
+  sweep_min= 0.12 %  Trades  9  Netto-R  +23.02  identisch zu 0.12: True
+  sweep_min= 0.15 %  Trades  9  Netto-R  +23.02  identisch zu 0.12: True
+  sweep_min= 0.30 %  Trades  7  Netto-R  +24.65  identisch zu 0.12: False
+  sweep_min= 0.60 %  Trades  0  Netto-R   +0.00  identisch zu 0.12: False
+
+====================================================================================================================
+SPIEGEL-KANTEN: K67 (Range-Top) und K48 (Range-Boden)
+====================================================================================================================
+  K67 OBEN basis=69.946 pivot=873 geb=881 n=5 anker=False
+    wicks: [(873, 69.975), (881, 70.0), (904, 69.931), (980, 69.899), (1020, 69.924)]
+    als Einstiegskante gehandelt: NIE
+    als TP2 referenziert: NIE
+  K48 UNTEN basis=62.562 pivot=657 geb=673 n=2 anker=False
+    wicks: [(657, 62.577), (673, 62.548)]
+    als Einstiegskante gehandelt: NIE
+    als TP2 referenziert: [(716, 16), (760, 51), (853, 59)]
+  K85 UNTEN basis=67.420 pivot=1075 geb=1075 n=1 anker=False
+    wicks: [(1075, 67.42)]
+    als Einstiegskante gehandelt: NIE
+    als TP2 referenziert: NIE
+
+  Range-Extrem AUG: hi_max=70.000 (Bar 881) | lo_min=62.548 (Bar 673)
+  -> K67 (69.946) liegt 0.054 USD unter dem Range-Top (70.000)
+  -> K48 (62.562) liegt 0.014 USD ueber dem Range-Boden (62.548)

@@ -1,0 +1,35 @@
+K4 -- TRIPEL MAI/JUN/JUL (V021-Delegation) gegen arretierte Sollwerte
+========================================================================================
+SHA Baseline  53f28e1b6971a64d...  OK
+SHA V020      e79c5c29482398d8...  OK
+SHA Adapter   770eda2c75aaa135...  OK
+
+Vertrag: NATIV  + DORMANT_PERMISSIV  + ENDOGEN  -> ist_tripel=True
+Fenster: BKZ-Schnitt je Monat, Vollauf box_end_bar = n (Renderer-Konvention)
+
+----- MAI  2026-05-01 .. 2026-05-29 (BKZ, ohne Offset)  Bars 0..1921 | n=1922 | edges=78 seeds=27
+  TRIPEL  Trades  58  SumR   +40.023743   SOLL  58 /   +40.023743   OK bit-exakt
+  LEGACY  Trades  35  SumR   +38.318126   (ohne Sollwert -- nur Protokoll)
+  Delta Tripel - Legacy: Trades +23  SumR +1.705617
+  Kids Tripel: K1, K6, K6, K17, K14, K8, K8, K41, K47, K41, K62, K65, K62, K84, K81, K82, K84, K96, K82, K84, K99, K103, K99, K103, K102, K63, K43, K0, K9, K11, K11, K41, K47, K47, K125, K11, K11, K6, K6, K14, K129, K9, K9, K40, K37, K27, K6, K29, K34, K24, K30, K6, K30, K17, K14, K14, K12, K129
+  Idempotenz (2. Lauf, frischer deepcopy): OK bit-identisch
+
+----- JUN  2026-06-01 .. 2026-06-30 (BKZ, ohne Offset)  Bars 0..2008 | n=2009 | edges=117 seeds=40
+  TRIPEL  Trades  56  SumR   -26.883881   SOLL  56 /   -26.883881   OK bit-exakt
+  LEGACY  Trades  28  SumR   -11.421155   (ohne Sollwert -- nur Protokoll)
+  Delta Tripel - Legacy: Trades +28  SumR -15.462726
+  Kids Tripel: K12, K1, K21, K22, K7, K27, K27, K27, K31, K31, K31, K50, K50, K54, K72, K77, K77, K81, K49, K109, K106, K106, K106, K105, K105, K105, K107, K109, K109, K58, K54, K103, K72, K81, K73, K72, K72, K77, K96, K86, K86, K88, K147, K88, K88, K151, K164, K170, K164, K178, K156, K156, K167, K167, K178, K157
+  Idempotenz (2. Lauf, frischer deepcopy): OK bit-identisch
+
+----- JUL  2026-07-01 .. 2026-07-31 (BKZ, ohne Offset)  Bars 0..2099 | n=2100 | edges=79 seeds=14
+  TRIPEL  Trades  68  SumR   -11.395066   SOLL  68 /   -11.395066   OK bit-exakt
+  LEGACY  Trades  21  SumR    -4.325355   (ohne Sollwert -- nur Protokoll)
+  Delta Tripel - Legacy: Trades +47  SumR -7.069711
+  Kids Tripel: K0, K15, K25, K35, K38, K1, K4, K3, K8, K1, K4, K21, K13, K13, K10, K1, K4, K3, K3, K3, K4, K55, K3, K71, K71, K71, K77, K76, K85, K85, K87, K96, K91, K6, K0, K55, K55, K69, K15, K19, K21, K13, K9, K68, K8, K56, K0, K70, K58, K72, K77, K71, K71, K77, K72, K3, K71, K71, K77, K80, K6, K77, K0, K55, K69, K58, K4, K72
+  Idempotenz (2. Lauf, frischer deepcopy): OK bit-identisch
+
+========================================================================================
+K4 GESAMT: ALLE DREI MONATE BIT-EXAKT
+K4-Bedeutung: der Tripel-Pfad der V021-Engine ist auf FREMDEN Fenstern deckungsgleich
+              mit dem arretierten Modus A (hook=None, V020). Die Naht haelt.
+PROTOKOLL: F:\Python\PyLab\test\_chk_v021_k4_monate_out.txt

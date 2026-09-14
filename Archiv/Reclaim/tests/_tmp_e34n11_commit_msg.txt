@@ -1,0 +1,26 @@
+docs(handoff): E-34n/11 — Spaltmass-Audit: die tragende Konstruktion ist _b0, nicht das Band; Patch-14-Diff vorbereitet (read-only)
+
+- Schritt 1 (gemessen, 3 Laeufe): mit der statischen .basis (67.5455) als
+  eingefrorener Wandbasis werden 1073/1074/1075 zu Dochten, touch_conf(1075)
+  steigt 2 -> 3, K82 wird Kandidat an 1075 und scheitert an RAUM_LONG_ORDNUNG
+  -> K62@1075 (+1.475768) faellt weg, D kollabiert auf Variante B
+  (23 / +86.640859 statt 24 / +88.116626). Gleiches mit basis_bei(1072).
+- Schwellen: 1074 kippt ab b0 > 67.53604, 1073 ab 67.54305, 1072 ab 67.56908.
+  Erst 1073 loest den Kollaps aus (1073 + 2 = 1075 <= 1075).
+- NIVEAUWECHSEL bleibt in allen drei b0-Varianten 66 (arretiertes Soll).
+- Schritt 2: Injektionsstelle seite_edges (Engine Z. 2382-2384, count == 1),
+  zweistufiges Gating (Quelltext: KONF.mode == "V019"; Laufzeit:
+  len(_hook.segmente) > 1), Kollisionsfreiheit der ZP-4-Anker geprueft,
+  SSoT (cfg.touch_band_pct statt Literal 0.12; _ueb(_kb) statt Literal 0.80).
+  Exakter Patch-14-Text-Diff (A_KL_DOCHT) liegt vor; Fail-Loud-Delta
+  tabelliert (24 / +88.116626, H2 +49.197042, delta_rb +40.300929,
+  neu_basis_soll + (1172,82), Renderer Z. 904 von 9 auf 10).
+- Schritt 3: Datenvertrag -- SSoT-Haltung bestaetigt, aber Wert-Pin
+  (== 0.12) abgelehnt; vorgeschlagen ist ein abgeleiteter Geometrie-Waechter
+  (nur 1075 durchstoesst das Band, b0 = basis_bei(seg.start_bar)).
+- Rein lesend: Engine, Renderer und Adapter unveraendert (SHA-Anker im Handoff).
+- Einbrand von Patch 14 bleibt gesperrt bis zur Autorisierung.
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

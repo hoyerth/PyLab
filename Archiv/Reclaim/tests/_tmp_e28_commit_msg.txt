@@ -1,0 +1,15 @@
+docs(handoff): E-28 Zielsystem-Lokalisierung — beide Gates erstmals erfuellt
+
+Q29 (E-27 ratifiziert), Gegenkante und POC-Anker im gemeinsamen Fenster
+_W(k)=max(0,k-960). Erst die Kombination (Gegenkante lokal x POC lokal)
+passiert beide harten Gates in S2: USD/Trade +0,0526, Q_stop 0,742,
+R -70,8 -> +55,9, R_adj -91,6 -> +28,8, H2-R -10,9 -> +43,8.
+AUG-Baseline unter dem ratifizierten Buendel konstruktiv inert (644 < 960).
+
+Erratum: Variante gegleb nutzte die 96-Bar-Konstante _lebt
+(wall_live_bars) statt 960 -> Artefakt (AUG R 38,9 -> 26,2), verworfen;
+ratifizierte Liveness-Variante ist geg960 (AUG bit-identisch zu base).
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

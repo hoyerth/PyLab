@@ -1,0 +1,194 @@
+================================================================================================================
+PHASE 3 / SCHRITT 1 -- ISOLIERTE MESSKAMPAGNE HOOK 1a vs 1b (read-only, V018/BKZ)
+================================================================================================================
+Engine (Disk, unveraendert) : tmp_kanten_engine_replay.py
+                              SHA256 4a576a766670d684c30381969e4d7349d5786b1b22ea6dda08b93b7d811bb38a
+Zeitbasis                   : BKZ = "time" AT TIME ZONE 'UTC'
+n=1288 | Kalendergrenze (H1/H2-Split)=644 | Fenster 848..1287
+cfg: touch_band=0.12% | max_seed_dist=0.75% | max_sweep=0.6% | Q29=25.0% | wall_live=96 | V-S>=3
+Gates: H1 = 8 / +38.919584 R (entry_bar < 644) | Negativkontrolle 1023..1031 = 0 Trades
+
+################################################################################################################
+# 1  BANDAUFWEITUNG: FREIGABE-VOLUMEN (statisch, ohne Engine-Lauf)
+################################################################################################################
+
+   hook_1_freigabe_kid ist auf die SEGMENT-Seite beschraenkt (decke.kid bei SHORT, boden.kid bei LONG).
+   In P10_HYP ist decke.kid = K67 -> die Aufweitung wirkt nur auf die SHORT-Seite gegen K67.
+
+-- P9 (848..1020) --
+   Freigaben Band 0.12 :    6   ['LONG', 'SHORT']
+   Freigaben Band 0.75 :    6   ['LONG', 'SHORT']
+   NEU durch Aufweitung:    0   (dormante Wand 0 | lebende Wand 0)
+   neue Bars            : []
+
+-- P10 (1021..1287) --
+   Freigaben Band 0.12 :    2   ['LONG']
+   Freigaben Band 0.75 :   90   ['LONG', 'SHORT']
+   NEU durch Aufweitung:   88   (dormante Wand 28 | lebende Wand 60)
+   neue Bars            : [1021, 1022, 1023, 1024, 1025, 1032, 1033, 1034, 1035, 1036, 1037, 1038, 1039, 1040, 1041, 1042, 1043, 1044, 1051, 1052, 1053, 1054, 1055, 1057, 1058, 1059, 1060, 1061, 1062, 1063, 1064, 1065, 1066, 1068, 1069, 1070, 1071, 1119, 1120, 1121, 1122, 1123, 1124, 1126, 1134, 1174, 1175, 1176, 1177, 1178, 1179, 1180, 1181, 1182, 1183, 1184, 1186, 1192, 1193, 1194, 1195, 1210, 1211, 1212, 1213, 1214, 1216, 1217, 1244, 1254, 1255, 1256, 1257, 1258, 1260, 1267, 1268, 1270, 1271, 1272, 1273, 1274, 1275, 1280, 1281, 1282, 1283, 1284]
+
+   >> Kernzahl fuer die Mentor-Warnung: die Aufweitung ist KEIN punktueller 2-Bar-Hebel.
+
+################################################################################################################
+# 2  VARIANTEN-UEBERSICHT (isolierte Kanaele)
+################################################################################################################
+
+Variante                                 Trd     R gesamt |                  H1 |                  H2 |  Neg | 1a-Bars / 1b-Bars
+REF HYP-P10 (Band 0.12, 1a+1b)            17   +65.835576 | H1  8/+38.919584 [H1-HALTEN ] | H2  9/+26.915992 |    0 | 7 / 4
+CTRL Band 0.75, Kanaele AUS (global)      16   +63.140088 | H1  8/+38.919584 [H1-HALTEN ] | H2  8/+24.220504 |    0 | 0 / 0
+(i)  Band 0.75, NUR 1b (M6)               18   +74.616528 | H1  8/+38.919584 [H1-HALTEN ] | H2 10/+35.696944 |    0 | 0 / 5
+(ii) Band 0.75, NUR 1a (Pool)             16   +63.140088 | H1  8/+38.919584 [H1-HALTEN ] | H2  8/+24.220504 |    0 | 95 / 0
+(iii) Band 0.75, 1a+1b synchron           20   +99.239447 | H1  8/+38.919584 [H1-HALTEN ] | H2 12/+60.319862 |    0 | 95 / 14
+REPLIKA Fenster 1021..1287, 1a+1b         20   +99.239447 | H1  8/+38.919584 [H1-HALTEN ] | H2 12/+60.319862 |    0 | 95 / 14
+(iv-A) endogen [1075..1287], 1a+1b        19   +77.312016 | H1  8/+38.919584 [H1-HALTEN ] | H2 11/+38.392432 |    0 | 57 / 9
+(iv-B) endogen [1021..1020], 1a+1b        17   +65.835576 | H1  8/+38.919584 [H1-HALTEN ] | H2  9/+26.915992 |    0 | 5 / 2
+
+-- Deltas gegen REF (bar, kid) --
+   CTRL Band 0.75, Kanaele AUS (global)      +[]  -[(981, 73)]
+   (i)  Band 0.75, NUR 1b (M6)               +[(1122, 73), (1272, 73)]  -[(981, 73)]
+   (ii) Band 0.75, NUR 1a (Pool)             +[]  -[(981, 73)]
+   (iii) Band 0.75, 1a+1b synchron           +[(1022, 73), (1122, 73), (1272, 73)]  -[]
+   REPLIKA Fenster 1021..1287, 1a+1b         +[(1022, 73), (1122, 73), (1272, 73)]  -[]
+   (iv-A) endogen [1075..1287], 1a+1b        +[(1122, 73), (1272, 73)]  -[]
+   (iv-B) endogen [1021..1020], 1a+1b        +[]  -[]
+
+################################################################################################################
+# 3  KANAL-ISOLATION (Kernbefund)
+################################################################################################################
+
+   REF   (0.12, 1a+1b) :  17 Trades /   +65.835576 R  H1 8/+38.919584
+   (iii) (0.75, 1a+1b) :  20 Trades /   +99.239447 R  H1 8/+38.919584   1a [981, 998, 1003, 1004, 1005, 1021, 1022, 1023, 1024, 1025, 1032, 1033, 1034, 1035, 1036, 1037, 1038, 1039, 1040, 1041, 1042, 1043, 1044, 1051, 1052, 1053, 1054, 1055, 1056, 1057, 1058, 1059, 1060, 1061, 1062, 1063, 1064, 1065, 1066, 1068, 1069, 1070, 1071, 1119, 1120, 1121, 1122, 1123, 1124, 1126, 1134, 1174, 1175, 1176, 1177, 1178, 1179, 1180, 1181, 1182, 1183, 1184, 1186, 1192, 1193, 1194, 1195, 1210, 1211, 1212, 1213, 1214, 1216, 1217, 1244, 1254, 1255, 1256, 1257, 1258, 1259, 1260, 1267, 1268, 1270, 1271, 1272, 1273, 1274, 1275, 1280, 1281, 1282, 1283, 1284] / 1b [981, 998, 1022, 1023, 1056, 1058, 1070, 1120, 1122, 1123, 1256, 1258, 1259, 1272]
+   > WIRKUNG DER BANDAUFWEITUNG BEI KONSTANTEN KANAELEN (REF -> iii):
+     +[(1022, 73), (1122, 73), (1272, 73)]  -[]   R +33.403870
+
+   (i)   (0.75, nur 1b):  18 Trades /   +74.616528 R  H1 8/+38.919584   1b-Bars [1056, 1120, 1122, 1123, 1272]
+   (ii)  (0.75, nur 1a):  16 Trades /   +63.140088 R  H1 8/+38.919584   1a-Bars = 95
+   CTRL  (0.75, beide AUS):  16 Trades /   +63.140088 R  H1 8/+38.919584
+
+   HINWEIS zur Konstruktion: CTRL/(i)/(ii) schalten die Kanaele GLOBAL ab
+   (auch in P9). Die Abweichung von REF belegt damit zweierlei:
+   (a) CTRL/(ii) verlieren (981, 73) -> die H2-Baseline selbst ist auf
+       Hook 1 angewiesen (981/998/1056/1259 sind P9-Bars).
+   (b) (i) verliert (981,73) und gewinnt (1122,73)+(1272,73).
+   Die REINE Bandwirkung ist daher nur REF -> (iii) (Kanaele konstant).
+
+-- Trade-Herkunft (welche Kanaele sind notwendig?) --
+   (1122,73), (1272,73) : 1b hinreichend  (1a nicht noetig; K67 war
+                           dort bereits dormant -> _kandidat lieferte K73)
+   (1022,73)            : 1a UND 1b noetig  *** Q1-PROMOTION ***
+                           K67 war an 1022 LEBEND -> Baseline:
+                           KANDIDAT_NONE (WAND_LEBT_UNREICHT).
+                           1a entfernt K67 -> K73 wird pos 0 und handelt
+                           (Q1-Privileg, V-S=2 < min_touches_handelbar=3!)
+                           1b hebt dann M6(K67) auf.
+
+-- Erfolgte Kanal-Aktivierungen je Variante (Bars) --
+   REF HYP-P10 (Band 0.12, 1a+1b)           1a=[981, 998, 1003, 1004, 1005, 1056, 1259] 1b=[981, 998, 1056, 1259]
+   CTRL Band 0.75, Kanaele AUS (global)     1a=[] 1b=[]
+   (i)  Band 0.75, NUR 1b (M6)              1a=[] 1b=[1056, 1120, 1122, 1123, 1272]
+   (ii) Band 0.75, NUR 1a (Pool)            1a=[981, 998, 1003, 1004, 1005, 1021, 1022, 1023, 1024, 1025, 1032, 1033, 1034, 1035, 1036, 1037, 1038, 1039, 1040, 1041, 1042, 1043, 1044, 1051, 1052, 1053, 1054, 1055, 1056, 1057, 1058, 1059, 1060, 1061, 1062, 1063, 1064, 1065, 1066, 1068, 1069, 1070, 1071, 1119, 1120, 1121, 1122, 1123, 1124, 1126, 1134, 1174, 1175, 1176, 1177, 1178, 1179, 1180, 1181, 1182, 1183, 1184, 1186, 1192, 1193, 1194, 1195, 1210, 1211, 1212, 1213, 1214, 1216, 1217, 1244, 1254, 1255, 1256, 1257, 1258, 1259, 1260, 1267, 1268, 1270, 1271, 1272, 1273, 1274, 1275, 1280, 1281, 1282, 1283, 1284] 1b=[]
+   (iii) Band 0.75, 1a+1b synchron          1a=[981, 998, 1003, 1004, 1005, 1021, 1022, 1023, 1024, 1025, 1032, 1033, 1034, 1035, 1036, 1037, 1038, 1039, 1040, 1041, 1042, 1043, 1044, 1051, 1052, 1053, 1054, 1055, 1056, 1057, 1058, 1059, 1060, 1061, 1062, 1063, 1064, 1065, 1066, 1068, 1069, 1070, 1071, 1119, 1120, 1121, 1122, 1123, 1124, 1126, 1134, 1174, 1175, 1176, 1177, 1178, 1179, 1180, 1181, 1182, 1183, 1184, 1186, 1192, 1193, 1194, 1195, 1210, 1211, 1212, 1213, 1214, 1216, 1217, 1244, 1254, 1255, 1256, 1257, 1258, 1259, 1260, 1267, 1268, 1270, 1271, 1272, 1273, 1274, 1275, 1280, 1281, 1282, 1283, 1284] 1b=[981, 998, 1022, 1023, 1056, 1058, 1070, 1120, 1122, 1123, 1256, 1258, 1259, 1272]
+   REPLIKA Fenster 1021..1287, 1a+1b        1a=[981, 998, 1003, 1004, 1005, 1021, 1022, 1023, 1024, 1025, 1032, 1033, 1034, 1035, 1036, 1037, 1038, 1039, 1040, 1041, 1042, 1043, 1044, 1051, 1052, 1053, 1054, 1055, 1056, 1057, 1058, 1059, 1060, 1061, 1062, 1063, 1064, 1065, 1066, 1068, 1069, 1070, 1071, 1119, 1120, 1121, 1122, 1123, 1124, 1126, 1134, 1174, 1175, 1176, 1177, 1178, 1179, 1180, 1181, 1182, 1183, 1184, 1186, 1192, 1193, 1194, 1195, 1210, 1211, 1212, 1213, 1214, 1216, 1217, 1244, 1254, 1255, 1256, 1257, 1258, 1259, 1260, 1267, 1268, 1270, 1271, 1272, 1273, 1274, 1275, 1280, 1281, 1282, 1283, 1284] 1b=[981, 998, 1022, 1023, 1056, 1058, 1070, 1120, 1122, 1123, 1256, 1258, 1259, 1272]
+   (iv-A) endogen [1075..1287], 1a+1b       1a=[981, 998, 1003, 1004, 1005, 1119, 1120, 1121, 1122, 1123, 1124, 1126, 1134, 1174, 1175, 1176, 1177, 1178, 1179, 1180, 1181, 1182, 1183, 1184, 1186, 1192, 1193, 1194, 1195, 1210, 1211, 1212, 1213, 1214, 1216, 1217, 1244, 1254, 1255, 1256, 1257, 1258, 1259, 1260, 1267, 1268, 1270, 1271, 1272, 1273, 1274, 1275, 1280, 1281, 1282, 1283, 1284] 1b=[981, 998, 1120, 1122, 1123, 1256, 1258, 1259, 1272]
+   (iv-B) endogen [1021..1020], 1a+1b       1a=[981, 998, 1003, 1004, 1005] 1b=[981, 998]
+
+################################################################################################################
+# 4  LAUF (iv) -- ENDOGENES P10-FENSTER (PROVISORIUM, zur Ratifikation)
+################################################################################################################
+
+   Definition (Fenster endogen, Niveaus DEKLARIERT):
+   Oeffnung = erster Bar k >= 1021 mit Reclaim >= Stufe 1 gegen die
+   deklarierte P10-Grenzkante (K67 SHORT / K82 LONG).
+   Ende = Fensterende 1287 (kein endogenes Schliessen implementiert).
+
+   [A_ohne_exists] erster Reclaim >= 1: k=1075 LONG K82 stufe=1 (STUFE_1_IN_BAR)
+   [B_mit_exists] kein Reclaim >= 1 -> LEERES Fenster
+
+   Kandidat A (ohne exists): [1075..1287]
+   Kandidat B (mit exists) : [1021..1020]   (LEER -> P10 inaktiv)
+
+-- Replika-Validierung (Fenster 1021..1287 == voller P10) --
+   REPLIKA :  20 Trades /   +99.239447 R   vs (iii) 20/+99.239447   -> IDENTISCH (Wrapper faithful)
+
+   (iv-A) endogen [1075..1287], 1a+1b        19 Trades /   +77.312016 R | H1 8/+38.919584 [H1-HALTEN ] | H2 11/+38.392432
+     Deltas vs REF: +[(1122, 73), (1272, 73)] -[] | 1a 57 / 1b 9
+   (iv-B) endogen [1021..1020], 1a+1b        17 Trades /   +65.835576 R | H1 8/+38.919584 [H1-HALTEN ] | H2 9/+26.915992
+     Deltas vs REF: +[] -[] | 1a 5 / 1b 2
+
+-- Alle Trades mit bar >= 1021 je Variante --
+   REF HYP-P10 (Band 0.12, 1a+1b)           keine
+   CTRL Band 0.75, Kanaele AUS (global)     keine
+   (i)  Band 0.75, NUR 1b (M6)              1122/K73/S/+10.2218, 1272/K73/S/+1.2547
+   (ii) Band 0.75, NUR 1a (Pool)            keine
+   (iii) Band 0.75, 1a+1b synchron          1022/K73/S/+21.9274, 1122/K73/S/+10.2218, 1272/K73/S/+1.2547
+   REPLIKA Fenster 1021..1287, 1a+1b        1022/K73/S/+21.9274, 1122/K73/S/+10.2218, 1272/K73/S/+1.2547
+   (iv-A) endogen [1075..1287], 1a+1b       1122/K73/S/+10.2218, 1272/K73/S/+1.2547
+   (iv-B) endogen [1021..1020], 1a+1b       keine
+
+################################################################################################################
+# 5  HARTE GATES
+################################################################################################################
+
+5.1 H1-Invarianz (Soll 8 / +38.919584 R)
+    REF HYP-P10 (Band 0.12, 1a+1b)           H1  8/+38.919584 OK
+    CTRL Band 0.75, Kanaele AUS (global)     H1  8/+38.919584 OK
+    (i)  Band 0.75, NUR 1b (M6)              H1  8/+38.919584 OK
+    (ii) Band 0.75, NUR 1a (Pool)            H1  8/+38.919584 OK
+    (iii) Band 0.75, 1a+1b synchron          H1  8/+38.919584 OK
+    REPLIKA Fenster 1021..1287, 1a+1b        H1  8/+38.919584 OK
+    (iv-A) endogen [1075..1287], 1a+1b       H1  8/+38.919584 OK
+    (iv-B) endogen [1021..1020], 1a+1b       H1  8/+38.919584 OK
+
+5.2a Negativkontrolle SIGNAL-Bar 1023..1031 (Soll: 0 Trades)
+    REF HYP-P10 (Band 0.12, 1a+1b)           0 Trades  []
+    CTRL Band 0.75, Kanaele AUS (global)     0 Trades  []
+    (i)  Band 0.75, NUR 1b (M6)              0 Trades  []
+    (ii) Band 0.75, NUR 1a (Pool)            0 Trades  []
+    (iii) Band 0.75, 1a+1b synchron          0 Trades  []
+    REPLIKA Fenster 1021..1287, 1a+1b        0 Trades  []
+    (iv-A) endogen [1075..1287], 1a+1b       0 Trades  []
+    (iv-B) endogen [1021..1020], 1a+1b       0 Trades  []
+
+5.2b Verschaerft: ENTRY-Bar 1023..1031 (Soll: 0 Trades)
+    REF HYP-P10 (Band 0.12, 1a+1b)           0 Trades  []  OK
+    CTRL Band 0.75, Kanaele AUS (global)     0 Trades  []  OK
+    (i)  Band 0.75, NUR 1b (M6)              0 Trades  []  OK
+    (ii) Band 0.75, NUR 1a (Pool)            0 Trades  []  OK
+    (iii) Band 0.75, 1a+1b synchron          1 Trades  [(1022, 1023, 73, 21.927431)]  *** VERLETZT ***
+    REPLIKA Fenster 1021..1287, 1a+1b        1 Trades  [(1022, 1023, 73, 21.927431)]  *** VERLETZT ***
+    (iv-A) endogen [1075..1287], 1a+1b       0 Trades  []  OK
+    (iv-B) endogen [1021..1020], 1a+1b       0 Trades  []  OK
+
+5.3 Gate-Protokoll 1023..1031 (REF) -- welches Gate schlaegt?
+    bar 1023 SHORT KANDIDAT_NONE
+    bar 1023 LONG  KANDIDAT_NONE
+    bar 1024 SHORT KANDIDAT_NONE
+    bar 1024 LONG  KANDIDAT_NONE
+    bar 1025 SHORT KANDIDAT_NONE
+    bar 1025 LONG  KANDIDAT_NONE
+    bar 1026 SHORT KANDIDAT_NONE
+    bar 1026 LONG  KANDIDAT_NONE
+    bar 1027 SHORT KANDIDAT_NONE
+    bar 1027 LONG  KANDIDAT_NONE
+    bar 1028 SHORT KANDIDAT_NONE
+    bar 1028 LONG  Q29
+    bar 1029 SHORT KANDIDAT_NONE
+    bar 1029 LONG  Q29
+    bar 1030 SHORT KANDIDAT_NONE
+    bar 1030 LONG  Q29
+    bar 1031 SHORT KANDIDAT_NONE
+    bar 1031 LONG  KANDIDAT_NONE
+
+5.4 M6-Sperren mit Liveness (REF, Fenster 1021..1287)
+    bar 1122 SHORT M6(K67,dorm)
+    bar 1123 SHORT M6(K67,dorm)
+    bar 1272 SHORT M6(K67,dorm)
+
+################################################################################################################
+# 6  KONTROLLE
+################################################################################################################
+   Engine-SHA : 4a576a766670d684c30381969e4d7349d5786b1b22ea6dda08b93b7d811bb38a
+   Status     : UNVERAENDERT
+   Adapter    : backtest_lab/phasen_regime_adapter.py nicht editiert (Bandaufweitung via zweitem Segment-Eintrag)
+
+ENDE PHASE 3 / SCHRITT 1

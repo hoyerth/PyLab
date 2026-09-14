@@ -1,0 +1,17 @@
+﻿K67 OBEN basis=69.946 pivot=873 geburt=881 n=5 anker=False
+Schwelle 0.12 % -> 70.030 | 0.60 % -> 70.365
+
+MAX hi-Ueberstand vs. kausale Basis: +0.0417 % bei Bar 873 (hi=69.975)
+MAX hi ab Pivot: 70.000 (Bar 881)
+
+Alle Bars mit hi > basis + 0.02 %:
+  Bar  873 hi= 69.975 basis_bei= 69.946 dist=+0.0417% alter=   0 etabliert(>= 24)=False close=69.475 reclaim=True
+  Bar  881 hi= 70.000 basis_bei= 69.975 dist=+0.0357% alter=   8 etabliert(>= 24)=False close=69.954 reclaim=True
+  Bar  882 hi= 69.995 basis_bei= 69.975 dist=+0.0286% alter=   9 etabliert(>= 24)=False close=69.848 reclaim=True
+
+Dochte (best├ñtigte Pivots) der Kante:
+  bar  873 px= 69.975 basis_bei= 69.946 ueberstand=+0.0417%
+  bar  881 px= 70.000 basis_bei= 69.975 ueberstand=+0.0357%
+  bar  904 px= 69.931 basis_bei= 69.987 ueberstand=-0.0807%
+  bar  980 px= 69.899 basis_bei= 69.969 ueberstand=-0.0996%
+  bar 1020 px= 69.924 basis_bei= 69.951 ueberstand=-0.0390%

@@ -1,0 +1,99 @@
+######################################################################################################################
+# KAUSALE LOESCHREGELN (READ-ONLY) -- AUG komplett
+# n=1288 | Original: Kanten 93 | Trades 9 / +23.02 R
+######################################################################################################################
+
+Regel-Definitionen (alle kausal bis Bar k, Timeout = wall_live_bars 96):
+  R8  = Singleton-Timeout: < 2 Touches nach 96 Bars -> loeschen
+  R9  = Nicht-Aussenkante: 96 Bars lang nicht aeusserste lebende Linie
+  R10 = R8 + R9
+  R11 = nicht handelbar (< 3 Touches, kein Primaer-Anker) nach 96 Bars
+  R15 = ersetzt+dormant: < 3 Touches, von neuerer Aussenlinie ersetzt,
+        letzter Kontakt >= 96 Bars -> loeschen
+  R16 = wie R15 ohne Touch-Grenze (auch >= 3 Touches)
+  R17 = wie R15, Dormanz-Fenster 192 Bars
+  R18 = Singleton-Timeout + nie als lebende Aussenlinie aufgetreten
+  R19 = R18 + Schutz fuer Linien, die je Aussenlinie waren
+
+======================================================================================================================
+R18: geloeschte Kanten 44 | Kanten danach 63 (orig 93) | edges 59 seeds 4
+======================================================================================================================
+  Trades        : 9 (orig 9) | Netto-R +15.28 (orig +23.02)
+  Trade-Signatur: ABWEICHEND
+      orig (229, 'SHORT', 231, 6.9245) vs neu (229, 'SHORT', 231, 6.9245)
+      orig (398, 'LONG', 399, 5.6583) vs neu (398, 'LONG', 399, 5.6583)
+      orig (529, 'SHORT', 531, 8.4072) vs neu (529, 'SHORT', 531, 8.1509)   <<<
+      orig (639, 'LONG', 640, -1.0) vs neu (621, 'LONG', 622, -1.0)   <<<
+      orig (650, 'LONG', 653, -1.0) vs neu (639, 'LONG', 640, -1.0)   <<<
+      orig (679, 'LONG', 681, 6.4809) vs neu (650, 'LONG', 653, -1.0)   <<<
+      orig (716, 'SHORT', 718, -0.4525) vs neu (716, 'SHORT', 718, -0.4525)
+      orig (760, 'SHORT', 762, -1.0) vs neu (760, 'SHORT', 762, -1.0)
+      orig (853, 'SHORT', 855, -1.0) vs neu (853, 'SHORT', 855, -1.0)
+  FOLGEKANTEN   : 9
+      neu: UNTEN pivot_bar= 209 px=65.049
+      neu: OBEN  pivot_bar= 376 px=64.708
+      neu: UNTEN pivot_bar= 398 px=63.485
+      neu: UNTEN pivot_bar= 479 px=65.414
+      neu: UNTEN pivot_bar= 707 px=64.824
+      neu: OBEN  pivot_bar=1001 px=68.699
+      neu: UNTEN pivot_bar=1039 px=67.705
+      neu: UNTEN pivot_bar=1124 px=69.084
+      neu: UNTEN pivot_bar=1234 px=68.233
+  Alter beim Loeschen: min=96 max=625 median=96
+  geloeschte Kanten: [1, 4, 7, 14, 18, 19, 22, 27, 28, 31, 33, 36, 37, 38, 39, 41, 43, 44, 46, 47, 49, 50, 51, 52, 54, 55, 56, 60, 61, 65, 67, 68, 69, 70, 74, 75, 76, 77, 81, 82, 86, 96, 101, 104]
+
+======================================================================================================================
+R19: geloeschte Kanten 40 | Kanten danach 66 (orig 93) | edges 59 seeds 7
+======================================================================================================================
+  Trades        : 9 (orig 9) | Netto-R +15.28 (orig +23.02)
+  Trade-Signatur: ABWEICHEND
+      orig (229, 'SHORT', 231, 6.9245) vs neu (229, 'SHORT', 231, 6.9245)
+      orig (398, 'LONG', 399, 5.6583) vs neu (398, 'LONG', 399, 5.6583)
+      orig (529, 'SHORT', 531, 8.4072) vs neu (529, 'SHORT', 531, 8.1509)   <<<
+      orig (639, 'LONG', 640, -1.0) vs neu (621, 'LONG', 622, -1.0)   <<<
+      orig (650, 'LONG', 653, -1.0) vs neu (639, 'LONG', 640, -1.0)   <<<
+      orig (679, 'LONG', 681, 6.4809) vs neu (650, 'LONG', 653, -1.0)   <<<
+      orig (716, 'SHORT', 718, -0.4525) vs neu (716, 'SHORT', 718, -0.4525)
+      orig (760, 'SHORT', 762, -1.0) vs neu (760, 'SHORT', 762, -1.0)
+      orig (853, 'SHORT', 855, -1.0) vs neu (853, 'SHORT', 855, -1.0)
+  FOLGEKANTEN   : 8
+      neu: UNTEN pivot_bar= 209 px=65.049
+      neu: OBEN  pivot_bar= 376 px=64.708
+      neu: UNTEN pivot_bar= 398 px=63.485
+      neu: UNTEN pivot_bar= 479 px=65.414
+      neu: UNTEN pivot_bar= 707 px=64.824
+      neu: OBEN  pivot_bar=1001 px=68.699
+      neu: UNTEN pivot_bar=1124 px=69.084
+      neu: UNTEN pivot_bar=1234 px=68.233
+  Alter beim Loeschen: min=96 max=96 median=96
+  geloeschte Kanten: [1, 7, 14, 18, 19, 22, 27, 28, 31, 33, 36, 37, 38, 41, 43, 44, 46, 47, 49, 50, 51, 52, 54, 55, 56, 60, 61, 65, 67, 68, 69, 70, 76, 77, 81, 82, 86, 96, 100, 103]
+
+======================================================================================================================
+GEBURTS-FILTER (deletion at birth, kausal bis mbar)
+======================================================================================================================
+----------------------------------------------------------------------------------------------------------------------
+R12: unterdrueckte Geburten 274 | Kanten danach 11 (orig 93) | edges 11 seeds 0
+  Trades        : 3 (orig 9) | Netto-R -3.00 (orig +23.02)
+  Trade-Signatur: ABWEICHEND
+      orig (229, 'SHORT', 231, 6.9245) vs neu (650, 'LONG', 653, -1.0)   <<<
+      orig (398, 'LONG', 399, 5.6583) vs neu (760, 'SHORT', 762, -1.0)   <<<
+      orig (529, 'SHORT', 531, 8.4072) vs neu (853, 'SHORT', 855, -1.0)   <<<
+      Anzahl: orig 9 vs neu 3
+  FOLGEKANTEN   : 0
+----------------------------------------------------------------------------------------------------------------------
+R13: unterdrueckte Geburten 191 | Kanten danach 38 (orig 93) | edges 27 seeds 11
+  Trades        : 8 (orig 9) | Netto-R +9.05 (orig +23.02)
+  Trade-Signatur: ABWEICHEND
+      orig (229, 'SHORT', 231, 6.9245) vs neu (529, 'SHORT', 531, 8.0224)   <<<
+      orig (398, 'LONG', 399, 5.6583) vs neu (621, 'LONG', 623, -1.0)   <<<
+      orig (529, 'SHORT', 531, 8.4072) vs neu (639, 'LONG', 640, -1.0)   <<<
+      orig (639, 'LONG', 640, -1.0) vs neu (650, 'LONG', 653, -1.0)   <<<
+      orig (650, 'LONG', 653, -1.0) vs neu (679, 'LONG', 681, 6.4809)   <<<
+      orig (679, 'LONG', 681, 6.4809) vs neu (716, 'SHORT', 718, -0.4525)   <<<
+      orig (716, 'SHORT', 718, -0.4525) vs neu (760, 'SHORT', 762, -1.0)   <<<
+      orig (760, 'SHORT', 762, -1.0) vs neu (853, 'SHORT', 855, -1.0)   <<<
+      Anzahl: orig 9 vs neu 8
+  FOLGEKANTEN   : 3
+      neu: UNTEN pivot_bar= 380 px=63.716
+      neu: UNTEN pivot_bar= 398 px=63.485
+      neu: UNTEN pivot_bar= 627 px=63.815

@@ -1,0 +1,31 @@
+========================================================================================================
+E-28 ZIELSYSTEM-LOKALISIERUNG -- AUG  Variante GEG960
+========================================================================================================
+   GEGENKANTE lokal 960-LEBIGKEIT (letzter Docht >= k-960) [RATIFIZIERT]
+Engine : tmp_kanten_engine_replay.py  SHA 4a576a766670d684c3038196...
+n 1288  box_end_bar 644 -> Laufgrenze 644  |  Fenster _W(k) = max(0, k-960)  |  Q29 lokal 960 (ratifiziert)
+Instrumentierung: 14 × stats-Hook, Q29/Gegenkante/POC-Injektion, _CUR-Zeiger
+Laufzeit 0.2s   Setups 8
+   gesamt : n    8  R +38.919584  R_adj +23.049550  USD +11.2613  USD/Tr +1.4077  ATR/Tr +6.1582  Q_stop 0.125  |ziel|/e  4.06%  halt  81.4  Gew% 62.5
+   H1     : n    8  R +38.919584  R_adj +23.049550  USD +11.2613  USD/Tr +1.4077  ATR/Tr +6.1582  Q_stop 0.125  |ziel|/e  4.06%  halt  81.4  Gew% 62.5
+   H2     : n    0  R +0.000000  R_adj +0.000000  USD +0.0000  USD/Tr +0.0000  ATR/Tr +0.0000  Q_stop 0.000  |ziel|/e  0.00%  halt   0.0  Gew%  0.0
+   LONG  : n    2   SHORT: n    6
+
+   Q29-TRICHTER + Zielsystem-Sperren:
+   HaelfteRichtung  Kand.   Q29  SETUP  keinGeg
+   H1     SHORT        39     7      6        0
+   H1     LONG         31    22      2        0
+   H2     SHORT         0     0      0        0
+   H2     LONG          0     0      0        0
+
+   ERREICHBARKEIT DES ZIELS (Bar, Richtung, Kante, entry, tp2, Distanz %, R, Haltedauer):
+         229 SHORT K20   e  66.4240  tp2  63.6190  d   4.22%  R   +6.88930  halt   167
+         242 SHORT K20   e  66.0920  tp2  63.6190  d   3.74%  R   +3.92512  halt   153
+         398 LONG  K5    e  63.7630  tp2  66.4590  d   4.23%  R   +5.69771  halt   130
+         490 SHORT K16   e  65.7690  tp2  63.4850  d   3.47%  R   -0.47508  halt     1
+         509 SHORT K16   e  65.7900  tp2  63.4850  d   3.50%  R   -0.34745  halt    15
+         529 SHORT K20   e  66.3240  tp2  63.4850  d   4.28%  R   +8.35994  halt   108
+         564 SHORT K20   e  66.4340  tp2  63.4850  d   4.44%  R  +15.87003  halt    74
+         639 LONG  K1    e  63.5340  tp2  66.4590  d   4.60%  R   -1.00000  halt     3
+
+ENDE AUG geg960   Gesamtlaufzeit 0.8s

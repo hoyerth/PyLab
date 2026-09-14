@@ -1,0 +1,163 @@
+﻿==============================================================================================================
+SCHLAF-WINDOW-DIAGNOSE | Kandidaten an Bar 1172 (LONG) und 1259 (LONG)
+==============================================================================================================
+cfg: max_sweep_ueberdehnung_pct=0.6 | touch_band_pct=0.12 | sweep_mindestdurchstich_pct=0.0 | min_touches_handelbar=3 | wall_live_bars=96 | min_wall_alter_bars=24 | quartil_distanz_pct=25.0
+
+--------------------------------------------------------------------------------------------------------------
+BAR 1172  26.08.2026 19:00  H 67.9420 L 67.4940  | range(0..1172) lo=62.5480 hi=70.0000
+   Q29-Distanz% = 66.3714 (Grenze 25.0) -> GESPERRT
+     KID seite   basis_bei     dist%  exist  touch  aktiv   lebt   etab  anker  schlaf_windows
+      17 UNTEN     65.6540   -2.8026   True     13   True                False  [(120, 244), (259, 477), (482, 495), (503, 514), (519, 546), (570, 723)]
+      52 UNTEN     66.8920   -0.9000  False      2  False                False  [(767, None)]
+      53 UNTEN     66.3710   -1.6920   True      1   True                False  []
+      54 UNTEN     66.5980   -1.3454  False      4  False                False  [(775, 781), (792, None)]
+      55 UNTEN     66.4550   -1.5635   True      1   True                False  []
+      60 UNTEN     67.9750    0.7076   True      4   True                False  [(1032, 1167), (1173, 1185)]
+      62 UNTEN     67.7830    0.4264  False      4  False                False  [(1074, 1178)]
+      63 UNTEN     67.8310    0.4968   True      1   True                False  []
+      64 UNTEN     68.0370    0.7981   True      1   True                False  []
+      66 UNTEN     68.8130    1.9168  False      8  False                False  [(992, 1014), (1029, 1096), (1112, None)]
+      68 UNTEN     69.2280    2.5048  False      2  False                False  [(919, None)]
+      71 UNTEN     68.9580    2.1230  False      4  False                False  [(935, 980), (992, 1133), (1139, 1224), (1228, None)]
+      72 UNTEN     69.3740    2.7099  False      3  False                False  [(918, 1023), (1027, None)]
+      77 UNTEN     68.3920    1.3130  False      4  False                False  [(1031, 1159), (1165, 1210), (1244, None)]
+      79 UNTEN     68.6410    1.6710  False      6  False                False  [(999, 1140), (1149, None)]
+      82 UNTEN     67.5530    0.0873  False      2  False                False  [(1074, 1174)]
+      85 UNTEN     67.4200   -0.1098   True      1   True                False  []
+      86 UNTEN     68.5250    1.5046  False      4  False                False  [(1165, None)]
+      87 UNTEN     68.1830    1.0105   True      1   True                False  [(1256, None)]
+
+--------------------------------------------------------------------------------------------------------------
+BAR 1259  27.08.2026 17:45  H 68.0970 L 67.6000  | range(0..1259) lo=62.5480 hi=70.0000
+   Q29-Distanz% = 67.7939 (Grenze 25.0) -> GESPERRT
+     KID seite   basis_bei     dist%  exist  touch  aktiv   lebt   etab  anker  schlaf_windows
+      17 UNTEN     65.6540   -2.9640   True     13   True                False  [(120, 244), (259, 477), (482, 495), (503, 514), (519, 546), (570, 723)]
+      52 UNTEN     66.8920   -1.0584  False      2  False                False  [(767, None)]
+      53 UNTEN     66.3710   -1.8517   True      1   True                False  []
+      54 UNTEN     66.5980   -1.5045  False      4  False                False  [(775, 781), (792, None)]
+      55 UNTEN     66.4550   -1.7230   True      1   True                False  []
+      60 UNTEN     67.9750    0.5517   True      7   True                False  [(1032, 1167), (1173, 1185)]
+      62 UNTEN     67.8070    0.3053   True      6   True                False  [(1074, 1178)]
+      63 UNTEN     67.8310    0.3406   True      1   True                False  []
+      64 UNTEN     68.0370    0.6423   True      1   True                False  []
+      66 UNTEN     68.8130    1.7627  False      8  False                False  [(992, 1014), (1029, 1096), (1112, None)]
+      68 UNTEN     69.2280    2.3516  False      2  False                False  [(919, None)]
+      71 UNTEN     68.9580    1.9693  False      5  False                False  [(935, 980), (992, 1133), (1139, 1224), (1228, None)]
+      72 UNTEN     69.3740    2.5572  False      3  False                False  [(918, 1023), (1027, None)]
+      77 UNTEN     68.4130    1.1884  False      6  False                False  [(1031, 1159), (1165, 1210), (1244, None)]
+      79 UNTEN     68.6410    1.5166  False      6  False                False  [(999, 1140), (1149, None)]
+      82 UNTEN     67.5530   -0.0696   True      3   True                False  [(1074, 1174)]
+      85 UNTEN     67.4200   -0.2670   True      1   True                False  []
+      86 UNTEN     68.5250    1.3499  False      4  False                False  [(1165, None)]
+      87 UNTEN     68.2330    0.9277  False      2  False                False  [(1256, None)]
+
+==============================================================================================================
+FOKUS K82 / K60 / K62 / K85 -- vollstaendige Historie
+==============================================================================================================
+
+K60 UNTEN | geburt=813 | erster_pivot=810 | ist_prim_anker=False
+   wicks        : [(810, 67.897), (813, 67.975), (840, 67.883), (1165, 67.882), (1183, 67.901), (1193, 67.869), (1244, 67.95)]
+   schlaf_windows: [(1032, 1167), (1173, 1185)]
+   k=1056  exist=False aktiv=False touch=3 basis=67.9750
+   k=1075  exist=False aktiv=False touch=3 basis=67.9750
+   k=1122  exist=False aktiv=False touch=3 basis=67.9750
+   k=1160  exist=False aktiv=False touch=3 basis=67.9750
+   k=1172  exist=True  aktiv=True  touch=4 basis=67.9750
+   k=1211  exist=True  aktiv=True  touch=6 basis=67.9750
+   k=1259  exist=True  aktiv=True  touch=7 basis=67.9750
+   k=1272  exist=True  aktiv=True  touch=7 basis=67.9750
+   k=1287  exist=True  aktiv=True  touch=7 basis=67.9750
+
+K62 UNTEN | geburt=1039 | erster_pivot=817 | ist_prim_anker=False
+   wicks        : [(817, 67.726), (1039, 67.705), (1052, 67.705), (1063, 67.783), (1176, 67.807), (1256, 67.671)]
+   schlaf_windows: [(1074, 1178)]
+   k=1056  exist=True  aktiv=True  touch=3 basis=67.7260
+   k=1075  exist=False aktiv=False touch=4 basis=67.7830
+   k=1122  exist=False aktiv=False touch=4 basis=67.7830
+   k=1160  exist=False aktiv=False touch=4 basis=67.7830
+   k=1172  exist=False aktiv=False touch=4 basis=67.7830
+   k=1211  exist=True  aktiv=True  touch=5 basis=67.8070
+   k=1259  exist=True  aktiv=True  touch=6 basis=67.8070
+   k=1272  exist=True  aktiv=True  touch=6 basis=67.8070
+   k=1287  exist=True  aktiv=True  touch=6 basis=67.8070
+
+K82 UNTEN | geburt=1056 | erster_pivot=1031 | ist_prim_anker=False
+   wicks        : [(1031, 67.535), (1056, 67.553), (1172, 67.494), (1259, 67.6)]
+   schlaf_windows: [(1074, 1174)]
+   k=1056  exist=True  aktiv=True  touch=1 basis=67.5350
+   k=1075  exist=False aktiv=False touch=2 basis=67.5530
+   k=1122  exist=False aktiv=False touch=2 basis=67.5530
+   k=1160  exist=False aktiv=False touch=2 basis=67.5530
+   k=1172  exist=False aktiv=False touch=2 basis=67.5530
+   k=1211  exist=True  aktiv=True  touch=3 basis=67.5530
+   k=1259  exist=True  aktiv=True  touch=3 basis=67.5530
+   k=1272  exist=True  aktiv=True  touch=4 basis=67.6000
+   k=1287  exist=True  aktiv=True  touch=4 basis=67.6000
+
+K85 UNTEN | geburt=1075 | erster_pivot=1075 | ist_prim_anker=False
+   wicks        : [(1075, 67.42)]
+   schlaf_windows: []
+   k=1056  exist=False aktiv=True  touch=0 basis=67.4200
+   k=1075  exist=False aktiv=True  touch=0 basis=67.4200
+   k=1122  exist=True  aktiv=True  touch=1 basis=67.4200
+   k=1160  exist=True  aktiv=True  touch=1 basis=67.4200
+   k=1172  exist=True  aktiv=True  touch=1 basis=67.4200
+   k=1211  exist=True  aktiv=True  touch=1 basis=67.4200
+   k=1259  exist=True  aktiv=True  touch=1 basis=67.4200
+   k=1272  exist=True  aktiv=True  touch=1 basis=67.4200
+   k=1287  exist=True  aktiv=True  touch=1 basis=67.4200
+
+==============================================================================================================
+SCHLAF-WINDOWS ALLER LINIEN, die 1172 oder 1259 abdecken
+==============================================================================================================
+   K0    OBEN   1172:[(704, None)]  1259:[(704, None)]  alle=[(32, 636), (704, None)]
+   K1    UNTEN  1172:[(643, None)]  1259:[(643, None)]  alle=[(643, None)]
+   K2    OBEN   1172:[(26, None)]  1259:[(26, None)]  alle=[(26, None)]
+   K5    UNTEN  1172:[(641, None)]  1259:[(641, None)]  alle=[(641, None)]
+   K6    OBEN   1172:[(408, None)]  1259:[(408, None)]  alle=[(67, 402), (408, None)]
+   K8    UNTEN  1172:[(640, None)]  1259:[(640, None)]  alle=[(640, None)]
+   K9    OBEN   1172:[(704, None)]  1259:[(704, None)]  alle=[(67, 388), (401, 626), (704, None)]
+   K10   OBEN   1172:[(424, None)]  1259:[(424, None)]  alle=[(143, 181), (194, 317), (327, 359), (424, None)]
+   K11   UNTEN  1172:[(620, None)]  1259:[(620, None)]  alle=[(127, 179), (320, 344), (362, 412), (620, None)]
+   K12   OBEN   1172:[(711, None)]  1259:[(711, None)]  alle=[(84, 150), (204, 277), (285, 465), (472, 580), (587, 611), (711, None)]
+   K13   UNTEN  1172:[(618, None)]  1259:[(618, None)]  alle=[(173, 194), (317, 336), (346, 444), (456, 468), (618, None)]
+   K14   UNTEN  1172:[(593, None)]  1259:[(593, None)]  alle=[(309, 439), (441, 522), (593, None)]
+   K15   OBEN   1172:[(730, None)]  1259:[(730, None)]  alle=[(109, 222), (226, 718), (730, None)]
+   K16   OBEN   1172:[(728, None)]  1259:[(728, None)]  alle=[(102, 116), (221, 480), (527, 549), (563, 712), (728, None)]
+   K20   OBEN   1172:[(735, None)]  1259:[(735, None)]  alle=[(735, None)]
+   K21   UNTEN  1172:[(621, None)]  1259:[(621, None)]  alle=[(381, 408), (621, None)]
+   K23   UNTEN  1172:[(379, None)]  1259:[(379, None)]  alle=[(379, None)]
+   K24   UNTEN  1172:[(620, None)]  1259:[(620, None)]  alle=[(317, 358), (361, 416), (620, None)]
+   K25   OBEN   1172:[(710, None)]  1259:[(710, None)]  alle=[(204, 345), (432, 596), (710, None)]
+   K26   OBEN   1172:[(219, None)]  1259:[(219, None)]  alle=[(219, None)]
+   K28   OBEN   1172:[(474, None)]  1259:[(474, None)]  alle=[(474, None)]
+   K29   UNTEN  1172:[(617, None)]  1259:[(617, None)]  alle=[(310, 608), (617, None)]
+   K31   OBEN   1172:[(735, None)]  1259:[(735, None)]  alle=[(565, 732), (735, None)]
+   K33   OBEN   1172:[(474, None)]  1259:[(474, None)]  alle=[(286, 298), (474, None)]
+   K34   UNTEN  1172:[(278, None)]  1259:[(278, None)]  alle=[(278, None)]
+   K36   OBEN   1172:[(465, None)]  1259:[(465, None)]  alle=[(465, None)]
+   K44   OBEN   1172:[(711, None)]  1259:[(711, None)]  alle=[(711, None)]
+   K46   OBEN   1172:[(695, None)]  1259:[(695, None)]  alle=[(695, None)]
+   K47   OBEN   1172:[(686, None)]  1259:[(686, None)]  alle=[(686, None)]
+   K51   OBEN   1172:[(800, None)]  1259:[(800, None)]  alle=[(800, None)]
+   K52   UNTEN  1172:[(767, None)]  1259:[(767, None)]  alle=[(767, None)]
+   K54   UNTEN  1172:[(792, None)]  1259:[(792, None)]  alle=[(775, 781), (792, None)]
+   K59   OBEN   1172:[]  1259:[(1210, None)]  alle=[(868, 951), (954, 965), (976, 1093), (1121, 1142), (1210, None)]
+   K61   OBEN   1172:[(1046, 1192)]  1259:[(1197, 1260)]  alle=[(842, 1043), (1046, 1192), (1197, 1260), (1264, None)]
+   K62   UNTEN  1172:[(1074, 1178)]  1259:[]  alle=[(1074, 1178)]
+   K65   OBEN   1172:[(1162, None)]  1259:[(1162, None)]  alle=[(1008, 1048), (1088, 1150), (1162, None)]
+   K66   UNTEN  1172:[(1112, None)]  1259:[(1112, None)]  alle=[(992, 1014), (1029, 1096), (1112, None)]
+   K68   UNTEN  1172:[(919, None)]  1259:[(919, None)]  alle=[(919, None)]
+   K71   UNTEN  1172:[(1139, 1224)]  1259:[(1228, None)]  alle=[(935, 980), (992, 1133), (1139, 1224), (1228, None)]
+   K72   UNTEN  1172:[(1027, None)]  1259:[(1027, None)]  alle=[(918, 1023), (1027, None)]
+   K77   UNTEN  1172:[(1165, 1210)]  1259:[(1244, None)]  alle=[(1031, 1159), (1165, 1210), (1244, None)]
+   K78   OBEN   1172:[(1121, None)]  1259:[(1121, None)]  alle=[(1020, 1099), (1121, None)]
+   K79   UNTEN  1172:[(1149, None)]  1259:[(1149, None)]  alle=[(999, 1140), (1149, None)]
+   K80   OBEN   1172:[(1121, 1227)]  1259:[]  alle=[(1017, 1109), (1121, 1227), (1269, None)]
+   K81   OBEN   1172:[(1121, 1231)]  1259:[]  alle=[(1097, 1115), (1121, 1231), (1268, None)]
+   K82   UNTEN  1172:[(1074, 1174)]  1259:[]  alle=[(1074, 1174)]
+   K83   OBEN   1172:[]  1259:[(1186, None)]  alle=[(1186, None)]
+   K84   OBEN   1172:[(1083, None)]  1259:[(1083, None)]  alle=[(1083, None)]
+   K86   UNTEN  1172:[(1165, None)]  1259:[(1165, None)]  alle=[(1165, None)]
+   K87   UNTEN  1172:[]  1259:[(1256, None)]  alle=[(1256, None)]
+==============================================================================================================

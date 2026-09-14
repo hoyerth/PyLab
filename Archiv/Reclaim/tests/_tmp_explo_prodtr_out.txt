@@ -1,0 +1,1408 @@
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -0.7053
+    -> kd None (Kette endet in _kandidat)
+== bar 1025 SHORT sweep 69.406 kd None
+    POOL K 48 wirksam 62.577 dist% -10.3361 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.6527 touch 3
+    POOL K 17 wirksam 65.654 dist% -5.165 touch 13
+    POOL K 60 wirksam 67.975 dist% -1.5741 touch 3
+    POOL K 77 wirksam 68.392 dist% -0.9548 touch 3
+    POOL K 66 wirksam 68.813 dist% -0.3371 touch 7
+    POOL K 72 wirksam 69.374 dist% 0.4742 touch 3
+    -> None: LEBENDE WAND NICHT ERREICHT K 77 dist% -0.9548
+    -> kd None (Kette endet in _kandidat)
+== bar 1025 LONG sweep 69.045 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -0.8841
+    -> kd None (Kette endet in _kandidat)
+== bar 1026 SHORT sweep 69.281 kd None
+    POOL K 48 wirksam 62.577 dist% -10.2929 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.6098 touch 3
+    POOL K 17 wirksam 65.654 dist% -5.1238 touch 13
+    POOL K 60 wirksam 67.975 dist% -1.5344 touch 3
+    POOL K 77 wirksam 68.392 dist% -0.9153 touch 3
+    POOL K 66 wirksam 68.813 dist% -0.2979 touch 7
+    POOL K 72 wirksam 69.374 dist% 0.5132 touch 3
+    -> None: LEBENDE WAND NICHT ERREICHT K 77 dist% -0.9153
+    -> kd None (Kette endet in _kandidat)
+== bar 1026 LONG sweep 69.018 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -0.9657
+    -> kd None (Kette endet in _kandidat)
+== bar 1027 SHORT sweep 69.224 kd None
+    POOL K 48 wirksam 62.577 dist% -9.7959 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.1159 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.6501 touch 13
+    POOL K 60 wirksam 67.975 dist% -1.0769 touch 3
+    POOL K 77 wirksam 68.392 dist% -0.4606 touch 3
+    POOL K 66 wirksam 68.813 dist% 0.154 touch 7
+    -> None: LEBENDE WAND NICHT ERREICHT K 77 dist% -0.4606
+    -> kd None (Kette endet in _kandidat)
+== bar 1027 LONG sweep 68.707 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -1.5608
+    -> kd None (Kette endet in _kandidat)
+== bar 1028 SHORT sweep 68.808 kd None
+    POOL K 48 wirksam 62.577 dist% -8.4903 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.8184 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.4057 touch 13
+    POOL K 60 wirksam 67.975 dist% 0.125 touch 3
+    POOL K 64 wirksam 68.037 dist% 0.2161 touch 1
+    POOL K 77 wirksam 68.392 dist% 0.734 touch 3
+    POOL K 66 wirksam 68.813 dist% 1.3413 touch 7
+== bar 1028 LONG sweep 67.89 kd 60
+    M6-Blocker K None
+    Q29 dist% 71.6855 grenze 25.0
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.186
+    -> kd None (Kette endet in _kandidat)
+== bar 1029 SHORT sweep 68.371 kd None
+    POOL K 48 wirksam 62.577 dist% -8.6438 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.9708 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.552 touch 13
+    POOL K 60 wirksam 67.975 dist% -0.0162 touch 3
+    POOL K 64 wirksam 68.037 dist% 0.075 touch 1
+    POOL K 77 wirksam 68.392 dist% 0.5936 touch 3
+== bar 1029 LONG sweep 67.986 kd 77
+    M6-Blocker K None
+    Q29 dist% 72.9737 grenze 25.0
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.2017
+    -> kd None (Kette endet in _kandidat)
+== bar 1030 SHORT sweep 68.36 kd None
+    POOL K 48 wirksam 62.577 dist% -8.0397 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.3705 touch 3
+    POOL K 17 wirksam 65.654 dist% -2.9762 touch 13
+    POOL K 62 wirksam 67.726 dist% 0.1742 touch 1
+    POOL K 63 wirksam 67.831 dist% 0.3288 touch 1
+    POOL K 60 wirksam 67.975 dist% 0.5399 touch 3
+    POOL K 77 wirksam 68.392 dist% 1.1463 touch 3
+== bar 1030 LONG sweep 67.608 kd 60
+    M6-Blocker K None
+    Q29 dist% 67.9012 grenze 25.0
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.9242
+    -> kd None (Kette endet in _kandidat)
+== bar 1031 SHORT sweep 67.855 kd None
+    POOL K 48 wirksam 62.577 dist% -7.923 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.2546 touch 3
+    POOL K 17 wirksam 65.654 dist% -2.865 touch 13
+    POOL K 62 wirksam 67.726 dist% 0.282 touch 1
+    POOL K 63 wirksam 67.831 dist% 0.4364 touch 1
+    POOL K 60 wirksam 67.975 dist% 0.6473 touch 3
+    -> None: UEBERDEHNUNG K 60 dist% 0.6473 > 0.6
+    -> kd None (Kette endet in _kandidat)
+== bar 1031 LONG sweep 67.535 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.8684
+    -> kd None (Kette endet in _kandidat)
+== bar 1032 SHORT sweep 67.894 kd None
+    POOL K 48 wirksam 62.577 dist% -8.1084 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.4388 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.0417 touch 13
+    POOL K 62 wirksam 67.726 dist% 0.1107 touch 1
+    POOL K 63 wirksam 67.831 dist% 0.2654 touch 1
+    POOL K 64 wirksam 68.037 dist% 0.5673 touch 1
+    -> kd None (Kette endet in _kandidat)
+== bar 1032 LONG sweep 67.651 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.8226
+    -> kd None (Kette endet in _kandidat)
+== bar 1033 SHORT sweep 67.926 kd None
+    POOL K 48 wirksam 62.577 dist% -8.2474 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.577 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.1742 touch 13
+    POOL K 63 wirksam 67.831 dist% 0.1371 touch 1
+    POOL K 64 wirksam 68.037 dist% 0.4395 touch 1
+    -> kd None (Kette endet in _kandidat)
+== bar 1033 LONG sweep 67.738 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.6367
+    -> kd None (Kette endet in _kandidat)
+== bar 1034 SHORT sweep 68.056 kd None
+    POOL K 48 wirksam 62.577 dist% -8.4488 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.7771 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.3661 touch 13
+    POOL K 64 wirksam 68.037 dist% 0.2543 touch 1
+    -> kd None (Kette endet in _kandidat)
+== bar 1034 LONG sweep 67.864 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.7468
+    -> kd None (Kette endet in _kandidat)
+== bar 1035 SHORT sweep 67.979 kd None
+    POOL K 48 wirksam 62.577 dist% -8.4712 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.7993 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.3875 touch 13
+    POOL K 64 wirksam 68.037 dist% 0.2337 touch 1
+    -> kd None (Kette endet in _kandidat)
+== bar 1035 LONG sweep 67.878 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.6781
+    -> kd None (Kette endet in _kandidat)
+== bar 1036 SHORT sweep 68.027 kd None
+    POOL K 48 wirksam 62.577 dist% -8.4808 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.8089 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.3966 touch 13
+    POOL K 64 wirksam 68.037 dist% 0.2249 touch 1
+    -> kd None (Kette endet in _kandidat)
+== bar 1036 LONG sweep 67.884 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.6953
+    -> kd None (Kette endet in _kandidat)
+== bar 1037 SHORT sweep 68.015 kd None
+    POOL K 48 wirksam 62.577 dist% -8.3929 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.7215 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.3128 touch 13
+    POOL K 63 wirksam 67.831 dist% 0.0029 touch 1
+    POOL K 64 wirksam 68.037 dist% 0.3057 touch 1
+    -> kd None (Kette endet in _kandidat)
+== bar 1037 LONG sweep 67.829 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.8455
+    -> kd None (Kette endet in _kandidat)
+== bar 1038 SHORT sweep 67.91 kd None
+    POOL K 48 wirksam 62.577 dist% -8.2299 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.5595 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.1575 touch 13
+    POOL K 63 wirksam 67.831 dist% 0.1533 touch 1
+    POOL K 64 wirksam 68.037 dist% 0.4556 touch 1
+    -> kd None (Kette endet in _kandidat)
+== bar 1038 LONG sweep 67.727 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.9643
+    -> kd None (Kette endet in _kandidat)
+== bar 1039 SHORT sweep 67.827 kd None
+    POOL K 48 wirksam 62.577 dist% -8.1947 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.5246 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.124 touch 13
+    POOL K 62 wirksam 67.726 dist% 0.031 touch 1
+    POOL K 63 wirksam 67.831 dist% 0.1858 touch 1
+    POOL K 64 wirksam 68.037 dist% 0.488 touch 1
+    -> kd None (Kette endet in _kandidat)
+== bar 1039 LONG sweep 67.705 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.6066
+    -> kd None (Kette endet in _kandidat)
+== bar 1040 SHORT sweep 68.077 kd None
+    POOL K 48 wirksam 62.577 dist% -8.2347 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.5643 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.162 touch 13
+    POOL K 63 wirksam 67.831 dist% 0.1489 touch 1
+    POOL K 64 wirksam 68.037 dist% 0.4512 touch 1
+    -> kd None (Kette endet in _kandidat)
+== bar 1040 LONG sweep 67.73 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.3019
+    -> kd None (Kette endet in _kandidat)
+== bar 1041 SHORT sweep 68.29 kd None
+    POOL K 48 wirksam 62.577 dist% -8.6837 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.0105 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.59 touch 13
+    POOL K 62 wirksam 67.726 dist% -0.4208 touch 2
+    POOL K 64 wirksam 68.037 dist% 0.0382 touch 1
+    -> None: LEBENDE WAND NICHT ERREICHT K 62 dist% -0.4208
+    -> kd None (Kette endet in _kandidat)
+== bar 1041 LONG sweep 68.011 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.3048
+    -> kd None (Kette endet in _kandidat)
+== bar 1042 SHORT sweep 68.288 kd None
+    POOL K 48 wirksam 62.577 dist% -8.3865 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.7152 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.3067 touch 13
+    POOL K 62 wirksam 67.726 dist% -0.1462 touch 2
+    POOL K 63 wirksam 67.831 dist% 0.0088 touch 1
+    POOL K 64 wirksam 68.037 dist% 0.3116 touch 1
+    -> None: LEBENDE WAND NICHT ERREICHT K 62 dist% -0.1462
+    -> kd None (Kette endet in _kandidat)
+== bar 1042 LONG sweep 67.825 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.5751
+    -> kd None (Kette endet in _kandidat)
+== bar 1043 SHORT sweep 68.099 kd None
+    POOL K 48 wirksam 62.577 dist% -8.4216 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.7501 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.3402 touch 13
+    POOL K 62 wirksam 67.726 dist% -0.1787 touch 2
+    POOL K 64 wirksam 68.037 dist% 0.2793 touch 1
+    -> None: LEBENDE WAND NICHT ERREICHT K 62 dist% -0.1787
+    -> kd None (Kette endet in _kandidat)
+== bar 1043 LONG sweep 67.847 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.2118
+    -> kd None (Kette endet in _kandidat)
+== bar 1044 SHORT sweep 68.353 kd None
+    POOL K 48 wirksam 62.577 dist% -8.6102 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.9375 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.52 touch 13
+    POOL K 62 wirksam 67.726 dist% -0.3529 touch 2
+    POOL K 64 wirksam 68.037 dist% 0.1058 touch 1
+    -> None: LEBENDE WAND NICHT ERREICHT K 62 dist% -0.3529
+    -> kd None (Kette endet in _kandidat)
+== bar 1044 LONG sweep 67.965 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -1.814
+    -> kd None (Kette endet in _kandidat)
+== bar 1045 SHORT sweep 68.631 kd None
+    POOL K 48 wirksam 62.577 dist% -9.1088 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.433 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.9952 touch 13
+    POOL K 62 wirksam 67.726 dist% -0.8136 touch 2
+    -> None: LEBENDE WAND NICHT ERREICHT K 62 dist% -0.8136
+    -> kd None (Kette endet in _kandidat)
+== bar 1045 LONG sweep 68.277 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -1.7897
+    -> kd None (Kette endet in _kandidat)
+== bar 1046 SHORT sweep 68.648 kd None
+    POOL K 48 wirksam 62.577 dist% -9.3884 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.7109 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.2617 touch 13
+    POOL K 62 wirksam 67.726 dist% -1.072 touch 2
+    -> None: LEBENDE WAND NICHT ERREICHT K 62 dist% -1.072
+    -> kd None (Kette endet in _kandidat)
+== bar 1046 LONG sweep 68.452 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -1.98
+    -> kd None (Kette endet in _kandidat)
+== bar 1047 SHORT sweep 68.515 kd None
+    POOL K 48 wirksam 62.577 dist% -9.219 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.5426 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.1003 touch 13
+    POOL K 62 wirksam 67.726 dist% -0.9155 touch 2
+    -> None: LEBENDE WAND NICHT ERREICHT K 62 dist% -0.9155
+    -> kd None (Kette endet in _kandidat)
+== bar 1047 LONG sweep 68.346 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.0816
+    -> kd None (Kette endet in _kandidat)
+== bar 1048 SHORT sweep 68.444 kd None
+    POOL K 48 wirksam 62.577 dist% -9.1919 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.5156 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.0744 touch 13
+    POOL K 62 wirksam 67.726 dist% -0.8904 touch 2
+    -> None: LEBENDE WAND NICHT ERREICHT K 62 dist% -0.8904
+    -> kd None (Kette endet in _kandidat)
+== bar 1048 LONG sweep 68.329 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.0973
+    -> kd None (Kette endet in _kandidat)
+== bar 1049 SHORT sweep 68.433 kd None
+    POOL K 48 wirksam 62.577 dist% -8.8851 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.2107 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.7819 touch 13
+    POOL K 62 wirksam 67.726 dist% -0.6069 touch 2
+    -> None: LEBENDE WAND NICHT ERREICHT K 62 dist% -0.6069
+    -> kd None (Kette endet in _kandidat)
+== bar 1049 LONG sweep 68.137 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.3048
+    -> kd None (Kette endet in _kandidat)
+== bar 1050 SHORT sweep 68.288 kd None
+    POOL K 48 wirksam 62.577 dist% -8.8739 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.1995 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.7713 touch 13
+    POOL K 62 wirksam 67.726 dist% -0.5965 touch 2
+    -> None: LEBENDE WAND NICHT ERREICHT K 62 dist% -0.5965
+    -> kd None (Kette endet in _kandidat)
+== bar 1050 LONG sweep 68.13 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.309
+    -> kd None (Kette endet in _kandidat)
+== bar 1051 SHORT sweep 68.285 kd None
+    POOL K 48 wirksam 62.577 dist% -8.7077 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.0344 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.6129 touch 13
+    POOL K 62 wirksam 67.726 dist% -0.443 touch 2
+    POOL K 64 wirksam 68.037 dist% 0.0162 touch 1
+    -> None: LEBENDE WAND NICHT ERREICHT K 62 dist% -0.443
+    -> kd None (Kette endet in _kandidat)
+== bar 1051 LONG sweep 68.026 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.6252
+    -> kd None (Kette endet in _kandidat)
+== bar 1052 SHORT sweep 68.064 kd None
+    POOL K 48 wirksam 62.577 dist% -8.1947 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.5246 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.124 touch 13
+    POOL K 62 wirksam 67.726 dist% 0.031 touch 2
+    POOL K 63 wirksam 67.831 dist% 0.1858 touch 1
+    POOL K 64 wirksam 68.037 dist% 0.488 touch 1
+    -> kd None (Kette endet in _kandidat)
+== bar 1052 LONG sweep 67.705 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.3677
+    -> kd None (Kette endet in _kandidat)
+== bar 1053 SHORT sweep 68.244 kd None
+    POOL K 48 wirksam 62.577 dist% -8.3401 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.6691 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.2626 touch 13
+    POOL K 62 wirksam 67.726 dist% -0.1034 touch 2
+    POOL K 63 wirksam 67.831 dist% 0.0516 touch 1
+    POOL K 64 wirksam 68.037 dist% 0.3542 touch 1
+    -> None: LEBENDE WAND NICHT ERREICHT K 62 dist% -0.1034
+    -> kd None (Kette endet in _kandidat)
+== bar 1053 LONG sweep 67.796 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.6281
+    -> kd None (Kette endet in _kandidat)
+== bar 1054 SHORT sweep 68.062 kd None
+    POOL K 48 wirksam 62.577 dist% -8.2938 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.623 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.2184 touch 13
+    POOL K 62 wirksam 67.726 dist% -0.0605 touch 3
+    POOL K 63 wirksam 67.831 dist% 0.0944 touch 1
+    POOL K 64 wirksam 68.037 dist% 0.3968 touch 1
+    -> None: LEBENDE WAND NICHT ERREICHT K 62 dist% -0.0605
+    -> kd None (Kette endet in _kandidat)
+== bar 1054 LONG sweep 67.767 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.8298
+    -> kd None (Kette endet in _kandidat)
+== bar 1055 SHORT sweep 67.921 kd None
+    POOL K 48 wirksam 62.577 dist% -8.2522 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.5817 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.1788 touch 13
+    POOL K 62 wirksam 67.726 dist% -0.0221 touch 3
+    POOL K 63 wirksam 67.831 dist% 0.1327 touch 1
+    POOL K 64 wirksam 68.037 dist% 0.4351 touch 1
+    -> None: LEBENDE WAND NICHT ERREICHT K 62 dist% -0.0221
+    -> kd None (Kette endet in _kandidat)
+== bar 1055 LONG sweep 67.741 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.8799
+    -> kd None (Kette endet in _kandidat)
+== bar 1056 SHORT sweep 67.886 kd None
+    POOL K 48 wirksam 62.577 dist% -7.9518 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.2832 touch 3
+    POOL K 17 wirksam 65.654 dist% -2.8924 touch 13
+    POOL K 62 wirksam 67.726 dist% 0.2554 touch 3
+    POOL K 63 wirksam 67.831 dist% 0.4098 touch 1
+== bar 1056 LONG sweep 67.553 kd 62
+    M6-Blocker K None
+    Q29 dist% 67.1632 grenze 25.0
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.8012
+    -> kd None (Kette endet in _kandidat)
+== bar 1057 SHORT sweep 67.941 kd None
+    POOL K 48 wirksam 62.577 dist% -8.2842 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.6135 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.2092 touch 13
+    POOL K 62 wirksam 67.726 dist% -0.0517 touch 3
+    POOL K 63 wirksam 67.831 dist% 0.1032 touch 1
+    POOL K 64 wirksam 68.037 dist% 0.4057 touch 1
+    -> None: LEBENDE WAND NICHT ERREICHT K 62 dist% -0.0517
+    -> kd None (Kette endet in _kandidat)
+== bar 1057 LONG sweep 67.761 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.6109
+    -> kd None (Kette endet in _kandidat)
+== bar 1058 SHORT sweep 68.074 kd None
+    POOL K 48 wirksam 62.577 dist% -8.1819 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.5119 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.1118 touch 13
+    POOL K 82 wirksam 67.553 dist% -0.2132 touch 2
+    POOL K 62 wirksam 67.726 dist% 0.0428 touch 3
+    POOL K 63 wirksam 67.831 dist% 0.1975 touch 1
+    POOL K 64 wirksam 68.037 dist% 0.4997 touch 1
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -0.2132
+    -> kd None (Kette endet in _kandidat)
+== bar 1058 LONG sweep 67.697 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.4106
+    -> kd None (Kette endet in _kandidat)
+== bar 1059 SHORT sweep 68.214 kd None
+    POOL K 48 wirksam 62.577 dist% -8.6517 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.9788 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.5596 touch 13
+    POOL K 82 wirksam 67.553 dist% -0.6484 touch 2
+    POOL K 62 wirksam 67.726 dist% -0.3913 touch 3
+    POOL K 64 wirksam 68.037 dist% 0.0676 touch 1
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -0.6484
+    -> kd None (Kette endet in _kandidat)
+== bar 1059 LONG sweep 67.991 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.6367
+    -> kd None (Kette endet in _kandidat)
+== bar 1060 SHORT sweep 68.056 kd None
+    POOL K 48 wirksam 62.577 dist% -8.5127 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.8406 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.4271 touch 13
+    POOL K 82 wirksam 67.553 dist% -0.5196 touch 2
+    POOL K 62 wirksam 67.726 dist% -0.2628 touch 3
+    POOL K 64 wirksam 68.037 dist% 0.1955 touch 1
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -0.5196
+    -> kd None (Kette endet in _kandidat)
+== bar 1060 LONG sweep 67.904 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.7454
+    -> kd None (Kette endet in _kandidat)
+== bar 1061 SHORT sweep 67.98 kd None
+    POOL K 48 wirksam 62.577 dist% -8.4024 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.731 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.322 touch 13
+    POOL K 82 wirksam 67.553 dist% -0.4175 touch 2
+    POOL K 62 wirksam 67.726 dist% -0.1609 touch 3
+    POOL K 64 wirksam 68.037 dist% 0.2969 touch 1
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -0.4175
+    -> kd None (Kette endet in _kandidat)
+== bar 1061 LONG sweep 67.835 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.784
+    -> kd None (Kette endet in _kandidat)
+== bar 1062 SHORT sweep 67.953 kd None
+    POOL K 48 wirksam 62.577 dist% -8.3817 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.7104 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.3022 touch 13
+    POOL K 82 wirksam 67.553 dist% -0.3982 touch 2
+    POOL K 62 wirksam 67.726 dist% -0.1417 touch 3
+    POOL K 63 wirksam 67.831 dist% 0.0133 touch 1
+    POOL K 64 wirksam 68.037 dist% 0.316 touch 1
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -0.3982
+    -> kd None (Kette endet in _kandidat)
+== bar 1062 LONG sweep 67.822 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.7826
+    -> kd None (Kette endet in _kandidat)
+== bar 1063 SHORT sweep 67.954 kd None
+    POOL K 48 wirksam 62.577 dist% -8.3194 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.6485 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.2428 touch 13
+    POOL K 82 wirksam 67.553 dist% -0.3405 touch 2
+    POOL K 62 wirksam 67.726 dist% -0.0842 touch 3
+    POOL K 63 wirksam 67.831 dist% 0.0708 touch 1
+    POOL K 64 wirksam 68.037 dist% 0.3733 touch 1
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -0.3405
+    -> kd None (Kette endet in _kandidat)
+== bar 1063 LONG sweep 67.783 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.6753
+    -> kd None (Kette endet in _kandidat)
+== bar 1064 SHORT sweep 68.029 kd None
+    POOL K 48 wirksam 62.577 dist% -8.3241 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.6532 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.2473 touch 13
+    POOL K 82 wirksam 67.553 dist% -0.3449 touch 2
+    POOL K 62 wirksam 67.726 dist% -0.0886 touch 3
+    POOL K 63 wirksam 67.831 dist% 0.0663 touch 1
+    POOL K 64 wirksam 68.037 dist% 0.3689 touch 1
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -0.3449
+    -> kd None (Kette endet in _kandidat)
+== bar 1064 LONG sweep 67.786 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.6281
+    -> kd None (Kette endet in _kandidat)
+== bar 1065 SHORT sweep 68.062 kd None
+    POOL K 48 wirksam 62.577 dist% -8.5686 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.8962 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.4804 touch 13
+    POOL K 82 wirksam 67.553 dist% -0.5714 touch 2
+    POOL K 62 wirksam 67.783 dist% -0.2301 touch 4
+    POOL K 64 wirksam 68.037 dist% 0.144 touch 1
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -0.5714
+    -> kd None (Kette endet in _kandidat)
+== bar 1065 LONG sweep 67.939 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.4836
+    -> kd None (Kette endet in _kandidat)
+== bar 1066 SHORT sweep 68.163 kd None
+    POOL K 48 wirksam 62.577 dist% -8.6965 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.0233 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.6022 touch 13
+    POOL K 82 wirksam 67.553 dist% -0.6898 touch 2
+    POOL K 62 wirksam 67.783 dist% -0.3482 touch 4
+    POOL K 64 wirksam 68.037 dist% 0.0265 touch 1
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -0.6898
+    -> kd None (Kette endet in _kandidat)
+== bar 1066 LONG sweep 68.019 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.4078
+    -> kd None (Kette endet in _kandidat)
+== bar 1067 SHORT sweep 68.216 kd None
+    POOL K 48 wirksam 62.577 dist% -8.7732 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.0995 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.6753 touch 13
+    POOL K 82 wirksam 67.553 dist% -0.7609 touch 2
+    POOL K 62 wirksam 67.783 dist% -0.419 touch 4
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -0.7609
+    -> kd None (Kette endet in _kandidat)
+== bar 1067 LONG sweep 68.067 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.5766
+    -> kd None (Kette endet in _kandidat)
+== bar 1068 SHORT sweep 68.098 kd None
+    POOL K 48 wirksam 62.577 dist% -8.5079 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.8359 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.4225 touch 13
+    POOL K 82 wirksam 67.553 dist% -0.5152 touch 2
+    POOL K 62 wirksam 67.783 dist% -0.1741 touch 4
+    POOL K 64 wirksam 68.037 dist% 0.1999 touch 1
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -0.5152
+    -> kd None (Kette endet in _kandidat)
+== bar 1068 LONG sweep 67.901 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.6109
+    -> kd None (Kette endet in _kandidat)
+== bar 1069 SHORT sweep 68.074 kd None
+    POOL K 48 wirksam 62.577 dist% -8.452 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.7803 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.3692 touch 13
+    POOL K 82 wirksam 67.553 dist% -0.4633 touch 2
+    POOL K 62 wirksam 67.783 dist% -0.1224 touch 4
+    POOL K 64 wirksam 68.037 dist% 0.2513 touch 1
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -0.4633
+    -> kd None (Kette endet in _kandidat)
+== bar 1069 LONG sweep 67.866 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.7382
+    -> kd None (Kette endet in _kandidat)
+== bar 1070 SHORT sweep 67.985 kd None
+    POOL K 48 wirksam 62.577 dist% -8.289 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.6183 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.2138 touch 13
+    POOL K 82 wirksam 67.553 dist% -0.3123 touch 2
+    POOL K 62 wirksam 67.783 dist% 0.028 touch 4
+    POOL K 63 wirksam 67.831 dist% 0.0988 touch 1
+    POOL K 64 wirksam 68.037 dist% 0.4013 touch 1
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -0.3123
+    -> kd None (Kette endet in _kandidat)
+== bar 1070 LONG sweep 67.764 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.4163
+    -> kd None (Kette endet in _kandidat)
+== bar 1071 SHORT sweep 68.21 kd None
+    POOL K 48 wirksam 62.577 dist% -8.5303 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.8581 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.4438 touch 13
+    POOL K 82 wirksam 67.553 dist% -0.5359 touch 2
+    POOL K 62 wirksam 67.783 dist% -0.1947 touch 4
+    POOL K 64 wirksam 68.037 dist% 0.1793 touch 1
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -0.5359
+    -> kd None (Kette endet in _kandidat)
+== bar 1071 LONG sweep 67.915 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.3877
+    -> kd None (Kette endet in _kandidat)
+== bar 1072 SHORT sweep 68.23 kd None
+    POOL K 48 wirksam 62.577 dist% -7.8479 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.18 touch 3
+    POOL K 17 wirksam 65.654 dist% -2.7934 touch 13
+    POOL K 82 wirksam 67.553 dist% 0.0962 touch 2
+    POOL K 62 wirksam 67.783 dist% 0.4352 touch 4
+    POOL K 63 wirksam 67.831 dist% 0.5057 touch 1
+== bar 1072 LONG sweep 67.488 kd 62
+    M6-Blocker K None
+    Q29 dist% 66.2909 grenze 25.0
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -3.0845
+    -> kd None (Kette endet in _kandidat)
+== bar 1073 SHORT sweep 67.743 kd None
+    POOL K 48 wirksam 62.577 dist% -7.8064 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.1387 touch 3
+    POOL K 17 wirksam 65.654 dist% -2.7538 touch 13
+    POOL K 82 wirksam 67.553 dist% 0.1347 touch 2
+    POOL K 62 wirksam 67.783 dist% 0.4736 touch 4
+    POOL K 63 wirksam 67.831 dist% 0.544 touch 1
+== bar 1073 LONG sweep 67.462 kd 62
+    M6-Blocker K None
+    Q29 dist% 65.942 grenze 25.0
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -3.0
+    -> kd None (Kette endet in _kandidat)
+== bar 1074 SHORT sweep 67.802 kd None
+    POOL K 48 wirksam 62.577 dist% -7.7952 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.1275 touch 3
+    POOL K 17 wirksam 65.654 dist% -2.7432 touch 13
+    POOL K 63 wirksam 67.831 dist% 0.5543 touch 1
+    -> kd None (Kette endet in _kandidat)
+== bar 1074 LONG sweep 67.455 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -3.1588
+    -> kd None (Kette endet in _kandidat)
+== bar 1075 SHORT sweep 67.691 kd None
+    POOL K 48 wirksam 62.577 dist% -7.7393 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.072 touch 3
+    POOL K 17 wirksam 65.654 dist% -2.6899 touch 13
+    -> kd None (Kette endet in _kandidat)
+== bar 1075 LONG sweep 67.42 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -2.7554
+    -> kd None (Kette endet in _kandidat)
+== bar 1076 SHORT sweep 67.973 kd None
+    POOL K 48 wirksam 62.577 dist% -8.1436 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.4738 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.0752 touch 13
+    POOL K 63 wirksam 67.831 dist% 0.2329 touch 1
+    POOL K 64 wirksam 68.037 dist% 0.535 touch 1
+    -> kd None (Kette endet in _kandidat)
+== bar 1076 LONG sweep 67.673 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -1.3548
+    -> kd None (Kette endet in _kandidat)
+== bar 1100 SHORT sweep 68.952 kd None
+    POOL K 48 wirksam 62.577 dist% -9.9813 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.3001 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.8268 touch 13
+    POOL K 66 wirksam 68.813 dist% -0.0145 touch 8
+    -> None: LEBENDE WAND NICHT ERREICHT K 66 dist% -0.0145
+    -> kd None (Kette endet in _kandidat)
+== bar 1100 LONG sweep 68.823 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -1.3705
+    -> kd None (Kette endet in _kandidat)
+== bar 1101 SHORT sweep 68.941 kd None
+    POOL K 48 wirksam 62.577 dist% -9.9861 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.3049 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.8314 touch 13
+    POOL K 66 wirksam 68.813 dist% -0.0189 touch 8
+    -> None: LEBENDE WAND NICHT ERREICHT K 66 dist% -0.0189
+    -> kd None (Kette endet in _kandidat)
+== bar 1101 LONG sweep 68.826 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -1.4736
+    -> kd None (Kette endet in _kandidat)
+== bar 1102 SHORT sweep 68.869 kd None
+    POOL K 48 wirksam 62.577 dist% -9.9318 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.2509 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.7796 touch 13
+    POOL K 66 wirksam 68.813 dist% 0.0305 touch 8
+== bar 1102 LONG sweep 68.792 kd 66
+    M6-Blocker K None
+    Q29 dist% 83.7896 grenze 25.0
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -1.5394
+    -> kd None (Kette endet in _kandidat)
+== bar 1103 SHORT sweep 68.823 kd None
+    POOL K 48 wirksam 62.577 dist% -9.5051 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.8268 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.3729 touch 13
+    POOL K 66 wirksam 68.813 dist% 0.4185 touch 8
+== bar 1103 LONG sweep 68.525 kd 66
+    M6-Blocker K None
+    Q29 dist% 80.2067 grenze 25.0
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -1.4864
+    -> kd None (Kette endet in _kandidat)
+== bar 1104 SHORT sweep 68.86 kd None
+    POOL K 48 wirksam 62.577 dist% -9.756 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.0762 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.6121 touch 13
+    POOL K 66 wirksam 68.813 dist% 0.1904 touch 8
+== bar 1104 LONG sweep 68.682 kd 66
+    M6-Blocker K None
+    Q29 dist% 82.3135 grenze 25.0
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -1.4349
+    -> kd None (Kette endet in _kandidat)
+== bar 1105 SHORT sweep 68.896 kd None
+    POOL K 48 wirksam 62.577 dist% -9.9749 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.2938 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.8207 touch 13
+    POOL K 66 wirksam 68.813 dist% -0.0087 touch 8
+    -> None: LEBENDE WAND NICHT ERREICHT K 66 dist% -0.0087
+    -> kd None (Kette endet in _kandidat)
+== bar 1105 LONG sweep 68.819 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -1.3205
+    -> kd None (Kette endet in _kandidat)
+== bar 1106 SHORT sweep 68.976 kd None
+    POOL K 48 wirksam 62.577 dist% -10.0772 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.3954 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.9182 touch 13
+    POOL K 66 wirksam 68.813 dist% -0.1017 touch 8
+    -> None: LEBENDE WAND NICHT ERREICHT K 66 dist% -0.1017
+    -> kd None (Kette endet in _kandidat)
+== bar 1106 LONG sweep 68.883 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -1.1688
+    -> kd None (Kette endet in _kandidat)
+== bar 1107 SHORT sweep 69.082 kd None
+    POOL K 48 wirksam 62.577 dist% -10.1795 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.497 touch 3
+    POOL K 17 wirksam 65.654 dist% -5.0157 touch 13
+    POOL K 66 wirksam 68.813 dist% -0.1947 touch 8
+    -> None: LEBENDE WAND NICHT ERREICHT K 66 dist% -0.1947
+    -> kd None (Kette endet in _kandidat)
+== bar 1107 LONG sweep 68.947 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -1.1946
+    -> kd None (Kette endet in _kandidat)
+== bar 1108 SHORT sweep 69.064 kd None
+    POOL K 48 wirksam 62.577 dist% -10.1651 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.4827 touch 3
+    POOL K 17 wirksam 65.654 dist% -5.002 touch 13
+    POOL K 66 wirksam 68.813 dist% -0.1817 touch 8
+    -> None: LEBENDE WAND NICHT ERREICHT K 66 dist% -0.1817
+    -> kd None (Kette endet in _kandidat)
+== bar 1108 LONG sweep 68.938 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -1.3419
+    -> kd None (Kette endet in _kandidat)
+== bar 1109 SHORT sweep 68.961 kd None
+    POOL K 48 wirksam 62.577 dist% -9.9685 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.2874 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.8146 touch 13
+    POOL K 86 wirksam 68.525 dist% -0.4232 touch 2
+    POOL K 66 wirksam 68.813 dist% -0.0029 touch 8
+    -> None: LEBENDE WAND NICHT ERREICHT K 86 dist% -0.4232
+    -> kd None (Kette endet in _kandidat)
+== bar 1109 LONG sweep 68.815 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -1.5236
+    -> kd None (Kette endet in _kandidat)
+== bar 1110 SHORT sweep 68.834 kd None
+    POOL K 48 wirksam 62.577 dist% -9.8055 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.1254 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.6593 touch 13
+    POOL K 86 wirksam 68.525 dist% -0.2744 touch 2
+    POOL K 66 wirksam 68.813 dist% 0.1453 touch 8
+    -> None: LEBENDE WAND NICHT ERREICHT K 86 dist% -0.2744
+    -> kd None (Kette endet in _kandidat)
+== bar 1110 LONG sweep 68.713 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -1.5909
+    -> kd None (Kette endet in _kandidat)
+== bar 1111 SHORT sweep 68.787 kd None
+    POOL K 48 wirksam 62.577 dist% -9.7512 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.0714 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.6075 touch 13
+    POOL K 86 wirksam 68.525 dist% -0.2247 touch 2
+    POOL K 66 wirksam 68.813 dist% 0.1947 touch 8
+    -> None: LEBENDE WAND NICHT ERREICHT K 86 dist% -0.2247
+    -> kd None (Kette endet in _kandidat)
+== bar 1111 LONG sweep 68.679 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -1.5551
+    -> kd None (Kette endet in _kandidat)
+== bar 1112 SHORT sweep 68.812 kd None
+    POOL K 48 wirksam 62.577 dist% -9.6905 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.0111 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.5496 touch 13
+    POOL K 86 wirksam 68.525 dist% -0.1693 touch 2
+    -> None: LEBENDE WAND NICHT ERREICHT K 86 dist% -0.1693
+    -> kd None (Kette endet in _kandidat)
+== bar 1112 LONG sweep 68.641 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -1.5522
+    -> kd None (Kette endet in _kandidat)
+== bar 1113 SHORT sweep 68.814 kd None
+    POOL K 48 wirksam 62.577 dist% -9.4524 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.7744 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.3227 touch 13
+    POOL K 86 wirksam 68.525 dist% 0.0482 touch 2
+    -> kd None (Kette endet in _kandidat)
+== bar 1113 LONG sweep 68.492 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -1.7969
+    -> kd None (Kette endet in _kandidat)
+== bar 1114 SHORT sweep 68.643 kd None
+    POOL K 48 wirksam 62.577 dist% -9.3117 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.6347 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.1886 touch 13
+    POOL K 86 wirksam 68.525 dist% 0.1766 touch 2
+    -> kd None (Kette endet in _kandidat)
+== bar 1114 LONG sweep 68.404 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -1.9786
+    -> kd None (Kette endet in _kandidat)
+== bar 1115 SHORT sweep 68.516 kd None
+    POOL K 48 wirksam 62.577 dist% -9.2334 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.5569 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.114 touch 13
+    POOL K 86 wirksam 68.525 dist% 0.2481 touch 2
+    -> kd None (Kette endet in _kandidat)
+== bar 1115 LONG sweep 68.355 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 67 dist% -1.8169
+    -> kd None (Kette endet in _kandidat)
+== bar 1116 SHORT sweep 68.629 kd None
+    POOL K 48 wirksam 62.577 dist% -8.9586 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.2837 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.852 touch 13
+    POOL K 86 wirksam 68.525 dist% 0.4991 touch 2
+    -> kd None (Kette endet in _kandidat)
+== bar 1116 LONG sweep 68.183 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -1.2723
+    -> kd None (Kette endet in _kandidat)
+== bar 1117 SHORT sweep 68.752 kd None
+    POOL K 48 wirksam 62.577 dist% -9.446 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.7681 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.3166 touch 13
+    POOL K 86 wirksam 68.525 dist% 0.054 touch 2
+    -> kd None (Kette endet in _kandidat)
+== bar 1117 LONG sweep 68.488 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -1.3226
+    -> kd None (Kette endet in _kandidat)
+== bar 1118 SHORT sweep 68.717 kd None
+    POOL K 48 wirksam 62.577 dist% -9.3261 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.649 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.2023 touch 13
+    POOL K 86 wirksam 68.525 dist% 0.1634 touch 2
+    -> kd None (Kette endet in _kandidat)
+== bar 1118 LONG sweep 68.413 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -0.2786
+    -> kd None (Kette endet in _kandidat)
+== bar 1119 SHORT sweep 69.444 kd None
+    POOL K 48 wirksam 62.577 dist% -9.6473 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.9682 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.5085 touch 13
+    POOL K 86 wirksam 68.525 dist% -0.1299 touch 2
+    -> None: LEBENDE WAND NICHT ERREICHT K 86 dist% -0.1299
+    -> kd None (Kette endet in _kandidat)
+== bar 1119 LONG sweep 68.614 kd None
+== bar 1120 SHORT sweep 69.444 kd 78
+    M6-Blocker K None
+    Q29 dist% 92.5389 grenze 25.0
+    STUFE 0 None basis 69.263 lo[k] 69.207
+    POOL K 48 wirksam 62.577 dist% -10.5949 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.91 touch 3
+    POOL K 17 wirksam 65.654 dist% -5.4117 touch 13
+    POOL K 86 wirksam 68.525 dist% -0.9953 touch 2
+    -> None: LEBENDE WAND NICHT ERREICHT K 86 dist% -0.9953
+    -> kd None (Kette endet in _kandidat)
+== bar 1120 LONG sweep 69.207 kd None
+    -> kd None (Kette endet in _kandidat)
+== bar 1121 SHORT sweep 69.468 kd None
+    POOL K 48 wirksam 62.577 dist% -10.6892 touch 2
+    POOL K 3 wirksam 62.967 dist% -10.0037 touch 3
+    POOL K 17 wirksam 65.654 dist% -5.5016 touch 13
+    POOL K 86 wirksam 68.525 dist% -1.0814 touch 2
+    -> None: LEBENDE WAND NICHT ERREICHT K 86 dist% -1.0814
+    -> kd None (Kette endet in _kandidat)
+== bar 1121 LONG sweep 69.266 kd None
+== bar 1122 SHORT sweep 69.709 kd 73
+    M6-Blocker K (67, 69.899)
+    POOL K 48 wirksam 62.577 dist% -10.7052 touch 2
+    POOL K 3 wirksam 62.967 dist% -10.0195 touch 3
+    POOL K 17 wirksam 65.654 dist% -5.5168 touch 13
+    POOL K 86 wirksam 68.525 dist% -1.096 touch 2
+    -> None: LEBENDE WAND NICHT ERREICHT K 86 dist% -1.096
+    -> kd None (Kette endet in _kandidat)
+== bar 1122 LONG sweep 69.276 kd None
+== bar 1123 SHORT sweep 69.643 kd 73
+    M6-Blocker K (67, 69.899)
+    POOL K 48 wirksam 62.577 dist% -10.8554 touch 2
+    POOL K 3 wirksam 62.967 dist% -10.1688 touch 3
+    POOL K 17 wirksam 65.654 dist% -5.66 touch 13
+    POOL K 86 wirksam 68.525 dist% -1.2331 touch 2
+    -> None: LEBENDE WAND NICHT ERREICHT K 86 dist% -1.2331
+    -> kd None (Kette endet in _kandidat)
+== bar 1123 LONG sweep 69.37 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -0.3073
+    -> kd None (Kette endet in _kandidat)
+== bar 1124 SHORT sweep 69.424 kd None
+    POOL K 48 wirksam 62.577 dist% -10.3984 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.7146 touch 3
+    POOL K 17 wirksam 65.654 dist% -5.2244 touch 13
+    POOL K 86 wirksam 68.525 dist% -0.8158 touch 2
+    -> None: LEBENDE WAND NICHT ERREICHT K 86 dist% -0.8158
+    -> kd None (Kette endet in _kandidat)
+== bar 1124 LONG sweep 69.084 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -0.4093
+    -> kd None (Kette endet in _kandidat)
+== bar 1125 SHORT sweep 69.353 kd None
+    POOL K 48 wirksam 62.577 dist% -10.424 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.74 touch 3
+    POOL K 17 wirksam 65.654 dist% -5.2487 touch 13
+    POOL K 86 wirksam 68.525 dist% -0.8391 touch 2
+    -> None: LEBENDE WAND NICHT ERREICHT K 86 dist% -0.8391
+    -> kd None (Kette endet in _kandidat)
+== bar 1125 LONG sweep 69.1 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -0.2355
+    -> kd None (Kette endet in _kandidat)
+== bar 1126 SHORT sweep 69.474 kd None
+    POOL K 48 wirksam 62.577 dist% -10.7723 touch 2
+    POOL K 3 wirksam 62.967 dist% -10.0862 touch 3
+    POOL K 17 wirksam 65.654 dist% -5.5808 touch 13
+    POOL K 86 wirksam 68.525 dist% -1.1572 touch 2
+    -> None: LEBENDE WAND NICHT ERREICHT K 86 dist% -1.1572
+    -> kd None (Kette endet in _kandidat)
+== bar 1126 LONG sweep 69.318 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -0.4193
+    -> kd None (Kette endet in _kandidat)
+== bar 1127 SHORT sweep 69.346 kd None
+    POOL K 48 wirksam 62.577 dist% -10.563 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.8782 touch 3
+    POOL K 17 wirksam 65.654 dist% -5.3812 touch 13
+    POOL K 86 wirksam 68.525 dist% -0.9661 touch 2
+    -> None: LEBENDE WAND NICHT ERREICHT K 86 dist% -0.9661
+    -> kd None (Kette endet in _kandidat)
+== bar 1127 LONG sweep 69.187 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -0.5371
+    -> kd None (Kette endet in _kandidat)
+== bar 1128 SHORT sweep 69.264 kd None
+    POOL K 48 wirksam 62.577 dist% -10.5198 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.8353 touch 3
+    POOL K 17 wirksam 65.654 dist% -5.3401 touch 13
+    POOL K 86 wirksam 68.525 dist% -0.9267 touch 2
+    -> None: LEBENDE WAND NICHT ERREICHT K 86 dist% -0.9267
+    -> kd None (Kette endet in _kandidat)
+== bar 1128 LONG sweep 69.16 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -0.6563
+    -> kd None (Kette endet in _kandidat)
+== bar 1129 SHORT sweep 69.181 kd None
+    POOL K 48 wirksam 62.577 dist% -10.3936 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.7098 touch 3
+    POOL K 17 wirksam 65.654 dist% -5.2198 touch 13
+    POOL K 86 wirksam 68.525 dist% -0.8114 touch 2
+    -> None: LEBENDE WAND NICHT ERREICHT K 86 dist% -0.8114
+    -> kd None (Kette endet in _kandidat)
+== bar 1129 LONG sweep 69.081 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -0.6965
+    -> kd None (Kette endet in _kandidat)
+== bar 1130 SHORT sweep 69.153 kd None
+    POOL K 48 wirksam 62.577 dist% -10.3217 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.6384 touch 3
+    POOL K 17 wirksam 65.654 dist% -5.1512 touch 13
+    POOL K 86 wirksam 68.525 dist% -0.7457 touch 2
+    -> None: LEBENDE WAND NICHT ERREICHT K 86 dist% -0.7457
+    -> kd None (Kette endet in _kandidat)
+== bar 1130 LONG sweep 69.036 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -1.1344
+    -> kd None (Kette endet in _kandidat)
+== bar 1205 SHORT sweep 68.848 kd None
+    POOL K 48 wirksam 62.577 dist% -9.7224 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.0428 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.5801 touch 13
+    POOL K 82 wirksam 67.553 dist% -1.6402 touch 3
+    POOL K 62 wirksam 67.807 dist% -1.2595 touch 5
+    POOL K 60 wirksam 67.975 dist% -1.0092 touch 6
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -1.6402
+    -> kd None (Kette endet in _kandidat)
+== bar 1205 LONG sweep 68.661 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -1.179
+    -> kd None (Kette endet in _kandidat)
+== bar 1206 SHORT sweep 68.817 kd None
+    POOL K 48 wirksam 62.577 dist% -9.569 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.8904 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.4339 touch 13
+    POOL K 82 wirksam 67.553 dist% -1.4981 touch 3
+    POOL K 62 wirksam 67.807 dist% -1.1179 touch 5
+    POOL K 60 wirksam 67.975 dist% -0.868 touch 6
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -1.4981
+    -> kd None (Kette endet in _kandidat)
+== bar 1206 LONG sweep 68.565 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -1.4417
+    -> kd None (Kette endet in _kandidat)
+== bar 1207 SHORT sweep 68.634 kd None
+    POOL K 48 wirksam 62.577 dist% -9.3868 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.7093 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.2602 touch 13
+    POOL K 82 wirksam 67.553 dist% -1.3293 touch 3
+    POOL K 62 wirksam 67.807 dist% -0.9498 touch 5
+    POOL K 60 wirksam 67.975 dist% -0.7003 touch 6
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -1.3293
+    -> kd None (Kette endet in _kandidat)
+== bar 1207 LONG sweep 68.451 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -0.7438
+    -> kd None (Kette endet in _kandidat)
+== bar 1208 SHORT sweep 69.12 kd None
+    POOL K 48 wirksam 62.577 dist% -9.3261 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.649 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.2023 touch 13
+    POOL K 82 wirksam 67.553 dist% -1.2731 touch 3
+    POOL K 62 wirksam 67.807 dist% -0.8937 touch 5
+    POOL K 60 wirksam 67.975 dist% -0.6444 touch 6
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -1.2731
+    -> kd None (Kette endet in _kandidat)
+== bar 1208 LONG sweep 68.413 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -0.5672
+    -> kd None (Kette endet in _kandidat)
+== bar 1209 SHORT sweep 69.243 kd None
+    POOL K 48 wirksam 62.577 dist% -10.1667 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.4843 touch 3
+    POOL K 17 wirksam 65.654 dist% -5.0035 touch 13
+    POOL K 82 wirksam 67.553 dist% -2.0517 touch 3
+    POOL K 62 wirksam 67.807 dist% -1.6694 touch 5
+    POOL K 60 wirksam 67.975 dist% -1.4182 touch 6
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -2.0517
+    -> kd None (Kette endet in _kandidat)
+== bar 1209 LONG sweep 68.939 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -0.1221
+    -> kd None (Kette endet in _kandidat)
+== bar 1210 SHORT sweep 69.553 kd None
+    POOL K 48 wirksam 62.577 dist% -10.2466 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.5637 touch 3
+    POOL K 17 wirksam 65.654 dist% -5.0797 touch 13
+    POOL K 82 wirksam 67.553 dist% -2.1257 touch 3
+    POOL K 62 wirksam 67.807 dist% -1.7432 touch 5
+    POOL K 60 wirksam 67.975 dist% -1.4917 touch 6
+    POOL K 77 wirksam 68.413 dist% -0.8419 touch 5
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -2.1257
+    -> kd None (Kette endet in _kandidat)
+== bar 1210 LONG sweep 68.989 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -0.0388
+    -> kd None (Kette endet in _kandidat)
+== bar 1211 SHORT sweep 69.611 kd None
+    POOL K 48 wirksam 62.577 dist% -10.6509 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.9655 touch 3
+    POOL K 17 wirksam 65.654 dist% -5.465 touch 13
+    POOL K 82 wirksam 67.553 dist% -2.5003 touch 3
+    POOL K 62 wirksam 67.807 dist% -2.1163 touch 5
+    POOL K 60 wirksam 67.975 dist% -1.8639 touch 6
+    POOL K 77 wirksam 68.413 dist% -1.2118 touch 5
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -2.5003
+    -> kd None (Kette endet in _kandidat)
+== bar 1211 LONG sweep 69.242 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -0.056
+    -> kd None (Kette endet in _kandidat)
+== bar 1212 SHORT sweep 69.599 kd None
+    POOL K 48 wirksam 62.577 dist% -10.9146 touch 2
+    POOL K 3 wirksam 62.967 dist% -10.2276 touch 3
+    POOL K 17 wirksam 65.654 dist% -5.7163 touch 13
+    POOL K 82 wirksam 67.553 dist% -2.7445 touch 3
+    POOL K 62 wirksam 67.807 dist% -2.3596 touch 5
+    POOL K 60 wirksam 67.975 dist% -2.1067 touch 6
+    POOL K 77 wirksam 68.413 dist% -1.4529 touch 5
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -2.7445
+    -> kd None (Kette endet in _kandidat)
+== bar 1212 LONG sweep 69.407 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -0.1681
+    -> kd None (Kette endet in _kandidat)
+== bar 1213 SHORT sweep 69.494 kd None
+    POOL K 48 wirksam 62.577 dist% -10.8778 touch 2
+    POOL K 3 wirksam 62.967 dist% -10.1911 touch 3
+    POOL K 17 wirksam 65.654 dist% -5.6813 touch 13
+    POOL K 82 wirksam 67.553 dist% -2.7105 touch 3
+    POOL K 62 wirksam 67.807 dist% -2.3257 touch 5
+    POOL K 60 wirksam 67.975 dist% -2.0728 touch 6
+    POOL K 77 wirksam 68.413 dist% -1.4193 touch 5
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -2.7105
+    -> kd None (Kette endet in _kandidat)
+== bar 1213 LONG sweep 69.384 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -0.2816
+    -> kd None (Kette endet in _kandidat)
+== bar 1214 SHORT sweep 69.415 kd None
+    POOL K 48 wirksam 62.577 dist% -10.2961 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.613 touch 3
+    POOL K 17 wirksam 65.654 dist% -5.1269 touch 13
+    POOL K 82 wirksam 67.553 dist% -2.1716 touch 3
+    POOL K 62 wirksam 67.807 dist% -1.7889 touch 5
+    POOL K 60 wirksam 67.975 dist% -1.5373 touch 6
+    POOL K 77 wirksam 68.413 dist% -0.8873 touch 5
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -2.1716
+    -> kd None (Kette endet in _kandidat)
+== bar 1214 LONG sweep 69.02 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -0.4856
+    -> kd None (Kette endet in _kandidat)
+== bar 1215 SHORT sweep 69.273 kd None
+    POOL K 48 wirksam 62.577 dist% -10.3648 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.6813 touch 3
+    POOL K 17 wirksam 65.654 dist% -5.1924 touch 13
+    POOL K 82 wirksam 67.553 dist% -2.2353 touch 3
+    POOL K 62 wirksam 67.807 dist% -1.8523 touch 5
+    POOL K 60 wirksam 67.975 dist% -1.6006 touch 6
+    POOL K 77 wirksam 68.413 dist% -0.9501 touch 5
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -2.2353
+    -> kd None (Kette endet in _kandidat)
+== bar 1215 LONG sweep 69.063 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -1.9437
+    -> kd None (Kette endet in _kandidat)
+== bar 1245 SHORT sweep 68.258 kd None
+    POOL K 48 wirksam 62.577 dist% -8.8259 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.1519 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.7256 touch 13
+    POOL K 82 wirksam 67.553 dist% -0.8097 touch 3
+    POOL K 62 wirksam 67.807 dist% -0.4321 touch 5
+    POOL K 60 wirksam 67.975 dist% -0.1839 touch 6
+    POOL K 87 wirksam 68.233 dist% 0.1949 touch 2
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -0.8097
+    -> kd None (Kette endet in _kandidat)
+== bar 1245 LONG sweep 68.1 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -1.8417
+    -> kd None (Kette endet in _kandidat)
+== bar 1246 SHORT sweep 68.329 kd None
+    POOL K 48 wirksam 62.577 dist% -8.8787 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.2043 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.7759 touch 13
+    POOL K 82 wirksam 67.553 dist% -0.8586 touch 3
+    POOL K 62 wirksam 67.807 dist% -0.4808 touch 5
+    POOL K 60 wirksam 67.975 dist% -0.2324 touch 7
+    POOL K 87 wirksam 68.233 dist% 0.1466 touch 2
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -0.8586
+    -> kd None (Kette endet in _kandidat)
+== bar 1246 LONG sweep 68.133 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -1.6291
+    -> kd None (Kette endet in _kandidat)
+== bar 1247 SHORT sweep 68.477 kd None
+    POOL K 48 wirksam 62.577 dist% -9.1391 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.4632 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.0241 touch 13
+    POOL K 82 wirksam 67.553 dist% -1.0999 touch 3
+    POOL K 62 wirksam 67.807 dist% -0.7212 touch 5
+    POOL K 60 wirksam 67.975 dist% -0.4722 touch 7
+    POOL K 87 wirksam 68.233 dist% -0.0923 touch 2
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -1.0999
+    -> kd None (Kette endet in _kandidat)
+== bar 1247 LONG sweep 68.296 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -1.6477
+    -> kd None (Kette endet in _kandidat)
+== bar 1248 SHORT sweep 68.464 kd None
+    POOL K 48 wirksam 62.577 dist% -9.096 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.4203 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.983 touch 13
+    POOL K 82 wirksam 67.553 dist% -1.0599 touch 3
+    POOL K 62 wirksam 67.807 dist% -0.6813 touch 5
+    POOL K 60 wirksam 67.975 dist% -0.4325 touch 7
+    POOL K 87 wirksam 68.233 dist% -0.0528 touch 2
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -1.0599
+    -> kd None (Kette endet in _kandidat)
+== bar 1248 LONG sweep 68.269 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -1.6563
+    -> kd None (Kette endet in _kandidat)
+== bar 1249 SHORT sweep 68.458 kd None
+    POOL K 48 wirksam 62.577 dist% -9.2127 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.5362 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.0942 touch 13
+    POOL K 82 wirksam 67.553 dist% -1.168 touch 3
+    POOL K 62 wirksam 67.807 dist% -0.789 touch 5
+    POOL K 60 wirksam 67.975 dist% -0.5399 touch 7
+    POOL K 87 wirksam 68.233 dist% -0.1597 touch 2
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -1.168
+    -> kd None (Kette endet in _kandidat)
+== bar 1249 LONG sweep 68.342 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -1.586
+    -> kd None (Kette endet in _kandidat)
+== bar 1250 SHORT sweep 68.507 kd None
+    POOL K 48 wirksam 62.577 dist% -9.2015 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.5251 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.0835 touch 13
+    POOL K 82 wirksam 67.553 dist% -1.1576 touch 3
+    POOL K 62 wirksam 67.807 dist% -0.7787 touch 5
+    POOL K 60 wirksam 67.975 dist% -0.5296 touch 7
+    POOL K 87 wirksam 68.233 dist% -0.1495 touch 2
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -1.1576
+    -> kd None (Kette endet in _kandidat)
+== bar 1250 LONG sweep 68.335 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -1.8259
+    -> kd None (Kette endet in _kandidat)
+== bar 1251 SHORT sweep 68.34 kd None
+    POOL K 48 wirksam 62.577 dist% -9.0385 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.3631 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.9282 touch 13
+    POOL K 82 wirksam 67.553 dist% -1.0066 touch 3
+    POOL K 62 wirksam 67.807 dist% -0.6283 touch 5
+    POOL K 60 wirksam 67.975 dist% -0.3796 touch 7
+    POOL K 87 wirksam 68.233 dist% 0.0 touch 2
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -1.0066
+    -> kd None (Kette endet in _kandidat)
+== bar 1251 LONG sweep 68.233 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -1.8445
+    -> kd None (Kette endet in _kandidat)
+== bar 1252 SHORT sweep 68.327 kd None
+    POOL K 48 wirksam 62.577 dist% -8.8898 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.2154 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.7865 touch 13
+    POOL K 82 wirksam 67.553 dist% -0.8689 touch 3
+    POOL K 62 wirksam 67.807 dist% -0.4911 touch 5
+    POOL K 60 wirksam 67.975 dist% -0.2427 touch 7
+    POOL K 87 wirksam 68.233 dist% 0.1363 touch 2
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -0.8689
+    -> kd None (Kette endet in _kandidat)
+== bar 1252 LONG sweep 68.14 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -1.6937
+    -> kd None (Kette endet in _kandidat)
+== bar 1253 SHORT sweep 68.432 kd None
+    POOL K 48 wirksam 62.577 dist% -8.8755 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.2011 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.7728 touch 13
+    POOL K 82 wirksam 67.553 dist% -0.8556 touch 3
+    POOL K 62 wirksam 67.807 dist% -0.4778 touch 5
+    POOL K 60 wirksam 67.975 dist% -0.2295 touch 7
+    POOL K 87 wirksam 68.233 dist% 0.1495 touch 2
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -0.8556
+    -> kd None (Kette endet in _kandidat)
+== bar 1253 LONG sweep 68.131 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -1.7339
+    -> kd None (Kette endet in _kandidat)
+== bar 1254 SHORT sweep 68.404 kd None
+    POOL K 48 wirksam 62.577 dist% -8.6501 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.9772 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.558 touch 13
+    POOL K 82 wirksam 67.553 dist% -0.6469 touch 3
+    POOL K 62 wirksam 67.807 dist% -0.2699 touch 5
+    POOL K 60 wirksam 67.975 dist% -0.0221 touch 7
+    POOL K 64 wirksam 68.037 dist% 0.0691 touch 1
+    POOL K 87 wirksam 68.233 dist% 0.3561 touch 2
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -0.6469
+    -> kd None (Kette endet in _kandidat)
+== bar 1254 LONG sweep 67.99 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -2.1979
+    -> kd None (Kette endet in _kandidat)
+== bar 1255 SHORT sweep 68.081 kd None
+    POOL K 48 wirksam 62.577 dist% -8.444 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.7723 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.3616 touch 13
+    POOL K 82 wirksam 67.553 dist% -0.4559 touch 3
+    POOL K 62 wirksam 67.807 dist% -0.0796 touch 5
+    POOL K 60 wirksam 67.975 dist% 0.1677 touch 7
+    POOL K 64 wirksam 68.037 dist% 0.2587 touch 1
+    POOL K 87 wirksam 68.233 dist% 0.5452 touch 2
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -0.4559
+    -> kd None (Kette endet in _kandidat)
+== bar 1255 LONG sweep 67.861 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -1.9853
+    -> kd None (Kette endet in _kandidat)
+== bar 1256 SHORT sweep 68.229 kd None
+    POOL K 48 wirksam 62.577 dist% -8.1404 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.4706 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.0722 touch 13
+    POOL K 82 wirksam 67.553 dist% -0.1747 touch 3
+    POOL K 62 wirksam 67.807 dist% 0.2006 touch 5
+    POOL K 63 wirksam 67.831 dist% 0.2359 touch 1
+    POOL K 60 wirksam 67.975 dist% 0.4472 touch 7
+    POOL K 64 wirksam 68.037 dist% 0.5379 touch 1
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -0.1747
+    -> kd None (Kette endet in _kandidat)
+== bar 1256 LONG sweep 67.671 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -1.7842
+    -> kd None (Kette endet in _kandidat)
+== bar 1257 SHORT sweep 68.369 kd None
+    POOL K 48 wirksam 62.577 dist% -8.6741 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.001 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.5809 touch 13
+    POOL K 82 wirksam 67.553 dist% -0.6691 touch 3
+    POOL K 62 wirksam 67.807 dist% -0.292 touch 5
+    POOL K 60 wirksam 67.975 dist% -0.0441 touch 7
+    POOL K 64 wirksam 68.037 dist% 0.047 touch 1
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -0.6691
+    -> kd None (Kette endet in _kandidat)
+== bar 1257 LONG sweep 68.005 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -1.7741
+    -> kd None (Kette endet in _kandidat)
+== bar 1258 SHORT sweep 68.376 kd None
+    POOL K 48 wirksam 62.577 dist% -8.241 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.5706 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.1681 touch 13
+    POOL K 82 wirksam 67.553 dist% -0.2679 touch 3
+    POOL K 62 wirksam 67.807 dist% 0.1077 touch 6
+    POOL K 63 wirksam 67.831 dist% 0.143 touch 1
+    POOL K 60 wirksam 67.975 dist% 0.3545 touch 7
+    POOL K 64 wirksam 68.037 dist% 0.4453 touch 1
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -0.2679
+    -> kd None (Kette endet in _kandidat)
+== bar 1258 LONG sweep 67.734 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -2.1749
+    -> kd None (Kette endet in _kandidat)
+== bar 1259 SHORT sweep 68.097 kd None
+    POOL K 48 wirksam 62.577 dist% -8.0269 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.3578 touch 3
+    POOL K 17 wirksam 65.654 dist% -2.964 touch 13
+    POOL K 82 wirksam 67.553 dist% -0.0696 touch 3
+    POOL K 62 wirksam 67.807 dist% 0.3053 touch 6
+    POOL K 63 wirksam 67.831 dist% 0.3406 touch 1
+    POOL K 60 wirksam 67.975 dist% 0.5517 touch 7
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -0.0696
+    -> kd None (Kette endet in _kandidat)
+== bar 1259 LONG sweep 67.6 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -2.0299
+    -> kd None (Kette endet in _kandidat)
+== bar 1260 SHORT sweep 68.198 kd None
+    POOL K 48 wirksam 62.577 dist% -8.4983 touch 2
+    POOL K 3 wirksam 62.967 dist% -7.8263 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.4133 touch 13
+    POOL K 82 wirksam 67.553 dist% -0.5063 touch 3
+    POOL K 62 wirksam 67.807 dist% -0.1298 touch 6
+    POOL K 60 wirksam 67.975 dist% 0.1177 touch 7
+    POOL K 64 wirksam 68.037 dist% 0.2087 touch 1
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -0.5063
+    -> kd None (Kette endet in _kandidat)
+== bar 1260 LONG sweep 67.895 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -1.6951
+    -> kd None (Kette endet in _kandidat)
+== bar 1261 SHORT sweep 68.431 kd None
+    POOL K 48 wirksam 62.577 dist% -8.8803 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.2059 touch 3
+    POOL K 17 wirksam 65.654 dist% -3.7774 touch 13
+    POOL K 82 wirksam 67.6 dist% -0.7899 touch 4
+    POOL K 62 wirksam 67.807 dist% -0.4823 touch 6
+    POOL K 60 wirksam 67.975 dist% -0.2339 touch 7
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -0.7899
+    -> kd None (Kette endet in _kandidat)
+== bar 1261 LONG sweep 68.134 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -1.2441
+    -> kd None (Kette endet in _kandidat)
+== bar 1262 SHORT sweep 68.745 kd None
+    POOL K 48 wirksam 62.577 dist% -9.1567 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.4806 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.0409 touch 13
+    POOL K 82 wirksam 67.6 dist% -1.0459 touch 4
+    POOL K 62 wirksam 67.807 dist% -0.7374 touch 6
+    POOL K 60 wirksam 67.975 dist% -0.4884 touch 7
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -1.0459
+    -> kd None (Kette endet in _kandidat)
+== bar 1262 LONG sweep 68.307 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -1.1363
+    -> kd None (Kette endet in _kandidat)
+== bar 1263 SHORT sweep 68.82 kd None
+    POOL K 48 wirksam 62.577 dist% -9.5514 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.8729 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.4171 touch 13
+    POOL K 82 wirksam 67.6 dist% -1.4112 touch 4
+    POOL K 62 wirksam 67.807 dist% -1.1017 touch 6
+    POOL K 60 wirksam 67.975 dist% -0.8518 touch 7
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -1.4112
+    -> kd None (Kette endet in _kandidat)
+== bar 1263 LONG sweep 68.554 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -1.2426
+    -> kd None (Kette endet in _kandidat)
+== bar 1264 SHORT sweep 68.746 kd None
+    POOL K 48 wirksam 62.577 dist% -9.6601 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.9809 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.5207 touch 13
+    POOL K 82 wirksam 67.6 dist% -1.5118 touch 4
+    POOL K 62 wirksam 67.807 dist% -1.2019 touch 6
+    POOL K 60 wirksam 67.975 dist% -0.9518 touch 7
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -1.5118
+    -> kd None (Kette endet in _kandidat)
+== bar 1264 LONG sweep 68.622 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -1.086
+    -> kd None (Kette endet in _kandidat)
+== bar 1265 SHORT sweep 68.855 kd None
+    POOL K 48 wirksam 62.577 dist% -9.561 touch 2
+    POOL K 3 wirksam 62.967 dist% -8.8824 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.4262 touch 13
+    POOL K 82 wirksam 67.6 dist% -1.4201 touch 4
+    POOL K 62 wirksam 67.807 dist% -1.1105 touch 6
+    POOL K 60 wirksam 67.975 dist% -0.8606 touch 7
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -1.4201
+    -> kd None (Kette endet in _kandidat)
+== bar 1265 LONG sweep 68.56 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -0.7255
+    -> kd None (Kette endet in _kandidat)
+== bar 1266 SHORT sweep 69.106 kd None
+    POOL K 48 wirksam 62.577 dist% -9.6905 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.0111 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.5496 touch 13
+    POOL K 82 wirksam 67.6 dist% -1.5399 touch 4
+    POOL K 62 wirksam 67.807 dist% -1.23 touch 6
+    POOL K 60 wirksam 67.975 dist% -0.9798 touch 7
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -1.5399
+    -> kd None (Kette endet in _kandidat)
+== bar 1266 LONG sweep 68.641 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -0.2097
+    -> kd None (Kette endet in _kandidat)
+== bar 1267 SHORT sweep 69.465 kd None
+    POOL K 48 wirksam 62.577 dist% -10.1267 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.4446 touch 3
+    POOL K 17 wirksam 65.654 dist% -4.9654 touch 13
+    POOL K 82 wirksam 67.6 dist% -1.9438 touch 4
+    POOL K 62 wirksam 67.807 dist% -1.6326 touch 6
+    POOL K 60 wirksam 67.975 dist% -1.3814 touch 7
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -1.9438
+    -> kd None (Kette endet in _kandidat)
+== bar 1267 LONG sweep 68.914 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -0.0618
+    -> kd None (Kette endet in _kandidat)
+== bar 1268 SHORT sweep 69.568 kd None
+    POOL K 48 wirksam 62.577 dist% -10.5326 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.848 touch 3
+    POOL K 17 wirksam 65.654 dist% -5.3523 touch 13
+    POOL K 82 wirksam 67.6 dist% -2.3195 touch 4
+    POOL K 62 wirksam 67.807 dist% -2.0072 touch 6
+    POOL K 60 wirksam 67.975 dist% -1.7551 touch 7
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -2.3195
+    -> kd None (Kette endet in _kandidat)
+== bar 1268 LONG sweep 69.168 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -0.5172
+    -> kd None (Kette endet in _kandidat)
+== bar 1269 SHORT sweep 69.251 kd None
+    POOL K 48 wirksam 62.577 dist% -10.4735 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.7893 touch 3
+    POOL K 17 wirksam 65.654 dist% -5.2959 touch 13
+    POOL K 82 wirksam 67.6 dist% -2.2648 touch 4
+    POOL K 62 wirksam 67.807 dist% -1.9526 touch 6
+    POOL K 60 wirksam 67.975 dist% -1.7006 touch 7
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -2.2648
+    -> kd None (Kette endet in _kandidat)
+== bar 1269 LONG sweep 69.131 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -0.2054
+    -> kd None (Kette endet in _kandidat)
+== bar 1270 SHORT sweep 69.468 kd None
+    POOL K 48 wirksam 62.577 dist% -10.5326 touch 2
+    POOL K 3 wirksam 62.967 dist% -9.848 touch 3
+    POOL K 17 wirksam 65.654 dist% -5.3523 touch 13
+    POOL K 82 wirksam 67.6 dist% -2.3195 touch 4
+    POOL K 62 wirksam 67.807 dist% -2.0072 touch 6
+    POOL K 60 wirksam 67.975 dist% -1.7551 touch 7
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -2.3195
+    -> kd None (Kette endet in _kandidat)
+== bar 1270 LONG sweep 69.168 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -0.0287
+    -> kd None (Kette endet in _kandidat)
+== bar 1271 SHORT sweep 69.591 kd None
+    POOL K 48 wirksam 62.577 dist% -10.8602 touch 2
+    POOL K 3 wirksam 62.967 dist% -10.1736 touch 3
+    POOL K 17 wirksam 65.654 dist% -5.6645 touch 13
+    POOL K 82 wirksam 67.6 dist% -2.6228 touch 4
+    POOL K 62 wirksam 67.807 dist% -2.3095 touch 6
+    POOL K 60 wirksam 67.975 dist% -2.0566 touch 7
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -2.6228
+    -> kd None (Kette endet in _kandidat)
+== bar 1271 LONG sweep 69.373 kd None
+== bar 1272 SHORT sweep 69.714 kd 73
+    M6-Blocker K (67, 69.899)
+    POOL K 48 wirksam 62.577 dist% -10.9193 touch 2
+    POOL K 3 wirksam 62.967 dist% -10.2323 touch 3
+    POOL K 17 wirksam 65.654 dist% -5.7209 touch 13
+    POOL K 82 wirksam 67.6 dist% -2.6775 touch 4
+    POOL K 62 wirksam 67.807 dist% -2.3641 touch 6
+    POOL K 60 wirksam 67.975 dist% -2.1111 touch 7
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -2.6775
+    -> kd None (Kette endet in _kandidat)
+== bar 1272 LONG sweep 69.41 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -0.135
+    -> kd None (Kette endet in _kandidat)
+== bar 1273 SHORT sweep 69.517 kd None
+    POOL K 48 wirksam 62.577 dist% -10.8378 touch 2
+    POOL K 3 wirksam 62.967 dist% -10.1513 touch 3
+    POOL K 17 wirksam 65.654 dist% -5.6432 touch 13
+    POOL K 82 wirksam 67.6 dist% -2.6021 touch 4
+    POOL K 62 wirksam 67.807 dist% -2.2888 touch 6
+    POOL K 60 wirksam 67.975 dist% -2.036 touch 7
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -2.6021
+    -> kd None (Kette endet in _kandidat)
+== bar 1273 LONG sweep 69.359 kd None
+    -> None: LEBENDE WAND NICHT ERREICHT K 73 dist% -0.0546
+    -> kd None (Kette endet in _kandidat)
+== bar 1274 SHORT sweep 69.573 kd None
+    POOL K 48 wirksam 62.577 dist% -10.8554 touch 2
+    POOL K 3 wirksam 62.967 dist% -10.1688 touch 3
+    POOL K 17 wirksam 65.654 dist% -5.66 touch 13
+    POOL K 82 wirksam 67.6 dist% -2.6183 touch 4
+    POOL K 62 wirksam 67.807 dist% -2.3051 touch 6
+    POOL K 60 wirksam 67.975 dist% -2.0522 touch 7
+    -> None: LEBENDE WAND NICHT ERREICHT K 82 dist% -2.6183
+    -> kd None (Kette endet in _kandidat)
+== bar 1274 LONG sweep 69.37 kd None

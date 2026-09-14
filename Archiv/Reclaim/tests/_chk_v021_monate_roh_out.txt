@@ -1,0 +1,131 @@
+ROHDATEN-VORSCHAU MAI/JUN/JUL auf V021 (Vollauf, BKZ, ohne Offset)
+====================================================================================================
+SHA Baseline  53f28e1b6971a64d...  OK
+SHA Adapter   770eda2c75aaa135...  OK
+Adapter-Segmente: 3 (AUG: [(848, 1020), (1033, 1173), (1174, 1287)])
+-> fuer MAI/JUN/JUL existieren KEINE Segmentgrenzen; segmentwand_modus
+   ist dort fail-loud nicht auf 'AN' setzbar (ValueError).
+
+====================================================================================================
+MAI  2026-05-01 .. 2026-05-29   Bars 0..1921 (n=1922)   edges=78 seeds=27   wall_live_bars=96 touch_band=0.12 min_touches=3
+
+  DEFAULT (Legacy)   SOLL 35/+38.318126   OK bit-exakt
+    Trades  35   SumR +38.318126   davon markterprobt (TP1/TP2/SL) +34.238245   Fensterrand ENDE  +4.079881 (+10.6 %)
+    SL-getroffen  32 von 35   |   beide Halften ENDE   0
+    Risiko |sl-entry| USD:  min 0.1130   median 0.3220   max 1.2190   |   Nenner < 0.10 USD: 0
+    Top-3 nach R:
+      K103  SHORT sig   841 entry   842 @ 87.5890 ris 0.2160 tp2Abstand 14.9670 R  +51.6683  [TP1/TP2]
+      K30   LONG  sig  1793 entry  1794 @ 73.0150 ris 0.3600 tp2Abstand 14.9570 R   +7.1395  [TP1/ENDE]
+      K24   LONG  sig  1766 entry  1769 @ 72.9370 ris 1.2190 tp2Abstand 15.0350 R   +2.2104  [TP1/ENDE]
+
+  TRIPEL (V020)   SOLL 58/+40.023743   OK bit-exakt
+    Trades  58   SumR +40.023743   davon markterprobt (TP1/TP2/SL) +27.477570   Fensterrand ENDE +12.546172 (+31.3 %)
+    SL-getroffen  53 von 58   |   beide Halften ENDE   0
+    Risiko |sl-entry| USD:  min 0.1040   median 0.3120   max 1.2190   |   Nenner < 0.10 USD: 0
+    Top-3 nach R:
+      K103  SHORT sig   841 entry   842 @ 87.5890 ris 0.2160 tp2Abstand 14.9670 R  +51.6683  [TP1/TP2]
+      K30   LONG  sig  1771 entry  1772 @ 72.8460 ris 0.2590 tp2Abstand 15.1260 R  +10.9573  [TP1/ENDE]
+      K30   LONG  sig  1793 entry  1794 @ 73.0150 ris 0.3600 tp2Abstand 14.9570 R   +7.1395  [TP1/ENDE]
+
+====================================================================================================
+JUN  2026-06-01 .. 2026-06-30   Bars 0..2008 (n=2009)   edges=117 seeds=40   wall_live_bars=96 touch_band=0.12 min_touches=3
+
+  DEFAULT (Legacy)   SOLL 28/-11.421155   OK bit-exakt
+    Trades  28   SumR -11.421155   davon markterprobt (TP1/TP2/SL) -22.895808   Fensterrand ENDE +11.474653 (-100.5 %)
+    SL-getroffen  26 von 28   |   beide Halften ENDE   2
+    Risiko |sl-entry| USD:  min 0.0770   median 0.3120   max 0.8510   |   Nenner < 0.10 USD: 1
+    Top-3 nach R:
+      K170  LONG  sig  1754 entry  1755 @ 56.4060 ris 0.2140 tp2Abstand 20.4430 R  +10.0140  [ENDE/ENDE]
+      K175  LONG  sig  1766 entry  1767 @ 57.3060 ris 0.8510 tp2Abstand 19.5430 R   +1.4606  [ENDE/ENDE]
+      K31   LONG  sig   421 entry   422 @ 72.7380 ris 0.3300 tp2Abstand 4.1110 R   +0.3638  [TP1/SL]
+
+  TRIPEL (V020)   SOLL 56/-26.883881   OK bit-exakt
+    Trades  56   SumR -26.883881   davon markterprobt (TP1/TP2/SL) -38.343302   Fensterrand ENDE +11.459421 (-42.6 %)
+    SL-getroffen  54 von 56   |   beide Halften ENDE   1
+    Risiko |sl-entry| USD:  min 0.0770   median 0.3040   max 0.6890   |   Nenner < 0.10 USD: 3
+    Top-3 nach R:
+      K170  LONG  sig  1754 entry  1755 @ 56.4060 ris 0.2140 tp2Abstand 20.4430 R  +10.0140  [ENDE/ENDE]
+      K157  SHORT sig  1986 entry  1989 @ 59.5550 ris 0.3480 tp2Abstand 3.1800 R   +1.5582  [TP1/ENDE]
+      K31   LONG  sig   403 entry   404 @ 72.5630 ris 0.3370 tp2Abstand 4.2860 R   +0.6055  [TP1/SL]
+
+====================================================================================================
+JUL  2026-07-01 .. 2026-07-31   Bars 0..2099 (n=2100)   edges=79 seeds=14   wall_live_bars=96 touch_band=0.12 min_touches=3
+
+  DEFAULT (Legacy)   SOLL 21/-4.325355   OK bit-exakt
+    Trades  21   SumR  -4.325355   davon markterprobt (TP1/TP2/SL)  -4.995625   Fensterrand ENDE  +0.670270 (-15.5 %)
+    SL-getroffen  19 von 21   |   beide Halften ENDE   0
+    Risiko |sl-entry| USD:  min 0.0890   median 0.2760   max 0.4960   |   Nenner < 0.10 USD: 1
+    Top-3 nach R:
+      K38   SHORT sig   276 entry   277 @ 62.2470 ris 0.2370 tp2Abstand 4.8010 R  +10.1556  [TP1/TP2]
+      K77   LONG  sig  1797 entry  1798 @ 56.9660 ris 0.3700 tp2Abstand 5.7080 R   +0.7142  [TP1/ENDE]
+      K77   LONG  sig  1827 entry  1828 @ 56.8900 ris 0.0890 tp2Abstand 5.7840 R   +0.1097  [TP1/SL]
+
+  TRIPEL (V020)   SOLL 68/-11.395066   OK bit-exakt
+    Trades  68   SumR -11.395066   davon markterprobt (TP1/TP2/SL) -33.631564   Fensterrand ENDE +22.236498 (-195.1 %)
+    SL-getroffen  62 von 68   |   beide Halften ENDE   0
+    Risiko |sl-entry| USD:  min 0.0470   median 0.2160   max 0.5450   |   Nenner < 0.10 USD: 5
+    Top-3 nach R:
+      K38   SHORT sig   276 entry   277 @ 62.2470 ris 0.2370 tp2Abstand 4.8010 R  +10.1556  [TP1/TP2]
+      K13   SHORT sig  1433 entry  1434 @ 60.2980 ris 0.1530 tp2Abstand 5.2740 R   +9.4153  [TP1/ENDE]
+      K21   SHORT sig  1430 entry  1432 @ 60.1990 ris 0.2120 tp2Abstand 5.1750 R   +6.6844  [TP1/ENDE]
+
+====================================================================================================
+VERTRAGS-DRAHTUNG (statische Inspektion der V021-Engine)
+  Gezaehlt werden echte LESEZUGRIFFE (cfg.<feld> / self.<feld>),
+  ohne Deklarationszeilen, Validierung und eigene Docstrings.
+
+  Feld                       Lesezugriffe  Status
+  basis_modus                           0  INERT (nur deklariert)
+  gegenkante_modus                      0  INERT (nur deklariert)
+  fensterrand_exit                      0  INERT (nur deklariert)
+  min_risk_usd                          2  VERDRAHTET
+         165  if self.min_risk_usd < 0.0 or self.atr_risiko_faktor < 0.0:
+         205  return max(float(self.min_risk_usd),
+  atr_risiko_faktor                     2  VERDRAHTET
+         165  if self.min_risk_usd < 0.0 or self.atr_risiko_faktor < 0.0:
+         206  float(self.atr_risiko_faktor) * float(atr))
+  atr_periode                           2  VERDRAHTET
+         162  if self.atr_periode < 1:
+         164  f"atr_periode muss >= 1 sein (ist {self.atr_periode}).")
+  existenz_modus                        6  VERDRAHTET
+         175  return (self.existenz_modus == "NATIV"
+         182  n = sum((self.existenz_modus == "NATIV",
+         191  and self.existenz_modus == "BASELINE"
+         263  (``cfg.ueberdehnung_segment_pct``, ``cfg.existenz_modus``, ...). Die
+         363  g_sb = ("_zv(k) or cfg.existenz_modus == 'NATIV'"
+         364  if cfg.existenz_modus == "NATIV" else "_zv(k)")
+  m6l_modus                             5  VERDRAHTET
+         176  and self.m6l_modus == "DORMANT_PERMISSIV"
+         183  self.m6l_modus == "DORMANT_PERMISSIV",
+         192  and self.m6l_modus == "BASELINE"
+         365  g_m6 = ("_zv(k) or cfg.m6l_modus == 'DORMANT_PERMISSIV'"
+         366  if cfg.m6l_modus == "DORMANT_PERMISSIV" else "_zv(k)")
+  rand_modus                            5  VERDRAHTET
+         177  and self.rand_modus == "ENDOGEN")
+         184  self.rand_modus == "ENDOGEN"))
+         193  and self.rand_modus == "GLOBAL"
+         367  g_q = ("_zv(k) or cfg.rand_modus == 'ENDOGEN'"
+         368  if cfg.rand_modus == "ENDOGEN" else "_zv(k)")
+  segmentwand_modus                     4  VERDRAHTET
+         194  and self.segmentwand_modus == "AUS")
+         507  if cfg.segmentwand_modus == "AN" and len(segmentgrenzen) <= 1:
+         511  if cfg.segmentwand_modus == "AUS" and segmentgrenzen:
+         553  if cfg.segmentwand_modus == "AN":
+  scan_readonly                         0  INERT (nur deklariert)
+  ueberdehnung_segment_pct              5  VERDRAHTET
+         167  if self.ueberdehnung_segment_pct <= 0.0:
+         170  f"(ist {self.ueberdehnung_segment_pct}).")
+         263  (``cfg.ueberdehnung_segment_pct``, ``cfg.existenz_modus``, ...). Die
+         330  "return cfg.ueberdehnung_segment_pct if _zv(kk) else "
+         334  "max_sweep_ueberdehnung_pct=cfg.ueberdehnung_segment_pct)"),
+
+  KORREKTUR zur ersten Fassung dieser Sonde: min_risk_usd,
+  atr_risiko_faktor und atr_periode erschienen dort faelschlich als
+  'VERDRAHTET' -- gezaehlt wurden Felddeklaration, Validierung und
+  der Rumpf von risiko_floor() selbst.
+  risiko_effektiv() hat 0 Aufrufstellen; risiko_floor() wird nur von
+  risiko_effektiv() gerufen. Beide sind toter Code.
+  Folge: min_risk_usd/atr_risiko_faktor aendern das Bild NICHT,
+  solange diese Anbindung fehlt (U4 ist in V021 nicht behoben).
+
+PROTOKOLL: F:\Python\PyLab\test\_chk_v021_monate_roh_out.txt

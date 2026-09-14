@@ -1,0 +1,23 @@
+docs(handoff): E-34n/12 — Waechter geschaerft (nur 1073 ist tragend, Luecken-Verdacht widerlegt) + vollstaendiges Text-Diff Patch 14 (14a) zur Autorisierung
+
+- Gemessen: touch_conf(1075) zaehlt nur Dochte bis Bar 1073; ein Docht an
+  1074/1075 erhoeht die Zahl nicht. Tragend sind 1072 und 1073, 1074 ist neutral.
+- Eigener Luecken-Verdacht (Waechter pruefe 1072 nicht) empirisch WIDERLEGT:
+  Schwelle(1073) = 67.54305 < Schwelle(1072) = 67.56908 -> jedes b0, das 1072
+  zum Docht macht, kippt vorher 1073. Der Drei-Assert-Waechter ist exakt und
+  beim neutralen 1074 konservativ.
+- Verdikt-Tabelle: (a) 67.5350 -> tc(1075)=2, Waechter PASS, 24/+88.116626 (D);
+  (b) 67.5455 und (c) 67.5530 -> tc(1075)=4, Waechter FAIL, 23/+86.640859 (B).
+- Platzierung: abweichend von Leitfrage 1 nicht hinter Z. 959, sondern in den
+  V019-Zweig Z. 902-904 (dort ist die Modus-Isolation; scan["d"]["low"] liegt
+  schon vor). "low erst ab Z. 959" trifft nicht zu.
+- Vollstaendiges Text-Diff Patch 14 (Form 14a) arretiert: KONFIGURATION_V019
+  (24 / +88.116626 / H2 +49.197042 / delta_rb +40.300929 / neu_basis_soll
+  + (1172,82)), Z. 904 9 -> 10 + Geometrie-Waechter, 5. Paar A_KL_DOCHT in
+  _wende_zielzonen_patches_v019 mit SSoT (cfg.touch_band_pct, _ueb).
+- Rein lesend: Engine, Renderer und Adapter unveraendert (SHA-Anker im Handoff).
+- Einbrand bleibt gesperrt bis zur Autorisierung.
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

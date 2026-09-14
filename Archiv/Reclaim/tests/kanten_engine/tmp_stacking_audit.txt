@@ -1,0 +1,239 @@
+######################################################################################################################
+# STACKING-AUDIT (READ-ONLY) -- §7.1 B 'max. 1 offene Position je Kante'
+######################################################################################################################
+
+======================================================================================================================
+STACKING-AUDIT BOX-LAUF (box_end=644)  (box_end_bar=644, n=1288, Trades=6)
+======================================================================================================================
+  VERLETZUNG K 20 SHORT (BOX->BOX)  T1 entry=231 exit2=398 R=+6.92 | T2 entry=245 exit2=398 R=+3.95 | Ueberlappung 154 Bars
+  VERLETZUNG K 31 SHORT (BOX->BOX)  T1 entry=531 exit2=639 R=+8.41 | T2 entry=567 exit2=639 R=+3.14 | Ueberlappung 73 Bars
+  INFO: kantenuebergreifende Ueberlappungen: 0
+
+--- TRADES BOX-LAUF (6) ---
+  kid richt  phase   bar entry exit1 exit2  stufe              touch  R      res      grund1
+  K 20 SHORT BOX    229   231   386   398  STUFE_2_KERZE_2     1   +6.92  GEWONNEN TP1
+  K 20 SHORT BOX    242   245   386   398  STUFE_3_KERZE_3     1   +3.95  GEWONNEN TP1
+  K  5 LONG  BOX    398   399   415   529  STUFE_1_IN_BAR      4   +5.66  GEWONNEN TP1
+  K 31 SHORT BOX    529   531   614   639  STUFE_2_KERZE_2     3   +8.41  GEWONNEN TP1
+  K 31 SHORT BOX    564   567   582   639  STUFE_3_KERZE_3     4   +3.14  GEWONNEN TP1
+  K  1 LONG  BOX    639   640   643   643  STUFE_1_IN_BAR      3   -1.00  VERLOREN SL
+
+======================================================================================================================
+STACKING-AUDIT VOLL-LAUF (box_end=n=1288)  (box_end_bar=644, n=1288, Trades=12)
+======================================================================================================================
+  VERLETZUNG K 20 SHORT (BOX->BOX)  T1 entry=231 exit2=398 R=+6.92 | T2 entry=245 exit2=398 R=+3.95 | Ueberlappung 154 Bars
+  VERLETZUNG K 31 SHORT (BOX->BOX)  T1 entry=531 exit2=639 R=+8.41 | T2 entry=567 exit2=639 R=+3.14 | Ueberlappung 73 Bars
+  VERLETZUNG K 62 SHORT (POST->POST)  T1 entry=855 exit2=867 R=-1.00 | T2 entry=866 exit2=866 R=-1.00 | Ueberlappung 1 Bars
+  INFO: kantenuebergreifende Ueberlappungen: 1
+        K 48 POST entry=681 exit2=733 -> K 16 POST entry=718 (-15 Bars)
+
+--- TRADES VOLL-LAUF (12) ---
+  kid richt  phase   bar entry exit1 exit2  stufe              touch  R      res      grund1
+  K 20 SHORT BOX    229   231   386   398  STUFE_2_KERZE_2     1   +6.92  GEWONNEN TP1
+  K 20 SHORT BOX    242   245   386   398  STUFE_3_KERZE_3     1   +3.95  GEWONNEN TP1
+  K  5 LONG  BOX    398   399   415   529  STUFE_1_IN_BAR      4   +5.66  GEWONNEN TP1
+  K 31 SHORT BOX    529   531   614   639  STUFE_2_KERZE_2     3   +8.41  GEWONNEN TP1
+  K 31 SHORT BOX    564   567   582   639  STUFE_3_KERZE_3     4   +3.14  GEWONNEN TP1
+  K  1 LONG  BOX    639   640   643   643  STUFE_1_IN_BAR      3   -1.00  VERLOREN SL
+  K  3 LONG  POST   650   653   656   656  STUFE_3_KERZE_3     1   -1.00  VERLOREN SL
+  K 48 LONG  POST   679   681   702   733  STUFE_2_KERZE_2     1   +6.48  GEWONNEN TP1
+  K 16 SHORT POST   716   718   718   728  STUFE_2_KERZE_2    11   -0.45  VERLOREN TP1
+  K 54 SHORT POST   760   762   764   764  STUFE_2_KERZE_2     1   -1.00  VERLOREN SL
+  K 62 SHORT POST   853   855   867   867  STUFE_2_KERZE_2     2   -1.00  VERLOREN SL
+  K 62 SHORT POST   865   866   866   866  STUFE_1_IN_BAR      2   -1.00  VERLOREN SL
+
+======================================================================================================================
+HYPOTHETISCHE GATE-WIRKUNG (exakte In-Memory-Simulation)
+======================================================================================================================
+
+--- BOX-Lauf MIT GATE (4 Trades) ---
+
+--- TRADES BOX MIT GATE (4) ---
+  kid richt  phase   bar entry exit1 exit2  stufe              touch  R      res      grund1
+  K 20 SHORT BOX    229   231   386   398  STUFE_2_KERZE_2     1   +6.92  GEWONNEN TP1
+  K  5 LONG  BOX    398   399   415   529  STUFE_1_IN_BAR      4   +5.66  GEWONNEN TP1
+  K 31 SHORT BOX    529   531   614   639  STUFE_2_KERZE_2     3   +8.41  GEWONNEN TP1
+  K  1 LONG  BOX    639   640   643   643  STUFE_1_IN_BAR      3   -1.00  VERLOREN SL
+
+  Gate-Blockierungen Box-Lauf:
+     k= 242 SHORT K 20 entry=  245 (Vortrade offen bis   398, R_vortrade=+6.92)
+     k= 244 SHORT K 20 entry=  245 (Vortrade offen bis   398, R_vortrade=+6.92)
+     k= 564 SHORT K 31 entry=  567 (Vortrade offen bis   639, R_vortrade=+8.41)
+
+--- VOLL-Lauf MIT GATE (9 Trades) ---
+
+--- TRADES VOLL MIT GATE (9) ---
+  kid richt  phase   bar entry exit1 exit2  stufe              touch  R      res      grund1
+  K 20 SHORT BOX    229   231   386   398  STUFE_2_KERZE_2     1   +6.92  GEWONNEN TP1
+  K  5 LONG  BOX    398   399   415   529  STUFE_1_IN_BAR      4   +5.66  GEWONNEN TP1
+  K 31 SHORT BOX    529   531   614   639  STUFE_2_KERZE_2     3   +8.41  GEWONNEN TP1
+  K  1 LONG  BOX    639   640   643   643  STUFE_1_IN_BAR      3   -1.00  VERLOREN SL
+  K  3 LONG  POST   650   653   656   656  STUFE_3_KERZE_3     1   -1.00  VERLOREN SL
+  K 48 LONG  POST   679   681   702   733  STUFE_2_KERZE_2     1   +6.48  GEWONNEN TP1
+  K 16 SHORT POST   716   718   718   728  STUFE_2_KERZE_2    11   -0.45  VERLOREN TP1
+  K 54 SHORT POST   760   762   764   764  STUFE_2_KERZE_2     1   -1.00  VERLOREN SL
+  K 62 SHORT POST   853   855   867   867  STUFE_2_KERZE_2     2   -1.00  VERLOREN SL
+
+  Gate-Blockierungen Voll-Lauf:
+     k= 242 SHORT K 20 entry=  245 (Vortrade offen bis   398, R_vortrade=+6.92)
+     k= 244 SHORT K 20 entry=  245 (Vortrade offen bis   398, R_vortrade=+6.92)
+     k= 564 SHORT K 31 entry=  567 (Vortrade offen bis   639, R_vortrade=+8.41)
+     k= 865 SHORT K 62 entry=  866 (Vortrade offen bis   867, R_vortrade=-1.00)
+
+  BOX  ohne Gate: n=6  Netto-R=+27.08
+  BOX  mit  Gate: n=4 Netto-R=+19.99  (Differenz -7.09 R, -2 Trades)
+  POST ohne Gate: n=6  Netto-R=+2.03
+  POST mit  Gate: n=5 Netto-R=+3.03  (Differenz +1.00 R, -1 Trades)
+  GESAMT ohne Gate: n=12  Netto-R=+29.11
+  GESAMT mit  Gate: n=9  Netto-R=+23.02
+
+======================================================================================================================
+KERNFRAGE: Wurden im BOX-Fenster (0-641) bestehende GEWINNER unzulaessig
+ueberlappt? (§7.1 B 'max. 1 offene Position je Kante')
+======================================================================================================================
+  K20: Gewinner T1 entry=231 exit2=398 R=+6.92 -- Zweittrade T2 entry=245 (154 Bars ueberlappend, selbst R=+3.95)
+  K31: Gewinner T1 entry=531 exit2=639 R=+8.41 -- Zweittrade T2 entry=567 (73 Bars ueberlappend, selbst R=+3.14)
+  -> Beide Box-Doppel-Trades (K20, K31) sind Stacking-Verletzungen.
+  -> Gate-Wirkung BOX: +27.08 -> +19.99 R (-7.09 R).
+
+======================================================================================================================
+VARIANTE 2: 'offene Position' endet mit De-Risking (TP1, exit1_bar)
+Harness-Kommentar Z.2267: 'Einstieg nur ohne offene Position ODER nach
+De-Risking (Haelfte 1 = TP1)' -- weiter gefasst als §7.1 B.
+======================================================================================================================
+  Blockierungen Box-Lauf:
+     k= 242 SHORT K 20 entry=  245 (TP1-Trade1 bei   398, R=+6.92)
+     k= 244 SHORT K 20 entry=  245 (TP1-Trade1 bei   398, R=+6.92)
+     k= 564 SHORT K 31 entry=  567 (TP1-Trade1 bei   639, R=+8.41)
+  Blockierungen Voll-Lauf:
+     k= 242 SHORT K 20 entry=  245 (TP1-Trade1 bei   398, R=+6.92)
+     k= 244 SHORT K 20 entry=  245 (TP1-Trade1 bei   398, R=+6.92)
+     k= 564 SHORT K 31 entry=  567 (TP1-Trade1 bei   639, R=+8.41)
+     k= 865 SHORT K 62 entry=  866 (TP1-Trade1 bei   867, R=-1.00)
+
+  BOX  ohne Gate: n=6 Netto-R=+27.08 | mit Gate2: n=4 Netto-R=+19.99 (-7.09 R)
+  POST ohne Gate: n=6 Netto-R=+2.03 | mit Gate2: n=5 Netto-R=+3.03 (+1.00 R)
+  GESAMT ohne Gate: n=12 Netto-R=+29.11 | mit Gate2: n=9 Netto-R=+23.02
+  HINWEIS: Variante 2 liefert in diesem Datensatz exakt dasselbe Ergebnis
+  wie Variante 1 (identische 4 Blockierungen), weil bei allen betroffenen
+  Vortrades entry <= exit1 gilt (De-Risking erst nach dem Zweit-Entry).
+
+--- TRADES VOLL MIT GATE2 (De-Risking-Lesart) (9) ---
+  kid richt  phase   bar entry exit1 exit2  stufe              touch  R      res      grund1
+  K 20 SHORT BOX    229   231   386   398  STUFE_2_KERZE_2     1   +6.92  GEWONNEN TP1
+  K  5 LONG  BOX    398   399   415   529  STUFE_1_IN_BAR      4   +5.66  GEWONNEN TP1
+  K 31 SHORT BOX    529   531   614   639  STUFE_2_KERZE_2     3   +8.41  GEWONNEN TP1
+  K  1 LONG  BOX    639   640   643   643  STUFE_1_IN_BAR      3   -1.00  VERLOREN SL
+  K  3 LONG  POST   650   653   656   656  STUFE_3_KERZE_3     1   -1.00  VERLOREN SL
+  K 48 LONG  POST   679   681   702   733  STUFE_2_KERZE_2     1   +6.48  GEWONNEN TP1
+  K 16 SHORT POST   716   718   718   728  STUFE_2_KERZE_2    11   -0.45  VERLOREN TP1
+  K 54 SHORT POST   760   762   764   764  STUFE_2_KERZE_2     1   -1.00  VERLOREN SL
+  K 62 SHORT POST   853   855   867   867  STUFE_2_KERZE_2     2   -1.00  VERLOREN SL
+
+======================================================================================================================
+ZUSAMMENFASSUNG
+======================================================================================================================
+  A) Stacking-Verletzungen je Kante im GESAMT-Datensatz (Bars 0-1288): 3
+     K20  T1 entry 231 / exit2 398 (+6,92 R)  <->  T2 entry 245 (+3,95 R)
+     K31  T1 entry 531 / exit2 639 (+8,41 R)  <->  T2 entry 567 (+3,14 R)
+     K62  T1 entry 855 / exit2 867 (-1,00 R)  <->  T2 entry 866 (-1,00 R)
+  B) BOX-Fenster (0-641): 2 Verletzungen (K20, K31) -- beide betreffen
+     einen bereits laufenden GEWINNER, der unzulaessig ueberlappt wurde.
+  C) Implementierungsstatus: Die Regel ist im Harness NICHT implementiert
+     (letzter_trade wird nur geschrieben, nie gelesen).
+  D) Exakte Gate-Wirkung: BOX +27,08 -> +19,99 R (-7,09 R, -2 Trades);
+     POST +2,03 -> +3,03 R (+1,00 R, -1 Trade); GESAMT +29,11 -> +23,02 R.
+  E) Die arretierte Box-Kennzahl +27,08 R existiert nur OHNE das Gate.
+
+======================================================================================================================
+WECHSELWIRKUNG 1: BOX-Netto-R als Funktion von retest_zyklus_bars (v)
+ohne / mit Stacking-Gate -- Box-Fenster (0-641)
+======================================================================================================================
+   v |  ohne Gate: n  Netto-R |  mit Gate: n  Netto-R | Differenz
+----------------------------------------------------------------------------------------------------------------------
+   0 |           7   +26.08 |           4   +19.99 |   -6.09
+   1 |           7   +26.08 |           4   +19.99 |   -6.09
+   2 |           7   +26.08 |           4   +19.99 |   -6.09
+   3 |           6   +27.08 |           4   +19.99 |   -7.09
+   4 |           6   +27.08 |           4   +19.99 |   -7.09
+   5 |           6   +27.08 |           4   +19.99 |   -7.09
+   6 |           6   +27.08 |           4   +19.99 |   -7.09
+   7 |           6   +27.08 |           4   +19.99 |   -7.09
+   8 |           6   +27.08 |           4   +19.99 |   -7.09
+   9 |           6   +27.08 |           4   +19.99 |   -7.09
+  10 |           6   +27.08 |           4   +19.99 |   -7.09
+  11 |           6   +27.08 |           4   +19.99 |   -7.09
+  12 |           6   +27.08 |           4   +19.99 |   -7.09  <<< arretiert
+  13 |           6   +27.08 |           4   +19.99 |   -7.09
+  14 |           6   +27.09 |           4   +19.99 |   -7.10
+  15 |           6   +27.09 |           4   +19.99 |   -7.10
+  16 |           5   +23.13 |           4   +19.99 |   -3.14
+  17 |           5   +23.13 |           4   +19.99 |   -3.14
+  18 |           5   +23.13 |           4   +19.99 |   -3.14
+  19 |           5   +23.13 |           4   +19.99 |   -3.14
+  20 |           5   +23.13 |           4   +19.99 |   -3.14
+  21 |           5   +23.13 |           4   +19.99 |   -3.14
+  22 |           5   +23.13 |           4   +19.99 |   -3.14
+  23 |           5   +23.13 |           4   +19.99 |   -3.14
+  24 |           5   +23.13 |           4   +19.99 |   -3.14
+
+======================================================================================================================
+WECHSELWIRKUNG 2: VOLLES FENSTER (box_end = n) als Funktion von v
+ohne / mit Stacking-Gate -- getrennt nach BOX (0-641) und POST (644+)
+======================================================================================================================
+   v | ohne Gate: BOX n/R      POST n/R     GESAMT | mit Gate: BOX n/R      POST n/R     GESAMT
+----------------------------------------------------------------------------------------------------------------------
+   0 |  7  +26.08  10  -1.97   +24.11 |  4  +19.99   7  +1.03   +21.02
+   1 |  7  +26.08  10  -1.97   +24.11 |  4  +19.99   7  +1.03   +21.02
+   2 |  7  +26.08  10  -1.97   +24.11 |  4  +19.99   7  +1.03   +21.02
+   3 |  6  +27.08  10  -1.97   +25.11 |  4  +19.99   7  +1.03   +21.02
+   4 |  6  +27.08   9  -0.97   +26.11 |  4  +19.99   7  +1.03   +21.02
+   5 |  6  +27.08   8  +0.03   +27.11 |  4  +19.99   6  +2.03   +22.02
+   6 |  6  +27.08   8  +0.03   +27.11 |  4  +19.99   6  +2.03   +22.02
+   7 |  6  +27.08   6  +2.03   +29.11 |  4  +19.99   5  +3.03   +23.02
+   8 |  6  +27.08   6  +2.03   +29.11 |  4  +19.99   5  +3.03   +23.02
+   9 |  6  +27.08   6  +2.03   +29.11 |  4  +19.99   5  +3.03   +23.02
+  10 |  6  +27.08   6  +2.03   +29.11 |  4  +19.99   5  +3.03   +23.02
+  11 |  6  +27.08   6  +2.03   +29.11 |  4  +19.99   5  +3.03   +23.02
+  12 |  6  +27.08   6  +2.03   +29.11 |  4  +19.99   5  +3.03   +23.02  <<< arretiert
+  13 |  6  +27.08   5  +3.03   +30.11 |  4  +19.99   5  +3.03   +23.02
+  14 |  6  +27.09   5  +3.03   +30.12 |  4  +19.99   5  +3.03   +23.02
+  15 |  6  +27.09   5  +3.03   +30.12 |  4  +19.99   5  +3.03   +23.02
+  16 |  5  +23.13   5  +3.03   +26.16 |  4  +19.99   5  +3.03   +23.02
+  17 |  5  +23.13   5  +3.03   +26.16 |  4  +19.99   5  +3.03   +23.02
+  18 |  5  +23.13   5  +3.03   +26.16 |  4  +19.99   5  +3.03   +23.02
+  19 |  5  +23.13   5  +3.03   +26.16 |  4  +19.99   5  +3.03   +23.02
+  20 |  5  +23.13   5  +3.03   +26.16 |  4  +19.99   5  +3.03   +23.02
+  21 |  5  +23.13   5  +3.03   +26.16 |  4  +19.99   5  +3.03   +23.02
+  22 |  5  +23.13   5  +3.03   +26.16 |  4  +19.99   5  +3.03   +23.02
+  23 |  5  +23.13   5  +3.03   +26.16 |  4  +19.99   5  +3.03   +23.02
+  24 |  5  +23.13   5  +3.03   +26.16 |  4  +19.99   5  +3.03   +23.02
+
+======================================================================================================================
+WECHSELWIRKUNG 3: Welche Trades blockiert das Gate je v? (Voll-Lauf)
+======================================================================================================================
+  v= 0: 13 Blockierung(en)  K20@entry245, K20@entry245, K31@entry531, K31@entry533, K31@entry567, K3@entry653, K3@entry653, K48@entry681, K62@entry855, K62@entry861, K62@entry861, K62@entry863, K62@entry866
+  v= 1: 13 Blockierung(en)  K20@entry245, K20@entry245, K31@entry531, K31@entry533, K31@entry567, K3@entry653, K3@entry653, K48@entry681, K62@entry855, K62@entry861, K62@entry861, K62@entry863, K62@entry866
+  v= 2: 9 Blockierung(en)  K20@entry245, K20@entry245, K31@entry533, K31@entry567, K3@entry653, K62@entry861, K62@entry861, K62@entry863, K62@entry866
+  v= 3: 7 Blockierung(en)  K20@entry245, K20@entry245, K31@entry567, K62@entry861, K62@entry861, K62@entry863, K62@entry866
+  v= 4: 7 Blockierung(en)  K20@entry245, K20@entry245, K31@entry567, K62@entry861, K62@entry861, K62@entry863, K62@entry866
+  v= 5: 7 Blockierung(en)  K20@entry245, K20@entry245, K31@entry567, K62@entry861, K62@entry861, K62@entry863, K62@entry866
+  v= 6: 7 Blockierung(en)  K20@entry245, K20@entry245, K31@entry567, K62@entry861, K62@entry861, K62@entry863, K62@entry866
+  v= 7: 6 Blockierung(en)  K20@entry245, K20@entry245, K31@entry567, K62@entry861, K62@entry863, K62@entry866
+  v= 8: 5 Blockierung(en)  K20@entry245, K20@entry245, K31@entry567, K62@entry863, K62@entry866
+  v= 9: 5 Blockierung(en)  K20@entry245, K20@entry245, K31@entry567, K62@entry863, K62@entry866
+  v=10: 4 Blockierung(en)  K20@entry245, K20@entry245, K31@entry567, K62@entry866
+  v=11: 4 Blockierung(en)  K20@entry245, K20@entry245, K31@entry567, K62@entry866
+  v=12: 4 Blockierung(en)  K20@entry245, K20@entry245, K31@entry567, K62@entry866
+  v=13: 3 Blockierung(en)  K20@entry245, K20@entry245, K31@entry567
+  v=14: 2 Blockierung(en)  K20@entry245, K31@entry567
+  v=15: 2 Blockierung(en)  K20@entry245, K31@entry567
+  v=16: 1 Blockierung(en)  K31@entry567
+  v=17: 1 Blockierung(en)  K31@entry567
+  v=18: 1 Blockierung(en)  K31@entry567
+  v=19: 1 Blockierung(en)  K31@entry567
+  v=20: 1 Blockierung(en)  K31@entry567
+  v=21: 1 Blockierung(en)  K31@entry567
+  v=22: 1 Blockierung(en)  K31@entry567
+  v=23: 1 Blockierung(en)  K31@entry567
+  v=24: 1 Blockierung(en)  K31@entry567

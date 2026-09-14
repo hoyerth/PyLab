@@ -1,0 +1,412 @@
+DIAGNOSE-WRAPPER ZUR ZULASSUNGS-FUNNEL-SONDE (E2)
+================================================================================================
+Die Sonde laeuft UNVERAENDERT. Erfasst werden nur die bereits
+erzeugten TelemetrieBudget-Instanzen + die Zaehlerstaende.
+
+ABBRUCH: AssertionError: Budgetidentitaet verletzt -- kein Protokoll.
+
+Traceback (most recent call last):
+  File "F:\Python\PyLab\test\_tmp_funnel_budget_diag.py", line 52, in main
+    F.main()
+  File "F:\Python\PyLab\test\_chk_zulassung_funnel.py", line 815, in main
+    raise AssertionError("Budgetidentitaet verletzt -- kein Protokoll.")
+AssertionError: Budgetidentitaet verletzt -- kein Protokoll.
+
+
+================================================================================================
+BUDGETTABELLE (aus den erfassten Instanzen)
+================================================================================================
+  MAI       SHORT   box_end  1922  eintritt   1917 / Soll   1917 = Ausgaenge   1917   kand_none 1733 = Details 1733   OK
+  MAI       LONG    box_end  1922  eintritt   1917 / Soll   1917 = Ausgaenge   1917   kand_none 1839 = Details 1839   OK
+  MAI       TOTAL   box_end  1922  eintritt   3834 / Soll   3834   kein_raum stats      6 / Zerlegung      6   VERLETZT
+        VERLETZUNG (MAI/TOTAL): (I) Summe Ausgaenge -1 != eintritt 3834
+  JUN       SHORT   box_end  2009  eintritt   2004 / Soll   2004 = Ausgaenge   2004   kand_none 1969 = Details 1969   OK
+  JUN       LONG    box_end  2009  eintritt   2004 / Soll   2004 = Ausgaenge   2004   kand_none 1784 = Details 1784   OK
+  JUN       TOTAL   box_end  2009  eintritt   4008 / Soll   4008   kein_raum stats      3 / Zerlegung      3   VERLETZT
+        VERLETZUNG (JUN/TOTAL): (I) Summe Ausgaenge -1 != eintritt 4008
+  JUL       SHORT   box_end  2100  eintritt   2095 / Soll   2095 = Ausgaenge   2095   kand_none 1953 = Details 1953   OK
+  JUL       LONG    box_end  2100  eintritt   2095 / Soll   2095 = Ausgaenge   2095   kand_none 1947 = Details 1947   OK
+  JUL       TOTAL   box_end  2100  eintritt   4190 / Soll   4190   kein_raum stats     13 / Zerlegung     13   VERLETZT
+        VERLETZUNG (JUL/TOTAL): (I) Summe Ausgaenge -1 != eintritt 4190
+  AUG_BASE  SHORT   box_end  1288  eintritt   1283 / Soll   1283 = Ausgaenge   1283   kand_none 1204 = Details 1204   OK
+  AUG_BASE  LONG    box_end  1288  eintritt   1283 / Soll   1283 = Ausgaenge   1283   kand_none 1192 = Details 1192   OK
+  AUG_BASE  TOTAL   box_end  1288  eintritt   2566 / Soll   2566   kein_raum stats      1 / Zerlegung      1   VERLETZT
+        VERLETZUNG (AUG_BASE/TOTAL): (I) Summe Ausgaenge -1 != eintritt 2566
+  AUG_WAND  SHORT   box_end  1288  eintritt   1283 / Soll   1283 = Ausgaenge   1283   kand_none 1203 = Details 1203   OK
+  AUG_WAND  LONG    box_end  1288  eintritt   1283 / Soll   1283 = Ausgaenge   1283   kand_none 1194 = Details 1194   OK
+  AUG_WAND  TOTAL   box_end  1288  eintritt   2566 / Soll   2566   kein_raum stats      1 / Zerlegung      1   VERLETZT
+        VERLETZUNG (AUG_WAND/TOTAL): (I) Summe Ausgaenge -1 != eintritt 2566
+
+  Verletzte Budgets: 5 von 15
+
+================================================================================================
+ZAEHLER-ROHSTAND (F.ZAHL, nach dem Abbruch)
+================================================================================================
+  Schluessel gesamt: 148
+  --- MAI ---
+      eintritt               L   1917  S   1917
+      kand_pool_leer         L     84  S    293
+      kand_lebende_wand      L   1518  S   1348
+      kand_ueberdehnung      L     27  S     11
+      kand_erschoepft        L    210  S     81
+      kand_frisch            L     18  S     21
+      kand_dormant           L   7741  S   8832
+      kand_kein_durchstich   L      0  S      1
+      kand_vs_lt3            L    109  S     48
+      kand_none              L   1839  S   1733
+      g_blocker              L      7  S     12
+      g_quartil              L     15  S     62
+      g_stufe0               L     27  S     38
+      g_zyklus               L     15  S     45
+      accept                 L     12  S     23
+      r_ord_short            L      0  S      4
+      r_ord_long             L      2  S      0
+  --- JUN ---
+      eintritt               L   2004  S   2004
+      kand_pool_leer         L    478  S     95
+      kand_lebende_wand      L   1117  S   1618
+      kand_ueberdehnung      L     34  S     21
+      kand_erschoepft        L    155  S    235
+      kand_frisch            L     31  S     14
+      kand_dormant           L   1751  S  17796
+      kand_kein_durchstich   L      0  S      2
+      kand_vs_lt3            L    104  S    142
+      kand_none              L   1784  S   1969
+      g_blocker              L     17  S      0
+      g_quartil              L     58  S     33
+      g_stufe0               L     50  S      2
+      g_zyklus               L     63  S      0
+      g_concurrency          L      1  S      0
+      accept                 L     28  S      0
+      r_ord_long             L      3  S      0
+  --- JUL ---
+      eintritt               L   2095  S   2095
+      kand_pool_leer         L    145  S    202
+      kand_lebende_wand      L   1689  S   1614
+      kand_ueberdehnung      L     18  S     10
+      kand_erschoepft        L     95  S    127
+      kand_frisch            L     34  S     19
+      kand_dormant           L   4654  S  14848
+      kand_kein_durchstich   L      0  S      1
+      kand_vs_lt3            L    130  S     96
+      kand_none              L   1947  S   1953
+      g_blocker              L      9  S     17
+      g_quartil              L     53  S     94
+      g_stufe0               L     39  S     18
+      g_zyklus               L     21  S      5
+      accept                 L     17  S      4
+      r_ord_short            L      0  S      4
+      r_ord_long             L      9  S      0
+  --- AUG_BASE ---
+      eintritt               L   1283  S   1283
+      kand_pool_leer         L     69  S    204
+      kand_lebende_wand      L   1066  S    952
+      kand_ueberdehnung      L      5  S     10
+      kand_erschoepft        L     52  S     38
+      kand_frisch            L     18  S     22
+      kand_dormant           L   2770  S    741
+      kand_vs_lt3            L     73  S     25
+      kand_none              L   1192  S   1204
+      g_blocker              L     12  S     12
+      g_quartil              L     58  S     10
+      g_stufe0               L     10  S     15
+      g_zyklus               L      6  S     32
+      accept                 L      4  S     10
+      r_ord_long             L      1  S      0
+  --- AUG_WAND ---
+      eintritt               L   1283  S   1283
+      kand_pool_leer         L     69  S    204
+      kand_lebende_wand      L   1111  S    952
+      kand_ueberdehnung      L      4  S     10
+      kand_erschoepft        L     10  S     37
+      kand_frisch            L     18  S     22
+      kand_dormant           L   2770  S    741
+      kand_vs_lt3            L     41  S     27
+      kand_none              L   1194  S   1203
+      g_blocker              L     22  S      9
+      g_quartil              L     40  S     10
+      g_stufe0               L     13  S     16
+      g_zyklus               L      7  S     33
+      accept                 L      6  S     12
+      r_ord_long             L      1  S      0
+
+================================================================================================
+TRICHTER MAI
+================================================================================================
+  eintritt (k-Paare)           1917    1917       +0   gesamt 3834
+  ----------------------------------------------------------------------
+  Stufe                     LONG   SHORT    Delta        Quote L/S
+  ----------------------------------------------------------------------
+  kand_pool_leer              84     293     -209
+  kand_lebende_wand         1518    1348     +170
+  kand_ueberdehnung           27      11      +16
+  kand_erschoepft            210      81     +129
+  kand_none (Summe)         1839    1733     +106
+
+  [kand_frisch         ]      18      21       -3  (per Element, nicht terminal)
+  [kand_dormant        ]    7741    8832    -1091  (per Element, nicht terminal)
+  [kand_kein_durchstich]       0       1       -1  (per Element, nicht terminal)
+  [kand_vs_lt3         ]     109      48      +61  (per Element, nicht terminal)
+
+  kand_none                 1839    1733     +106
+  g_blocker                    7      12       -5
+  g_quartil                   15      62      -47
+  g_stufe0                    27      38      -11
+  g_f3                         0       0       +0
+  g_zyklus                    15      45      -30
+  g_kein_gegner                0       0       +0
+  g_dedup                      0       0       +0
+  g_concurrency                0       0       +0
+  accept                      12      23      -11   <== DURCHGELASSEN
+  ----------------------------------------------------------------------
+  kein_raum Zerlegung       LONG   SHORT
+    r_halb_short               0       0
+    r_mindist_short            0       0
+    r_halb_long                0       0
+    r_mindist_long             0       0
+    r_poc                      0       0
+    r_ord_short                0       4
+    r_ord_long                 2       0
+    r_risk                     0       0
+  ----------------------------------------------------------------------
+  G4-Hook-3-Nebenweg (nach der k-Schleife, NICHT im Budget):
+    g4_concurrency             0       0
+    g4_accept                  0       0
+
+  A  g_quartil              L     15 / S     62 (n=    77)  SHORT-DOMINANT (> Factor 3)
+       Quartil Q29 sperrt Mittelkanten (Z2490)
+  B  kand_lebende_wand      L   1518 / S   1348 (n=  2866)  symmetrisch/unauffaellig
+       lebende Aussenwand bricht die Suche ab (Z2584)
+  C  kand_ueberdehnung      L     27 / S     11 (n=    38)  symmetrisch/unauffaellig
+       Ueberdehnungskorridor > 0.60 % (Z2587)
+  D  g_blocker              L      7 / S     12 (n=    19)  symmetrisch/unauffaellig
+       M6 Innenlevel-Blocker (Z2526)
+  E  g_dedup                L      0 / S      0 (n=     0)  symmetrisch/unauffaellig
+       Entry-Bar-Dedup (Z2730, NEU)
+  F  g_stufe0               L     27 / S     38 (n=    65)  symmetrisch/unauffaellig
+       Reclaim-Stufe 0 (Z2641, NEU)
+
+================================================================================================
+TRICHTER JUN
+================================================================================================
+  eintritt (k-Paare)           2004    2004       +0   gesamt 4008
+  ----------------------------------------------------------------------
+  Stufe                     LONG   SHORT    Delta        Quote L/S
+  ----------------------------------------------------------------------
+  kand_pool_leer             478      95     +383
+  kand_lebende_wand         1117    1618     -501
+  kand_ueberdehnung           34      21      +13
+  kand_erschoepft            155     235      -80
+  kand_none (Summe)         1784    1969     -185
+
+  [kand_frisch         ]      31      14      +17  (per Element, nicht terminal)
+  [kand_dormant        ]    1751   17796   -16045  (per Element, nicht terminal)
+  [kand_kein_durchstich]       0       2       -2  (per Element, nicht terminal)
+  [kand_vs_lt3         ]     104     142      -38  (per Element, nicht terminal)
+
+  kand_none                 1784    1969     -185
+  g_blocker                   17       0      +17
+  g_quartil                   58      33      +25
+  g_stufe0                    50       2      +48
+  g_f3                         0       0       +0
+  g_zyklus                    63       0      +63
+  g_kein_gegner                0       0       +0
+  g_dedup                      0       0       +0
+  g_concurrency                1       0       +1
+  accept                      28       0      +28   <== DURCHGELASSEN
+  ----------------------------------------------------------------------
+  kein_raum Zerlegung       LONG   SHORT
+    r_halb_short               0       0
+    r_mindist_short            0       0
+    r_halb_long                0       0
+    r_mindist_long             0       0
+    r_poc                      0       0
+    r_ord_short                0       0
+    r_ord_long                 3       0
+    r_risk                     0       0
+  ----------------------------------------------------------------------
+  G4-Hook-3-Nebenweg (nach der k-Schleife, NICHT im Budget):
+    g4_concurrency             0       0
+    g4_accept                  0       0
+
+  A  g_quartil              L     58 / S     33 (n=    91)  symmetrisch/unauffaellig
+       Quartil Q29 sperrt Mittelkanten (Z2490)
+  B  kand_lebende_wand      L   1117 / S   1618 (n=  2735)  symmetrisch/unauffaellig
+       lebende Aussenwand bricht die Suche ab (Z2584)
+  C  kand_ueberdehnung      L     34 / S     21 (n=    55)  symmetrisch/unauffaellig
+       Ueberdehnungskorridor > 0.60 % (Z2587)
+  D  g_blocker              L     17 / S      0 (n=    17)  LONG-DOMINANT (> Factor 3)
+       M6 Innenlevel-Blocker (Z2526)
+  E  g_dedup                L      0 / S      0 (n=     0)  symmetrisch/unauffaellig
+       Entry-Bar-Dedup (Z2730, NEU)
+  F  g_stufe0               L     50 / S      2 (n=    52)  LONG-DOMINANT (> Factor 3)
+       Reclaim-Stufe 0 (Z2641, NEU)
+
+================================================================================================
+TRICHTER JUL
+================================================================================================
+  eintritt (k-Paare)           2095    2095       +0   gesamt 4190
+  ----------------------------------------------------------------------
+  Stufe                     LONG   SHORT    Delta        Quote L/S
+  ----------------------------------------------------------------------
+  kand_pool_leer             145     202      -57
+  kand_lebende_wand         1689    1614      +75
+  kand_ueberdehnung           18      10       +8
+  kand_erschoepft             95     127      -32
+  kand_none (Summe)         1947    1953       -6
+
+  [kand_frisch         ]      34      19      +15  (per Element, nicht terminal)
+  [kand_dormant        ]    4654   14848   -10194  (per Element, nicht terminal)
+  [kand_kein_durchstich]       0       1       -1  (per Element, nicht terminal)
+  [kand_vs_lt3         ]     130      96      +34  (per Element, nicht terminal)
+
+  kand_none                 1947    1953       -6
+  g_blocker                    9      17       -8
+  g_quartil                   53      94      -41
+  g_stufe0                    39      18      +21
+  g_f3                         0       0       +0
+  g_zyklus                    21       5      +16
+  g_kein_gegner                0       0       +0
+  g_dedup                      0       0       +0
+  g_concurrency                0       0       +0
+  accept                      17       4      +13   <== DURCHGELASSEN
+  ----------------------------------------------------------------------
+  kein_raum Zerlegung       LONG   SHORT
+    r_halb_short               0       0
+    r_mindist_short            0       0
+    r_halb_long                0       0
+    r_mindist_long             0       0
+    r_poc                      0       0
+    r_ord_short                0       4
+    r_ord_long                 9       0
+    r_risk                     0       0
+  ----------------------------------------------------------------------
+  G4-Hook-3-Nebenweg (nach der k-Schleife, NICHT im Budget):
+    g4_concurrency             0       0
+    g4_accept                  0       0
+
+  A  g_quartil              L     53 / S     94 (n=   147)  symmetrisch/unauffaellig
+       Quartil Q29 sperrt Mittelkanten (Z2490)
+  B  kand_lebende_wand      L   1689 / S   1614 (n=  3303)  symmetrisch/unauffaellig
+       lebende Aussenwand bricht die Suche ab (Z2584)
+  C  kand_ueberdehnung      L     18 / S     10 (n=    28)  symmetrisch/unauffaellig
+       Ueberdehnungskorridor > 0.60 % (Z2587)
+  D  g_blocker              L      9 / S     17 (n=    26)  symmetrisch/unauffaellig
+       M6 Innenlevel-Blocker (Z2526)
+  E  g_dedup                L      0 / S      0 (n=     0)  symmetrisch/unauffaellig
+       Entry-Bar-Dedup (Z2730, NEU)
+  F  g_stufe0               L     39 / S     18 (n=    57)  symmetrisch/unauffaellig
+       Reclaim-Stufe 0 (Z2641, NEU)
+
+================================================================================================
+TRICHTER AUG_BASE
+================================================================================================
+  eintritt (k-Paare)           1283    1283       +0   gesamt 2566
+  ----------------------------------------------------------------------
+  Stufe                     LONG   SHORT    Delta        Quote L/S
+  ----------------------------------------------------------------------
+  kand_pool_leer              69     204     -135
+  kand_lebende_wand         1066     952     +114
+  kand_ueberdehnung            5      10       -5
+  kand_erschoepft             52      38      +14
+  kand_none (Summe)         1192    1204      -12
+
+  [kand_frisch         ]      18      22       -4  (per Element, nicht terminal)
+  [kand_dormant        ]    2770     741    +2029  (per Element, nicht terminal)
+  [kand_kein_durchstich]       0       0       +0  (per Element, nicht terminal)
+  [kand_vs_lt3         ]      73      25      +48  (per Element, nicht terminal)
+
+  kand_none                 1192    1204      -12
+  g_blocker                   12      12       +0
+  g_quartil                   58      10      +48
+  g_stufe0                    10      15       -5
+  g_f3                         0       0       +0
+  g_zyklus                     6      32      -26
+  g_kein_gegner                0       0       +0
+  g_dedup                      0       0       +0
+  g_concurrency                0       0       +0
+  accept                       4      10       -6   <== DURCHGELASSEN
+  ----------------------------------------------------------------------
+  kein_raum Zerlegung       LONG   SHORT
+    r_halb_short               0       0
+    r_mindist_short            0       0
+    r_halb_long                0       0
+    r_mindist_long             0       0
+    r_poc                      0       0
+    r_ord_short                0       0
+    r_ord_long                 1       0
+    r_risk                     0       0
+  ----------------------------------------------------------------------
+  G4-Hook-3-Nebenweg (nach der k-Schleife, NICHT im Budget):
+    g4_concurrency             0       0
+    g4_accept                  0       0
+
+  A  g_quartil              L     58 / S     10 (n=    68)  LONG-DOMINANT (> Factor 3)
+       Quartil Q29 sperrt Mittelkanten (Z2490)
+  B  kand_lebende_wand      L   1066 / S    952 (n=  2018)  symmetrisch/unauffaellig
+       lebende Aussenwand bricht die Suche ab (Z2584)
+  C  kand_ueberdehnung      L      5 / S     10 (n=    15)  symmetrisch/unauffaellig
+       Ueberdehnungskorridor > 0.60 % (Z2587)
+  D  g_blocker              L     12 / S     12 (n=    24)  symmetrisch/unauffaellig
+       M6 Innenlevel-Blocker (Z2526)
+  E  g_dedup                L      0 / S      0 (n=     0)  symmetrisch/unauffaellig
+       Entry-Bar-Dedup (Z2730, NEU)
+  F  g_stufe0               L     10 / S     15 (n=    25)  symmetrisch/unauffaellig
+       Reclaim-Stufe 0 (Z2641, NEU)
+
+================================================================================================
+TRICHTER AUG_WAND
+================================================================================================
+  eintritt (k-Paare)           1283    1283       +0   gesamt 2566
+  ----------------------------------------------------------------------
+  Stufe                     LONG   SHORT    Delta        Quote L/S
+  ----------------------------------------------------------------------
+  kand_pool_leer              69     204     -135
+  kand_lebende_wand         1111     952     +159
+  kand_ueberdehnung            4      10       -6
+  kand_erschoepft             10      37      -27
+  kand_none (Summe)         1194    1203       -9
+
+  [kand_frisch         ]      18      22       -4  (per Element, nicht terminal)
+  [kand_dormant        ]    2770     741    +2029  (per Element, nicht terminal)
+  [kand_kein_durchstich]       0       0       +0  (per Element, nicht terminal)
+  [kand_vs_lt3         ]      41      27      +14  (per Element, nicht terminal)
+
+  kand_none                 1194    1203       -9
+  g_blocker                   22       9      +13
+  g_quartil                   40      10      +30
+  g_stufe0                    13      16       -3
+  g_f3                         0       0       +0
+  g_zyklus                     7      33      -26
+  g_kein_gegner                0       0       +0
+  g_dedup                      0       0       +0
+  g_concurrency                0       0       +0
+  accept                       6      12       -6   <== DURCHGELASSEN
+  ----------------------------------------------------------------------
+  kein_raum Zerlegung       LONG   SHORT
+    r_halb_short               0       0
+    r_mindist_short            0       0
+    r_halb_long                0       0
+    r_mindist_long             0       0
+    r_poc                      0       0
+    r_ord_short                0       0
+    r_ord_long                 1       0
+    r_risk                     0       0
+  ----------------------------------------------------------------------
+  G4-Hook-3-Nebenweg (nach der k-Schleife, NICHT im Budget):
+    g4_concurrency             0       0
+    g4_accept                  0       0
+
+  A  g_quartil              L     40 / S     10 (n=    50)  LONG-DOMINANT (> Factor 3)
+       Quartil Q29 sperrt Mittelkanten (Z2490)
+  B  kand_lebende_wand      L   1111 / S    952 (n=  2063)  symmetrisch/unauffaellig
+       lebende Aussenwand bricht die Suche ab (Z2584)
+  C  kand_ueberdehnung      L      4 / S     10 (n=    14)  symmetrisch/unauffaellig
+       Ueberdehnungskorridor > 0.60 % (Z2587)
+  D  g_blocker              L     22 / S      9 (n=    31)  symmetrisch/unauffaellig
+       M6 Innenlevel-Blocker (Z2526)
+  E  g_dedup                L      0 / S      0 (n=     0)  symmetrisch/unauffaellig
+       Entry-Bar-Dedup (Z2730, NEU)
+  F  g_stufe0               L     13 / S     16 (n=    29)  symmetrisch/unauffaellig
+       Reclaim-Stufe 0 (Z2641, NEU)
+

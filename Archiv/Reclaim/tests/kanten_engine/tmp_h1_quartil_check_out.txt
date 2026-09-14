@@ -1,0 +1,15 @@
+﻿================================================================================================
+Q29-AUSSENQUARTIL (_im_aussenquartil, Schwelle 25 % der kausalen Spanne)
+================================================================================================
+    bar     ex_hi     ex_lo   spanne     sweep    dist%     Q29  Bemerkung
+    229    66.776    62.967    3.809    66.776     0.00    PASS  K20 Entry 231
+    242    66.776    62.967    3.809    66.663     2.97    PASS  K20 Stacking-Sperre
+    244    66.776    62.967    3.809    66.662     2.99    PASS  K20 Stacking-Sperre
+    529    66.776    62.967    3.809    66.538     6.25    PASS  K31 Entry 531
+    564    66.776    62.967    3.809    66.530     6.46    PASS  K31 Stacking-Sperre
+    565    66.776    62.967    3.809    66.536     6.30    PASS  K20 in-band
+    866    69.188    62.548    6.640    69.179     0.14    PASS  K59 Stacking-Sperre
+
+  -> Alle SHORT-Setups der arretierten Laeufe bestehen Q29 deutlich
+     (dist 0.00-6.46 % << 25 %). Die 20 Quartil-Sperren des Box-Laufs
+     betreffen ausschliesslich innere LONG-Kanten (Mitte der Range).

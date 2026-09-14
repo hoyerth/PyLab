@@ -1,0 +1,313 @@
+
+## H20.51 - K4-Monatsnachweis, Zerlegung des Segmentwand-Zuwachses, ZP-5-Erratum
+
+### 0. Status
+
+Auftrag abgeschlossen. Der Tripel-Pfad der additiven V021-Engine ist auf
+FREMDEN Fenstern (MAI/JUN/JUL) bit-exakt nachgewiesen (K4). Der Zuwachs der
+Segmentwand-Messung (18 statt 14 Trades) ist vollstaendig in Traegerschaft
+zerlegt -- mit einer Korrektur der eigenen Zuschreibung aus H20.50. Der
+ZP-5-Vorlauf ist mechanisch demaskiert: er wirkt nicht als Durchstich- oder
+Validierungsnachweis, sondern als Inkrementierer des Touch-Zaehlers
+`touch_conf(k)`.
+
+Keine Mutation an Motoren, Adapter, Renderer oder Handoff-Altsections. Alle
+vier arretierten Quellen vor jedem Lauf SHA-geprueft:
+
+    53f28e1b6971a64d  Baseline  (200433 B)   tmp_kanten_engine_replay.py
+    e79c5c29482398d8  V020      ( 40567 B)   tmp_kanten_engine_v020_replay.py
+    500b55762001d666  Renderer  (123343 B)   tmp_png_aug_sichttest.py
+    770eda2c75aaa135  Adapter   ( 43279 B)   backtest_lab/phasen_regime_adapter.py
+
+Freigaben des Anwenders (F1-F5, alle bestaetigt):
+
+    F1 JA  Erweitertes Erratum: ZP-5 als touch_conf-Inkrementierer
+    F2 JA  Traegerschaft je Zuwachs im 18er-Katalog ausweisen
+    F3 JA  Bar-1075-Korrektur (67.4200 statt 67.58) protokollarisch
+    F4 JA  H20.51 jetzt schreiben (keine Zwischenschleifen)
+    F5 JA  MESSSTAND 18/+52.876174 arretieren; Touch-Logik -> V022
+
+### 1. K4 - Tripel auf Fremdfenstern, bit-exakt
+
+Beleg: `test/_chk_v021_k4_monate.py` (8a2e3d870216be6a), Protokoll
+`test/_chk_v021_k4_monate_out.txt` (cfa14a8f19f85277).
+
+Geprueft wurde der Vertrag NATIV + DORMANT_PERMISSIV + ENDOGEN gegen die in
+`test/_render_mai_jun_jul.py` arretierten Modus-A-Sollwerte. Monatsfenster
+per temporaerem `FENSTER["LAB"]`-Eintrag, Vollauf `box_end_bar = n`.
+
+| Monat | n | edges/seeds | TRIPEL (Ist) | Soll | Legacy (Protokoll) |
+|---|---|---|---|---|---|
+| MAI | 1922 | 78/27 | 58 / +40.023743 | 58 / +40.023743 | 35 / +38.318126 |
+| JUN | 2009 | 117/40 | 56 / -26.883881 | 56 / -26.883881 | 28 / -11.421155 |
+| JUL | 2100 | 79/14 | 68 / -11.395066 | 68 / -11.3950657 | 21 / -4.325355 |
+
+Idempotenz je Monat (zweiter Lauf auf frischer deepcopy) bit-identisch.
+
+Bedeutung: die Naht Vertrag -> Delegation -> Fremdfenster haelt. Der
+Tripel-Pfad ist nicht AUG-spezifisch, sondern uebertraegt die V020-Semantik
+auf beliebige BKZ-Fenster. Damit ist `test/tmp_kanten_engine_v021_replay.py`
+als Ersatz fuer den Modus-A-Aufrufpfad belastbar.
+
+### 2. Protokoll-Hygiene - Baseline-Werte bestaetigt
+
+Die fairen Baseline-Werte aus H20.50 Paragraph 4 sind bestaetigt:
+MAI 35, JUN 28, JUL 21 (SumR +38.318126 / -11.421155 / -4.325355).
+
+Die in H20.49 Paragraph 5 genannten 12/15/5 bleiben als kontaminiert
+verworfen (Trade-Loop ohne deepcopy, H20.50 Paragraph 3).
+
+### 3. ZP-5-Verifikation AUG VOLL - die 18er-Zahl
+
+Beleg: `test/_chk_v021_delta18.py` (b163d59cc9664c72), Protokoll
+`test/_chk_v021_delta18_out.txt` (233a16d84b009129).
+
+    Fenster AUG: n=1288 | box_end_bar=644 | edges=59 seeds=14
+    Grenzen Batch : [(848,1020), (1033,1173), (1174,1287)]
+    Grenzen Kausal: [(848,1020), (1033,1249), (1174,1287)]
+
+| Lauf | Trades | SumR | H1 | H2 |
+|---|---|---|---|---|
+| LEGACY (Defaults) | 14 | +42.450970 | 8/+38.919584 | 6/+3.531386 |
+| TRIPEL (BOX 644) | 14 | +27.327383 | -- | -- |
+| SEGMENTWAND AN/Kausal | 18 | +52.876174 | 8/+38.919584 | 10/+13.956589 |
+| SEGMENTWAND AN/Batch | 18 | +52.876174 | -- | -- |
+
+Bemerkenswert: Batch- und Kausal-Grenzen liefern trotz unterschiedlicher
+Segmentenden (1173 vs. 1249) identische Ergebnisse. Die Grenz-Kids sind in
+beiden Faellen [67, 73, 77, 82]; die abweichende `end_bar` wirkt in diesem
+Fenster nicht handelsentscheidend.
+
+### 4. Q1 - Additivitaet bewiesen
+
+    Legacy-Trades in AN enthalten: 14/14 | fehlend: keine
+    ADDITIV: JA
+
+Die vier Zuwaechse (vollstaendige Kenndaten):
+
+| # | Kante | Richt | sig | entry | Preis | sl | tp2 | R | Exit |
+|---|---|---|---|---|---|---|---|---|---|
+| 15 | K62 | LONG | 1075 | 1077 | 67.8260 | 67.3700 | 69.8990 | +1.475768 | TP1/ENDE |
+| 16 | K73 | SHORT | 1122 | 1123 | 69.5720 | 69.7590 | 62.5770 | +2.192513 | ENDE/ENDE |
+| 17 | K82 | LONG | 1172 | 1173 | 67.5890 | 67.4440 | 69.8990 | +5.502241 | TP1/ENDE |
+| 18 | K73 | SHORT | 1272 | 1273 | 69.4970 | 69.7640 | 62.5770 | +1.254682 | ENDE/ENDE |
+
+Der Zuwachs ist rein additiv: kein Legacy-Trade verschwindet, keiner
+aendert Vorzeichen oder Reihenfolge.
+
+### 5. Q2/Q3 - Steuerbare Gegenprobe: Traegerschaft der vier Zuwaechse
+
+Die Replik des AN-Zweigs ist zunaechst gegen den echten Engine-Lauf geprueft
+(bit-identische Trade-Signatur). Erst danach wurden Wirkungen einzeln
+zurueckgenommen:
+
+| Variante | Trades | SumR | Eingriff |
+|---|---|---|---|
+| V1_Voll | 18 | +52.876174 | -- (Kontrolle == Engine) |
+| V0_GateOnly | 17 | +47.373932 | Vorlauf komplett aus |
+| V2_ohne_Wick1075 | 17 | +47.373932 | Wick@1075 entfernt |
+| V3_ohne_Schlaf | 18 | +52.876174 | Schlaf-Bereinigung zurueckgenommen |
+| V4_Wick_und_Schlaf | 17 | +47.373932 | beides zurueckgenommen |
+| V5_Wick1075_wieBasis | 18 | +52.876174 | Wick@1075 auf Basisniveau 67.5530 |
+| V6_Wick1100 | 17 | +47.373932 | Wick bei Bar 1100, echtes Low 68.8230 |
+| V7_Wick1100_tief | 18 | +52.876174 | Wick bei Bar 1100 mit Wert 67.42 |
+
+Traegerschaft je Zuwachs:
+
+| Zuwachs | R | Traeger |
+|---|---|---|
+| K62@1077 | +1.475768 | Regelwerk-Gate (A_SB/A_VC), Vorlauf wirkungslos |
+| K73@1123 | +2.192513 | Regelwerk-Gate (A_SB/A_VC), Vorlauf wirkungslos |
+| K82@1173 | +5.502241 | ZP-5-Wick@1075 (Gate allein liefert ihn nicht) |
+| K73@1273 | +1.254682 | Regelwerk-Gate (A_SB/A_VC), Vorlauf wirkungslos |
+
+Also: 3 von 4 Zuwaechsen sind reine Gate-Folgen, genau 1 ist ZP-5-getragen.
+V3 zeigt zusaetzlich: die Schlaf-Bereinigung (`schlaf_windows`) ist in
+diesem Fenster ohne Handelswirkung.
+
+Der Vorlauf beruehrt GENAU EINE Kante:
+
+    K82   wicks 4->5 (neue Bars [1075]) | schlaf 1->0 | status AKTIV->AKTIV
+
+    K82 vor : [(1031,67.5350), (1056,67.5530), (1172,67.4940), (1259,67.6000)]
+    K82 nach: [... , (1075,67.4200)]
+
+### 6. Q4 - Mechanismus: ZP-5 inkrementiert den Touch-Zaehler
+
+    K82  seite=UNTEN  ist_prim_anker=False  basis(statisch)=67.5455
+    cfg.min_touches_handelbar = 3     cfg.wall_live_bars = 96
+
+| Bar | basis_bei vor/nach | touch_conf vor/nach | letzter_touch_conf vor/nach |
+|---|---|---|---|
+| 1075 | 67.5530 / 67.5530 | 2 / 2 | 1056 / 1056 |
+| 1172 | 67.5530 / 67.5530 | 2 / 3 | 1056 / 1075 |
+
+Anker im Trade-Loop (`_se_trades`, Baseline-Zeile 184):
+
+    if e.touch_conf(k) < cfg.min_touches_handelbar:
+        continue        # innere Linie braucht V-S >= 3
+
+Befund: K82 ist bei Bar 1172 eine INNERE Linie (pos != 0). Der Zaehler
+`touch_conf` springt durch den nachgetragenen Docht von 2 auf 3 und
+ueberschreitet damit die Schwelle. Der Zuwachs entsteht NICHT durch einen
+Durchstich-Nachweis und NICHT durch eine Basis-Verschiebung.
+
+Zweite, notwendige Bedingung: der Wick darf `basis_bei(k)` nicht anheben.
+`basis_bei(k) = max der Dochte mit b+2 <= k` (seite UNTEN; kein Primaeranker).
+Wick-Werte mit echtem Low:
+
+    Bar 1075, Low 67.4200 -> basis_bei(1172) = 67.5530  (unveraendert)
+    Bar 1100, Low 68.8230 -> basis_bei(1172) = 68.8230  (Linie wandert hoch)
+    Bar 1150, Low 68.4370 -> basis_bei(1172) = 68.4370
+
+Gegenprobe V6 (Bar 1100, echtes Low 68.8230) liefert 17 Trades: die Linie
+wandert nach oben, `dist(1172)` wird 1.93 % und ueberschreitet
+`max_sweep_ueberdehnung_pct = 0.6`. Gegenprobe V7 (Bar 1100, Wert 67.42)
+liefert wieder 18 Trades -- der Bar ist beliebig, entscheidend sind
+Zeitlage (b+2 <= k) und Wert (keine Basis-Anhebung).
+
+Kontextwerte: `touch_band_pct = 0.12`,
+`sweep_mindestdurchstich_pct = 0.0`, `dist(1172) = 0.087339 %`.
+
+### 7. ERRATUM zu H20.50 Paragraph 5/6 - Zuschreibungskorrektur
+
+In H20.50 wurde der Zuwachs von 14 auf 18 Trades pauschal dem ZP-5-Vorlauf
+zugeschrieben. Das ist nach der steuerbaren Gegenprobe (Paragraph 5) FALSCH.
+
+Korrekt:
+
+    3 Zuwaechse  reine Regelwerk-Gate-Folgen (A_SB / A_VC) -- Vorlauf wirkungslos
+    1 Zuwachs    ZP-5-getragen (K82@1173), und dort ueber den Touch-Zaehler
+
+Die Aussage aus H20.50 Paragraph 6 ("V019-Segmentwandaufbau faellt in
+V020/Modus A weg") bleibt davon unberuehrt: sie ist im Adapterpfad weiterhin
+gueltig. Die Differenz zwischen dem adapterfreien Wert 18/+52.876174 und dem
+hook-getragenen V1_kausal 23/+85.577150 ist die Adapter-Schicht (Hook 1/2/3),
+nicht die Segmentwand -- wie im Modul-Docstring von V021 festgehalten.
+
+Ferner praezisiert: die Semantik von `erweitere_segmentwand_dochte`
+(E-34n/10+11, "Kantenlaeufer-Durchstich") und seine gemessene Wirkung
+divergieren. Deklariert ist ein Durchstich-Nachweis; gemessen wird eine
+Zaehler-Auffuellung mit nachrangigem Preisbezug.
+
+### 8. ERRATUM Mentor-Audit - Bar 1075
+
+Die Angabe "Bar 1075 sticht mit Low 67.58" ist falsch. BKZ-Daten
+(ohne Offset):
+
+    Bar 1075  2026-08-25T15:45  O 67.5340  H 67.6910  L 67.4200  C 67.6780
+    Bar 1122  2026-08-26T04:30  O 69.3310  H 69.7090  L 69.2760  C 69.5730
+    Bar 1172  2026-08-26T17:00  O 67.8750  H 67.9420  L 67.4940  C 67.5980
+    Bar 1272  2026-08-27T19:00  O 69.5750  H 69.7140  L 69.4100  C 69.5000
+
+Der eingetragene Wick-Wert ist 67.4200 = echtes Low von Bar 1075.
+Protokollarisch richtiggestellt. Die Korrektur beruehrt das Ergebnis nicht
+-- nach Paragraph 6 ist der Wert nachrangig.
+
+### 9. MESSSTAND (arretiert, F5)
+
+    V021 SEGMENTWAND "AN", adapterfrei:
+
+    AUG VOLL  n=1288, Split 644   18 Trades / +52.876174 R
+                                  H1 8/+38.919584 | H2 10/+13.956589
+
+    Vergleich LEGACY:            14 Trades / +42.450970 R
+    Delta:                       +4 Trades  / +10.425204 R
+
+    K4 TRIPEL (Fremdfenster):    MAI 58/+40.023743
+                                 JUN 56/-26.883881
+                                 JUL 68/-11.395066
+
+Dieser Messstand ist arretiert. Eine Neugestaltung der Touch-Logik
+(Touch-Definition, Liquiditaetsnachweis) wird auf V022 vorgemerkt und
+aendert diesen Messstand nicht rueckwirkend.
+
+### 10. V021-Vertrag - Stand der 12 Punkte
+
+| # | Punkt | Werte | Status |
+|---|---|---|---|
+| 1 | basis_modus | MITTEL / URSPRUNG | Legacy-Default |
+| 2 | gegenkante_modus | EXTREM / NAECHSTE | Legacy-Default |
+| 3 | fensterrand_exit | bool | Legacy-Default |
+| 4 | min_risk_usd | float | Legacy-Default (0.0) |
+| 5 | atr_risiko_faktor | float | Legacy-Default (0.0) |
+| 6 | atr_periode | int >= 1 | Legacy-Default (14) |
+| 7 | existenz_modus | BASELINE / NATIV | Tripelkomponente |
+| 8 | m6l_modus | BASELINE / DORMANT_PERMISSIV | Tripelkomponente |
+| 9 | rand_modus | GLOBAL / ENDOGEN | Tripelkomponente |
+| 10 | segmentwand_modus | AUS / AN | Messstand-Traeger |
+| 11 | scan_readonly | ERZWINGEN (nicht abschaltbar) | Vertragspunkt |
+| 12 | ueberdehnung_segment_pct | float, Default 0.80 | kein Hardcoding |
+
+Zusatzvertrag (aus H20.50 Paragraph 3): `copy.deepcopy(scan)` als ERSTE
+Anweisung; Reihenfolge intern deepcopy -> Segmentwand-Vorlauf -> Trade-Loop.
+Verletzung fuehrt zu nicht-idempotenten Wiederholungslaeufen (F3-Sperre).
+
+Risikoklammer (H2-Beschluss):
+`risiko_effektiv = max(|sl-entry|, max(min_risk_usd, atr_risiko_faktor * ATR))`.
+
+Fail-Loud-Katalog (alle als `ValueError`, belegt in
+`_chk_v021_verify_out.txt` 5f8e2b68e68c4816):
+
+    AN ohne Segmentgrenzen | AUS mit Segmentgrenzen
+    Tripel-Teilbelegung    | atr_periode < 1
+    ueberdehnung_segment_pct <= 0
+
+### 11. Vormerkung V022 - Touch-Logik
+
+Befund aus Paragraph 6: ein System, das die Mindest-Touch-Schwelle nur ueber
+nachgetragene Hilfs-Dochte erreicht, hat eine zu starre Touch-Definition.
+Kandidaten fuer V022 (nicht beschlossen, nur vorgemerkt):
+
+1. Touch-Bestaetigung ueber Cluster-Dichte statt Zaehlung von Dochten.
+2. Volumen-/Volatilitaetsgewichteter Touch-Nachweis.
+3. Trennung von "Zaehler-Touch" (Struktur) und "Handels-Touch" (Reife).
+
+Der Messstand aus Paragraph 9 bleibt davon unberuehrt.
+
+### 12. Dateien / SHAs (neu, alle in test/, read-only gegenueber Motoren)
+
+| Datei | SHA256 (16) | Bytes |
+|---|---|---|
+| `_chk_v021_k4_monate.py` | 8a2e3d870216be6a | 8270 |
+| `_chk_v021_k4_monate_out.txt` | cfa14a8f19f85277 | 2815 |
+| `_chk_v021_delta18.py` | b163d59cc9664c72 | 15155 |
+| `_chk_v021_delta18_out.txt` | 233a16d84b009129 | 5419 |
+
+Bereits arretiert (aus H20.50 bzw. Schritt 1-3):
+
+| Datei | SHA256 (16) | Bytes |
+|---|---|---|
+| `tmp_kanten_engine_v021_replay.py` | cda9e5b189ed4137 | 23494 |
+| `_chk_v021_verify.py` | 2794676c951f5a23 | 7709 |
+| `_chk_v021_verify_out.txt` | 5f8e2b68e68c4816 | 4254 |
+| `_chk_segmentwand_sonde.py` | 82dff45e9ba82cd4 | 14589 |
+| `_chk_segmentwand_sonde_out.txt` | b24b860a77751885 | 4782 |
+| `_render_aug_v021.py` | 8c9897788a473719 | 16688 |
+| `render_aug_v021.png` | fd87167d93f1ea80 | 437887 |
+| `render_aug_v021_out.txt` | 2c427ecd0bd1da62 | 1771 |
+
+Handoff-Kopfanker vor diesem Append:
+
+    729996 B 404da1e6b5a3106160ca489a6b3ed402110915632a85828c966418bfe3e13d18
+    CRLF-exklusiv (12654 = 12654)
+
+### 13. Offene Entscheidungsfragen (bitte beantworten)
+
+F1. Sichtung des Renderers: `test/render_aug_v021.png` (fd87167d93f1ea80)
+    wurde erzeugt, aber vom Anwender noch nicht gesichtet. Soll die
+    Bildpruefung vor der Mai/Juni-Analyse erfolgen oder danach?
+F2. Der Batch-/Kausal-Befund aus Paragraph 3 (identische 18 Trades trotz
+    verschiedener Segmentenden 1173/1249) ist ungeklaert. Soll die Ursache
+    (welche Grenze wirkt in diesem Fenster nicht?) als eigene Sonde
+    nachgezogen werden, oder bleibt das als Beobachtung stehen?
+F3. Die Hook-Schicht (Hook 1/2/3) ist der Traeger der Differenz
+    18/+52.876174 -> 23/+85.577150. Soll diese Differenz in einem eigenen
+    Protokoll zerlegt werden (Auftrag fuer H20.52), oder erst nach V022?
+F4. Fuer die Mai/Juni-Soll/Ist-Analyse: Gegenstand sind die groessten
+    Einzeltrades (MAI K103 +51.668268, JUN K170 +10.014019, JUL K38
+    +10.155643, aus H20.50 Paragraph 8). Sollen diese mit dem V021-Tripel
+    oder mit der adapterfreien Segmentwand-Messung verglichen werden?
+F5. Sollen die vier Zuwaechse (K62@1077, K73@1123, K82@1173, K73@1273) in
+    der Mai/Juni-Sonde als Musterpruefung mitlaufen (gleiche Traegerschaft
+    oder andere Verteilung)?

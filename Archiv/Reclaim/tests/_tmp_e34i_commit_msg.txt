@@ -1,0 +1,41 @@
+docs(handoff): E-34i — Renderer-Sollwerte gemessen, 9-Zeilen-Plan falsifiziert (V019 braucht Zielzonen-Patchset ZP-4)
+
+Rein lesende Messung (Anwender-Freigabe x). Kein Renderer-Eingriff, Adapter und
+Engine unberuehrt.
+
+Sollwerte (E-34i/3, exakt die Renderer-Maschinerie):
+- referenz_soll  = ((980, 73),)
+- neu_basis_soll = 9 Eintraege ohne G4 (mit G4-Zusatz (1002,77) = 10)
+- quartett_r_soll = ((903,4.119775),(980,9.987676),(981,2.695488),(1020,3.003157)),
+  Summe +19.806095, kids (67,67,73,67)
+- V0 14/+42.450970 und V1_basis 14/+47.815697 bit-identisch.
+
+Falsifikation des 9-Zeilen-Plans (E-34i):
+- ADAPTER_V019 am bestehenden Renderer-Patch liefert V018 (17/+65.835576),
+  ZIEL 0 Trades -> A1/A2 allein inert.
+- Erforderlich: vier Engine-Zielzonen-Patches A_UEB1, A_VC, A_M6L, A_SB
+  (Herkunft test/_tmp_e34_auto.py) + _zv/_ueb + _reclaim_stufe-Wrapper.
+- Mit diesen exakt V019: 23/+82.614385 | H1 8/+38.919584 | H2 +43.694801 |
+  ZIEL 6/+16.778809.
+
+Verlust zur abgenommenen V018 (E-34k): KEINER.
+- V018 -> V019: +0 verloren / +6 gewonnen; 17 gemeinsame R bit-identisch.
+- referenz_soll-Verlust (980,73)/+2.412991 liegt gegen die v0.1-BASIS, nicht
+  gegen V018; delta_v1_trades = 9 (= 23 - 14).
+
+Erratum Gating (E-34i/2): Der Entwurf ist_zielzonen_mechanik_aktiv =
+(mode == "V019") ist zu grob. Der Renderer faehrt je V019-Lauf DREI _lauf-
+Aufrufe (V0 + V1_basis mit DEFAULT, V1_aktiv mit ADAPTER_V019). Zweistufiges
+Gating Pflicht: Quelltext = Modus, Laufzeit-_zv = gebundener Adapter.
+
+Ehrliche Einschraenkung: Hazard-Test zeigt, dass un-gegatet sowohl
+DEFAULT_ADAPTER (14/+47.815697) als auch ADAPTER_V015 (V018, 17/+65.835576)
+in AUG numerisch unveraendert bleiben. Der Gate ist Vorsorge/Guarantee, kein
+gemessener Bruch.
+
+H1-Grenztrade (E-34j): K1@639 LONG, BKZ 18.08. 21:45 -> Entry 18.08. 22:00
+(BKZ-Kalenderkante box_end 644 = 19.08. 00:00 BKZ), r -1.000000.
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

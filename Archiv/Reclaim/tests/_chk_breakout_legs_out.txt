@@ -1,0 +1,50 @@
+﻿python : F:\Python\PyLab\test\_chk_breakout_legs.py:42: RuntimeWarning: invalid value encountered in divide
+In Zeile:1 Zeichen:1
++ python test/_chk_breakout_legs.py 2>&1 | Out-File -Encoding utf8 test ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (F:\Python\PyLab...tered in divide:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  dx = 100 * np.abs(pdi - mdi) / (pdi + mdi)
+======================================================================================================================
+A 14.08.02:00-09:00   gebrochene Wand: K51 UNTEN @ 63.7970
+======================================================================================================================
+  Closes unter Level      : 5/29 Bars (17%)  maxSerie=3 ab Bar 843
+  tiefer als Level (Low)  : 12 Bars
+  letzter Close < Level   : Bar 858 (2026-08-14 07:30:00)
+  Tief Bar 858 (2026-08-14 07:30:00) Low=63.4850  rel.Pos=22/28
+  Ruecklauf  25% (Close>=63.7482) : Bar 858 nach 0 Bars (2026-08-14 07:30:00)
+  Ruecklauf  50% (Close>=64.0115) : Bar 859 nach 1 Bars (2026-08-14 07:45:00)
+  Ruecklauf  75% (Close>=64.2747) : Bar 860 nach 2 Bars (2026-08-14 08:00:00)
+  Ruecklauf 100% (Close>=64.5380) : NICHT erreicht
+  Geschwindigkeitsprofil (je Viertel):
+    Q1 Bars 836..842: -0.5420 pts  tief=63.7160 spanne=0.9920 ADX 28.6->39.2
+    Q2 Bars 843..849: +0.3080 pts  tief=63.6630 spanne=0.4350 ADX 40.8->39.8
+    Q3 Bars 850..856: -0.2390 pts  tief=63.7430 spanne=0.4410 ADX 37.7->31.9
+    Q4 Bars 857..864: +0.4440 pts  tief=63.4850 spanne=0.8990 ADX 32.0->22.6
+  ADX-Verlauf (jeder 4. Bar):
+    28.6 34.9 42.2 41.3 35.1 31.9 29.3 22.6
+  ATR-Verlauf (jeder 4. Bar):
+    0.1645 0.2125 0.2240 0.2455 0.2134 0.1926 0.2307 0.2098
+
+======================================================================================================================
+B 18.08.16:00-19.08.14:00   gebrochene Wand: K57 UNTEN @ 63.1560
+======================================================================================================================
+  Closes unter Level      : 38/85 Bars (45%)  maxSerie=20 ab Bar 1120
+  tiefer als Level (Low)  : 47 Bars
+  letzter Close < Level   : Bar 1150 (2026-08-19 11:30:00)
+  Tief Bar 1133 (2026-08-19 07:15:00) Low=62.5480  rel.Pos=57/84
+  Ruecklauf  25% (Close>=63.1273) : Bar 1140 nach 7 Bars (2026-08-19 09:00:00)
+  Ruecklauf  50% (Close>=63.7065) : Bar 1160 nach 27 Bars (2026-08-19 14:00:00)
+  Ruecklauf  75% (Close>=64.2857) : NICHT erreicht
+  Ruecklauf 100% (Close>=64.8650) : NICHT erreicht
+  Geschwindigkeitsprofil (je Viertel):
+    Q1 Bars 1076..1096: -0.7770 pts  tief=63.5070 spanne=1.4540 ADX 28.9->44.8
+    Q2 Bars 1097..1117: -0.8470 pts  tief=62.5770 spanne=1.2610 ADX 44.3->53.4
+    Q3 Bars 1118..1138: -0.3860 pts  tief=62.5480 spanne=0.7610 ADX 51.0->35.2
+    Q4 Bars 1139..1160: +0.5910 pts  tief=62.8420 spanne=0.9250 ADX 32.9->36.5
+  ADX-Verlauf (jeder 4. Bar):
+    28.9 38.3 44.4 45.0 45.3 44.8 46.5 50.9 53.9 56.8 53.5 46.9 40.6 35.2 35.7 38.6 31.3 28.2 26.6 25.4 29.0 36.5
+  ATR-Verlauf (jeder 4. Bar):
+    0.2635 0.3254 0.3095 0.2659 0.2298 0.1991 0.1942 0.1940 0.1908 0.2019 0.2223 0.2434 0.2311 0.2117 0.2036 0.2052 0.2189 0.2089 0.1944 0.1763 0.1672 0.1852
+

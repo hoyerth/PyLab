@@ -1,0 +1,33 @@
+docs(handoff): E-30/S1 Zielabstand + TP1-Deckelung — auch der Ziel-Hebel ist falsifiziert
+
+Read-only ueber die E-29-Setup-Geometrien. Reproduktion bit-identisch:
+0,5*(+49,004) + 0,5*(+62,739) = +55,871 (S2).
+
+Z1: H2 d_TP1 median 13,29 R / 18,90 ATR / 5,95 %, Stop 0,96 ATR -> Ziel:Stop
+~20:1. Z2: 32 H2-Stop-Outs, 18 mit MFE >= 1 R, Median-MFE 1,16 R.
+
+Z3: Kein TP1-Deckel erreicht die Basis. Alle 21 Werte senken USD/Trade;
+dR Gewinner ist immer stark negativ (-42,6 bis -117,2 R), dR Verlier positiv
+(+31,5 bis +86,0) -> Netto immer negativ. AUG: dR Verlier = 0 in jeder Zeile.
+
+Methodik-Erweiterung: "getoetete Gewinner" (Sign-Flip) ist zu grob. Bei
+Cap_R >= 1,25 R meldet er 0, obwohl -4,68 USD verloren gehen. Pflichtmetrik
+ist dR Gewinner.
+
+Z4: Keine Haelfte ist ein Verlusttraeger. TP1-Hit 70/271 (25,8 %),
+TP2-Hit 20/271 (7,4 %); Sigma r1 +49,00, Sigma r2 +62,74. H2 wird von der
+TP1-Haelfte dominiert (+51,85 R) — genau der, die der Deckel zerstoert.
+
+Z5: Gewicht w1 = tp1_anteil_pct/100 monoton in USD/Trade, aber w1 = 0
+verletzt D1 (Q_stop 0,926) und tp1_anteil_pct ist AUG-kritisch (50 -> 25
+verschiebt den V018-Anker auf +43,03). Effekt haengt an 20 bzw. 5
+TP2-Treffern -> nicht zulassungsfaehig. 50 % bleibt arretiert.
+
+Bilanz: Break-Even, TP1-Deckel und Gewicht sind verworfen. Die Zielgeometrie
+ist nicht defekt — die weiten Ziele tragen den Ertrag. Der Hebel liegt in der
+Diskriminationsschaerfe der Schliessung (Schritt 2) bzw. der Trade-Auswahl
+(TP1-Trefferquote 25,8 %, TP2 7,4 %).
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

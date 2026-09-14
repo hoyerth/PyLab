@@ -1,0 +1,27 @@
+docs(handoff): E-34n/10 — Retest 1172 (26.08. 17:00) an K82 nachgewiesen, Additivitaet von Variante D erklaert (P1-Lag +2), Variante D verbindlich
+
+- Nachweis: Bar 1172 liegt im selben A1-Segment wie 1072-1075 und an
+  derselben Wand K82; Reclaim STUFE_1_IN_BAR, Entry 1173 (67.5890),
+  r = +5.502241 R. Im ZP-4-Stand war K82 dort schlafend (1074,1174) und
+  tc=2 -> kein Trade; nach ZP-5 tc=3 -> Trade.
+- Additivitaets-Ursache: `touch_conf`/`basis_bei` bestaetigen Dochte erst ab
+  b+2 (P1). In D ist der Sweep-Docht 1075 am eigenen Bar noch unbestaetigt
+  (tc=2) -> K62@1075 bleibt; in B macht 1072/1073 die Wand rueckwaerts reif
+  (tc=4) -> K82 wird Kandidat und der Bar geht an RAUM_LONG_ORDNUNG verloren.
+- Durchstich-Audit (b0 = basis_bei(1033) = 67.5350, Band 0.12):
+  1072 +0.0696 / 1073 +0.1081 / 1074 +0.1185 (alle im Band) / 1075 +0.1703
+  -> nur 1075 ist ein echter Sweep. Sensitivitaet dokumentiert: 1074 liegt nur
+  1,25 % unter der Grenze 0.12.
+- OBEN/P9: K67.wicks und K77.wicks in B und D bit-identisch zu ZP-4; P9 bleibt
+  5/+23.435111 (A: K67@882 -> P9 driftet auf 8/+34.731159).
+- ENTSCHEIDUNG arretiert: Variante D ist verbindlicher Standard
+  (24 / +88.116626 R; H1 8/+38.919584, H2 16/+49.197042, P9 5/+23.435111;
+  V018 unveraendert 17/+65.835576). Retest-Einstieg bestaetigt;
+  OBEN-Symmetrie wird mit P9-Gate eingebaut.
+- Schritt 1+2 rein lesend vorbereitet (kein Schreibzugriff auf Engine,
+  Renderer oder Adapter - SHA-Anker unveraendert). Einbrand ZP-5(D) als
+  14. additiver Patch noch nicht freigegeben.
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

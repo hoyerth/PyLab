@@ -1,0 +1,40 @@
+docs(handoff): E-34 endogene Segmentbildung — zielfreie Regel reproduziert E-33 bis auf 0,037 R, Fit-Verdacht ausgeraeumt
+
+Kampagne E-34: Die Segmentgrenzen der E-33-Zielzone (P10/P12) waren
+Anwender-Setzung. Auftrag: endogene, zielfreie Segmentbildung aus der
+kausalen Kantenlage pruefen.
+
+Regel (ein Freiheitsgrad MIN_BARS, kein Eingriff in den Zielbereich):
+- lebt(e,k): letzter bestaetigter Docht b (b+2<=k) mit b >= k-96
+- decke(k)/boden(k) = aeusserste lebende Linie oben/unten
+- Segmentgrenze = Wechsel des Paares (decke_kid, boden_kid)
+- START = P9_BODEN_RECLAIM.end_bar+1 = 1021 (abgeleitet), P9 unveraendert
+- Zusammenfassung bei Laenge < MIN_BARS oder Niveau-Differenz <= 0,12 %
+
+Ergebnis (AUG, n=1288, Auto-Fenster 1033..1287):
+- MIN0..MIN24 robust bit-identisch: gesamt +74,054425 / H1 +38,919584 /
+  H2 +35,134841 / ZIEL 6 +8,218849
+- MIN48: gesamt +82,614385 / H1 +38,919584 (bit-identisch) /
+  H2 +43,694801 / ZIEL 6 +16,778809
+
+Kernbefund: MIN48 reproduziert E-33 Z_1012_LOKAL bis auf -0,037186 R.
+Die Differenz ist vollstaendig erklaerbar: (1) Trade 1028 (-0,47759) fehlt,
+weil die Regel vor 1033 kein neues Segment erzeugt; (2) Trade 1075 weicht
+um -0,51477 ab, weil poc_start = segment.start_bar (1033 statt 1021).
+Alle uebrigen 22 Setups bit-identisch, inkl. 1122/K73/+10,75247.
+
+Die Regel findet dieselben Grenzkanten (oben K67->K73, unten K82/K85) und
+das arretierte P12_RESERVE-Paar (K73/K82) selbststaendig.
+
+Einschraenkungen: MIN_BARS=48 ist der verbleibende freie Parameter und der
+Hebel ruht weiter auf einem Trade (1122, 64 %); P9 wird nicht abgebildet;
+dritter avisierter Trade (1172) fehlt unveraendert (Hook-1-Pool-Semantik);
+USD/Trade sinkt auf 0,9819.
+
+Artefakte (test/, gitignored): _tmp_e34_auto.py eceb532a...,
+Outputs RAW/MIN4/MIN8/MIN16/MIN24/MIN48 mit SHA256 im Handoff §O2.
+Kein §75, kein S1, keine S2-Laeufe.
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

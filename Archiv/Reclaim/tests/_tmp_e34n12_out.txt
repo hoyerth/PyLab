@@ -1,0 +1,57 @@
+﻿======================================================================================================================
+E-34n/12  GEOMETRIE-WAECHTER: welche Bars sind TRAGEND? ÔÇö read-only
+======================================================================================================================
+Engine   tmp_kanten_engine_replay.py | A1 1033..1173 | Segmentwand K82 | Band 0.12 | Ueberdehnung (cfg) 0.6
+K82-Basisdaten: wicks=[1031, 1056, 1172, 1259] | statische .basis=67.5455
+
+b0 = basis_bei(seg.start_bar=1033) = 67.5350   <- TRAGENDE Wahl
+
+======================================================================================================================
+1) ZAEHLWEITE von touch_conf(k) = Dochte mit b + 2 <= k
+======================================================================================================================
+  touch_conf(1075) zaehlt Dochte bis Bar 1073  ->  [1031, 1056]
+  touch_conf(1076) zaehlt Dochte bis Bar 1074  ->  [1031, 1056]
+  touch_conf(1077) zaehlt Dochte bis Bar 1075  ->  [1031, 1056]
+  Folgerung: ein Docht an 1074/1075 erhoeht touch_conf(1075) NICHT;
+             tragend sind ausschliesslich Dochte an <= 1073.
+
+======================================================================================================================
+2) ABSTANDS-MATRIX je b0-Kandidat (d %; tragend markiert)
+======================================================================================================================
+          b0 Kennung                          bar1072       bar1073       bar1074       bar1075
+     67.5350 (a) basis_bei(seg.start_bar)   0.0696r/trag   0.1081r/trag   0.1185r/neut   0.1703D/neut
+     67.5455 (b) statische .basis         0.0851r/trag   0.1236D/trag   0.1340D/neut   0.1858D/neut
+     67.5530 (c) basis_bei(1072)          0.0962r/trag   0.1347D/trag   0.1451D/neut   0.1969D/neut
+
+======================================================================================================================
+3) WAECHTER-VERDIKT: Entwurf (ohne 1072)  vs  korrigiert (mit 1072)
+======================================================================================================================
+  Entwurf: 1073<=Band  UND  1074<=Band  UND  1075>Band
+  Korrig.: 1072<=Band  UND  1073<=Band  UND  1074<=Band  UND  1075>Band
+
+  (a) basis_bei(seg.start_bar) b0=67.5350
+    d(1072)=+0.0696 d(1073)=+0.1081 d(1074)=+0.1185 d(1075)=+0.1703
+    zusaetzliche vorzeitige Dochte (b+2<=1075): 0  -> touch_conf(1075) = 2 + 0 = 2
+    Entwurf : PASS   (fehlgeschlagen fuer 1072: nein)
+    Korrig. : PASS   -> Realitaet: Variante D (additiv)
+
+  (b) statische .basis       b0=67.5455
+    d(1072)=+0.0851 d(1073)=+0.1236 d(1074)=+0.1340 d(1075)=+0.1858
+    zusaetzliche vorzeitige Dochte (b+2<=1075): 2  -> touch_conf(1075) = 2 + 2 = 4
+    Entwurf : FAIL   (fehlgeschlagen fuer 1072: nein)
+    Korrig. : FAIL   -> Realitaet: KOLLAPS auf B
+
+  (c) basis_bei(1072)        b0=67.5530
+    d(1072)=+0.0962 d(1073)=+0.1347 d(1074)=+0.1451 d(1075)=+0.1969
+    zusaetzliche vorzeitige Dochte (b+2<=1075): 2  -> touch_conf(1075) = 2 + 2 = 4
+    Entwurf : FAIL   (fehlgeschlagen fuer 1072: nein)
+    Korrig. : FAIL   -> Realitaet: KOLLAPS auf B
+
+======================================================================================================================
+4) SCHWELLEN: ab welchem b0 kippt welcher Bar?
+======================================================================================================================
+  bar 1072: Docht ab b0 > 67.56908  (TRAGEND; Abstand zu b0=67.5350: +0.03408 USD)
+  bar 1073: Docht ab b0 > 67.54305  (TRAGEND; Abstand zu b0=67.5350: +0.00805 USD)
+  bar 1074: Docht ab b0 > 67.53604  (neutral; Abstand zu b0=67.5350: +0.00104 USD)
+
+ENDE E-34n/12

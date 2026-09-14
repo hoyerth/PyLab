@@ -1,0 +1,57 @@
+========================================================================================================
+E-34i MESSLAUF DER V019-RENDERER-SOLLWERTE (read-only, keine PNG)
+========================================================================================================
+Engine: tmp_kanten_engine_replay.py | box_end(AUG)=644 | n=1288
+Adapter default: ['P9']
+Adapter V019   : ['P9', 'A1_AUTO_77', 'A2_AUTO_77']
+
+Laenge: V0=14  V1_basis=14  V1_aktiv=17  delta=3
+R: R0=+42.450970  RB=+47.815697  R1=+65.835576
+
+--- V1_aktiv (V019) Trades ---
+    bar  kid richt entry_bar            r
+    229   20 SHORT       231    +6.889303
+    242   20 SHORT       245    +3.925121
+    398    5 LONG        399    +5.697713
+    490   16 SHORT       491    -0.475084
+    509   16 SHORT       510    -0.347446
+    529   20 SHORT       531    +8.359943
+    564   20 SHORT       565   +15.870034
+    639    1 LONG        640    -1.000000
+    650    3 LONG        653    -1.000000
+    679   45 LONG        681    +6.480880
+    714   16 SHORT       715    -1.000000
+    760   51 SHORT       762    -1.000000
+    903   67 SHORT       905    +4.119775
+    980   67 SHORT       981    +9.987676
+    981   73 SHORT       982    +2.695488
+   1002   77 LONG       1003    +3.629016
+   1020   67 SHORT      1021    +3.003157
+
+--- MESSUNG 1: referenz_soll = V1_basis \ V1_aktiv ---
+  REFERENZ n=1  keys=[(980, 73)]
+  referenz_soll = ((980, 73),)
+
+--- MESSUNG 2: neu_basis_soll = V1_aktiv \ V1_basis (ohne G4-Zusatz) ---
+  NEU n=4  keys=[(903, 67), (980, 67), (981, 73), (1002, 77)]
+  G4-Zusatz (1002, 77) enthalten: True
+  neu_basis_soll (ohne G4) = ((903, 67), (980, 67), (981, 73))
+  neu_basis_soll (mit G4)  = ((903, 67), (980, 67), (981, 73), (1002, 77))
+
+--- MESSUNG 3: quartett_r_soll (V019) ---
+  bar  903: kid=67  r=+4.119775
+  bar  980: kid=67  r=+9.987676
+  bar  981: kid=73  r=+2.695488
+  bar 1020: kid=67  r=+3.003157
+  quartett_r_soll = ((903, 4.119775), (980, 9.987676), (981, 2.695488), (1020, 3.003157))
+  Summe = +19.806095
+  kids = (67, 67, 73, 67) (V018-Soll (67, 67, 73, 67))
+
+--- Gegenprobe: Kennzahlen ---
+  gesamt   : 17 / +65.835576 R
+  H1       : 8 / +38.919584 R
+  H2       : +26.915992 R
+  ZIEL(A1/A2) : 0 / +0.000000 R
+  P9-Beitrag  : +23.435111 R
+
+ENDE E-34i

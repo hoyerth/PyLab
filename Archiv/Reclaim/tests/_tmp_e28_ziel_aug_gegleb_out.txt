@@ -1,0 +1,31 @@
+========================================================================================================
+E-28 ZIELSYSTEM-LOKALISIERUNG -- AUG  Variante GEGLEB
+========================================================================================================
+   GEGENKANTE lokal 960 (Liveness im Fenster)
+Engine : tmp_kanten_engine_replay.py  SHA 4a576a766670d684c3038196...
+n 1288  box_end_bar 644 -> Laufgrenze 644  |  Fenster _W(k) = max(0, k-960)  |  Q29 lokal 960 (ratifiziert)
+Instrumentierung: 14 × stats-Hook, Q29/Gegenkante/POC-Injektion, _CUR-Zeiger
+Laufzeit 0.2s   Setups 8
+   gesamt : n    8  R +26.190829  R_adj +16.946994  USD +8.0918  USD/Tr +1.0115  ATR/Tr +4.3533  Q_stop 0.250  |ziel|/e  2.86%  halt  38.2  Gew% 62.5
+   H1     : n    8  R +26.190829  R_adj +16.946994  USD +8.0918  USD/Tr +1.0115  ATR/Tr +4.3533  Q_stop 0.250  |ziel|/e  2.86%  halt  38.2  Gew% 62.5
+   H2     : n    0  R +0.000000  R_adj +0.000000  USD +0.0000  USD/Tr +0.0000  ATR/Tr +0.0000  Q_stop 0.000  |ziel|/e  0.00%  halt   0.0  Gew%  0.0
+   LONG  : n    2   SHORT: n    6
+
+   Q29-TRICHTER + Zielsystem-Sperren:
+   HaelfteRichtung  Kand.   Q29  SETUP  keinGeg
+   H1     SHORT        39     7      6        0
+   H1     LONG         31    22      2        0
+   H2     SHORT         0     0      0        0
+   H2     LONG          0     0      0        0
+
+   ERREICHBARKEIT DES ZIELS (Bar, Richtung, Kante, entry, tp2, Distanz %, R, Haltedauer):
+         229 SHORT K20   e  66.4240  tp2  64.3720  d   3.09%  R   +5.03958  halt    85
+         242 SHORT K20   e  66.0920  tp2  64.3720  d   2.60%  R   +2.72772  halt    71
+         398 LONG  K5    e  63.7630  tp2  65.5540  d   2.81%  R   +5.38830  halt    33
+         490 SHORT K16   e  65.7690  tp2  63.4850  d   3.47%  R   -0.47508  halt     1
+         509 SHORT K16   e  65.7900  tp2  64.6470  d   1.74%  R   -1.00000  halt    15
+         529 SHORT K20   e  66.3240  tp2  64.6470  d   2.53%  R   +6.26648  halt    83
+         564 SHORT K20   e  66.4340  tp2  65.0670  d   2.06%  R   +9.24384  halt    15
+         639 LONG  K1    e  63.5340  tp2  66.4590  d   4.60%  R   -1.00000  halt     3
+
+ENDE AUG gegleb   Gesamtlaufzeit 0.8s

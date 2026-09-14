@@ -1,0 +1,30 @@
+docs(handoff): E-34n/14 — Checkpoint Datenkante: offene Haelften, Concurrency, Cap-Simulation (read-only)
+
+- Rein lesend: Engine/Renderer/Adapter byte-identisch; einziger neuer Stand ist
+  dieser Checkpoint + read-only Forensik. Vorbedingung cbf53427... binaer geprueft.
+- Mechanik Fensterende: Not-Exit in _c_loese_trade (Z. 1624-1637), ENDE immer auf
+  Bar n-1 = 1287 (close[-1]); 1287 ist NICHT box_end (Engine 644, Renderer Z. 562
+  ueberschreibt auf n). _SESetup speichert nur grund1/exit1/exit2_bar --
+  r1/r2/grund2 per _c_loese_trade rekonstruiert (Assert: 0.5*r1+0.5*r2 == t.r).
+- Offene Haelften V019: 6 Haelften in 4 Trades -- K62@1075 (+2.9298), K82@1172
+  (+10.8483), K73@1272 (+1.2547) und K76@1280 (+1.7564). R_brutto = +88.116626.
+  R_realisiert (a) Trade-Ausschluss = +78.127525; (b) nur geschlossene Haelften
+  = +78.216484; Differenz 0.088959 R (realisierte TP1-Haelften 1075/1172).
+- Denkfehler korrigiert: K82@1172 unterschlagen; Arithmetik 82,18 vs. Ziel 78,14;
+  1268/1280 sind SHORT K76 (nicht LONG); "Monat" ist ein 16-Tage-Fenster.
+- Concurrency: V019 max 4 gleichzeitig (LONG 2 / SHORT 3), V018 max 3. Der
+  3-fach-SHORT-Cluster liegt am 24.08. (K67@903, K67@980, K73@981) und ist in
+  V018 identisch -- nicht am 27.08. Nirgends 4-5 gleicher Richtung.
+- Cap-Simulation (First-Order): global max 2 je Richtung -> 23/+85.421139, H1
+  invariant, aber V018 -2.695488 (K73@981). Je Kante max 1 -> H1 kollabiert auf
+  6/+19.124429 (killt K20@242 +3.9251 und K20@564 +15.8700). Global-2 wirkt am
+  27.08. nicht; Kanten-1 bricht die arretierte H1-Basis -> kein kostenloser
+  Schutzschirm, einzige H1+V018-invariante Variante ist Cap >= 3.
+- Leitfragen: (1) R_realisiert = (b) empfohlen; (2) global-2 + Kanten-Cooldown
+  empfohlen; Q1/Q2 als offene Entscheidungsfragen im Handoff hinterlegt.
+- Untersuchungsmatrix C7 (7 Punkte) fuer Tag 2: kausales Gate im Loop, H1-Assert,
+  V018-Gegenprobe mit dokumentierter Abweichung. Kein §75, kein S1, kein S2.
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

@@ -1,0 +1,17 @@
+docs(handoff): E-32 Robustheit des MFE-Bruch-Filters — kausal bestaetigt, regimestabil ab 0,75 R, AUG-Schranke bei 1,50 R
+
+- Kausalitaet verifiziert: MFE aus abgeschlossenen Bars, 0 Abweichungen
+  (153 S2 / 2 AUG), Look-ahead-Gegenprobe sichtbar (Delta -0,0003 USD/Tr).
+- Nach Halbierungen: dR-Gew-Schaden stammt vollstaendig aus H1; H2 verschmaelert
+  keinen Gewinner (dR Gew = 0,00 ueber alle Caps).
+- Nach Volatilitaets-Regimen: 0,25/0,50 R kippen in T1 (ruhig) ins Negative;
+  ab 0,75 R vorzeichenstabil in allen drei Regimen.
+- 0,75 R = Aggregat-Optimum und bester Gewinnerschutz (dR Gew -17,77, 4 getoetet);
+  1,00 R = regimestabilstes Optimum (min Delta +0,0077, aber dR Gew -33,17, 6 getoetet).
+- AUG: indifferent im Band 0,25-1,25 R (+1,4330), kippt ab 1,50 R auf +1,0798
+  (Delta -0,3278, ein Gewinner getoetet) -> harte Obergrenze mfe_cap < 1,50 R.
+- Kein Engine-/Adapter-Eingriff, kein S1.
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

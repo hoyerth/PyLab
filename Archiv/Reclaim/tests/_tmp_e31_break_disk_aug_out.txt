@@ -1,0 +1,67 @@
+======================================================================================================================
+E-31 DISKRIMINATION DER HYBRID-SCHLIESSUNG -- AUG  n = 8  (Kernstandard geg960poc)
+======================================================================================================================
+Engine : F:\Python\PyLab\test\tmp_kanten_engine_replay.py
+
+P0 -- FIDELITAET (Basis ohne Regel)
+   R gesamt +38.919584   USD/Tr +1.4077   ATR/Tr +6.1582   Q_stop 0.125
+
+P1 -- NAIVER BRUCH (n=1, d=0) -- Abgleich mit E-29/T4c
+   Kennzahl                       Basis         Regel     Differenz
+   R gesamt                     38.9196       32.7511       -6.1684
+   USD/Trade                     1.4077        1.0798       -0.3278
+   ATR/Trade                     6.1582        4.8683       -1.2899
+   Q_stop                        0.3750        0.0000       -0.3750
+   getoetete Gewinner                 0             1
+   dR Gewinner                   0.0000       -7.0286
+   dR Verlierer                  0.0000       +0.8602
+   Preisfall: Feuerungen 3, Precision 0.667, Recall 0.667
+
+   Hinweis: E-29/T4c ersetzte den GESAMT-R eines Trades durch den
+   EINZEL-Halb-R am Bruch-Close (und traf damit auch laufende Gewinner
+   im Plus). Hier wird praezise je offener Haelfte geschlossen; die
+   Zahlen weichen deshalb ab -- die Richtung des Befunds nicht.
+
+P2 -- REGEL-SWEEP 'always' (Schliessung unabhaengig vom P&L-Stand)
+    n  d_ATR    R gesamt   USD/Tr   ATR/Tr  Q_stop  Feuer   Prec    Rec getoetet    dR Gew   dR Verl     USD-D
+    1   0.00     32.7511  +1.0798  +4.8683   0.000      3  0.667  0.667        1     -7.03     +0.86   -2.6225
+    1   0.25     39.5594  +1.4265  +6.2947   0.000      2  1.000  0.667        0     +0.00     +0.64   +0.1510
+    1   0.50     39.0425  +1.4113  +6.1844   0.000      1  1.000  0.333        0     +0.00     +0.12   +0.0290
+    1   1.00     39.0425  +1.4113  +6.1844   0.000      1  1.000  0.333        0     +0.00     +0.12   +0.0290
+    2   0.00     32.4238  +1.0680  +4.7989   0.000      2  0.500  0.333        1     -7.14     +0.64   -2.7175
+    2   0.25     39.0425  +1.4113  +6.1844   0.000      1  1.000  0.333        0     +0.00     +0.12   +0.0290
+    2   0.50     38.9196  +1.4077  +6.1582   0.125      1  1.000  0.333        0     +0.00     +0.00   +0.0000
+    2   1.00     38.9196  +1.4077  +6.1582   0.125      1  1.000  0.333        0     +0.00     +0.00   +0.0000
+    3   0.00     39.0425  +1.4113  +6.1844   0.000      1  1.000  0.333        0     +0.00     +0.12   +0.0290
+    3   0.25     38.9196  +1.4077  +6.1582   0.125      1  1.000  0.333        0     +0.00     +0.00   +0.0000
+    3   0.50     38.9196  +1.4077  +6.1582   0.125      0  0.000  0.000        0     +0.00     +0.00   +0.0000
+    3   1.00     38.9196  +1.4077  +6.1582   0.125      0  0.000  0.000        0     +0.00     +0.00   +0.0000
+
+P3 -- REGEL-SWEEP 'loss_only' (schliesst nur ohne Gewinn; dR Gewinner strukturell 0)
+    n  d_ATR    R gesamt   USD/Tr   ATR/Tr  Q_stop  Feuer   Prec    Rec getoetet    dR Gew   dR Verl     USD-D
+    1   0.00     32.7511  +1.0798  +4.8683   0.000      3  0.667  0.667        1     -7.03     +0.86   -2.6225
+    1   0.25     39.5594  +1.4265  +6.2947   0.000      2  1.000  0.667        0     +0.00     +0.64   +0.1510
+    1   0.50     39.0425  +1.4113  +6.1844   0.000      1  1.000  0.333        0     +0.00     +0.12   +0.0290
+    1   1.00     39.0425  +1.4113  +6.1844   0.000      1  1.000  0.333        0     +0.00     +0.12   +0.0290
+    2   0.00     32.4238  +1.0680  +4.7989   0.000      2  0.500  0.333        1     -7.14     +0.64   -2.7175
+    2   0.25     39.0425  +1.4113  +6.1844   0.000      1  1.000  0.333        0     +0.00     +0.12   +0.0290
+    2   0.50     38.9196  +1.4077  +6.1582   0.125      1  1.000  0.333        0     +0.00     +0.00   +0.0000
+    2   1.00     38.9196  +1.4077  +6.1582   0.125      1  1.000  0.333        0     +0.00     +0.00   +0.0000
+    3   0.00     39.0425  +1.4113  +6.1844   0.000      1  1.000  0.333        0     +0.00     +0.12   +0.0290
+    3   0.25     38.9196  +1.4077  +6.1582   0.125      1  1.000  0.333        0     +0.00     +0.00   +0.0000
+    3   0.50     38.9196  +1.4077  +6.1582   0.125      0  0.000  0.000        0     +0.00     +0.00   +0.0000
+    3   1.00     38.9196  +1.4077  +6.1582   0.125      0  0.000  0.000        0     +0.00     +0.00   +0.0000
+
+P4 -- MARKTSTRUKTUR AM ERSTEN BRUCH (n=1, d=0): was unterscheidet Basis-Gewinner von Basis-Verlierern?
+   Gruppe                        n Bruch@+bars  Dist[ATR] MFE_vor[Bruc]  base_R med  base_R Summe
+   Basis-Gewinner (r>0)          1        11.0       0.08          1.33        6.89         +6.89
+   Basis-Verlierer (r<=0)        2         7.5       0.21          4.08       -0.67         -1.35
+
+   (MFE_vor[Bruc] = guenstigste Exkursion VOR dem Bruch-Bar, in R.)
+
+P5 -- TRENNSCHAERFE: Verteilung der Bruch-Distanz (n=1, d=0)
+   Gruppe                         p25   median     p75  Anteil Dist<0.25 ATR  Anteil Dist<0.5 ATR
+   Basis-Gewinner (r>0)          0.08     0.08    0.08                100.0%               100.0%
+   Basis-Verlierer (r<=0)        0.13     0.21    0.30                 50.0%               100.0%
+
+ENDE E-31 AUG

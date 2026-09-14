@@ -1,0 +1,187 @@
+============================================================================================================
+BLOCK E-20 -- POC-ENTKOPPLUNG (poc_quelle: GEGENKANTE_LEGACY vs PHASE_RANGE)
+============================================================================================================
+Engine-SHA : 4a576a766670d684c30381969e4d7349d5786b1b22ea6dda08b93b7d811bb38a  (arretiert)
+VD-Entwurf : 1615a4aff5b1231be652ffc418d981662a049508cc9a82aa8c420cee7a20983a
+Renderer   : 0d145ef4c5ea0aa9b9b158c00bd54d97bfb1abd68e4a2a32f4e496fcea1f6fc7
+Patch      : Renderer-Slice (21612 Z.) + 2 x poc_fenster-Hook (21676 Z.)
+Zulaessigkeit: sl > entry > poc > tp2 (SHORT) -- UNVERAENDERT
+
+S2-KONTEXT
+------------------------------------------------------------------------------------------------------------
+n = 21624   Split (Partition) = 17692   box_end_bar (Laufgrenze) = 21624
+H1 17692 Bars / H2 3932 Bars   close[Split] = 46.6240
+August-Literale (67.6355, 68.37, 69.87, 69.914) alle oberhalb von 56.5250? True  (Auflage 3: kein Literal)
+
+A  LAEUFE
+============================================================================================================
+--- BASE ungepatcht (129.9 s) ---
+Lauf                N             R        R_max         R_adj N_stop   Q_stop         EV     EV_adj
+----------------------------------------------------------------------------------------------------
+BASE gesamt       299   -186.055940    20.835855   -206.891794    239    0.799  -0.622261  -0.691946
+BASE H1           245   -140.466233    20.835855   -161.302087    189    0.771  -0.573332  -0.658376
+BASE H2            54    -45.589707     1.827819    -47.417525     50    0.926  -0.844254  -0.878102
+
+--- LEGACY_CTRL  (poc_quelle=GEGENKANTE_LEGACY, Segment P_K408_409, 132.0 s) ---
+Lauf                N             R        R_max         R_adj N_stop   Q_stop         EV     EV_adj
+----------------------------------------------------------------------------------------------------
+LEGACY_CTRL gesamt  299   -159.531883    33.934350   -193.466233    242    0.809  -0.533551  -0.647044
+LEGACY_CTRL H1    245   -140.466233    20.835855   -161.302087    189    0.771  -0.573332  -0.658376
+LEGACY_CTRL H2     54    -19.065650    33.934350    -53.000000     53    0.981  -0.353068  -0.981481
+
+   stats: {'v_s': 299, 'kein_gegner': 0, 'f3': 0, 'kein_raum': 14, 'zyklus_blockiert': 606, 'quartil_blockiert': 1341, 'blocker': 332, 'promotionen': 37, 'stacking_blockiert': 0, 'frisch_blockiert': 243}
+
+--- PHASE_RANGE  (poc_quelle=PHASE_RANGE, Segment P_K408_409, 135.5 s) ---
+Lauf                N             R        R_max         R_adj N_stop   Q_stop         EV     EV_adj
+----------------------------------------------------------------------------------------------------
+PHASE_RANGE gesamt  299   -159.163235    34.302998   -193.466233    242    0.809  -0.532319  -0.647044
+PHASE_RANGE H1    245   -140.466233    20.835855   -161.302087    189    0.771  -0.573332  -0.658376
+PHASE_RANGE H2     54    -18.697002    34.302998    -53.000000     53    0.981  -0.346241  -0.981481
+
+   stats: {'v_s': 299, 'kein_gegner': 0, 'f3': 0, 'kein_raum': 14, 'zyklus_blockiert': 606, 'quartil_blockiert': 1341, 'blocker': 332, 'promotionen': 37, 'stacking_blockiert': 0, 'frisch_blockiert': 243}
+
+--- PR_AUSSEN_NAEHE  (poc_quelle=PHASE_RANGE, Segment P_AUSSEN_NAEHE, 122.2 s) ---
+Lauf                N             R        R_max         R_adj N_stop   Q_stop         EV     EV_adj
+----------------------------------------------------------------------------------------------------
+PR_AUSSEN_NAEHE gesamt  245   -140.466233    20.835855   -161.302087    189    0.771  -0.573332  -0.658376
+PR_AUSSEN_NAEHE H1  245   -140.466233    20.835855   -161.302087    189    0.771  -0.573332  -0.658376
+PR_AUSSEN_NAEHE H2    0     +0.000000     0.000000     +0.000000      0      nan       +nan       +nan
+
+   stats: {'v_s': 245, 'kein_gegner': 0, 'f3': 0, 'kein_raum': 152, 'zyklus_blockiert': 522, 'quartil_blockiert': 1341, 'blocker': 332, 'promotionen': 37, 'stacking_blockiert': 0, 'frisch_blockiert': 243}
+
+B  HARNESS-KONTROLLE
+============================================================================================================
+LEGACY_CTRL H2 R = -19.065650   (Soll aus _tmp_s2_vd_stresstest: -19.065650)
+   Kontrolle: OK
+MAKRO-Kontrolle entfaellt hier -- BASE ist separat gemessen.
+
+C  GEGENUEBERSTELLUNG (Partition H2 = Messung; H1 = Kontrolle)
+============================================================================================================
+Lauf                N             R        R_max         R_adj N_stop   Q_stop         EV     EV_adj
+----------------------------------------------------------------------------------------------------
+BASE H2            54    -45.589707     1.827819    -47.417525     50    0.926  -0.844254  -0.878102
+LEGACY_CTRL H2     54    -19.065650    33.934350    -53.000000     53    0.981  -0.353068  -0.981481
+PHASE_RANGE H2     54    -18.697002    34.302998    -53.000000     53    0.981  -0.346241  -0.981481
+PR_AUSSEN_NAEHE H2    0     +0.000000     0.000000     +0.000000      0      nan       +nan       +nan
+
+Deltas gegen LEGACY_CTRL (H2):
+   PHASE_RANGE        dR    +0.368648   dR_adj    +0.000000   dQ_stop  +0.000   dEV_adj +0.000000
+   PR_AUSSEN_NAEHE    dR   +19.065650   dR_adj   +53.000000   dQ_stop    +nan   dEV_adj      +nan
+
+D  H2-EINZELTRADES PHASE_RANGE (Diagnose)
+============================================================================================================
+LEGACY_CTRL: H2 54 Trades / -19.065650 R
+      entry  17713 bar  17712 SHORT K408  R  -1.000000  tp2   45.7890  poc   45.8231  sl   47.3920
+      entry  17760 bar  17758 SHORT K414  R  -1.000000  tp2   45.7890  poc   45.8327  sl   47.8600
+      entry  17841 bar  17840 SHORT K421  R  -1.000000  tp2   45.7890  poc   45.8380  sl   47.8190
+      entry  17872 bar  17871 SHORT K403  R  -1.000000  tp2   45.7890  poc   45.8166  sl   46.9590
+      entry  17937 bar  17936 SHORT K421  R  -1.000000  tp2   45.7890  poc   45.8380  sl   47.8960
+      entry  17985 bar  17984 SHORT K429  R  -1.000000  tp2   45.7890  poc   45.8531  sl   48.4080
+      entry  18036 bar  18035 SHORT K438  R  -1.000000  tp2   45.7890  poc   45.8624  sl   48.7780
+      entry  18183 bar  18182 SHORT K438  R  -1.000000  tp2   45.7890  poc   45.8624  sl   48.9680
+      entry  18240 bar  18239 SHORT K452  R  -1.000000  tp2   45.7890  poc   45.8711  sl   49.1890
+      entry  18320 bar  18319 SHORT K459  R  -1.000000  tp2   45.7890  poc   45.8756  sl   49.5410
+      entry  18334 bar  18332 SHORT K459  R  -1.000000  tp2   45.7890  poc   45.8756  sl   49.5380
+      entry  18467 bar  18465 SHORT K463  R  -1.000000  tp2   45.7890  poc   45.9248  sl   51.5520
+      entry  18479 bar  18478 SHORT K477  R  -1.000000  tp2   45.7890  poc   45.9325  sl   51.5830
+      entry  18704 bar  18703 SHORT K502  R  -1.000000  tp2   45.7890  poc   45.9707  sl   53.1800
+      entry  18825 bar  18824 SHORT K517  R +33.934350  tp2   45.7890  poc   46.0033  sl   54.4900
+      entry  19198 bar  19197 SHORT K459  R  -1.000000  tp2   45.7890  poc   45.8756  sl   49.3520
+      entry  19216 bar  19215 SHORT K459  R  -1.000000  tp2   45.7890  poc   45.8756  sl   49.3780
+      entry  19573 bar  19572 SHORT K429  R  -1.000000  tp2   45.7890  poc   45.8531  sl   48.4280
+      entry  19586 bar  19584 SHORT K429  R  -1.000000  tp2   45.7890  poc   45.8531  sl   48.4860
+      entry  19688 bar  19687 SHORT K438  R  -1.000000  tp2   45.7890  poc   45.8624  sl   48.7980
+      entry  19717 bar  19715 SHORT K452  R  -1.000000  tp2   45.7890  poc   45.8696  sl   49.1370
+      entry  19731 bar  19728 SHORT K452  R  -1.000000  tp2   45.7890  poc   45.8696  sl   49.2650
+      entry  19748 bar  19746 SHORT K459  R  -1.000000  tp2   45.7890  poc   45.8756  sl   49.3740
+      entry  20047 bar  20046 SHORT K432  R  -1.000000  tp2   45.7890  poc   45.8449  sl   48.0910
+      entry  20055 bar  20053 SHORT K530  R  -1.000000  tp2   45.7890  poc   45.8482  sl   48.2600
+      entry  20067 bar  20066 SHORT K530  R  -1.000000  tp2   45.7890  poc   45.8482  sl   48.2240
+      entry  20072 bar  20071 SHORT K433  R  -1.000000  tp2   45.7890  poc   45.8499  sl   48.3090
+      entry  20100 bar  20099 SHORT K433  R  -1.000000  tp2   45.7890  poc   45.8499  sl   48.2880
+      entry  20113 bar  20112 SHORT K442  R  -1.000000  tp2   45.7890  poc   45.8560  sl   48.5640
+      entry  20242 bar  20241 SHORT K438  R  -1.000000  tp2   45.7890  poc   45.8624  sl   48.8190
+      entry  20273 bar  20272 SHORT K459  R  -1.000000  tp2   45.7890  poc   45.8756  sl   49.3100
+      entry  20411 bar  20408 SHORT K465  R  -1.000000  tp2   45.7890  poc   45.9214  sl   51.2730
+      entry  20447 bar  20446 SHORT K463  R  -1.000000  tp2   45.7890  poc   45.9248  sl   51.2800
+      entry  20477 bar  20476 SHORT K540  R  -1.000000  tp2   45.7890  poc   45.9275  sl   51.3920
+      entry  20490 bar  20489 SHORT K498  R  -1.000000  tp2   45.7890  poc   45.9411  sl   51.9310
+      entry  20522 bar  20521 SHORT K491  R  -1.000000  tp2   45.7890  poc   45.9810  sl   53.5290
+      entry  20535 bar  20533 SHORT K491  R  -1.000000  tp2   45.7890  poc   45.9810  sl   53.5840
+      entry  20552 bar  20551 SHORT K491  R  -1.000000  tp2   45.7890  poc   45.9810  sl   53.5350
+      entry  20578 bar  20577 SHORT K517  R  -1.000000  tp2   45.7890  poc   46.0033  sl   54.4180
+      entry  20897 bar  20896 SHORT K465  R  -1.000000  tp2   45.7890  poc   45.9206  sl   51.1680
+      entry  20923 bar  20921 SHORT K463  R  -1.000000  tp2   45.7890  poc   45.9238  sl   51.3110
+      entry  20939 bar  20938 SHORT K477  R  -1.000000  tp2   45.7890  poc   45.9325  sl   51.5800
+      entry  21277 bar  21275 SHORT K540  R  -1.000000  tp2   45.7890  poc   45.9264  sl   51.4660
+      entry  21286 bar  21285 SHORT K554  R  -1.000000  tp2   45.7890  poc   45.9294  sl   51.4700
+      entry  21291 bar  21290 SHORT K477  R  -1.000000  tp2   45.7890  poc   45.9325  sl   51.6320
+      entry  21304 bar  21302 SHORT K496  R  -1.000000  tp2   45.7890  poc   45.9340  sl   51.7890
+      entry  21334 bar  21333 SHORT K496  R  -1.000000  tp2   45.7890  poc   45.9340  sl   51.6750
+      entry  21387 bar  21386 SHORT K483  R  -1.000000  tp2   45.7890  poc   45.9443  sl   52.0960
+      entry  21406 bar  21404 SHORT K501  R  -1.000000  tp2   45.7890  poc   45.9481  sl   52.3030
+      entry  21408 bar  21407 SHORT K522  R  -1.000000  tp2   45.7890  poc   45.9506  sl   52.3080
+      entry  21412 bar  21411 SHORT K494  R  -1.000000  tp2   45.7890  poc   45.9545  sl   52.4890
+      entry  21491 bar  21490 SHORT K491  R  -1.000000  tp2   45.7890  poc   45.9805  sl   53.5020
+      entry  21515 bar  21514 SHORT K491  R  -1.000000  tp2   45.7890  poc   45.9805  sl   53.5020
+      entry  21553 bar  21552 SHORT K558  R  -1.000000  tp2   45.7890  poc   45.9904  sl   54.0410
+
+PHASE_RANGE: H2 54 Trades / -18.697002 R
+      entry  17713 bar  17712 SHORT K408  R  -1.000000  tp2   45.7890  poc   45.8231  sl   47.3920
+      entry  17760 bar  17758 SHORT K414  R  -1.000000  tp2   45.7890  poc   45.8219  sl   47.8600
+      entry  17841 bar  17840 SHORT K421  R  -1.000000  tp2   45.7890  poc   45.8219  sl   47.8190
+      entry  17872 bar  17871 SHORT K403  R  -1.000000  tp2   45.7890  poc   45.8219  sl   46.9590
+      entry  17937 bar  17936 SHORT K421  R  -1.000000  tp2   45.7890  poc   45.8219  sl   47.8960
+      entry  17985 bar  17984 SHORT K429  R  -1.000000  tp2   45.7890  poc   45.8219  sl   48.4080
+      entry  18036 bar  18035 SHORT K438  R  -1.000000  tp2   45.7890  poc   45.8219  sl   48.7780
+      entry  18183 bar  18182 SHORT K438  R  -1.000000  tp2   45.7890  poc   45.8219  sl   48.9680
+      entry  18240 bar  18239 SHORT K452  R  -1.000000  tp2   45.7890  poc   45.8219  sl   49.1890
+      entry  18320 bar  18319 SHORT K459  R  -1.000000  tp2   45.7890  poc   45.8219  sl   49.5410
+      entry  18334 bar  18332 SHORT K459  R  -1.000000  tp2   45.7890  poc   45.8219  sl   49.5380
+      entry  18467 bar  18465 SHORT K463  R  -1.000000  tp2   45.7890  poc   45.8219  sl   51.5520
+      entry  18479 bar  18478 SHORT K477  R  -1.000000  tp2   45.7890  poc   45.8219  sl   51.5830
+      entry  18704 bar  18703 SHORT K502  R  -1.000000  tp2   45.7890  poc   45.8219  sl   53.1800
+      entry  18825 bar  18824 SHORT K517  R +34.302998  tp2   45.7890  poc   45.8219  sl   54.4900
+      entry  19198 bar  19197 SHORT K459  R  -1.000000  tp2   45.7890  poc   45.8219  sl   49.3520
+      entry  19216 bar  19215 SHORT K459  R  -1.000000  tp2   45.7890  poc   45.8219  sl   49.3780
+      entry  19573 bar  19572 SHORT K429  R  -1.000000  tp2   45.7890  poc   45.8214  sl   48.4280
+      entry  19586 bar  19584 SHORT K429  R  -1.000000  tp2   45.7890  poc   45.8214  sl   48.4860
+      entry  19688 bar  19687 SHORT K438  R  -1.000000  tp2   45.7890  poc   45.8214  sl   48.7980
+      entry  19717 bar  19715 SHORT K452  R  -1.000000  tp2   45.7890  poc   45.8214  sl   49.1370
+      entry  19731 bar  19728 SHORT K452  R  -1.000000  tp2   45.7890  poc   45.8214  sl   49.2650
+      entry  19748 bar  19746 SHORT K459  R  -1.000000  tp2   45.7890  poc   45.8214  sl   49.3740
+      entry  20047 bar  20046 SHORT K432  R  -1.000000  tp2   45.7890  poc   45.8214  sl   48.0910
+      entry  20055 bar  20053 SHORT K530  R  -1.000000  tp2   45.7890  poc   45.8214  sl   48.2600
+      entry  20067 bar  20066 SHORT K530  R  -1.000000  tp2   45.7890  poc   45.8214  sl   48.2240
+      entry  20072 bar  20071 SHORT K433  R  -1.000000  tp2   45.7890  poc   45.8214  sl   48.3090
+      entry  20100 bar  20099 SHORT K433  R  -1.000000  tp2   45.7890  poc   45.8214  sl   48.2880
+      entry  20113 bar  20112 SHORT K442  R  -1.000000  tp2   45.7890  poc   45.8214  sl   48.5640
+      entry  20242 bar  20241 SHORT K438  R  -1.000000  tp2   45.7890  poc   45.8214  sl   48.8190
+      entry  20273 bar  20272 SHORT K459  R  -1.000000  tp2   45.7890  poc   45.8214  sl   49.3100
+      entry  20411 bar  20408 SHORT K465  R  -1.000000  tp2   45.7890  poc   45.8214  sl   51.2730
+      entry  20447 bar  20446 SHORT K463  R  -1.000000  tp2   45.7890  poc   45.8214  sl   51.2800
+      entry  20477 bar  20476 SHORT K540  R  -1.000000  tp2   45.7890  poc   45.8214  sl   51.3920
+      entry  20490 bar  20489 SHORT K498  R  -1.000000  tp2   45.7890  poc   45.8214  sl   51.9310
+      entry  20522 bar  20521 SHORT K491  R  -1.000000  tp2   45.7890  poc   45.8214  sl   53.5290
+      entry  20535 bar  20533 SHORT K491  R  -1.000000  tp2   45.7890  poc   45.8214  sl   53.5840
+      entry  20552 bar  20551 SHORT K491  R  -1.000000  tp2   45.7890  poc   45.8214  sl   53.5350
+      entry  20578 bar  20577 SHORT K517  R  -1.000000  tp2   45.7890  poc   45.8214  sl   54.4180
+      entry  20897 bar  20896 SHORT K465  R  -1.000000  tp2   45.7890  poc   45.8214  sl   51.1680
+      entry  20923 bar  20921 SHORT K463  R  -1.000000  tp2   45.7890  poc   45.8214  sl   51.3110
+      entry  20939 bar  20938 SHORT K477  R  -1.000000  tp2   45.7890  poc   45.8214  sl   51.5800
+      entry  21277 bar  21275 SHORT K540  R  -1.000000  tp2   45.7890  poc   45.8214  sl   51.4660
+      entry  21286 bar  21285 SHORT K554  R  -1.000000  tp2   45.7890  poc   45.8214  sl   51.4700
+      entry  21291 bar  21290 SHORT K477  R  -1.000000  tp2   45.7890  poc   45.8214  sl   51.6320
+      entry  21304 bar  21302 SHORT K496  R  -1.000000  tp2   45.7890  poc   45.8214  sl   51.7890
+      entry  21334 bar  21333 SHORT K496  R  -1.000000  tp2   45.7890  poc   45.8214  sl   51.6750
+      entry  21387 bar  21386 SHORT K483  R  -1.000000  tp2   45.7890  poc   45.8214  sl   52.0960
+      entry  21406 bar  21404 SHORT K501  R  -1.000000  tp2   45.7890  poc   45.8214  sl   52.3030
+      entry  21408 bar  21407 SHORT K522  R  -1.000000  tp2   45.7890  poc   45.8214  sl   52.3080
+      entry  21412 bar  21411 SHORT K494  R  -1.000000  tp2   45.7890  poc   45.8214  sl   52.4890
+      entry  21491 bar  21490 SHORT K491  R  -1.000000  tp2   45.7890  poc   45.8214  sl   53.5020
+      entry  21515 bar  21514 SHORT K491  R  -1.000000  tp2   45.7890  poc   45.8214  sl   53.5020
+      entry  21553 bar  21552 SHORT K558  R  -1.000000  tp2   45.7890  poc   45.8214  sl   54.0410
+
+============================================================================================================
+Engine-SHA nach Lauf: 4a576a766670d684c30381969e4d7349d5786b1b22ea6dda08b93b7d811bb38a  UNVERAENDERT
+============================================================================================================

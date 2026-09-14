@@ -1,0 +1,110 @@
+SHA-Guards OK: V020 e79c5c29 / Baseline 53f28e1b / Adapter 770eda2c
+FENSTER AUG n=1288 box_end_nativ=644 edges=59 seeds=14 adapter_segmente=3
+--- Modus A ---
+  Trades  29 / R   +23.389914
+  H1 14/+27.327383 | H2 15/ -3.937470
+  LONG 10/ -5.207062 | SHORT 19/+28.596976
+  quartil_undefiniert    0 | quartil_blockiert   42 | blocker   84 | kein_raum   22 | kein_gegner   0 | zyklus  33 | f3   0 | frisch  94 | conc   0
+    bar   114 entry   115 K16  SHORT  -1.000000
+    bar   220 entry   221 K15  SHORT  -1.000000
+    bar   229 entry   231 K20  SHORT  +6.889303
+    bar   242 entry   245 K20  SHORT  +3.925121
+    bar   246 entry   247 K16  SHORT  -1.000000
+    bar   361 entry   362 K23  LONG   -0.429390
+    bar   378 entry   379 K21  LONG   -1.000000
+    bar   432 entry   433 K33  SHORT  -0.492472
+    bar   527 entry   528 K31  SHORT  -1.000000
+    bar   529 entry   531 K20  SHORT  +8.359943
+    bar   564 entry   565 K20  SHORT +15.870034
+    bar   580 entry   581 K14  LONG   -0.389474
+    bar   616 entry   617 K11  LONG   -0.405682
+    bar   639 entry   640 K1   LONG   -1.000000
+    bar   643 entry   644 K4   LONG   -1.000000
+    bar   650 entry   653 K3   LONG   -1.000000
+    bar   680 entry   681 K45  LONG   -1.000000
+    bar   705 entry   706 K12  SHORT  -1.000000
+    bar   710 entry   711 K16  SHORT  -0.452653
+    bar   711 entry   714 K33  SHORT  -1.000000
+    bar   727 entry   728 K15  SHORT  -1.000000
+    bar   728 entry   729 K31  SHORT  -1.000000
+    bar   760 entry   762 K51  SHORT  -1.000000
+    bar   853 entry   855 K59  SHORT  -1.000000
+    bar  1020 entry  1021 K67  SHORT  +1.050505
+    bar  1028 entry  1029 K60  LONG   -0.458284
+    bar  1075 entry  1077 K62  LONG   +1.475768
+    bar  1122 entry  1123 K73  SHORT  +2.192513
+    bar  1272 entry  1273 K73  SHORT  +1.254682
+--- Modus A2 ---
+  Trades  29 / R   +26.118413
+  H1 14/+27.327383 | H2 15/ -1.208971
+  LONG 10/ -5.207062 | SHORT 19/+31.325475
+  quartil_undefiniert    0 | quartil_blockiert   42 | blocker   84 | kein_raum   22 | kein_gegner   0 | zyklus  33 | f3   0 | frisch  94 | conc   3
+    bar   114 entry   115 K16  SHORT  -1.000000
+    bar   220 entry   221 K15  SHORT  -1.000000
+    bar   229 entry   231 K20  SHORT  +6.889303
+    bar   242 entry   245 K20  SHORT  +3.925121
+    bar   246 entry   247 K16  SHORT  -1.000000
+    bar   361 entry   362 K23  LONG   -0.429390
+    bar   378 entry   379 K21  LONG   -1.000000
+    bar   432 entry   433 K33  SHORT  -0.492472
+    bar   527 entry   528 K31  SHORT  -1.000000
+    bar   529 entry   531 K20  SHORT  +8.359943
+    bar   564 entry   565 K20  SHORT +15.870034
+    bar   580 entry   581 K14  LONG   -0.389474
+    bar   616 entry   617 K11  LONG   -0.405682
+    bar   639 entry   640 K1   LONG   -1.000000
+    bar   643 entry   644 K4   LONG   -1.000000
+    bar   650 entry   653 K3   LONG   -1.000000
+    bar   680 entry   681 K45  LONG   -1.000000
+    bar   705 entry   706 K12  SHORT  -1.000000
+    bar   710 entry   711 K16  SHORT  -0.452653
+    bar   711 entry   714 K33  SHORT  -1.000000
+    bar   727 entry   728 K15  SHORT  -1.000000
+    bar   728 entry   729 K31  SHORT  -1.000000
+    bar   760 entry   762 K51  SHORT  -1.000000
+    bar   853 entry   855 K59  SHORT  -1.000000
+    bar   903 entry   905 K67  SHORT  +1.633441
+    bar   980 entry   981 K67  SHORT  +4.542254
+    bar  1020 entry  1021 K67  SHORT  +1.050505
+    bar  1028 entry  1029 K60  LONG   -0.458284
+    bar  1075 entry  1077 K62  LONG   +1.475768
+--- Modus B ---
+  Trades  33 / R   +56.549174
+  H1 14/+27.327383 | H2 19/+29.221791
+  LONG 10/ -1.119762 | SHORT 23/+57.668937
+  quartil_undefiniert    0 | quartil_blockiert   42 | blocker   83 | kein_raum   37 | kein_gegner   0 | zyklus  26 | f3   0 | frisch  94 | conc   0
+    bar   114 entry   115 K16  SHORT  -1.000000
+    bar   220 entry   221 K15  SHORT  -1.000000
+    bar   229 entry   231 K20  SHORT  +6.889303
+    bar   242 entry   245 K20  SHORT  +3.925121
+    bar   246 entry   247 K16  SHORT  -1.000000
+    bar   361 entry   362 K23  LONG   -0.429390
+    bar   378 entry   379 K21  LONG   -1.000000
+    bar   432 entry   433 K33  SHORT  -0.492472
+    bar   527 entry   528 K31  SHORT  -1.000000
+    bar   529 entry   531 K20  SHORT  +8.359943
+    bar   564 entry   565 K20  SHORT +15.870034
+    bar   580 entry   581 K14  LONG   -0.389474
+    bar   616 entry   617 K11  LONG   -0.405682
+    bar   639 entry   640 K1   LONG   -1.000000
+    bar   643 entry   644 K4   LONG   -1.000000
+    bar   650 entry   653 K3   LONG   -1.000000
+    bar   680 entry   681 K45  LONG   -1.000000
+    bar   705 entry   706 K12  SHORT  -1.000000
+    bar   710 entry   711 K16  SHORT  -0.452653
+    bar   711 entry   714 K33  SHORT  -1.000000
+    bar   727 entry   728 K15  SHORT  -1.000000
+    bar   728 entry   729 K31  SHORT  -1.000000
+    bar   760 entry   762 K51  SHORT  -1.000000
+    bar   903 entry   905 K67  SHORT  +4.119775
+    bar   980 entry   981 K67  SHORT  +9.987676
+    bar   981 entry   982 K73  SHORT  +2.695488
+    bar  1002 entry  1003 K77  LONG   +3.629016
+    bar  1020 entry  1021 K67  SHORT  +3.003157
+    bar  1075 entry  1077 K62  LONG   +1.475768
+    bar  1122 entry  1123 K73  SHORT +10.752473
+    bar  1268 entry  1269 K76  SHORT  -1.000000
+    bar  1272 entry  1273 K73  SHORT  +1.254682
+    bar  1280 entry  1281 K76  SHORT  +1.756410
+Randquellen A: {'undefiniert': 4, 'lebende_kanten': 1279}
+Randquellen B: {'undefiniert': 4, 'lebende_kanten': 1279}

@@ -1,0 +1,48 @@
+docs(handoff): E-34b Klippenkarte MIN_BARS — Klippen bei 41 und 115, 47-Bar-Maerchen falsifiziert, Parameter freigegeben
+
+Anwender-Frage a): macht eine Ausweitung von MIN_BARS=48 auf 49 Sinn, um
+Brueche an dieser Stelle auszuschliessen? Frage b): MIN_BARS als freier
+Parameter fuer Reihenuntersuchungen.
+
+Umsetzung (b):
+- _tmp_e34_auto.py akzeptiert jede ganze Zahl (MIN<n>); RAW == MIN0.
+  Aufloesung in _min_bars_aus() mit Type Hints und Google-Docstring.
+- neu: _tmp_e34b_sweep.py (Reihenlauf lo..hi, protokolliert H1/H2/ZIEL,
+  Segmentzahl und Segmentgrenzen, markiert Klippen) und
+  _tmp_e34b_klippenkarte_out.txt (MIN_BARS 0..130).
+
+Befund (Klippenkarte, AUG n=1288):
+- PnL-Klippe 41: +74,054425 -> +82,614385 (H2 +35,134841 -> +43,694801,
+  ZIEL +8,218849 -> +16,778809)
+- PnL-Klippe 115: +82,614385 -> +79,318499 (20 statt 23 Setups, ein Segment)
+- Struktur-Klippen 3/4/5 und 49 sind PnL-neutral.
+- Plateau [41,114] ist 74 Werte breit; MIN41 und MIN48 liefern
+  bit-identische Segmentgrenzen UND Ergebnisse.
+
+Antwort (a): 49 zu testen ist wirkungslos (PnL-neutral, kreuzt nur die
+Strukturgrenze 1124..1171 = 48 Bars). Die sinnvollen Bracket-Paare sind
+40|41 und 114|115 — beide gemessen.
+
+Falsifikation des 47-Bar-Maerchens: das bei MIN<=40 sichtbare Segment
+1077..1123 (47 Bars) ist ein Artefakt der einpassigen Verschmelzung aus
+1077..1116 (40) + 1117..1119 (3) + 1120..1123 (4). Die PnL-Klippe wird von
+genau 40 Bars ausgeloest. Die 12-Stunden-Begruendung fuer 48 ist damit
+post hoc und wird nicht als Begruendung uebernommen; belastbar ist allein
+das Plateau [41,114].
+
+Hook-1-Pool-Semantik (Code-Inspektion, rein lesend): die freigegebene Kante
+ist per Konstruktion die sweep-bildende Segmentwand (nur seite_kid, nur bei
+Docht-Defizit, nur im Touch-Band); der Harness entfernt sie aus dem Pool und
+handelt die Innenlinie — arretierte Semantik Q1 ("K73-Umweg"), keine
+Blockade. Nebenbefund: in der endogenen Segmentierung liegt Bar 1172 im
+Segment 1124..1173 mit boden K85, die Freigabe trifft also K85 statt K82;
+ob Trade 1172 damit aufgeht, bleibt Schritt 2 (eigener Messlauf, kein
+Einbrand).
+
+Trade 1122 bleibt Traeger des Plateau-Sprungs (+8,56 R); transparent zu
+fuehren. Artefakte (test/, gitignored) mit SHA256 in §P5. Kein §75, kein S1,
+keine S2-Laeufe.
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

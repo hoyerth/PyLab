@@ -1,0 +1,83 @@
+######################################################################################################################
+# EINZEL-ATTRIBUTION DER R18-LOESCHUNGEN (READ-ONLY) -- AUG komplett
+# n=1288 | Original 9 Trades / +23.02 R | R18 9 Trades / +15.28 R
+######################################################################################################################
+
+R18 loescht 40 Kanten: [1, 7, 14, 18, 19, 22, 27, 28, 31, 33, 36, 37, 38, 41, 43, 44, 46, 47, 49, 50, 51, 52, 54, 55, 56, 60, 61, 65, 67, 68, 69, 70, 76, 77, 81, 82, 86, 96, 100, 103]
+
+  K  1 UNTEN pivot=   7 px=  63.464 | 3 Touches | SCHAEDLICH
+  K  7 UNTEN pivot=  43 px=  64.071 | 1 Touches | harmlos
+  K 14 UNTEN pivot=  81 px=  65.009 | 7 Touches | harmlos
+  K 18 UNTEN pivot=  98 px=  65.695 | 2 Touches | harmlos
+  K 19 UNTEN pivot= 104 px=  65.400 | 6 Touches | harmlos
+  K 22 OBEN  pivot= 128 px=  64.552 | 1 Touches | harmlos
+  K 27 OBEN  pivot= 175 px=  64.738 | 3 Touches | harmlos
+  K 28 OBEN  pivot= 204 px=  65.734 | 2 Touches | harmlos
+  K 31 OBEN  pivot= 237 px=  66.364 | 5 Touches | SCHAEDLICH
+  K 33 OBEN  pivot= 262 px=  65.554 | 4 Touches | harmlos
+  K 36 OBEN  pivot= 327 px=  65.024 | 2 Touches | harmlos
+  K 37 UNTEN pivot= 330 px=  64.823 | 4 Touches | harmlos
+  K 38 OBEN  pivot= 336 px=  65.409 | 1 Touches | harmlos
+  K 41 OBEN  pivot= 390 px=  64.184 | 1 Touches | harmlos
+  K 43 OBEN  pivot= 473 px=  66.206 | 1 Touches | harmlos
+  K 44 UNTEN pivot= 534 px=  66.234 | 1 Touches | harmlos
+  K 46 OBEN  pivot= 572 px=  65.490 | 3 Touches | harmlos
+  K 47 OBEN  pivot= 629 px=  63.994 | 1 Touches | harmlos
+  K 49 OBEN  pivot= 648 px=  63.248 | 4 Touches | harmlos
+  K 50 OBEN  pivot= 655 px=  63.144 | 2 Touches | harmlos
+  K 51 UNTEN pivot= 657 px=  62.577 | 2 Touches | SCHAEDLICH
+  K 52 UNTEN pivot= 665 px=  62.859 | 1 Touches | harmlos
+  K 54 OBEN  pivot= 736 px=  67.076 | 2 Touches | SCHAEDLICH
+  K 55 UNTEN pivot= 744 px=  66.892 | 2 Touches | harmlos
+  K 56 UNTEN pivot= 748 px=  66.371 | 1 Touches | harmlos
+  K 60 OBEN  pivot= 781 px=  66.744 | 1 Touches | harmlos
+  K 61 OBEN  pivot= 786 px=  66.939 | 1 Touches | harmlos
+  K 65 UNTEN pivot= 817 px=  67.726 | 6 Touches | harmlos
+  K 67 UNTEN pivot= 828 px=  68.037 | 1 Touches | harmlos
+  K 68 OBEN  pivot= 842 px=  68.673 | 5 Touches | harmlos
+  K 69 UNTEN pivot= 858 px=  68.712 | 8 Touches | harmlos
+  K 70 OBEN  pivot= 873 px=  69.975 | 5 Touches | harmlos
+  K 76 OBEN  pivot= 909 px=  69.715 | 6 Touches | harmlos
+  K 77 OBEN  pivot= 912 px=  69.613 | 1 Touches | harmlos
+  K 81 OBEN  pivot= 938 px=  69.332 | 5 Touches | harmlos
+  K 82 UNTEN pivot= 939 px=  68.632 | 6 Touches | harmlos
+  K 86 OBEN  pivot=1034 px=  68.056 | 2 Touches | harmlos
+  K96: nicht im Original-Cluster (bereits anders entfernt)
+  K100: nicht im Original-Cluster (bereits anders entfernt)
+  K103: nicht im Original-Cluster (bereits anders entfernt)
+
+======================================================================================================================
+HARMLOS: 33 von 40 Einzel-Loeschungen
+  [7, 14, 18, 19, 22, 27, 28, 33, 36, 37, 38, 41, 43, 44, 46, 47, 49, 50, 52, 55, 56, 60, 61, 65, 67, 68, 69, 70, 76, 77, 81, 82, 86]
+SCHAEDLICH: 4
+  K1: ["(529, 'SHORT', 531, 8.4072)->(529, 'SHORT', 531, 8.1509)", "(639, 'LONG', 640, -1.0)->(621, 'LONG', 622, -1.0)", "(650, 'LONG', 653, -1.0)->(639, 'LONG', 640, -1.0)"]
+  K31: ["(529, 'SHORT', 531, 8.4072)->(639, 'LONG', 640, -1.0)", "(639, 'LONG', 640, -1.0)->(650, 'LONG', 653, -1.0)", "(650, 'LONG', 653, -1.0)->(679, 'LONG', 681, 6.4809)"]
+  K51: ["(679, 'LONG', 681, 6.4809)->(665, 'LONG', 666, -1.0)", "(716, 'SHORT', 718, -0.4525)->(679, 'LONG', 681, 6.4809)", "(760, 'SHORT', 762, -1.0)->(716, 'SHORT', 718, -0.4725)"]
+  K54: ["(760, 'SHORT', 762, -1.0)->(798, 'SHORT', 800, -1.0)"]
+
+======================================================================================================================
+SAMMEL-TEST: alle 33 harmlosen Loeschungen gemeinsam
+======================================================================================================================
+  Trades        : 9 (orig 9) | Netto-R +23.02 (orig +23.02)
+  Trade-Signatur: IDENTISCH
+  Kanten danach : 79 (orig 93) | FOLGEKANTEN 20
+      neu: UNTEN pivot_bar= 209 px=65.049
+      neu: OBEN  pivot_bar= 267 px=65.592
+      neu: OBEN  pivot_bar= 376 px=64.708
+      neu: UNTEN pivot_bar= 479 px=65.414
+      neu: UNTEN pivot_bar= 550 px=65.702
+      neu: OBEN  pivot_bar= 585 px=65.437
+      neu: UNTEN pivot_bar= 592 px=64.818
+      neu: OBEN  pivot_bar= 658 px=63.309
+      neu: OBEN  pivot_bar= 666 px=63.179
+      neu: UNTEN pivot_bar= 762 px=66.830
+      neu: UNTEN pivot_bar= 864 px=68.794
+      neu: OBEN  pivot_bar= 881 px=70.000
+      neu: OBEN  pivot_bar= 928 px=69.638
+      neu: UNTEN pivot_bar= 930 px=68.700
+      neu: OBEN  pivot_bar=1001 px=68.699
+      neu: OBEN  pivot_bar=1012 px=69.131
+      neu: UNTEN pivot_bar=1039 px=67.705
+      neu: UNTEN pivot_bar=1094 px=68.744
+      neu: UNTEN pivot_bar=1131 px=68.958
+      neu: OBEN  pivot_bar=1175 px=68.123

@@ -1,0 +1,268 @@
+======================================================================================================================
+FORENSIK — PIVOT-RECHNER UND KANTEN-GENEALOGIE (21.08. / 24.08.)
+======================================================================================================================
+Engine-SHA 53f28e1b6971a64df59beaf3... (UNVERAENDERT)
+
+SCHRITT 1 — DIE FORMEL (Quelltext-Fund, tmp_kanten_engine_replay.py)
+   Pivot-Funktion, die der SE-Scan benutzt : _pivot_dual()  (Z. 1407)
+   Aufruf im Scan                          : Z. 2240  'for typ in _pivot_dual(hi, lo, mbar)'
+   Bedingung (2 Bars links/rechts, strikt):
+      H-Pivot @ m <=> high[m] > high[m-2], high[m-1], high[m+1], high[m+2]
+      L-Pivot @ m <=> low[m]  < low[m-2],  low[m-1],  low[m+1],  low[m+2]
+   Bestaetigung kausal: verarbeitet bei k = m + 2 (2-Bar-Puffer).
+   KEIN prozentualer Rebound im SE-Pfad: MIN_SWING_PCT (1.0 %) und
+   DENSITY_BAND (0.15 USD) gehoeren zum ALTEN _verarbeite_pivot-Pfad
+   (Z. 730/754/1232) und werden in _se_scan NICHT aufgerufen.
+   Aufnahme-/Verwerfungsregeln der SE-Kante (Z. 2243-2291):
+      - Touch-Band            : cfg.touch_band_pct = SE_HARNESS_BAND_PCT = 0.12 %
+      - Touch-Mindestabstand  : SE_HARNESS_MIN_TOUCH_ABSTAND = 3 Bars
+      - sonst: Sweep-Sperre (kein Seed) ODER Geburt einer neuen Linie
+      - 2. Touch im Band -> Keimung (touch_anzahl >= 2 => edge)
+
+======================================================================================================================
+FENSTER AUG | n = 1288 | ts[0] = 2026-08-10 00:00:00 | Box-Grenze (2026-08-19 = 19.08.) Bar 644
+======================================================================================================================
+
+SCHRITT 2 — PIVOT-RECHNUNG UND ZUORDNUNG (Bar für Bar)
+----------------------------------------------------------------------------------------------------------------------
+       m Zeit       Tag               hi       lo_pivot_dual             zugeordnete Kante(n)              
+     886 2026-08-21 14:30:0021.08(58)    69.4500  69.0430L                       L 69.0430 -> KEINE LINIE          
+     890 2026-08-21 15:30:0021.08(62)    69.7440  69.2280L                       L 69.2280 -> K68(E,U,2)           
+     891 2026-08-21 15:45:0021.08(63)    69.8410  69.3160H                       H 69.8410 -> KEINE LINIE          
+     894 2026-08-21 16:30:0021.08(66)    69.7070  68.8700L                       L 68.8700 -> K71(E,U,5)           
+     900 2026-08-21 18:00:0021.08(72)    69.6000  69.3160L                       L 69.3160 -> K72(E,U,3)           
+     928 2026-08-24 02:00:0024.08(08)    69.6380  69.3020H                       H 69.6380 -> K73(E,O,6)           
+     930 2026-08-24 02:30:0024.08(10)    68.9870  68.7000L                       L 68.7000 -> K66(E,U,8)           
+     932 2026-08-24 03:00:0024.08(12)    69.5210  68.9280H                       H 69.5210 -> K76(E,O,7)           
+     934 2026-08-24 03:30:0024.08(14)    68.7440  68.3920L                       L 68.3920 -> K77(E,U,6)           
+     938 2026-08-24 04:30:0024.08(18)    69.3320  68.9020H                       H 69.3320 -> K78(E,O,5)           
+     939 2026-08-24 04:45:0024.08(19)    68.9610  68.6320L                       L 68.6320 -> K79(E,U,6)           
+     942 2026-08-24 05:30:0024.08(22)    69.1890  68.9470H                       H 69.1890 -> K80(E,O,4)           
+     946 2026-08-24 06:30:0024.08(26)    68.9480  68.8130L                       L 68.8130 -> K66(E,U,8)           
+    1031 2026-08-25 04:45:0025.08(19)    67.8550  67.5350L                       L 67.5350 -> K82(E,U,4)           
+    1034 2026-08-25 05:30:0025.08(22)    68.0560  67.8640H                       H 68.0560 -> K83(E,O,2)           
+    1039 2026-08-25 06:45:0025.08(27)    67.8270  67.7050L                       L 67.7050 -> K62(E,U,6)           
+    1041 2026-08-25 07:15:0025.08(29)    68.2900  68.0110H                       H 68.2900 -> K61(E,O,6)           
+
+   VERWERFUNGEN im Umfeld (Sweep-Sperre = blockierte Seed-Geburt):
+      R21-Loeschung bar 1078 kid 69 UNTEN basis=69.043 erster_pivot=886 alt=192
+      R21-Loeschung bar 1083 kid 70 OBEN basis=69.841 erster_pivot=891 alt=192
+      R21-Loeschung bar 1104 kid 74 OBEN basis=69.613 erster_pivot=912 alt=192
+
+----------------------------------------------------------------------------------------------------------------------
+   PRUEFMARKE 68.8800 USD (21.08.) — wer traegt dieses Niveau?
+----------------------------------------------------------------------------------------------------------------------
+   Suchband +/- 0.3 % -> 68.6734 .. 69.0866
+   Pivots in der Pruefung: [(886, 'L', 69.043), (894, 'L', 68.87), (930, 'L', 68.7), (946, 'L', 68.813)]
+
+   Linien im Katalog mit Basis im Suchband:
+    kid Typ   Seite       Basis(k=1287)  erster_pivot  Touches   Wicks (bar/Px)
+     59 Edge  OBEN              68.9890           805       10   805/20.08(69)(68.9720), 847/21.08(19)(69.0060), 949/24.08(29)(69.0400), 963/24.08(43)(68.9750), 968/24.08(48)(69.0240), 1091/25.08(79)(68.9430), 1140/26.08(36)(68.9440), 1143/26.08(39)(68.9380), 1162/26.08(58)(68.9510), 1202/27.08(06)(69.0210)
+     66 Edge  UNTEN             68.8130           858        8   858/21.08(30)(68.7120), 864/21.08(36)(68.7940), 920/24.08(00)(68.7940), 930/24.08(10)(68.7000), 946/24.08(26)(68.8130), 972/24.08(52)(68.7030), 1012/25.08(00)(68.7870), 1094/25.08(82)(68.7440)
+     71 Edge  UNTEN             68.9580           894        5   894/21.08(66)(68.8700), 924/24.08(04)(68.8740), 978/24.08(58)(68.9020), 1131/26.08(27)(68.9580), 1222/27.08(26)(68.8520)
+     80 Edge  OBEN              69.0820           942        4   942/24.08(22)(69.1890), 1012/25.08(00)(69.1310), 1107/26.08(03)(69.0820), 1225/27.08(29)(69.1040)
+     81 Edge  OBEN              68.8140           996        4   996/24.08(76)(68.8840), 1083/25.08(71)(68.8860), 1113/26.08(09)(68.8140), 1229/27.08(33)(68.8520)
+
+----------------------------------------------------------------------------------------------------------------------
+SCHRITT 3 — GEGENPROBE: Rechenergebnis vs. arretierte Adapter-Werte
+----------------------------------------------------------------------------------------------------------------------
+   Position   kid(AUG) kid(Fenster) Provenienz(a)   Scan(b)    Delta   erster_pivot / Status
+   P9  boden        77           77       68.3700   68.3920  +0.0220   erster_pivot=934 (24.08(14)) ABWEICHUNG
+   P9  decke        67           67       69.9140   69.9750  +0.0610   erster_pivot=873 (21.08(45)) ABWEICHUNG
+   A1  decke        67           67       69.8990   69.8990  +0.0000   erster_pivot=873 (21.08(45)) IDENTISCH
+   A1  boden        82           82       67.5350   67.5350  +0.0000   erster_pivot=1031 (25.08(19)) IDENTISCH
+   A2  decke        73           73       69.6380   69.6380  +0.0000   erster_pivot=909 (21.08(81)) IDENTISCH
+   A2  boden        82           82       67.5530   67.5530  +0.0000   erster_pivot=1031 (25.08(19)) IDENTISCH
+   (a) = arretierter Adapter-Wert; (b) = basis_bei(Segmentstart) des Scans.
+   -> A1/A2 sind IDENTISCH: die arretierten Provenienz-Werte sind der Rechenwert.
+   -> P9 weicht ab, weil der P9-Start (848) VOR dem ersten Docht von K67 (873)
+      und K77 (934) liegt -> basis_bei faellt auf wicks[0][1] zurueck (Fallback).
+
+----------------------------------------------------------------------------------------------------------------------
+SCHRITT 3b — ERSTER GEGEN-PIVOT nach der Transition (kausal)
+----------------------------------------------------------------------------------------------------------------------
+   Anker-Referenz: P9-Ende = Bar 1020 (25.08(08))
+       m Tag         Typ    Preis Best.:Kante/Geburt                      
+     962 24.08(42)     L  68.6310    964   beruehrt K79(V-S 6)
+     963 24.08(43)     H  68.9750    965   beruehrt K59(V-S 10)
+     966 24.08(46)     L  68.6410    968   beruehrt K79(V-S 6)
+     968 24.08(48)     H  69.0240    970   beruehrt K59(V-S 10)
+     972 24.08(52)     L  68.7030    974   beruehrt K66(V-S 8)
+     974 24.08(54)     H  69.5270    976   beruehrt K76(V-S 7)
+     978 24.08(58)     L  68.9020    980   beruehrt K71(V-S 5)
+     980 24.08(60)     H  69.8990    982   beruehrt K67(V-S 5)
+     985 24.08(65)     L  68.6310    987   beruehrt K79(V-S 6)
+     986 24.08(66)     H  69.2840    988   beruehrt K78(V-S 5)
+     989 24.08(69)     H  69.2870    991   beruehrt K78(V-S 5)
+     991 24.08(71)     L  68.3480    993   beruehrt K77(V-S 6)
+     996 24.08(76)     H  68.8840    998   beruehrt K81(V-S 4)
+    1000 24.08(80)     L  68.2880   1002   beruehrt K77(V-S 6)
+    1001 24.08(81)     H  68.6990   1003   beruehrt K65(V-S 5)
+    1012 25.08(00)     H  69.1310   1014   beruehrt K80(V-S 4)
+    1020 25.08(08)     H  69.9240   1022   beruehrt K67(V-S 5)
+    1021 25.08(09)     L  69.2840   1023   beruehrt K72(V-S 3)
+    1023 25.08(11)     H  69.6840   1025   beruehrt K73(V-S 6)
+    1031 25.08(19)     L  67.5350   1033   beruehrt K82(V-S 4)
+    1034 25.08(22)     H  68.0560   1036   beruehrt K83(V-S 2)
+    1039 25.08(27)     L  67.7050   1041   beruehrt K62(V-S 6)
+    1041 25.08(29)     H  68.2900   1043   beruehrt K61(V-S 6)
+    1046 25.08(34)     H  68.6480   1048   beruehrt K65(V-S 5)
+    1052 25.08(40)     L  67.7050   1054   beruehrt K62(V-S 6)
+    1056 25.08(44)     L  67.5530   1058   beruehrt K82(V-S 4)
+
+----------------------------------------------------------------------------------------------------------------------
+SCHRITT 4 — WARUM DER GEGEN-PIVOT VOM 21.08. 16:30 NIE GEGENKANTE DES PHASENSTARTS WURDE
+----------------------------------------------------------------------------------------------------------------------
+   Die O1-Regel nimmt die AEUSSERSTE lebende Linie je Seite. Diagnose:
+   Bar        Decke (O1)              Boden (O1)                Gegenp.-Level  lebt?  Rang unten
+   21.08(20)  K59 68.9890             K17 65.6540                 68.8700         nein           -
+   21.08(45)  K59 68.9890             K17 65.6540                 68.8700         nein           -
+   21.08(47)  K67 69.9750             K17 65.6540                 68.8700         nein           -
+   21.08(61)  K67 69.9750             K62 67.7260                 68.8700         nein           -
+   21.08(66)  K67 69.9750             K62 67.7260                 68.8700         nein           -
+   21.08(72)  K67 69.9750             K62 67.7260                 68.8700           ja         6/7
+   21.08(86)  K67 69.9310             K63 67.8310                 68.8700           ja         5/7
+   21.08(89)  K67 69.9310             K60 67.9750                 68.8700           ja         4/6
+   24.08(04)  K67 69.9310             K60 67.9750                 68.8700           ja         4/6
+   24.08(14)  K67 69.9310             K60 67.9750                 68.8740           ja         3/5
+   24.08(17)  K67 69.9310             K77 68.3920                 68.8740           ja         3/5
+   25.08(21)  K67 69.8990             K82 67.5350                 68.9020           ja         5/6
+   Legende: 'Rang unten 1/N' = der Gegen-Pivot ist die tiefste lebende Linie (dann waere er die O1-Gegenkante).
+   Befund: der Gegen-Pivot vom 21.08. 16:30 ist zwar GEBOREN, aber NICHT die aeusserste
+   lebende Linie - tiefere Linien DERSELBEN Seite uebernehmen den O1-Boden (Rang >= 3).
+   Deshalb ist er der ERSTE GEGEN-PIVOT (Rechenergebnis), aber NICHT das Phasenpaar.
+
+======================================================================================================================
+FENSTER AUG26 | n = 1932 | ts[0] = 2026-08-03 00:00:00 | Box-Grenze (2026-08-19 = 19.08.) Bar 1104
+======================================================================================================================
+
+SCHRITT 2 — PIVOT-RECHNUNG UND ZUORDNUNG (Bar für Bar)
+----------------------------------------------------------------------------------------------------------------------
+       m Zeit       Tag               hi       lo_pivot_dual             zugeordnete Kante(n)              
+    1346 2026-08-21 14:30:0021.08(58)    69.4500  69.0430L                       L 69.0430 -> KEINE LINIE          
+    1350 2026-08-21 15:30:0021.08(62)    69.7440  69.2280L                       L 69.2280 -> K118(E,U,2)          
+    1351 2026-08-21 15:45:0021.08(63)    69.8410  69.3160H                       H 69.8410 -> KEINE LINIE          
+    1354 2026-08-21 16:30:0021.08(66)    69.7070  68.8700L                       L 68.8700 -> K121(E,U,5)          
+    1360 2026-08-21 18:00:0021.08(72)    69.6000  69.3160L                       L 69.3160 -> K122(E,U,3)          
+    1388 2026-08-24 02:00:0024.08(08)    69.6380  69.3020H                       H 69.6380 -> K123(E,O,7)          
+    1390 2026-08-24 02:30:0024.08(10)    68.9870  68.7000L                       L 68.7000 -> K116(E,U,9)          
+    1392 2026-08-24 03:00:0024.08(12)    69.5210  68.9280H                       H 69.5210 -> K126(E,O,7)          
+    1394 2026-08-24 03:30:0024.08(14)    68.7440  68.3920L                       L 68.3920 -> K127(E,U,7)          
+    1398 2026-08-24 04:30:0024.08(18)    69.3320  68.9020H                       H 69.3320 -> K128(E,O,5)          
+    1399 2026-08-24 04:45:0024.08(19)    68.9610  68.6320L                       L 68.6320 -> K129(E,U,7)          
+    1402 2026-08-24 05:30:0024.08(22)    69.1890  68.9470H                       H 69.1890 -> K130(E,O,5)          
+    1406 2026-08-24 06:30:0024.08(26)    68.9480  68.8130L                       L 68.8130 -> K116(E,U,9)          
+    1491 2026-08-25 04:45:0025.08(19)    67.8550  67.5350L                       L 67.5350 -> K132(E,U,4)          
+    1494 2026-08-25 05:30:0025.08(22)    68.0560  67.8640H                       H 68.0560 -> K133(E,O,2)          
+    1499 2026-08-25 06:45:0025.08(27)    67.8270  67.7050L                       L 67.7050 -> K112(E,U,6)          
+    1501 2026-08-25 07:15:0025.08(29)    68.2900  68.0110H                       H 68.2900 -> K111(E,O,6)          
+
+   VERWERFUNGEN im Umfeld (Sweep-Sperre = blockierte Seed-Geburt):
+      R21-Loeschung bar 1115 kid 93 OBEN basis=65.22 erster_pivot=923 alt=192
+      TOMBSTONE bar 887 UNTEN 66.0760
+      TOMBSTONE bar 907 UNTEN 65.4940
+      TOMBSTONE bar 943 UNTEN 65.2930
+
+----------------------------------------------------------------------------------------------------------------------
+   PRUEFMARKE 68.8800 USD (21.08.) — wer traegt dieses Niveau?
+----------------------------------------------------------------------------------------------------------------------
+   Suchband +/- 0.3 % -> 68.6734 .. 69.0866
+   Pivots in der Pruefung: [(1346, 'L', 69.043), (1354, 'L', 68.87), (1390, 'L', 68.7), (1406, 'L', 68.813)]
+
+   Linien im Katalog mit Basis im Suchband:
+    kid Typ   Seite       Basis(k=1931)  erster_pivot  Touches   Wicks (bar/Px)
+    109 Edge  OBEN              68.9890          1265       11   1265/20.08(69)(68.9720), 1307/21.08(19)(69.0060), 1409/24.08(29)(69.0400), 1423/24.08(43)(68.9750), 1428/24.08(48)(69.0240), 1551/25.08(79)(68.9430), 1600/26.08(36)(68.9440), 1603/26.08(39)(68.9380), 1622/26.08(58)(68.9510), 1662/27.08(06)(69.0210), 1773/28.08(25)(68.9600)
+    116 Edge  UNTEN             68.8130          1318        9   1318/21.08(30)(68.7120), 1324/21.08(36)(68.7940), 1380/24.08(00)(68.7940), 1390/24.08(10)(68.7000), 1406/24.08(26)(68.8130), 1432/24.08(52)(68.7030), 1472/25.08(00)(68.7870), 1554/25.08(82)(68.7440), 1772/28.08(24)(68.7370)
+    121 Edge  UNTEN             68.9580          1354        5   1354/21.08(66)(68.8700), 1384/24.08(04)(68.8740), 1438/24.08(58)(68.9020), 1591/26.08(27)(68.9580), 1682/27.08(26)(68.8520)
+    130 Edge  OBEN              69.0820          1402        5   1402/24.08(22)(69.1890), 1472/25.08(00)(69.1310), 1567/26.08(03)(69.0820), 1685/27.08(29)(69.1040), 1768/28.08(20)(69.1040)
+    131 Edge  OBEN              68.8140          1456        4   1456/24.08(76)(68.8840), 1543/25.08(71)(68.8860), 1573/26.08(09)(68.8140), 1689/27.08(33)(68.8520)
+
+----------------------------------------------------------------------------------------------------------------------
+SCHRITT 3 — GEGENPROBE: Rechenergebnis vs. arretierte Adapter-Werte
+----------------------------------------------------------------------------------------------------------------------
+   Position   kid(AUG) kid(Fenster) Provenienz(a)   Scan(b)    Delta   erster_pivot / Status
+   P9  boden        77          127       68.3700   68.3920  +0.0220   erster_pivot=1394 (24.08(14)) ABWEICHUNG
+   P9  decke        67          117       69.9140   69.9750  +0.0610   erster_pivot=1333 (21.08(45)) ABWEICHUNG
+   A1  decke        67          117       69.8990   69.8990  +0.0000   erster_pivot=1333 (21.08(45)) IDENTISCH
+   A1  boden        82          132       67.5350   67.5350  +0.0000   erster_pivot=1491 (25.08(19)) IDENTISCH
+   A2  decke        73          123       69.6380   69.6380  +0.0000   erster_pivot=1369 (21.08(81)) IDENTISCH
+   A2  boden        82          132       67.5530   67.5530  +0.0000   erster_pivot=1491 (25.08(19)) IDENTISCH
+   (a) = arretierter Adapter-Wert; (b) = basis_bei(Segmentstart) des Scans.
+
+----------------------------------------------------------------------------------------------------------------------
+SCHRITT 3b — ERSTER GEGEN-PIVOT nach der Transition (kausal)
+----------------------------------------------------------------------------------------------------------------------
+   Anker-Referenz: P9-Ende = Bar 1480 (25.08(08))
+       m Tag         Typ    Preis Best.:Kante/Geburt                      
+    1422 24.08(42)     L  68.6310   1424   beruehrt K129(V-S 7)
+    1423 24.08(43)     H  68.9750   1425   beruehrt K109(V-S 11)
+    1426 24.08(46)     L  68.6410   1428   beruehrt K129(V-S 7)
+    1428 24.08(48)     H  69.0240   1430   beruehrt K109(V-S 11)
+    1432 24.08(52)     L  68.7030   1434   beruehrt K116(V-S 9)
+    1434 24.08(54)     H  69.5270   1436   beruehrt K126(V-S 7)
+    1438 24.08(58)     L  68.9020   1440   beruehrt K121(V-S 5)
+    1440 24.08(60)     H  69.8990   1442   beruehrt K117(V-S 6)
+    1445 24.08(65)     L  68.6310   1447   beruehrt K129(V-S 7)
+    1446 24.08(66)     H  69.2840   1448   beruehrt K128(V-S 5)
+    1449 24.08(69)     H  69.2870   1451   beruehrt K128(V-S 5)
+    1451 24.08(71)     L  68.3480   1453   beruehrt K127(V-S 7)
+    1456 24.08(76)     H  68.8840   1458   beruehrt K131(V-S 4)
+    1460 24.08(80)     L  68.2880   1462   beruehrt K127(V-S 7)
+    1461 24.08(81)     H  68.6990   1463   beruehrt K115(V-S 5)
+    1472 25.08(00)     H  69.1310   1474   beruehrt K130(V-S 5)
+    1480 25.08(08)     H  69.9240   1482   beruehrt K117(V-S 6)
+    1481 25.08(09)     L  69.2840   1483   beruehrt K122(V-S 3)
+    1483 25.08(11)     H  69.6840   1485   beruehrt K123(V-S 7)
+    1491 25.08(19)     L  67.5350   1493   beruehrt K132(V-S 4)
+    1494 25.08(22)     H  68.0560   1496   beruehrt K133(V-S 2)
+    1499 25.08(27)     L  67.7050   1501   beruehrt K112(V-S 6)
+    1501 25.08(29)     H  68.2900   1503   beruehrt K111(V-S 6)
+    1506 25.08(34)     H  68.6480   1508   beruehrt K115(V-S 5)
+    1512 25.08(40)     L  67.7050   1514   beruehrt K112(V-S 6)
+    1516 25.08(44)     L  67.5530   1518   beruehrt K132(V-S 4)
+
+----------------------------------------------------------------------------------------------------------------------
+SCHRITT 4 — WARUM DER GEGEN-PIVOT VOM 21.08. 16:30 NIE GEGENKANTE DES PHASENSTARTS WURDE
+----------------------------------------------------------------------------------------------------------------------
+   Die O1-Regel nimmt die AEUSSERSTE lebende Linie je Seite. Diagnose:
+   Bar        Decke (O1)              Boden (O1)                Gegenp.-Level  lebt?  Rang unten
+   21.08(20)  K109 68.9890            K72 65.6540                 68.8700         nein           -
+   21.08(45)  K109 68.9890            K72 65.6540                 68.8700         nein           -
+   21.08(47)  K117 69.9750            K72 65.6540                 68.8700         nein           -
+   21.08(61)  K117 69.9750            K112 67.7260                68.8700         nein           -
+   21.08(66)  K117 69.9750            K112 67.7260                68.8700         nein           -
+   21.08(72)  K117 69.9750            K112 67.7260                68.8700           ja         6/7
+   21.08(86)  K117 69.9310            K113 67.8310                68.8700           ja         5/7
+   21.08(89)  K117 69.9310            K110 67.9750                68.8700           ja         4/6
+   24.08(04)  K117 69.9310            K110 67.9750                68.8700           ja         4/6
+   24.08(14)  K117 69.9310            K110 67.9750                68.8740           ja         3/5
+   24.08(17)  K117 69.9310            K127 68.3920                68.8740           ja         3/5
+   25.08(21)  K117 69.8990            K132 67.5350                68.9020           ja         5/6
+   Legende: 'Rang unten 1/N' = der Gegen-Pivot ist die tiefste lebende Linie (dann waere er die O1-Gegenkante).
+   Befund: der Gegen-Pivot vom 21.08. 16:30 ist zwar GEBOREN, aber NICHT die aeusserste
+   lebende Linie - tiefere Linien DERSELBEN Seite uebernehmen den O1-Boden (Rang >= 3).
+   Deshalb ist er der ERSTE GEGEN-PIVOT (Rechenergebnis), aber NICHT das Phasenpaar.
+
+======================================================================================================================
+FAZIT (SCHRITT 5) — ANTWORTEN AUF DIE INTERVIEW-FRAGEN
+======================================================================================================================
+F1  Pivot-Formel: _pivot_dual() = striktes 5-Bar-Kurs-Fraktal.
+    H-Pivot @ m <=> high[m] > high[m-2], high[m-1], high[m+1], high[m+2];
+    L-Pivot symmetrisch. KEIN prozentualer Mindest-Rebound im SE-Pfad
+    (MIN_SWING_PCT/DENSITY_BAND gehoeren zum alten _verarbeite_pivot-Pfad).
+F2  Erster Gegen-Pivot nach der Transition (kausal, ab P9-Ende):
+    AUG   : Bar 894 (21.08. 16:30) L 68.8700 -> K71  (V-S 5, geb. 924).
+    AUG26 : Bar 1354 (= 894+460)  L 68.8700 -> K121 (V-S 5).
+    Die Anwender-Pruefmarke 68.88 USD trifft exakt diesen Pivot.
+F3  Warum nicht Phasen-Gegenkante: O1 nimmt die AEUSSERSTE lebende Linie.
+    Der Gegen-Pivot ist zu keinem Zeitpunkt Rang 1 (AUG/AUG26: >= 3/5),
+    weil tiefere Linien derselben Seite den O1-Boden tragen.
+F4  Es gibt KEINE Funktion 'finde_gegenpivot'. Die Gegenkante entsteht aus
+    der O1-Regel (aeusserste lebende Linie der Gegenseite).
+F5  A1/A2-Provenienz = basis_bei(Segmentstart) des Scans, bit-exakt und
+    fensterstabil (+460): A1 69.8990/67.5350, A2 69.6380/67.5530.
+    P9 weicht ab (Fallback wicks[0][1], weil Start 848 vor dem 1. Docht
+    von K67 (873) und K77 (934) liegt); P9 ist arretierte Setzung.
+
+ENDE FORENSIK 21.08./24.08.
+

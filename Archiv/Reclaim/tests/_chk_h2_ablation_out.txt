@@ -1,0 +1,367 @@
+SHA-Guards OK: Baseline 53f28e1b / V020 e79c5c29 / Adapter 770eda2c
+FENSTER AUG n=1288 box_end_nativ=644 edges=59 seeds=14 | Ablation box_end=1288 (Vollauf) | H1/H2-Schnitt entry_bar<644
+Anker 1 H1-Reinheit OK: kein Adapter-Override fuer k<= 643 (59 edges + 14 seeds geprueft)
+Anker 2 OK: H2-0 == echter _se_trades_v020 (Vollsignatur), H2-V0 == echter _se_trades (Vollsignatur)
+Anker 3 OK (H1-Teil H2-0): 14 / +27.327383 == (14, 27.327383) (kausale Konsistenz gegen H20.42)
+Anker 4 OK (H2-0): 15 / -3.937470 == (15, -3.93747) | (H2-V0): 6 / +3.531386 == (6, 3.531386)
+  Totale H2-0 29 / +23.389914 R | Totale H2-V0 14 / +42.450970 R
+
+===== LAUF-MATRIX (Vollauf) =====
+  Lauf   Pool  Blk   S3       S4  Trades             R |               H1 n/R |               H2 n/R
+  H2-0     AN   AN   AN  endogen      29    +23.389914 |  14      +27.327383 |  15       -3.937470
+  H2-B    AUS  AUS   AN  endogen      24    +32.847680 |  12      +29.327383 |  12       +3.520297
+  H2-BP   AUS   AN   AN  endogen      24    +32.847680 |  12      +29.327383 |  12       +3.520297
+  H2-M     AN   AN  AUS  endogen      28    +27.844729 |  16      +33.202566 |  12       -5.357837
+  H2-Q     AN   AN   AN   global      21    +26.089448 |   9      +30.044402 |  12       -3.954953
+  H2-V0   AUS  AUS  AUS   global      14    +42.450970 |   8      +38.919584 |   6       +3.531386
+
+===== PARTITION (State unangetastet) =====
+  H2-0   H1_KERN  14/ +27.327383 | H2_KERN  14/  -2.937470 | GRENZ_UEB  1/-1.000000 | GRENZ_RUECK  0/+0.000000
+  H2-B   H1_KERN  12/ +29.327383 | H2_KERN  11/  +4.520297 | GRENZ_UEB  1/-1.000000 | GRENZ_RUECK  0/+0.000000
+  H2-BP  H1_KERN  12/ +29.327383 | H2_KERN  11/  +4.520297 | GRENZ_UEB  1/-1.000000 | GRENZ_RUECK  0/+0.000000
+  H2-M   H1_KERN  16/ +33.202566 | H2_KERN  12/  -5.357837 | GRENZ_UEB  0/+0.000000 | GRENZ_RUECK  0/+0.000000
+  H2-Q   H1_KERN   9/ +30.044402 | H2_KERN  11/  -2.954953 | GRENZ_UEB  1/-1.000000 | GRENZ_RUECK  0/+0.000000
+  H2-V0  H1_KERN   8/ +38.919584 | H2_KERN   6/  +3.531386 | GRENZ_UEB  0/+0.000000 | GRENZ_RUECK  0/+0.000000
+  GRENZ_UEBERTRITT H2-0:
+      bar=643 entry=644 K4 LONG  r=-1.000000
+  GRENZ_UEBERTRITT H2-B:
+      bar=643 entry=644 K4 LONG  r=-1.000000
+  GRENZ_UEBERTRITT H2-BP:
+      bar=643 entry=644 K4 LONG  r=-1.000000
+  GRENZ_UEBERTRITT H2-Q:
+      bar=643 entry=644 K4 LONG  r=-1.000000
+  GRENZ_RUECK strukturell leer: True
+
+===== ZAEHLER JE LAUF =====
+  Lauf        blocker  quartil_blo  quartil_und  frisch_bloc  zyklus_bloc  concurrency  kein_gegner    kein_raum           f3
+  H2-0             84           42            0           94           33            0            0           22            0
+  H2-B             38           13            0           40           32            0            0           14            0
+  H2-BP            38           13            0           40           32            0            0           14            0
+  H2-M             56           44            0           94           52            0            0           35            0
+  H2-Q             84           95            0           94           32            0            0            2            0
+  H2-V0            24           68            0           40           38            0            0            1            0
+  ECHTER           84           42            0           94           33            0            0           22            0   <- V020-Vollauf (Referenz)
+
+===== H2-0: Trades (S2-Pool=AN S2-Blocker=AN S3=AN S4=endogen) =====
+  -- H1 (entry_bar < 644) --
+  bar= 114 entry= 115 K16  SHORT stufe=STUFE_1_IN_BAR  r= -1.000000 sl=65.9880 tp2=63.6190
+  bar= 220 entry= 221 K15  SHORT stufe=STUFE_1_IN_BAR  r= -1.000000 sl=66.0980 tp2=63.6190
+  bar= 229 entry= 231 K20  SHORT stufe=STUFE_2_KERZE_2 r= +6.889303 sl=66.8260 tp2=63.6190
+  bar= 242 entry= 245 K20  SHORT stufe=STUFE_3_KERZE_3 r= +3.925121 sl=66.7130 tp2=63.6190
+  bar= 246 entry= 247 K16  SHORT stufe=STUFE_1_IN_BAR  r= -1.000000 sl=65.9770 tp2=63.6190
+  bar= 361 entry= 362 K23  LONG  stufe=STUFE_1_IN_BAR  r= -0.429390 sl=64.1480 tp2=66.4590
+  bar= 378 entry= 379 K21  LONG  stufe=STUFE_1_IN_BAR  r= -1.000000 sl=64.1280 tp2=66.4590
+  bar= 432 entry= 433 K33  SHORT stufe=STUFE_1_IN_BAR  r= -0.492472 sl=65.6860 tp2=63.4850
+  bar= 527 entry= 528 K31  SHORT stufe=STUFE_1_IN_BAR  r= -1.000000 sl=66.4280 tp2=63.4850
+  bar= 529 entry= 531 K20  SHORT stufe=STUFE_2_KERZE_2 r= +8.359943 sl=66.5880 tp2=63.4850
+  bar= 564 entry= 565 K20  SHORT stufe=STUFE_1_IN_BAR  r=+15.870034 sl=66.5800 tp2=63.4850
+  bar= 580 entry= 581 K14  LONG  stufe=STUFE_1_IN_BAR  r= -0.389474 sl=65.0090 tp2=66.4590
+  bar= 616 entry= 617 K11  LONG  stufe=STUFE_1_IN_BAR  r= -0.405682 sl=64.4590 tp2=66.4590
+  bar= 639 entry= 640 K1   LONG  stufe=STUFE_1_IN_BAR  r= -1.000000 sl=63.2980 tp2=66.4590
+  -- H2 (entry_bar >= 644) --
+  bar= 643 entry= 644 K4   LONG  stufe=STUFE_1_IN_BAR  r= -1.000000 sl=63.1060 tp2=66.4590
+  bar= 650 entry= 653 K3   LONG  stufe=STUFE_3_KERZE_3 r= -1.000000 sl=62.6710 tp2=66.4590
+  bar= 680 entry= 681 K45  LONG  stufe=STUFE_1_IN_BAR  r= -1.000000 sl=63.0170 tp2=66.4590
+  bar= 705 entry= 706 K12  SHORT stufe=STUFE_1_IN_BAR  r= -1.000000 sl=65.2700 tp2=62.5770
+  bar= 710 entry= 711 K16  SHORT stufe=STUFE_1_IN_BAR  r= -0.452653 sl=65.9710 tp2=62.5770
+  bar= 711 entry= 714 K33  SHORT stufe=STUFE_3_KERZE_3 r= -1.000000 sl=65.8100 tp2=62.5770
+  bar= 727 entry= 728 K15  SHORT stufe=STUFE_1_IN_BAR  r= -1.000000 sl=66.1040 tp2=62.5770
+  bar= 728 entry= 729 K31  SHORT stufe=STUFE_1_IN_BAR  r= -1.000000 sl=66.3750 tp2=62.5770
+  bar= 760 entry= 762 K51  SHORT stufe=STUFE_2_KERZE_2 r= -1.000000 sl=67.2370 tp2=62.5770
+  bar= 853 entry= 855 K59  SHORT stufe=STUFE_2_KERZE_2 r= -1.000000 sl=69.2220 tp2=62.5770
+  bar=1020 entry=1021 K67  SHORT stufe=STUFE_1_IN_BAR  r= +1.050505 sl=69.9740 tp2=62.5770
+  bar=1028 entry=1029 K60  LONG  stufe=STUFE_1_IN_BAR  r= -0.458284 sl=67.8400 tp2=69.8990
+  bar=1075 entry=1077 K62  LONG  stufe=STUFE_2_KERZE_2 r= +1.475768 sl=67.3700 tp2=69.8990
+  bar=1122 entry=1123 K73  SHORT stufe=STUFE_1_IN_BAR  r= +2.192513 sl=69.7590 tp2=62.5770
+  bar=1272 entry=1273 K73  SHORT stufe=STUFE_1_IN_BAR  r= +1.254682 sl=69.7640 tp2=62.5770
+
+===== H2-B: Trades (S2-Pool=AUS S2-Blocker=AUS S3=AN S4=endogen) =====
+  -- H1 (entry_bar < 644) --
+  bar= 223 entry= 224 K15  SHORT stufe=STUFE_1_IN_BAR  r= -1.000000 sl=66.1960 tp2=63.6190
+  bar= 229 entry= 231 K20  SHORT stufe=STUFE_2_KERZE_2 r= +6.889303 sl=66.8260 tp2=63.6190
+  bar= 242 entry= 245 K20  SHORT stufe=STUFE_3_KERZE_3 r= +3.925121 sl=66.7130 tp2=63.6190
+  bar= 361 entry= 362 K23  LONG  stufe=STUFE_1_IN_BAR  r= -0.429390 sl=64.1480 tp2=66.4590
+  bar= 378 entry= 379 K21  LONG  stufe=STUFE_1_IN_BAR  r= -1.000000 sl=64.1280 tp2=66.4590
+  bar= 432 entry= 433 K33  SHORT stufe=STUFE_1_IN_BAR  r= -0.492472 sl=65.6860 tp2=63.4850
+  bar= 527 entry= 528 K31  SHORT stufe=STUFE_1_IN_BAR  r= -1.000000 sl=66.4280 tp2=63.4850
+  bar= 529 entry= 531 K20  SHORT stufe=STUFE_2_KERZE_2 r= +8.359943 sl=66.5880 tp2=63.4850
+  bar= 564 entry= 565 K20  SHORT stufe=STUFE_1_IN_BAR  r=+15.870034 sl=66.5800 tp2=63.4850
+  bar= 580 entry= 581 K14  LONG  stufe=STUFE_1_IN_BAR  r= -0.389474 sl=65.0090 tp2=66.4590
+  bar= 616 entry= 617 K11  LONG  stufe=STUFE_1_IN_BAR  r= -0.405682 sl=64.4590 tp2=66.4590
+  bar= 639 entry= 640 K1   LONG  stufe=STUFE_1_IN_BAR  r= -1.000000 sl=63.2980 tp2=66.4590
+  -- H2 (entry_bar >= 644) --
+  bar= 643 entry= 644 K4   LONG  stufe=STUFE_1_IN_BAR  r= -1.000000 sl=63.1060 tp2=66.4590
+  bar= 650 entry= 653 K3   LONG  stufe=STUFE_3_KERZE_3 r= -1.000000 sl=62.6710 tp2=66.4590
+  bar= 679 entry= 681 K45  LONG  stufe=STUFE_2_KERZE_2 r= +6.480880 sl=62.7920 tp2=66.4590
+  bar= 705 entry= 706 K12  SHORT stufe=STUFE_1_IN_BAR  r= -1.000000 sl=65.2700 tp2=62.5770
+  bar= 714 entry= 715 K16  SHORT stufe=STUFE_1_IN_BAR  r= -1.000000 sl=65.8860 tp2=62.5770
+  bar= 727 entry= 728 K15  SHORT stufe=STUFE_1_IN_BAR  r= -1.000000 sl=66.1040 tp2=62.5770
+  bar= 760 entry= 762 K51  SHORT stufe=STUFE_2_KERZE_2 r= -1.000000 sl=67.2370 tp2=62.5770
+  bar= 853 entry= 855 K59  SHORT stufe=STUFE_2_KERZE_2 r= -1.000000 sl=69.2220 tp2=62.5770
+  bar=1020 entry=1021 K67  SHORT stufe=STUFE_1_IN_BAR  r= +1.050505 sl=69.9740 tp2=62.5770
+  bar=1028 entry=1029 K60  LONG  stufe=STUFE_1_IN_BAR  r= -0.458284 sl=67.8400 tp2=69.8990
+  bar=1122 entry=1123 K73  SHORT stufe=STUFE_1_IN_BAR  r= +2.192513 sl=69.7590 tp2=62.5770
+  bar=1272 entry=1273 K73  SHORT stufe=STUFE_1_IN_BAR  r= +1.254682 sl=69.7640 tp2=62.5770
+
+===== H2-BP: Trades (S2-Pool=AUS S2-Blocker=AN S3=AN S4=endogen) =====
+  -- H1 (entry_bar < 644) --
+  bar= 223 entry= 224 K15  SHORT stufe=STUFE_1_IN_BAR  r= -1.000000 sl=66.1960 tp2=63.6190
+  bar= 229 entry= 231 K20  SHORT stufe=STUFE_2_KERZE_2 r= +6.889303 sl=66.8260 tp2=63.6190
+  bar= 242 entry= 245 K20  SHORT stufe=STUFE_3_KERZE_3 r= +3.925121 sl=66.7130 tp2=63.6190
+  bar= 361 entry= 362 K23  LONG  stufe=STUFE_1_IN_BAR  r= -0.429390 sl=64.1480 tp2=66.4590
+  bar= 378 entry= 379 K21  LONG  stufe=STUFE_1_IN_BAR  r= -1.000000 sl=64.1280 tp2=66.4590
+  bar= 432 entry= 433 K33  SHORT stufe=STUFE_1_IN_BAR  r= -0.492472 sl=65.6860 tp2=63.4850
+  bar= 527 entry= 528 K31  SHORT stufe=STUFE_1_IN_BAR  r= -1.000000 sl=66.4280 tp2=63.4850
+  bar= 529 entry= 531 K20  SHORT stufe=STUFE_2_KERZE_2 r= +8.359943 sl=66.5880 tp2=63.4850
+  bar= 564 entry= 565 K20  SHORT stufe=STUFE_1_IN_BAR  r=+15.870034 sl=66.5800 tp2=63.4850
+  bar= 580 entry= 581 K14  LONG  stufe=STUFE_1_IN_BAR  r= -0.389474 sl=65.0090 tp2=66.4590
+  bar= 616 entry= 617 K11  LONG  stufe=STUFE_1_IN_BAR  r= -0.405682 sl=64.4590 tp2=66.4590
+  bar= 639 entry= 640 K1   LONG  stufe=STUFE_1_IN_BAR  r= -1.000000 sl=63.2980 tp2=66.4590
+  -- H2 (entry_bar >= 644) --
+  bar= 643 entry= 644 K4   LONG  stufe=STUFE_1_IN_BAR  r= -1.000000 sl=63.1060 tp2=66.4590
+  bar= 650 entry= 653 K3   LONG  stufe=STUFE_3_KERZE_3 r= -1.000000 sl=62.6710 tp2=66.4590
+  bar= 679 entry= 681 K45  LONG  stufe=STUFE_2_KERZE_2 r= +6.480880 sl=62.7920 tp2=66.4590
+  bar= 705 entry= 706 K12  SHORT stufe=STUFE_1_IN_BAR  r= -1.000000 sl=65.2700 tp2=62.5770
+  bar= 714 entry= 715 K16  SHORT stufe=STUFE_1_IN_BAR  r= -1.000000 sl=65.8860 tp2=62.5770
+  bar= 727 entry= 728 K15  SHORT stufe=STUFE_1_IN_BAR  r= -1.000000 sl=66.1040 tp2=62.5770
+  bar= 760 entry= 762 K51  SHORT stufe=STUFE_2_KERZE_2 r= -1.000000 sl=67.2370 tp2=62.5770
+  bar= 853 entry= 855 K59  SHORT stufe=STUFE_2_KERZE_2 r= -1.000000 sl=69.2220 tp2=62.5770
+  bar=1020 entry=1021 K67  SHORT stufe=STUFE_1_IN_BAR  r= +1.050505 sl=69.9740 tp2=62.5770
+  bar=1028 entry=1029 K60  LONG  stufe=STUFE_1_IN_BAR  r= -0.458284 sl=67.8400 tp2=69.8990
+  bar=1122 entry=1123 K73  SHORT stufe=STUFE_1_IN_BAR  r= +2.192513 sl=69.7590 tp2=62.5770
+  bar=1272 entry=1273 K73  SHORT stufe=STUFE_1_IN_BAR  r= +1.254682 sl=69.7640 tp2=62.5770
+
+===== H2-M: Trades (S2-Pool=AN S2-Blocker=AN S3=AUS S4=endogen) =====
+  -- H1 (entry_bar < 644) --
+  bar= 114 entry= 115 K16  SHORT stufe=STUFE_1_IN_BAR  r= -1.000000 sl=65.9880 tp2=63.6190
+  bar= 229 entry= 231 K20  SHORT stufe=STUFE_2_KERZE_2 r= +6.889303 sl=66.8260 tp2=63.6190
+  bar= 242 entry= 245 K20  SHORT stufe=STUFE_3_KERZE_3 r= +3.925121 sl=66.7130 tp2=63.6190
+  bar= 246 entry= 247 K16  SHORT stufe=STUFE_1_IN_BAR  r= -1.000000 sl=65.9770 tp2=63.6190
+  bar= 361 entry= 362 K23  LONG  stufe=STUFE_1_IN_BAR  r= -0.429390 sl=64.1480 tp2=66.4590
+  bar= 378 entry= 379 K21  LONG  stufe=STUFE_1_IN_BAR  r= -1.000000 sl=64.1280 tp2=66.4590
+  bar= 398 entry= 399 K5   LONG  stufe=STUFE_1_IN_BAR  r= +5.697713 sl=63.4350 tp2=66.4590
+  bar= 429 entry= 430 K25  SHORT stufe=STUFE_1_IN_BAR  r= -1.000000 sl=65.2060 tp2=63.4850
+  bar= 432 entry= 433 K33  SHORT stufe=STUFE_1_IN_BAR  r= -0.492472 sl=65.6860 tp2=63.4850
+  bar= 490 entry= 491 K16  SHORT stufe=STUFE_1_IN_BAR  r= -0.475084 sl=65.9170 tp2=63.4850
+  bar= 509 entry= 510 K16  SHORT stufe=STUFE_1_IN_BAR  r= -0.347446 sl=65.8830 tp2=63.4850
+  bar= 529 entry= 531 K20  SHORT stufe=STUFE_2_KERZE_2 r= +8.359943 sl=66.5880 tp2=63.4850
+  bar= 564 entry= 565 K20  SHORT stufe=STUFE_1_IN_BAR  r=+15.870034 sl=66.5800 tp2=63.4850
+  bar= 580 entry= 581 K14  LONG  stufe=STUFE_1_IN_BAR  r= -0.389474 sl=65.0090 tp2=66.4590
+  bar= 616 entry= 617 K11  LONG  stufe=STUFE_1_IN_BAR  r= -0.405682 sl=64.4590 tp2=66.4590
+  bar= 639 entry= 640 K1   LONG  stufe=STUFE_1_IN_BAR  r= -1.000000 sl=63.2980 tp2=66.4590
+  -- H2 (entry_bar >= 644) --
+  bar= 650 entry= 653 K3   LONG  stufe=STUFE_3_KERZE_3 r= -1.000000 sl=62.6710 tp2=66.4590
+  bar= 680 entry= 681 K45  LONG  stufe=STUFE_1_IN_BAR  r= -1.000000 sl=63.0170 tp2=66.4590
+  bar= 705 entry= 706 K12  SHORT stufe=STUFE_1_IN_BAR  r= -1.000000 sl=65.2700 tp2=62.5770
+  bar= 710 entry= 711 K16  SHORT stufe=STUFE_1_IN_BAR  r= -0.452653 sl=65.9710 tp2=62.5770
+  bar= 711 entry= 714 K33  SHORT stufe=STUFE_3_KERZE_3 r= -1.000000 sl=65.8100 tp2=62.5770
+  bar= 760 entry= 762 K51  SHORT stufe=STUFE_2_KERZE_2 r= -1.000000 sl=67.2370 tp2=62.5770
+  bar= 853 entry= 855 K59  SHORT stufe=STUFE_2_KERZE_2 r= -1.000000 sl=69.2220 tp2=62.5770
+  bar=1020 entry=1021 K67  SHORT stufe=STUFE_1_IN_BAR  r= +1.050505 sl=69.9740 tp2=62.5770
+  bar=1028 entry=1029 K60  LONG  stufe=STUFE_1_IN_BAR  r= -0.458284 sl=67.8400 tp2=69.8990
+  bar=1039 entry=1041 K60  LONG  stufe=STUFE_2_KERZE_2 r= -0.483006 sl=67.6550 tp2=69.8990
+  bar=1052 entry=1054 K60  LONG  stufe=STUFE_2_KERZE_2 r= -0.490166 sl=67.6550 tp2=69.8990
+  bar=1075 entry=1077 K62  LONG  stufe=STUFE_2_KERZE_2 r= +1.475768 sl=67.3700 tp2=69.8990
+
+===== H2-Q: Trades (S2-Pool=AN S2-Blocker=AN S3=AN S4=global) =====
+  -- H1 (entry_bar < 644) --
+  bar= 114 entry= 115 K16  SHORT stufe=STUFE_1_IN_BAR  r= -1.000000 sl=65.9880 tp2=63.6190
+  bar= 220 entry= 221 K15  SHORT stufe=STUFE_1_IN_BAR  r= -1.000000 sl=66.0980 tp2=63.6190
+  bar= 229 entry= 231 K20  SHORT stufe=STUFE_2_KERZE_2 r= +6.889303 sl=66.8260 tp2=63.6190
+  bar= 242 entry= 245 K20  SHORT stufe=STUFE_3_KERZE_3 r= +3.925121 sl=66.7130 tp2=63.6190
+  bar= 246 entry= 247 K16  SHORT stufe=STUFE_1_IN_BAR  r= -1.000000 sl=65.9770 tp2=63.6190
+  bar= 527 entry= 528 K31  SHORT stufe=STUFE_1_IN_BAR  r= -1.000000 sl=66.4280 tp2=63.4850
+  bar= 529 entry= 531 K20  SHORT stufe=STUFE_2_KERZE_2 r= +8.359943 sl=66.5880 tp2=63.4850
+  bar= 564 entry= 565 K20  SHORT stufe=STUFE_1_IN_BAR  r=+15.870034 sl=66.5800 tp2=63.4850
+  bar= 639 entry= 640 K1   LONG  stufe=STUFE_1_IN_BAR  r= -1.000000 sl=63.2980 tp2=66.4590
+  -- H2 (entry_bar >= 644) --
+  bar= 643 entry= 644 K4   LONG  stufe=STUFE_1_IN_BAR  r= -1.000000 sl=63.1060 tp2=66.4590
+  bar= 650 entry= 653 K3   LONG  stufe=STUFE_3_KERZE_3 r= -1.000000 sl=62.6710 tp2=66.4590
+  bar= 680 entry= 681 K45  LONG  stufe=STUFE_1_IN_BAR  r= -1.000000 sl=63.0170 tp2=66.4590
+  bar= 710 entry= 711 K16  SHORT stufe=STUFE_1_IN_BAR  r= -0.452653 sl=65.9710 tp2=62.5770
+  bar= 711 entry= 714 K33  SHORT stufe=STUFE_3_KERZE_3 r= -1.000000 sl=65.8100 tp2=62.5770
+  bar= 727 entry= 728 K15  SHORT stufe=STUFE_1_IN_BAR  r= -1.000000 sl=66.1040 tp2=62.5770
+  bar= 728 entry= 729 K31  SHORT stufe=STUFE_1_IN_BAR  r= -1.000000 sl=66.3750 tp2=62.5770
+  bar= 760 entry= 762 K51  SHORT stufe=STUFE_2_KERZE_2 r= -1.000000 sl=67.2370 tp2=62.5770
+  bar= 853 entry= 855 K59  SHORT stufe=STUFE_2_KERZE_2 r= -1.000000 sl=69.2220 tp2=62.5770
+  bar=1020 entry=1021 K67  SHORT stufe=STUFE_1_IN_BAR  r= +1.050505 sl=69.9740 tp2=62.5770
+  bar=1122 entry=1123 K73  SHORT stufe=STUFE_1_IN_BAR  r= +2.192513 sl=69.7590 tp2=62.5770
+  bar=1272 entry=1273 K73  SHORT stufe=STUFE_1_IN_BAR  r= +1.254682 sl=69.7640 tp2=62.5770
+
+===== H2-V0: Trades (S2-Pool=AUS S2-Blocker=AUS S3=AUS S4=global) =====
+  -- H1 (entry_bar < 644) --
+  bar= 229 entry= 231 K20  SHORT stufe=STUFE_2_KERZE_2 r= +6.889303 sl=66.8260 tp2=63.6190
+  bar= 242 entry= 245 K20  SHORT stufe=STUFE_3_KERZE_3 r= +3.925121 sl=66.7130 tp2=63.6190
+  bar= 398 entry= 399 K5   LONG  stufe=STUFE_1_IN_BAR  r= +5.697713 sl=63.4350 tp2=66.4590
+  bar= 490 entry= 491 K16  SHORT stufe=STUFE_1_IN_BAR  r= -0.475084 sl=65.9170 tp2=63.4850
+  bar= 509 entry= 510 K16  SHORT stufe=STUFE_1_IN_BAR  r= -0.347446 sl=65.8830 tp2=63.4850
+  bar= 529 entry= 531 K20  SHORT stufe=STUFE_2_KERZE_2 r= +8.359943 sl=66.5880 tp2=63.4850
+  bar= 564 entry= 565 K20  SHORT stufe=STUFE_1_IN_BAR  r=+15.870034 sl=66.5800 tp2=63.4850
+  bar= 639 entry= 640 K1   LONG  stufe=STUFE_1_IN_BAR  r= -1.000000 sl=63.2980 tp2=66.4590
+  -- H2 (entry_bar >= 644) --
+  bar= 650 entry= 653 K3   LONG  stufe=STUFE_3_KERZE_3 r= -1.000000 sl=62.6710 tp2=66.4590
+  bar= 679 entry= 681 K45  LONG  stufe=STUFE_2_KERZE_2 r= +6.480880 sl=62.7920 tp2=66.4590
+  bar= 714 entry= 715 K16  SHORT stufe=STUFE_1_IN_BAR  r= -1.000000 sl=65.8860 tp2=62.5770
+  bar= 760 entry= 762 K51  SHORT stufe=STUFE_2_KERZE_2 r= -1.000000 sl=67.2370 tp2=62.5770
+  bar= 853 entry= 855 K59  SHORT stufe=STUFE_2_KERZE_2 r= -1.000000 sl=69.2220 tp2=62.5770
+  bar=1020 entry=1021 K67  SHORT stufe=STUFE_1_IN_BAR  r= +1.050505 sl=69.9740 tp2=62.5770
+
+===== ATTRIBUTION H2 (Partition entry_bar >= 644) =====
+
+--- H2-B vs. H2-0 (nur H2) ---
+  H2-0 -> H2-B: nur-REF 5 (-1.976886 R) | nur-AKT 2 (+5.480880 R) | gemeinsam-dR 0 (+0.000000 R)
+      nur-REF bar=680 K45 LONG  entry=681 r=-1.000000
+      nur-REF bar=710 K16 SHORT entry=711 r=-0.452653
+      nur-REF bar=711 K33 SHORT entry=714 r=-1.000000
+      nur-REF bar=728 K31 SHORT entry=729 r=-1.000000
+      nur-REF bar=1075 K62 LONG  entry=1077 r=+1.475768
+      nur-AKT bar=679 K45 LONG  entry=681 r=+6.480880
+      nur-AKT bar=714 K16 SHORT entry=715 r=-1.000000
+
+--- H2-BP vs. H2-0 (nur H2) ---
+  H2-0 -> H2-BP: nur-REF 5 (-1.976886 R) | nur-AKT 2 (+5.480880 R) | gemeinsam-dR 0 (+0.000000 R)
+      nur-REF bar=680 K45 LONG  entry=681 r=-1.000000
+      nur-REF bar=710 K16 SHORT entry=711 r=-0.452653
+      nur-REF bar=711 K33 SHORT entry=714 r=-1.000000
+      nur-REF bar=728 K31 SHORT entry=729 r=-1.000000
+      nur-REF bar=1075 K62 LONG  entry=1077 r=+1.475768
+      nur-AKT bar=679 K45 LONG  entry=681 r=+6.480880
+      nur-AKT bar=714 K16 SHORT entry=715 r=-1.000000
+
+--- H2-M vs. H2-0 (nur H2) ---
+  H2-0 -> H2-M: nur-REF 5 (+0.447195 R) | nur-AKT 2 (-0.973172 R) | gemeinsam-dR 0 (+0.000000 R)
+      nur-REF bar=643 K4 LONG  entry=644 r=-1.000000
+      nur-REF bar=727 K15 SHORT entry=728 r=-1.000000
+      nur-REF bar=728 K31 SHORT entry=729 r=-1.000000
+      nur-REF bar=1122 K73 SHORT entry=1123 r=+2.192513
+      nur-REF bar=1272 K73 SHORT entry=1273 r=+1.254682
+      nur-AKT bar=1039 K60 LONG  entry=1041 r=-0.483006
+      nur-AKT bar=1052 K60 LONG  entry=1054 r=-0.490166
+
+--- H2-Q vs. H2-0 (nur H2) ---
+  H2-0 -> H2-Q: nur-REF 3 (+0.017484 R) | nur-AKT 0 (+0.000000 R) | gemeinsam-dR 0 (+0.000000 R)
+      nur-REF bar=705 K12 SHORT entry=706 r=-1.000000
+      nur-REF bar=1028 K60 LONG  entry=1029 r=-0.458284
+      nur-REF bar=1075 K62 LONG  entry=1077 r=+1.475768
+
+--- H2-V0 vs. H2-0 (nur H2) ---
+  H2-0 -> H2-V0: nur-REF 11 (-1.987975 R) | nur-AKT 2 (+5.480880 R) | gemeinsam-dR 0 (+0.000000 R)
+      nur-REF bar=643 K4 LONG  entry=644 r=-1.000000
+      nur-REF bar=680 K45 LONG  entry=681 r=-1.000000
+      nur-REF bar=705 K12 SHORT entry=706 r=-1.000000
+      nur-REF bar=710 K16 SHORT entry=711 r=-0.452653
+      nur-REF bar=711 K33 SHORT entry=714 r=-1.000000
+      nur-REF bar=727 K15 SHORT entry=728 r=-1.000000
+      nur-REF bar=728 K31 SHORT entry=729 r=-1.000000
+      nur-REF bar=1028 K60 LONG  entry=1029 r=-0.458284
+      nur-REF bar=1075 K62 LONG  entry=1077 r=+1.475768
+      nur-REF bar=1122 K73 SHORT entry=1123 r=+2.192513
+      nur-REF bar=1272 K73 SHORT entry=1273 r=+1.254682
+      nur-AKT bar=679 K45 LONG  entry=681 r=+6.480880
+      nur-AKT bar=714 K16 SHORT entry=715 r=-1.000000
+
+--- H2-0 vs. H2-V0 (nur H2) ---
+  H2-V0 -> H2-0: nur-REF 2 (+5.480880 R) | nur-AKT 11 (-1.987975 R) | gemeinsam-dR 0 (+0.000000 R)
+      nur-REF bar=679 K45 LONG  entry=681 r=+6.480880
+      nur-REF bar=714 K16 SHORT entry=715 r=-1.000000
+      nur-AKT bar=643 K4 LONG  entry=644 r=-1.000000
+      nur-AKT bar=680 K45 LONG  entry=681 r=-1.000000
+      nur-AKT bar=705 K12 SHORT entry=706 r=-1.000000
+      nur-AKT bar=710 K16 SHORT entry=711 r=-0.452653
+      nur-AKT bar=711 K33 SHORT entry=714 r=-1.000000
+      nur-AKT bar=727 K15 SHORT entry=728 r=-1.000000
+      nur-AKT bar=728 K31 SHORT entry=729 r=-1.000000
+      nur-AKT bar=1028 K60 LONG  entry=1029 r=-0.458284
+      nur-AKT bar=1075 K62 LONG  entry=1077 r=+1.475768
+      nur-AKT bar=1122 K73 SHORT entry=1123 r=+2.192513
+      nur-AKT bar=1272 K73 SHORT entry=1273 r=+1.254682
+
+--- H2-B vs. H2-V0 (nur H2) ---
+  H2-V0 -> H2-B: nur-REF 0 (+0.000000 R) | nur-AKT 6 (-0.011089 R) | gemeinsam-dR 0 (+0.000000 R)
+      nur-AKT bar=643 K4 LONG  entry=644 r=-1.000000
+      nur-AKT bar=705 K12 SHORT entry=706 r=-1.000000
+      nur-AKT bar=727 K15 SHORT entry=728 r=-1.000000
+      nur-AKT bar=1028 K60 LONG  entry=1029 r=-0.458284
+      nur-AKT bar=1122 K73 SHORT entry=1123 r=+2.192513
+      nur-AKT bar=1272 K73 SHORT entry=1273 r=+1.254682
+
+--- H2-BP vs. H2-V0 (nur H2) ---
+  H2-V0 -> H2-BP: nur-REF 0 (+0.000000 R) | nur-AKT 6 (-0.011089 R) | gemeinsam-dR 0 (+0.000000 R)
+      nur-AKT bar=643 K4 LONG  entry=644 r=-1.000000
+      nur-AKT bar=705 K12 SHORT entry=706 r=-1.000000
+      nur-AKT bar=727 K15 SHORT entry=728 r=-1.000000
+      nur-AKT bar=1028 K60 LONG  entry=1029 r=-0.458284
+      nur-AKT bar=1122 K73 SHORT entry=1123 r=+2.192513
+      nur-AKT bar=1272 K73 SHORT entry=1273 r=+1.254682
+
+--- H2-M vs. H2-V0 (nur H2) ---
+  H2-V0 -> H2-M: nur-REF 2 (+5.480880 R) | nur-AKT 8 (-3.408342 R) | gemeinsam-dR 0 (+0.000000 R)
+      nur-REF bar=679 K45 LONG  entry=681 r=+6.480880
+      nur-REF bar=714 K16 SHORT entry=715 r=-1.000000
+      nur-AKT bar=680 K45 LONG  entry=681 r=-1.000000
+      nur-AKT bar=705 K12 SHORT entry=706 r=-1.000000
+      nur-AKT bar=710 K16 SHORT entry=711 r=-0.452653
+      nur-AKT bar=711 K33 SHORT entry=714 r=-1.000000
+      nur-AKT bar=1028 K60 LONG  entry=1029 r=-0.458284
+      nur-AKT bar=1039 K60 LONG  entry=1041 r=-0.483006
+      nur-AKT bar=1052 K60 LONG  entry=1054 r=-0.490166
+      nur-AKT bar=1075 K62 LONG  entry=1077 r=+1.475768
+
+--- H2-Q vs. H2-V0 (nur H2) ---
+  H2-V0 -> H2-Q: nur-REF 2 (+5.480880 R) | nur-AKT 8 (-2.005458 R) | gemeinsam-dR 0 (+0.000000 R)
+      nur-REF bar=679 K45 LONG  entry=681 r=+6.480880
+      nur-REF bar=714 K16 SHORT entry=715 r=-1.000000
+      nur-AKT bar=643 K4 LONG  entry=644 r=-1.000000
+      nur-AKT bar=680 K45 LONG  entry=681 r=-1.000000
+      nur-AKT bar=710 K16 SHORT entry=711 r=-0.452653
+      nur-AKT bar=711 K33 SHORT entry=714 r=-1.000000
+      nur-AKT bar=727 K15 SHORT entry=728 r=-1.000000
+      nur-AKT bar=728 K31 SHORT entry=729 r=-1.000000
+      nur-AKT bar=1122 K73 SHORT entry=1123 r=+2.192513
+      nur-AKT bar=1272 K73 SHORT entry=1273 r=+1.254682
+
+===== H1-KREUZKONTROLLE (Partition entry_bar < 644) =====
+  H2-0 (H1-Teil) 14 / +27.327383 == (14, 27.327383) [Assert erfuellt]
+  H2-B   H1 12 /  +29.327383 | dR(H1)  +2.000000 | Soll(H20.42)  +2.000000 | OK
+  H2-BP  H1 12 /  +29.327383 | dR(H1)  +2.000000 | Soll(H20.42)  +2.000000 | OK
+  H2-M   H1 16 /  +33.202566 | dR(H1)  +5.875183 | Soll(H20.42)  +5.875183 | OK
+  H2-Q   H1  9 /  +30.044402 | dR(H1)  +2.717018 | Soll(H20.42)  +2.717018 | OK
+  H2-V0  H1  8 /  +38.919584 | dR(H1) +11.592201 | Soll(H20.42) +11.592201 | OK
+  Kreuzkontrolle gegen H20.42 vollstaendig: True
+
+===== H1-vs-H2-RANGFOLGE =====
+  Lauf         dR(H1)       dR(H2)    dR(total)
+  H2-B      +2.000000    +7.457766    +9.457766
+  H2-BP     +2.000000    +7.457766    +9.457766
+  H2-M      +5.875183    -1.420367    +4.454816
+  H2-Q      +2.717018    -0.017484    +2.699535
+  H2-V0    +11.592201    +7.468855   +19.061056
+  Rangfolge |dR(H2)| (absteigend): H2-V0=+7.468855 > H2-B=+7.457766 > H2-BP=+7.457766 > H2-M=-1.420367 > H2-Q=-0.017484
+  Rangfolge |dR(H1)| (absteigend): H2-V0=+11.592201 > H2-M=+5.875183 > H2-Q=+2.717018 > H2-B=+2.000000 > H2-BP=+2.000000
+  H1-Rangfolge (Soll H20.42): S3 > S4 > S2  (S3=+5.875183 S4=+2.717018 S2=+2.000000)
+  H2-Rangfolge: S3 > S4 > S2 NICHT reproduziert  (S3=-1.420367 S4=-0.017484 S2=+7.457766)
+  H2-Polaritaet: gemischte Vorzeichen -> siehe Einzeldeltas.
+
+===== SPANNEN-PROBE (diagnostisch, KEINE Schwelle) =====
+  endogene Spanne (decke-boden, lebende Kanten):
+  H1 k<644               n=  636  p10=  1.34500 p25=  1.62200 med=  1.95800 p75=  2.25100 p90=  2.84000
+  H2 k>=644              n=  641  p10=  1.53900 p25=  2.01100 med=  2.24900 p75=  3.24300 p90=  3.88200
+  Verhaeltnis endogen/global (globale kausale Spanne 0..k):
+  H1 k<644               n=  636  p10=  0.38422 p25=  0.43607 med=  0.54608 p75=  0.77501 p90=  0.91497
+  H2 k>=644              n=  641  p10=  0.20652 p25=  0.26986 med=  0.31481 p75=  0.51915 p90=  0.82048
+  Referenzpunkt K45@k=680: decke=65.4370 boden=62.5770 endogen=2.8600 global=4.2280 verhaeltnis=0.67644 quelle=lebende_kanten  (n=1, nicht kalibrierbar)
+
+===== GESAMTBILANZ =====
+  H2-0    29 Trades /   +23.389914 R
+  H2-B    24 Trades /   +32.847680 R
+  H2-BP   24 Trades /   +32.847680 R
+  H2-M    28 Trades /   +27.844729 R
+  H2-Q    21 Trades /   +26.089448 R
+  H2-V0   14 Trades /   +42.450970 R
+
+===== ANKER 5: ZAEHLER-VERIFIKATION (H2-0 vs. V020-Vollauf) =====
+  blocker                Reko=    84  Echt=    84
+  quartil_blockiert      Reko=    42  Echt=    42
+  frisch_blockiert       Reko=    94  Echt=    94
+  zyklus_blockiert       Reko=    33  Echt=    33
+  Zaehler-Anker OK (4 Schluessel)

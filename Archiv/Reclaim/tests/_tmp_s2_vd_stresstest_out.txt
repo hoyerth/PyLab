@@ -1,0 +1,86 @@
+========================================================================================================
+S2-STRESSTEST -- V-D-Schleife (PHASE_EIGEN / NAEHE / KantenSicht)
+========================================================================================================
+Engine-SHA  : 4a576a766670d684c30381969e4d7349d5786b1b22ea6dda08b93b7d811bb38a  (arretiert)
+VD-Entwurf  : 1615a4aff5b1231be652ffc418d981662a049508cc9a82aa8c420cee7a20983a
+Renderer    : 0d145ef4c5ea0aa9b9b158c00bd54d97bfb1abd68e4a2a32f4e496fcea1f6fc7
+PATCHED     : 21612 Zeichen aus tmp_png_aug_sichttest.py
+
+A  AUG-FIDELITY-SELBSTCHECK (VD_K67_77 @ start 848)
+--------------------------------------------------------------------------------------------------------
+Soll (P4/Z2, SEG_BODEN kausal) : 17 Trades / +65.504879 R
+--- AUG_VD_K67_77 (0.4 s): 13 Trades / +45.347845 R ---
+      bar    229 entry    231 SHORT K20   R  +6.889303  tp2   63.6190  sl   66.8260
+      bar    242 entry    245 SHORT K20   R  +3.925121  tp2   63.6190  sl   66.7130
+      bar    398 entry    399 LONG  K5    R  +5.697713  tp2   66.4590  sl   63.4350
+      bar    490 entry    491 SHORT K16   R  -0.475084  tp2   63.4850  sl   65.9170
+      bar    509 entry    510 SHORT K16   R  -0.347446  tp2   63.4850  sl   65.8830
+      bar    529 entry    531 SHORT K20   R  +8.359943  tp2   63.4850  sl   66.5880
+      bar    564 entry    565 SHORT K20   R +15.870034  tp2   63.4850  sl   66.5800
+      bar    639 entry    640 LONG  K1    R  -1.000000  tp2   66.4590  sl   63.2980
+      bar    650 entry    653 LONG  K3    R  -1.000000  tp2   66.4590  sl   62.6710
+      bar    679 entry    681 LONG  K45   R  +6.480880  tp2   66.4590  sl   62.7920
+      bar    714 entry    715 SHORT K16   R  -1.000000  tp2   62.5770  sl   65.8860
+      bar    760 entry    762 SHORT K51   R  -1.000000  tp2   62.5770  sl   67.2370
+      bar   1020 entry   1021 SHORT K67   R  +2.947380  tp2   68.3920  sl   69.9740
+FIDELITY: ABWEICHUNG   ist=(13, 45.347845)
+stats: {'v_s': 13, 'kein_gegner': 0, 'f3': 0, 'kein_raum': 11, 'zyklus_blockiert': 29, 'quartil_blockiert': 68, 'blocker': 24, 'promotionen': 5, 'stacking_blockiert': 0, 'frisch_blockiert': 40}
+
+B  S2-KONTEXT
+--------------------------------------------------------------------------------------------------------
+box_end (Partition) = 17692   scan['box_end_bar'] (Laufgrenze) = 21624
+close[Split] = 46.6240   H1 17692 Bars / H2 3932 Bars
+August-Literale (67.6355, 68.37, 69.87, 69.914) -- alle oberhalb S2-Max 56.5250? True
+
+C  LAEUFE
+--------------------------------------------------------------------------------------------------------
+--- BASE ungepatcht (135.8 s): 299 Trades / -186.055940 R ---
+      H1 245 /  -140.466233 R   |   H2  54 /   -45.589707 R
+      H2 positiv: 4  |  H2 tp2-Werte: [28.432]
+   stats: {'v_s': 299, 'kein_gegner': 0, 'f3': 0, 'kein_raum': 14, 'zyklus_blockiert': 606, 'quartil_blockiert': 1341, 'blocker': 332, 'promotionen': 37, 'stacking_blockiert': 0, 'frisch_blockiert': 243}
+
+--- MAKRO          (140.5 s): 299 Trades / -186.055940 R ---
+      H1 245 /  -140.466233 R   |   H2  54 /   -45.589707 R
+      H2 positiv: 4  |  H2 tp2-Werte: [28.432]
+   stats: {'v_s': 299, 'kein_gegner': 0, 'f3': 0, 'kein_raum': 14, 'zyklus_blockiert': 606, 'quartil_blockiert': 1341, 'blocker': 332, 'promotionen': 37, 'stacking_blockiert': 0, 'frisch_blockiert': 243}
+
+--- VD_AUSSEN_ABS  (139.8 s): 299 Trades / -186.055940 R ---
+      H1 245 /  -140.466233 R   |   H2  54 /   -45.589707 R
+      H2 positiv: 4  |  H2 tp2-Werte: [28.432]
+   stats: {'v_s': 299, 'kein_gegner': 0, 'f3': 0, 'kein_raum': 14, 'zyklus_blockiert': 606, 'quartil_blockiert': 1341, 'blocker': 332, 'promotionen': 37, 'stacking_blockiert': 0, 'frisch_blockiert': 243}
+
+--- VD_NAEHE_ENV   (138.3 s): 245 Trades / -140.466233 R ---
+      H1 245 /  -140.466233 R   |   H2   0 /    +0.000000 R
+      H2 positiv: 0  |  H2 tp2-Werte: []
+   stats: {'v_s': 245, 'kein_gegner': 0, 'f3': 0, 'kein_raum': 152, 'zyklus_blockiert': 522, 'quartil_blockiert': 1341, 'blocker': 332, 'promotionen': 37, 'stacking_blockiert': 0, 'frisch_blockiert': 243}
+
+--- VD_K408_409    (156.4 s): 299 Trades / -159.531883 R ---
+      H1 245 /  -140.466233 R   |   H2  54 /   -19.065650 R
+      H2 positiv: 1  |  H2 tp2-Werte: [45.789]
+   stats: {'v_s': 299, 'kein_gegner': 0, 'f3': 0, 'kein_raum': 14, 'zyklus_blockiert': 606, 'quartil_blockiert': 1341, 'blocker': 332, 'promotionen': 37, 'stacking_blockiert': 0, 'frisch_blockiert': 243}
+
+--- VD_K408_409_H  (153.6 s): 299 Trades / -160.853568 R ---
+      H1 245 /  -140.466233 R   |   H2  54 /   -20.387335 R
+      H2 positiv: 1  |  H2 tp2-Werte: [46.113, 46.1183, 46.1295]
+   stats: {'v_s': 299, 'kein_gegner': 0, 'f3': 0, 'kein_raum': 14, 'zyklus_blockiert': 606, 'quartil_blockiert': 1341, 'blocker': 332, 'promotionen': 37, 'stacking_blockiert': 0, 'frisch_blockiert': 243}
+
+D  GEGENUEBERSTELLUNG (V-D vs. Baseline, H1/H2 getrennt)
+--------------------------------------------------------------------------------------------------------
+Lauf              Trd      R gesamt  H1 Trd          H1 R  H2 Trd          H2 R  H2+
+BASE              299   -186.055940     245   -140.466233      54    -45.589707    4
+MAKRO             299   -186.055940     245   -140.466233      54    -45.589707    4
+VD_AUSSEN_ABS     299   -186.055940     245   -140.466233      54    -45.589707    4
+VD_NAEHE_ENV      245   -140.466233     245   -140.466233       0     +0.000000    0
+VD_K408_409       299   -159.531883     245   -140.466233      54    -19.065650    1
+VD_K408_409_H     299   -160.853568     245   -140.466233      54    -20.387335    1
+
+Delta gesamt gegen BASE (-186.055940 R):
+   MAKRO                 +0.000000 R
+   VD_AUSSEN_ABS         +0.000000 R
+   VD_NAEHE_ENV         +45.589707 R
+   VD_K408_409          +26.524056 R
+   VD_K408_409_H        +25.202372 R
+
+========================================================================================================
+Engine-SHA nach Lauf: 4a576a766670d684c30381969e4d7349d5786b1b22ea6dda08b93b7d811bb38a  UNVERAENDERT
+========================================================================================================

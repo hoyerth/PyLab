@@ -1,0 +1,16 @@
+feat(engine): Stufe 3 - Kalenderkante parametrisiert (box_end_datum), V019-Guard Zero-Trust (Soll-Bar + Engine-SHA)
+
+- Engine (Erstoeffnung): box_end_datum: str = "2026-08-19" als letztes Feld;
+  _se_scan nutzt cfg.box_end_datum. neuer SHA df92aab5... (197.093 B, +444).
+- Renderer: V019-Guard von reiner Bar-Pruefung auf Anker umgestellt
+  (Soll-Bar 644 + ENGINE_SHA-Pin, keyed auf V019). V017/V018 unberuehrt.
+  neuer SHA 6844f3ab... (119.081 B, +954).
+- Verifikation: box_end 644 / n 1288; dualer Lauf 23/+85.577150 (kausal)
+  und 24/+88.116626 (Batch) bit-identisch; Panel 02 byte-identisch.
+- Fail-Loud: Negativkontrollen (Rueckweg-Engine, Fremd-SHA) beide exit 1;
+  V017-Rueckweg-Positivkontrolle exit 0. V018-PNGs eingefroren.
+- Handoff: E-34n/17-Urkunde mit neuer Engine-/Renderer-/PNG-Ankerlage.
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

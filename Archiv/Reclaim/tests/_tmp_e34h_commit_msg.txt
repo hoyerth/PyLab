@@ -1,0 +1,32 @@
+feat(adapter): Generation V019 verankert — endogene Segmentbildung (MIN77) + Handoff E-34g/E-34h
+
+Rein additiver Einbrand in backtest_lab/phasen_regime_adapter.py:
+- 25.783 B -> 30.663 B (+4.880 B / +103 Zeilen), CRLF 0.
+- SHA256 0f3f8765... -> 4f50b6b0829ad031613acb9edcfd79c6316a2082cda35152821bf010cb861e83
+- Alter Dateiinhalt byte-identisch (binaer gegen HEAD-Blob: neu[:25783] == HEAD).
+- py_compile Exit 0.
+
+Inhalt:
+- PLATEAU_MIN/MAX/REFERENZ = 41 / 114 / 77 (SSoT, AUG-spezifisch).
+- PhasenReifeKonfiguration (Semantik = Verschmelzungsschwelle).
+- A1_AUTO_77 (1033..1173, K67/K82), A2_AUTO_77 (1174..1287, K73/K82).
+- AKTIVE_SEGMENTE_V019 = (P9_BODEN_RECLAIM, A1_AUTO_77, A2_AUTO_77).
+- ADAPTER_V019 + Fail-Loud-Aufbau; provenienz_toleranz_pct=1.0 explizit.
+
+Verifikation E-34h (read-only, ALLE OK):
+- P9 is P9_BODEN_RECLAIM (True), Override 69.87 + Literal 68.40 erhalten.
+- verifiziere_gegen_scan @REF 848/980/1259 OK; niveau_overrides OK; boden_literale OK.
+- Nahtstellen: 1020 PHASE | 1021/1032 BLOCKIERT | 1033/1173/1174/1287 PHASE |
+  1288 BLOCKIERT | aktiv 255/267.
+- Integritaet 11/11: DEFAULT_ADAPTER/ADAPTER_V014/ADAPTER_V015/RESERVE und alle
+  Benchmark-Konstanten unveraendert.
+
+Sollwerte V019: gesamt 23 / +82.614385 R | H1 8 / +38.919584 (Invariante) |
+H2 +43.694801 | ZIEL 6 / +16.778809 | P9 +23.435111 | ziel_delta_rb +34.798688.
+
+Handoff: E-34g (Diff-Gutachten + zwei unabhaengige Nachweise) und E-34h
+(Einbrand-Urkunde). Kein Renderer-Eingriff; der folgt getrennt.
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

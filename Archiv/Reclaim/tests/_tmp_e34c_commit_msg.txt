@@ -1,0 +1,66 @@
+docs(handoff): E-34c Bar-1172-Audit — Wurzelmechanismus lokalisiert, E-33-Ursache korrigiert
+
+Auftrag: Anwender-Leitfragen (Plateau-Kanon, Trade 1172, Freigabe Schritt 1).
+Umgesetzt: rein lesendes Lese-Audit ueber neuen optionalen Trace
+(_tmp_e34_auto.py --trace <bar>, keine Logikaenderung).
+
+Korrigendum zu E-34 §O7.2: die Engine setzt poc_start = 0 (Zeile 2393), nicht
+den Segmentstart. Die dort gegebene Erklaerung fuer den 1075-Delta
+(-0,51477 R) ist falsch und wird zurueckgezogen. Gemessene Ursache ist die
+unterschiedliche Segment-DECKE (= Ziel tp2): E-33 P10 decke K73 -> tp2
+69,6380 -> +1,99054; E-34 A1 decke K67 -> tp2 69,8990 -> +1,47577. Beide
+Pfade geometrisch gueltig, mit _c_loese_trade bit-identisch nachgerechnet.
+
+Bar-1172-Audit (AUG, MIN48, endogen), Punkt fuer Punkt:
+- Segment A2 = 1124..1173 (decke K73, boden K85) -> hook_1_freigabe_kid = 85.
+- K85 ist schlafend (lebt=False, touch_conf=1) und NICHT im Pool -> der
+  Freigabe-Filter ist ein No-op. K82 BLEIBT im Pool (lebt=True, touch_conf=2).
+- Trotzdem kd = K62: die schlafenden Aussenlinien K48/K3/K17 bleiben im Pool
+  und belegen pos 0/1/2, damit steht K82 auf pos=3 und gilt als Innenlinie,
+  wo das arretierte Gate touch_conf >= 3 greift.
+- K62 -> Stufe 2, entry_bar 1174, entry 67,9060 > poc 67,8294 -> kein_raum
+  (einziger Ablehnungsgrund des Bars; bit-identisch zu E-33 §M5).
+
+Wurzelmechanismus (§Q2b): K82 hat einen ROHEN Docht auf Bar 1172 — genau dem
+Sweep-Bar selbst (lo 67,4940 < 67,5530). Nach der Engine-Lebendigkeit
+(_lebt, rohe Dochte) ist K82 praesent, aber der Docht ist noch nicht
+bestaetigt (b+2<=k), daher touch_conf = 2 statt 3: die Wand scheitert an
+ihrem eigenen Sweep-Bar um GENAU EINEN Touch. Diese Kausalitaet ist
+strukturell, nicht datenspezifisch.
+
+Drei Naehte, die zusammenwirken:
+(1) pos-Indexierung ueber schlafende Pool-Mitglieder degradiert die
+    erreichte Aussenwand zur Innenlinie (sonst griffe Q1 "die Wand handelt");
+(2) die 2-Bar-Sweep-Kausalitaet verhindert, dass der eigene sweep-bildende
+    Docht gezaehlt wird;
+(3) die Segment-Etiketten sind am Segmentstart eingefroren — zusammenfassen
+    verlaengert nur das Ende, A2 traegt daher das Etikett (K73,K85) aus dem
+    Stueck 1124..1171, obwohl 1172/1173 roh zu (K73,K60) gehoeren. Zusaetzlich
+    sind die beiden Lebendigkeits-Definitionen uneins (_lebt_kausal: nur
+    bestaetigte Dochte, vs. Engine _lebt: rohe Dochte, Z. 2421).
+
+Gegenprobe (rein rechnerisch, kein Variantenlauf): der K82-Pfad ergibt
+Stufe 1, entry_bar 1173, sl 67,4440, entry 67,5890, poc 67,6051, tp2 69,6380
+-> sl < entry < poc < tp2 erfuellt, also geometrisch zulaessig. R bewusst
+nicht berechnet.
+
+Klarstellung zur Deutung: K85 wurde NICHT gesweept (lo 67,4940 liegt 7,4 Cent
+ueber K85 = 67,4200).
+
+Plateau-Kanon bestaetigt mit Einschraenkung: MIN 48 liegt nur 7 Bars ueber
+der unteren Klippe 41 und ist daher nicht klippen-konservativ (Mittelwert ~77
+haette maximalen Abstand zu beiden Klippen 41 und 115); das Plateau [41,114]
+ist AUG-spezifisch.
+
+V019-Vertrag bleibt unspezifiziert. Hinweise zur vorgeschlagenen
+PhasenReifeKonfiguration: Final redundant zu frozen; 41/114 sind empirische
+Konstanten mit Herkunftsanker; Semantik-Falle von validiere_dauer
+(Segmentlaenge vs. Verschmelzungsschwelle). Drei Korrektur-Kandidaten
+benannt (pos nur ueber lebende Linien / Sweep-Bar-Kausalitaet im
+touch-Gate / Etiketten aus dem letzten Teilstueck) — keiner gemessen, keiner
+zielzonen-lokal. Kein §75, kein S1, keine S2-Laeufe. Artefakte (test/,
+gitignored) mit SHA256 in §Q6.
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

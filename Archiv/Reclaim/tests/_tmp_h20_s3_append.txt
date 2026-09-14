@@ -1,0 +1,166 @@
+
+#### H20.8 Schritt 3 - Endogener Transitions-Detektor: NEGATIVER BEFUND (AUG26)
+
+Ziel war ein kausaler Zustandsautomat TRANSITION <-> BALANCE (Dwell-Fenster W
++ Kantenreife + Breakout), der die Phasen ohne Anwender-Setzung endogen
+findet. Ergebnis: **kein Plateau, keine Struktur, in dieser Form untauglich.**
+
+| W (Bars) | Balances | 1. Balance ab Bar | Transitionsintervalle |
+|---|---|---|---|
+| 24 (6 h) | 48 | 0 | 48 |
+| 36 (9 h) | 36 | 0 | 36 |
+| 48 (12 h) | 27 | 0 | 27 |
+| 72 (18 h) | 11 | 236 (05.08.) | 11 |
+
+Ziel-Reproduktion (Anwender-Nullwerte aus Schritt 2):
+
+- Bar 552 (11.08.): **alle W ABWEICHUNG** (W=72 Delta -316).
+- Zone 1104..1479: **alle W ABWEICHUNG** (W=24 1195/1209, W=36 1162/1222,
+  W=48 1162/1234, W=72 932/1261).
+- Zone 1748..1904: W = 24/36/48 TREFFER, W=72 ABWEICHUNG.
+
+Zusatz Phase 1c: Q24-Kantenreife (`min_wall_alter_bars` = 24) verschiebt die
+1. Balance nur 0 -> 13 (W=24) bzw. 0 -> 1 (W=36); R unveraendert.
+
+PnL je Sweep-Stufe (V0 + endogenes Gate, AUG26):
+
+| W | Trades | Treffer | SL | R_brutto | vs ZB | vs ZE |
+|---|---|---|---|---|---|---|
+| 24 | 13 | 2 | 9 | -4.0465 | -3.0553 | -5.0553 |
+| 36 | 11 | 2 | 8 | -2.9467 | -1.9555 | -3.9555 |
+| 48 | 8 | 1 | 6 | -6.0454 | -5.0543 | -7.0543 |
+| 72 | 5 | 0 | 3 | -3.5620 | -2.5709 | -4.5709 |
+| ZB | 11 | 4 | 5 | **-0.9912** | - | - |
+| ZE | 9 | 4 | 3 | +1.0088 | - | - |
+
+Drei Befunde:
+
+1. **Kein Parameter-Plateau.** Die Reihe ist nicht monoton
+   (-4.05 / -2.95 / -6.05 / -3.56); zwischen W=36 und W=48 kippt es um
+   -3.1 R. W=48 (die "stabilste" Erwartung) ist der schlechteste Wert.
+2. **Der Detektor fragmentiert.** 11-48 Umschaltungen pro Monat, alle
+   ~40-175 Bars -> fehlende Hysterese -> Zufallsfilter. W=48s Zone
+   `989..1073` loescht den besten Trade (Bar 1025 K75 **+5.0987 R**).
+3. **Bar 552 ist KEINE Dwell-Grenze.** Um 480..532 (10.08.) liegt eine
+   legitime Balance (K52/K55, Dwell erfuellt); die -2.0 R sind
+   Normalverluste INNERHALB einer Balance, nicht ein Transitionsschaden.
+
+#### H20.9 ALT-AUG-Gegenprobe (Falsifikation, K1-K3)
+
+Vor jedem Neukonstrukt wurde der Detektor auf dem BEKANNTEN Fenster geprueft
+(`AUG`, n = 1288, `box_end` nativ 644, 59 edges + 14 seeds).
+
+Anker (Harness-Treue, beide OK):
+
+- `box_end_bar = n` (Voll-Lauf, kein Gate): 14 / +42.450970.
+- `box_end_bar` = 644 (H1, kein Gate): 8 / +38.919584.
+
+Damit ist die arretierte **Zweiteilung** unabhaengig bestaetigt: H1 (0..643)
+laeuft **ungegatet**, nur H2 (644..1287) traegt die P9/A1/A2-Gate-Logik.
+
+Falsifikationskriterien (alle drei muessen halten):
+
+- **K1 GRENZE**: 1. Balance bei Bar 848 +/- 48.
+- **K2 SCHNITT**: <= 4 Balances (arretiert: genau 3).
+- **K3 FLAECHE**: IoU(Balance-Maske, arretierte Segmente) >= 0.80 im
+  Loop-Bereich [2, 1284] (425 arretierte Balance-Bars).
+
+| W | Balances | 1. Balance | TP | FP | FN | IoU | K1 | K2 | K3 | Urteil |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 24 | 35 | 0 | 425 | 848 | 0 | 0.334 | NEIN | NEIN | NEIN | WIDERLEGT |
+| 36 | 23 | 20 | 408 | 793 | 17 | 0.335 | NEIN | NEIN | NEIN | WIDERLEGT |
+| 48 | 18 | 15 | 351 | 687 | 74 | 0.316 | NEIN | NEIN | NEIN | WIDERLEGT |
+| 72 | 7 | 119 | 306 | 349 | 119 | 0.395 | NEIN | NEIN | NEIN | WIDERLEGT |
+
+Der Detektor zersplittert auf den bekannten Daten identisch (7-35 gleitende
+Fenster statt 3) und verfehlt die Vor-Balance 0..847 vollstaendig. Die
+Q24-Kantenreife aendert daran nichts.
+
+PnL-Einordnung (ganzer Monat, `box_end = n`; das Detektor-Gate laeuft dort
+ueber den GESAMTEN Monat und ist deshalb gegen Z0 zu lesen, nicht gegen V019):
+
+| Lauf | Trades | R_brutto | vs Z0 |
+|---|---|---|---|
+| Z0 (kein Gate) | 14 | +42.450970 | - |
+| arretiert H1+H2 (Gate, OHNE Zielinjektion) | 10 | +38.970089 | -3.4809 |
+| V019 arretiert (Gate + Zielinjektion) | 23 | +82.614385 | +40.1634 |
+| Detektor W=24 | 9 | +25.2766 | -17.1744 |
+| Detektor W=36 | 8 | +26.2766 | -16.1744 |
+| Detektor W=48 | 4 | -0.7720 | -43.2230 |
+| Detektor W=72 | 2 | +6.7482 | -35.7028 |
+
+Zweiter, unabhaengiger Befund: Der V019-Sprung auf +82.614385 R stammt aus
+der **Ziel-Injektion** des Hooks (sie aendert ueber den Filter `kein_raum`
+auch den Entry-Bestand), nicht aus der Blockade. Das H2-Gate allein liegt
+-3.4809 R unter dem ungegateten Monat.
+
+**Methodik-Lehre (festgehalten):** Ein blosser Overlap-Anteil je Zielzone ist
+als Kriterium UNTAUGLICH - bei 18..35 gleitenden Fenstern ist jede Zone per
+Konstruktion zu >= 50 % ueberdeckt. Ein erster Lauf urteilte W=36 damit
+faelschlich "SAUBER"; erst K1-K3 decken die Zersplitterung auf.
+
+**Urteil:** Der gleitende Dwell-Detektor ist auf Bar-Ebene **widerlegt**. Auf
+AUG26 wird mit diesem Instrument NICHT weitergesucht. Aufgesetzt wird
+stattdessen auf der bereits arretierten Kantenwechsel-Regel (E-34,
+"aeusserste lebende Linie je Seite", `wall_live_bars`), die die Grenzen
+848 / 1033 / 1174 historisch geliefert hat.
+
+#### H20.10 Notarielle Streichung von ZE / Arretierung von ZB
+
+**ZE ist gestrichen.** Die Variante "ZB + Grenze 552" (9 Trades /
++1.008837 R, Delta +9.0000 R) beruhte auf einem Artefakt: Bar 552 ist keine
+Dwell-Grenze, sondern der willkuerlich gewaehlte Abschnitt einer legitimen
+Balance 480..532 (K52/K55). Die +2.0 R gegenueber ZB sind
+**Ergebnis-Fitting** und werden aus den Referenzzielen entfernt.
+
+**Einzige Benchmark des Transitionsverbots ist ZB:**
+
+| Kennzahl | ZB |
+|---|---|
+| Zonen (AUG26) | 368..551 / 1104..1479 / 1748..1904 |
+| Trades | 11 |
+| Treffer / SL | 4 / 5 |
+| R_brutto | **-0.991154** |
+| Delta vs Z0 | **+7.000000** |
+| Vollverluste eliminiert | **7 / 7** (391 K36, 433 K47, 498 K48, 533 K52, 1222 K101, 1315 K109, 1812 K140) |
+| Gewinner verloren | 0 |
+| Neue Trades | 0 |
+
+ZB wirkt **rein subtraktiv**. ZA (13 / -2.991154, +5.0 R) verfehlt 498/533;
+ZC und ZD sind ergebnisgleich zu ZB. Die Null-Referenz fuer die endogene
+Regel ist damit **ZB**. Der Ausreisser Bar 1481 (25.08., K117, -1.0) bleibt
+per Anwender-Entscheid (Frage 7) **Normalverlust** - kein Curve-Fitting.
+
+#### H20.11 Artefakt-Anker (Ergaenzung zu H20.6, SHA256; `test/` = gitignored)
+
+| Datei | Bytes | SHA256 |
+|---|---|---|
+| `test/_chk_aug26_transitionen.py` | 4.639 | `31dcc24d8a7cfa394dd294779a3ef9e61acd1c08782d07bad82b040a9f42b5b1` |
+| `test/_chk_aug26_transitionen_out.txt` | 3.896 | `f74e8b67d0c3ea228adce38e6a47518385a7fe99748fe4e7a84dffbd007a45ee` |
+| `test/_chk_aug26_no_transition_run.py` | 8.998 | `03f1083eaa5a5b28216d8281731859c0bac43cbfc2d1e128948388c8cbb6f65a` |
+| `test/_chk_aug26_no_transition_run_out.txt` | 7.007 | `ea616c2acba8ff35ec66a676d37a411d2f01b1356ae9c892e1e8d64bacbe3f36` |
+| `test/_chk_aug26_transition_endogen.py` | 15.633 | `c977566e3a525a26a10c6ea146303819003dc5dbd23de5eae8b2fd6e35d4291d` |
+| `test/_chk_aug26_transition_endogen_out.txt` | 20.048 | `728e898a7fc626f795d15aa919ae613c626a676e9464dac5425bc726a029b6b1` |
+| `test/_chk_alt_aug_transition_endogen.py` | 25.271 | `ad07f3302ae274d805c7730ad6e45b78ee93ac95de9e75a75dc763f1a9c177c2` |
+| `test/_chk_alt_aug_transition_endogen_out.txt` | 39.142 | `10525ad288b86d65c64419892799163f0d8956089e0f2c0080220e9643e9e37c` |
+| `test/tmp_kanten_engine_replay.py` (unveraendert) | 200.433 | `53f28e1b6971a64df59beaf3292b466fb37ac86b870278f238a1b385084fd006` |
+| `backtest_lab/phasen_regime_adapter.py` (unveraendert) | 36.255 | `983192b3d25a1a50dcd06aac3b9230fc31f7759e5297c933d286b4fa88033cfb` |
+
+Alle Laeufe dieses Blocks sind read-only: Engine und Adapter byte-identisch,
+die Gate-Patches wirkten ausschliesslich im RAM der Testskripte.
+
+#### H20.12 Naechster Schritt (freigegeben): Kantenwechsel-Regel E-34 als Regime-Detektor
+
+Kein Zeitfenster-Konstrukt, keine Hysterese-Kosmetik. Geprueft wird die
+bereits angelegte Regel "**Segmentgrenze = Wechsel des Paares
+(Decke-Kid, Boden-Kid) der aeussersten LEBENDEN Linie je Seite**"
+(E-34 Paragraph O1; Leben = letzter bestaetigter Docht `b+2 <= k` juenger als
+`cfg.wall_live_bars = 96`). Prueffragen:
+
+1. Liefert die Regel auf `AUG` kausal genau 848 / 1033 / 1174 (K1-K3)?
+2. Welche Grenzen wirft dieselbe Regel auf `AUG26` aus (+460-Offset)?
+3. Ist der Wechsel kausal stabil oder kippt er mit dem Katalog (Fenster-
+   Artefakt wie in H20.5)?
+
+Der Anwender hat Weg (b) verbindlich freigegeben; K2 bleibt Obergrenze <= 4
+mit Zielgroesse exakt 3.

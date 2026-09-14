@@ -1,0 +1,23 @@
+﻿ZP-4 + ZP-5 angewendet: OK (alle 5 Anker count == 1)
+injizierter _se_trades kompiliert OK | 23985 Zeichen (vorher 21612)
+--- ZP-5-Block im gepatchten Quelltext ---
+[e for e in alle if e.seite == "UNTEN"]}
+    # --- ZP-5(D): Kantenlaeufer-Durchstich auf Segmentwaenden
+    # ZWEISTUFIG GEGATET: diese Funktion laeuft nur bei mode == "V019"
+    # (Quelltext-Stufe, Aufruf weiter unten) UND der Laufzeit-Gate
+    # len(hook.segmente) > 1 haelt V0/V1_basis inert.
+    _kl_hook = globals().get("_hook")
+    if _kl_hook is not None and len(getattr(_kl_hook,
+                                            "segmente", ())) > 1:
+        _kl_idx = {int(e.kid): e for e in alle}
+        for _seg in _kl_hook.segmente:
+            if _seg.boden_deklariert_literal is not None:
+ 
+--- Zaehlung Schl├╝sselmarker ---
+  cfg.touch_band_pct         2
+  0.12                       0
+  _ueb(_kb)                  1
+  0.80                       0
+  boden_deklariert_literal   3
+  basis_bei(_s0)             1
+  schlaf_windows             3

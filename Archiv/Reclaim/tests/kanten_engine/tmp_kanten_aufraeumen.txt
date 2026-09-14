@@ -1,0 +1,193 @@
+######################################################################################################################
+# KANTEN-AUFRAEUMEN (READ-ONLY) -- AUG volles Fenster
+# n=1288 bars | box_end=644 | Kanten(>=2)=65 | Seeds(<2)=28 | Trades=9
+######################################################################################################################
+
+======================================================================================================================
+1. INVENTAR ALLER KANTEN (volles AUG, sortiert nach Seite/Basis)
+======================================================================================================================
+  kid seite  basis    geb  pivot  n  status      O1    O2    O3  live | Entry Gegner Blocker Zyklus Stack
+----------------------------------------------------------------------------------------------------------------------
+  K 53 OBEN    62.878  672   672  1 AKTIV           0     0     0     4 | .     .      .       .      .
+  K 50 OBEN    63.162  666   655  2 SCHLAFEND       0     0     0     0 | .     .      .       .      .
+  K 49 OBEN    63.282  658   648  4 SCHLAFEND       0     0     0     0 | .     .      .       .      .
+  K  2 OBEN    63.678   18    12  2 SCHLAFEND       0     7     0     0 | .     .      .       .      .
+  K  0 OBEN    63.884   25     5  4 SCHLAFEND      26    12     3    26 | .     .      .       .      .
+  K 47 OBEN    63.994  629   629  1 AKTIV           0     0     0     1 | .     .      .       .      .
+  K  9 OBEN    64.108   62    56  4 SCHLAFEND       0     0     0     0 | .     .      .       .      .
+  K 41 OBEN    64.184  390   390  1 AKTIV           0     0     0     0 | .     .      .       .      .
+  K  6 OBEN    64.312   45    31  3 PRIM           35    41    12    35 | .     .      .       .      .
+  K 40 OBEN    64.464  365   365  1 AKTIV           0     0     0     0 | .     .      .       .      .
+  K 22 OBEN    64.552  128   128  1 AKTIV           0     0     0     0 | .     .      .       .      .
+  K 27 OBEN    64.709  376   175  3 SCHLAFEND       0     0     0     0 | .     .      .       .      .
+  K 10 OBEN    64.845  135    67  7 SCHLAFEND       7     0     0     7 | .     .      .       .      .
+  K 39 OBEN    64.943  352   352  1 AKTIV           0     0     0     0 | .     .      .       .      .
+  K 36 OBEN    64.993  444   327  2 SCHLAFEND       0     0     0     0 | .     .      .       .      .
+  K 25 OBEN    65.126  160   141  7 SCHLAFEND       0     0     0     0 | .     .      .       .      .
+  K 12 OBEN    65.257   78    72  9 SCHLAFEND      11    18     0    35 | .     .      .       .      .
+  K 26 OBEN    65.326  211   144  2 SCHLAFEND       0     0     0     0 | .     .      .       .      .
+  K 38 OBEN    65.409  336   336  1 AKTIV           0     0     0    30 | .     .      .       .      .
+  K 46 OBEN    65.462  585   572  3 SCHLAFEND       0     0     0    25 | .     .      .       .      .
+  K 33 OBEN    65.594  267   262  4 SCHLAFEND       0     0     0    20 | .     .      .       .      .
+  K 28 OBEN    65.709  433   204  2 SCHLAFEND       0     0     0    64 | .     .      .       .      .
+  K 45 OBEN    65.791  552   552  1 AKTIV           0     0     0     0 | .     .      .       .      .
+  K 16 OBEN    65.905   96    90 12 SCHLAFEND       0     3   105    13 | X     .      .       .      .
+  K 15 OBEN    66.046  220    85  3 PRIM           22   128     4    38 | .     .      .       .      .
+  K 43 OBEN    66.206  473   473  1 AKTIV           2     0     0    55 | .     .      .       .      .
+  K 31 OBEN    66.360  249   237  5 SCHLAFEND       0     0     0   148 | X     .      .       X      X
+  K 20 OBEN    66.459  529   107  3 PRIM          627   542   506   229 | X     X      X       .      X
+  K 60 OBEN    66.744  781   781  1 AKTIV           0     0     0     0 | .     .      .       .      .
+  K 59 OBEN    66.842  777   777  1 AKTIV           0     0     0     0 | .     .      .       .      .
+  K 61 OBEN    66.939  786   786  1 AKTIV           6     0     0     6 | .     .      .       .      .
+  K 54 OBEN    67.107  769   736  2 SCHLAFEND      63    54    29    63 | X     .      .       X      .
+  K 86 OBEN    68.090 1175  1034  2 SCHLAFEND       0     0     0     1 | .     .      .       .      .
+  K 87 OBEN    68.220 1067  1059  3 SCHLAFEND       0     0     0     0 | .     .      .       .      .
+  K 64 OBEN    68.328  823   812  6 SCHLAFEND       0    24     6     0 | .     .      .       .      .
+  K 92 OBEN    68.432 1253  1253  1 AKTIV           0     0     0     0 | .     .      .       .      .
+  K 91 OBEN    68.529 1236  1169  5 SCHLAFEND       0     0     0     0 | .     .      .       .      .
+  K 68 OBEN    68.677 1001   842  5 SCHLAFEND       6     0     0     6 | .     .      .       .      .
+  K 84 OBEN    68.859 1083   996  4 SCHLAFEND       0     0     0     0 | .     .      .       .      .
+  K 62 OBEN    68.989  847   805 10 PRIM           62    34    19    62 | X     .      .       X      X
+  K 83 OBEN    69.126 1012   942  4 SCHLAFEND       0     0     0     0 | .     .      .       .      .
+  K 81 OBEN    69.288  956   938  5 SCHLAFEND       0     0     0     1 | .     .      .       .      .
+  K 78 OBEN    69.421  953   920  3 SCHLAFEND       0     0     0     0 | .     .      .       .      .
+  K 79 OBEN    69.518  974   932  7 AKTIV           0     0     0     0 | .     .      .       .      .
+  K 77 OBEN    69.613  912   912  1 AKTIV           0     0     0     0 | .     .      .       .      .
+  K 76 OBEN    69.678  928   909  6 AKTIV           0     0     0   169 | .     .      .       .      .
+  K 73 OBEN    69.841  891   891  1 AKTIV           0     0     0     0 | .     .      .       .      .
+  K 70 OBEN    69.946  881   873  5 AKTIV         414   405   391   243 | .     .      X       .      .
+  K 51 UNTEN   62.562  673   657  2 AKTIV         630   613   607   112 | .     X      X       .      .
+  K 52 UNTEN   62.859  665   665  1 AKTIV           0     0     0     0 | .     .      .       .      .
+  K  3 UNTEN   62.967  682    14  3 PRIM          643    25    20   112 | X     .      X       X      .
+  K 48 UNTEN   63.156  643   643  1 AKTIV           0     0     0    14 | X     .      .       X      .
+  K  4 UNTEN   63.252   20    20  1 AKTIV           0     0     0     6 | .     .      .       .      .
+  K  1 UNTEN   63.485  398     7  3 SCHLAFEND       7   250   243   126 | X     .      .       .      .
+  K  5 UNTEN   63.633   60    30  5 SCHLAFEND       0   338   338    55 | X     .      .       .      .
+  K  8 UNTEN   63.758   57    52  5 SCHLAFEND       0     3     0     6 | .     .      .       .      .
+  K 42 UNTEN   63.916  392   392  1 AKTIV           0     0     0     0 | .     .      .       .      .
+  K  7 UNTEN   64.071   43    43  1 AKTIV           0     0     0     0 | .     .      .       .      .
+  K 21 UNTEN   64.206  316   126  4 SCHLAFEND       0     0     0   135 | .     .      .       .      .
+  K 23 UNTEN   64.331  162   130  7 SCHLAFEND       0     0     0    46 | .     .      .       .      .
+  K 11 UNTEN   64.457  122    69  6 SCHLAFEND       0     0     0     9 | .     .      .       .      .
+  K 24 UNTEN   64.607  184   136  8 SCHLAFEND       0     0     0    59 | .     .      .       .      .
+  K 13 UNTEN   64.730  154    75 10 SCHLAFEND       0     0     0    56 | .     .      .       .      .
+  K 37 UNTEN   64.840  592   330  4 AKTIV           0     0     0    18 | .     .      .       .      .
+  K 29 UNTEN   64.918  294   214  2 SCHLAFEND       0     0     0    17 | .     .      .       .      .
+  K 14 UNTEN   65.031  209    81  7 SCHLAFEND       0     0     0    19 | .     .      .       .      .
+  K 34 UNTEN   65.213  273   264  2 SCHLAFEND       0     0     0     0 | .     .      .       .      .
+  K 35 UNTEN   65.293  291   291  1 AKTIV           0     0     0     2 | .     .      .       .      .
+  K 19 UNTEN   65.418  479   104  6 AKTIV           0     0     0    18 | .     .      .       .      .
+  K 32 UNTEN   65.486  500   255  2 SCHLAFEND       0     0     0     0 | .     .      .       .      .
+  K 17 UNTEN   65.602  111    92 13 AKTIV           0     0     0    67 | .     .      .       .      .
+  K 18 UNTEN   65.698  550    98  2 SCHLAFEND       0     0     0     0 | .     .      .       .      .
+  K 30 UNTEN   66.076  235   235  1 AKTIV           0     0     0     0 | .     .      .       .      .
+  K 44 UNTEN   66.234  534   534  1 AKTIV           0     0     0     3 | .     .      .       .      .
+  K 56 UNTEN   66.371  748   748  1 AKTIV           0     0     0     0 | .     .      .       .      .
+  K 58 UNTEN   66.455  774   774  1 AKTIV           0     0     0     0 | .     .      .       .      .
+  K 57 UNTEN   66.568  766   751  4 SCHLAFEND       0     0     0     0 | .     .      .       .      .
+  K 55 UNTEN   66.861  762   744  2 SCHLAFEND       0     0     0     0 | .     .      .       .      .
+  K 88 UNTEN   67.420 1075  1075  1 AKTIV           0     0     0    96 | .     .      .       .      .
+  K 85 UNTEN   67.546 1056  1031  4 AKTIV           0     0     0   156 | .     .      .       .      .
+  K 65 UNTEN   67.733 1039   817  6 AKTIV           0     0     0    25 | .     .      .       .      .
+  K 66 UNTEN   67.831  820   820  1 AKTIV           0     0     0     3 | .     .      .       .      .
+  K 63 UNTEN   67.908  813   810  7 AKTIV           0     0     0    21 | .     .      .       .      .
+  K 67 UNTEN   68.037  828   828  1 AKTIV           0     0     0     0 | .     .      .       .      .
+  K 90 UNTEN   68.208 1234  1116  2 SCHLAFEND       0     0     0     1 | .     .      .       .      .
+  K 80 UNTEN   68.360  991   934  6 SCHLAFEND       0     0     0    94 | .     .      .       .      .
+  K 89 UNTEN   68.475 1103  1085  4 SCHLAFEND       0     0     0     0 | .     .      .       .      .
+  K 82 UNTEN   68.626  950   939  6 SCHLAFEND       0     0     0     0 | .     .      .       .      .
+  K 69 UNTEN   68.756  864   858  8 SCHLAFEND       0     0     0     0 | .     .      .       .      .
+  K 74 UNTEN   68.891  924   894  5 SCHLAFEND       0     0     0     0 | .     .      .       .      .
+  K 72 UNTEN   69.034 1124   886  4 AKTIV           0     0     0     0 | .     .      .       .      .
+  K 71 UNTEN   69.191  890   876  2 SCHLAFEND       0     0     0     0 | .     .      .       .      .
+  K 75 UNTEN   69.325  905   900  3 SCHLAFEND       0     0     0     0 | .     .      .       .      .
+
+======================================================================================================================
+2. KLASSIFIKATION
+======================================================================================================================
+  Kanten gesamt (edges+seeds)      : 93
+  davon 'edges' (>=2 Touches)      : 65
+  davon 'seeds' (<2 Touches)       : 28
+  NIE aeusserste Kante (O1/O2/O3)  : 73
+  ... davon zusaetzlich nie genutzt: 71
+  jemals als Entry-Kante           : 9 -> [1, 3, 5, 16, 20, 31, 48, 54, 62]
+  jemals als Blocker               : 4 -> [3, 20, 51, 70]
+  jemals Zyklus-Sperre             : 5 -> [3, 31, 48, 54, 62]
+  jemals Stacking-Sperre           : 3 -> [20, 31, 62]
+
+  Loesch-Kandidaten (nie outer, nie genutzt):
+    K 53 OBEN  basis=  62.878 geb= 672 n=1 status=AKTIV
+    K 50 OBEN  basis=  63.162 geb= 666 n=2 status=SCHLAFEND
+    K 49 OBEN  basis=  63.282 geb= 658 n=4 status=SCHLAFEND
+    K 47 OBEN  basis=  63.994 geb= 629 n=1 status=AKTIV
+    K  9 OBEN  basis=  64.108 geb=  62 n=4 status=SCHLAFEND
+    K 41 OBEN  basis=  64.184 geb= 390 n=1 status=AKTIV
+    K 40 OBEN  basis=  64.464 geb= 365 n=1 status=AKTIV
+    K 22 OBEN  basis=  64.552 geb= 128 n=1 status=AKTIV
+    K 27 OBEN  basis=  64.709 geb= 376 n=3 status=SCHLAFEND
+    K 39 OBEN  basis=  64.943 geb= 352 n=1 status=AKTIV
+    K 36 OBEN  basis=  64.993 geb= 444 n=2 status=SCHLAFEND
+    K 25 OBEN  basis=  65.126 geb= 160 n=7 status=SCHLAFEND
+    K 26 OBEN  basis=  65.326 geb= 211 n=2 status=SCHLAFEND
+    K 38 OBEN  basis=  65.409 geb= 336 n=1 status=AKTIV
+    K 46 OBEN  basis=  65.462 geb= 585 n=3 status=SCHLAFEND
+    K 33 OBEN  basis=  65.594 geb= 267 n=4 status=SCHLAFEND
+    K 28 OBEN  basis=  65.709 geb= 433 n=2 status=SCHLAFEND
+    K 45 OBEN  basis=  65.791 geb= 552 n=1 status=AKTIV
+    K 60 OBEN  basis=  66.744 geb= 781 n=1 status=AKTIV
+    K 59 OBEN  basis=  66.842 geb= 777 n=1 status=AKTIV
+    K 86 OBEN  basis=  68.090 geb=1175 n=2 status=SCHLAFEND
+    K 87 OBEN  basis=  68.220 geb=1067 n=3 status=SCHLAFEND
+    K 92 OBEN  basis=  68.432 geb=1253 n=1 status=AKTIV
+    K 91 OBEN  basis=  68.529 geb=1236 n=5 status=SCHLAFEND
+    K 84 OBEN  basis=  68.859 geb=1083 n=4 status=SCHLAFEND
+    K 83 OBEN  basis=  69.126 geb=1012 n=4 status=SCHLAFEND
+    K 81 OBEN  basis=  69.288 geb= 956 n=5 status=SCHLAFEND
+    K 78 OBEN  basis=  69.421 geb= 953 n=3 status=SCHLAFEND
+    K 79 OBEN  basis=  69.518 geb= 974 n=7 status=AKTIV
+    K 77 OBEN  basis=  69.613 geb= 912 n=1 status=AKTIV
+    K 76 OBEN  basis=  69.678 geb= 928 n=6 status=AKTIV
+    K 73 OBEN  basis=  69.841 geb= 891 n=1 status=AKTIV
+    K 52 UNTEN basis=  62.859 geb= 665 n=1 status=AKTIV
+    K  4 UNTEN basis=  63.252 geb=  20 n=1 status=AKTIV
+    K 42 UNTEN basis=  63.916 geb= 392 n=1 status=AKTIV
+    K  7 UNTEN basis=  64.071 geb=  43 n=1 status=AKTIV
+    K 21 UNTEN basis=  64.206 geb= 316 n=4 status=SCHLAFEND
+    K 23 UNTEN basis=  64.331 geb= 162 n=7 status=SCHLAFEND
+    K 11 UNTEN basis=  64.457 geb= 122 n=6 status=SCHLAFEND
+    K 24 UNTEN basis=  64.607 geb= 184 n=8 status=SCHLAFEND
+    K 13 UNTEN basis=  64.730 geb= 154 n=10 status=SCHLAFEND
+    K 37 UNTEN basis=  64.840 geb= 592 n=4 status=AKTIV
+    K 29 UNTEN basis=  64.918 geb= 294 n=2 status=SCHLAFEND
+    K 14 UNTEN basis=  65.031 geb= 209 n=7 status=SCHLAFEND
+    K 34 UNTEN basis=  65.213 geb= 273 n=2 status=SCHLAFEND
+    K 35 UNTEN basis=  65.293 geb= 291 n=1 status=AKTIV
+    K 19 UNTEN basis=  65.418 geb= 479 n=6 status=AKTIV
+    K 32 UNTEN basis=  65.486 geb= 500 n=2 status=SCHLAFEND
+    K 17 UNTEN basis=  65.602 geb= 111 n=13 status=AKTIV
+    K 18 UNTEN basis=  65.698 geb= 550 n=2 status=SCHLAFEND
+    K 30 UNTEN basis=  66.076 geb= 235 n=1 status=AKTIV
+    K 44 UNTEN basis=  66.234 geb= 534 n=1 status=AKTIV
+    K 56 UNTEN basis=  66.371 geb= 748 n=1 status=AKTIV
+    K 58 UNTEN basis=  66.455 geb= 774 n=1 status=AKTIV
+    K 57 UNTEN basis=  66.568 geb= 766 n=4 status=SCHLAFEND
+    K 55 UNTEN basis=  66.861 geb= 762 n=2 status=SCHLAFEND
+    K 88 UNTEN basis=  67.420 geb=1075 n=1 status=AKTIV
+    K 85 UNTEN basis=  67.546 geb=1056 n=4 status=AKTIV
+    K 65 UNTEN basis=  67.733 geb=1039 n=6 status=AKTIV
+    K 66 UNTEN basis=  67.831 geb= 820 n=1 status=AKTIV
+    K 63 UNTEN basis=  67.908 geb= 813 n=7 status=AKTIV
+    K 67 UNTEN basis=  68.037 geb= 828 n=1 status=AKTIV
+    K 90 UNTEN basis=  68.208 geb=1234 n=2 status=SCHLAFEND
+    K 80 UNTEN basis=  68.360 geb= 991 n=6 status=SCHLAFEND
+    K 89 UNTEN basis=  68.475 geb=1103 n=4 status=SCHLAFEND
+    K 82 UNTEN basis=  68.626 geb= 950 n=6 status=SCHLAFEND
+    K 69 UNTEN basis=  68.756 geb= 864 n=8 status=SCHLAFEND
+    K 74 UNTEN basis=  68.891 geb= 924 n=5 status=SCHLAFEND
+    K 72 UNTEN basis=  69.034 geb=1124 n=4 status=AKTIV
+    K 71 UNTEN basis=  69.191 geb= 890 n=2 status=SCHLAFEND
+    K 75 UNTEN basis=  69.325 geb= 905 n=3 status=SCHLAFEND
+
+  Nie-outer, ABER genutzt (bleiben!):
+    K 31 OBEN  basis=  66.360 geb= 249 n=5 -> ENTRY,ZYKLUS,STACK
+    K 48 UNTEN basis=  63.156 geb= 643 n=1 -> ENTRY,ZYKLUS

@@ -1,0 +1,7 @@
+FENSTER EXT [2026-08-03 .. 2026-09-12] n=2750
+BOX-Kalenderkante nativ (19.08.): Bar 1104 | ALT-V019-AUG-URSPRUNG (10.08.): Bar 460 | Versatz = 460 Bars
+KANTEN: 103 edges + 19 seeds | TOUCHES (gezeichnet) 577 | Tombstones 36 | R21 135
+TRADES (engine-nativ, ohne ZP-Patch): 19 | Summe R -0.808847
+ANKER: A 836-864 | B 1076-1160 | C 1780-1820 | D 1972-2088 | E 2598-2718
+V019-ADAPTER-SEGMENTE bis Bar 1287; ab 1288 bewusst kahl.
+HINWEIS: Fenster-Ursprung EXT = 03.08.; Alt-V019-PNG = 10.08. -> derselbe Kanten-Katalog erscheint um den Versatz verschoben.

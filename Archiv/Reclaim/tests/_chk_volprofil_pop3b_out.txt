@@ -1,0 +1,18 @@
+﻿Fenster ('2026-08-03', '2026-09-01'): n=1932, edges=90, [2026-08-03 00:00:00 .. 2026-08-31 22:45:00]
+python : Traceback (most recent call last):
+In Zeile:1 Zeichen:42
++ ... opwatch]::StartNew(); python test/_chk_volprofil_pop3.py 2>&1 | Out-F ...
++                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "F:\Python\PyLab\test\_chk_volprofil_pop3.py", line 117, in <module>
+    sc2 = e2._se_scan("EXT", cfg)  # type: ignore[arg-type]
+          ^^^^^^^^^^^^^^^^^^^^^^^
+  File "F:\Python\PyLab\test\tmp_kanten_engine_replay.py", line 2207, in _se_scan
+    d = _lade_fenster(fenster)
+        ^^^^^^^^^^^^^^^^^^^^^^
+  File "F:\Python\PyLab\test\tmp_kanten_engine_replay.py", line 604, in _lade_fenster
+    start, ende = FENSTER[fenster]
+                  ~~~~~~~^^^^^^^^^
+KeyError: 'EXT'

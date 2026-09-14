@@ -1,0 +1,38 @@
+SICHTPRUEFUNG MAI / JUN / JUL -- je Monat ein PNG, cumR-Statistik
+Zeitbasis: BKZ = time AT TIME ZONE 'UTC' (Kanon K1/K4), keine
+           Zeitzonen-Projektion, X-Achse = Bar-Zeit ohne Offset.
+Modus A (hook=None) | touch_band_pct 0.12 | sl_buffer_usd 0.05 | tp1_anteil_pct 50
+
+===== MAI (2026-05-01 .. 2026-06-01 exkl.) | n=1922 | edges=78 seeds=27 =====
+  MAI  2026-05-01 .. 2026-05-29 (BKZ, ohne Offset)   |   Bars 0..1921   |   Vollauf box_end_bar = n   |   Modus A (hook=None, V020-Engine, arretiert)
+  Trades 58   |   SumR +40.023743 R   |   Win-Rate 13.79 % (8/50)   |   Profit-Faktor 2.0587
+  Risiko |sl-entry| USD:  min 0.1040   median 0.3115   max 1.2190   |   TP2 distinct: 5 (72.1820, 72.6220, 73.1280, 75.8790, 87.9720)
+  Exits  1. Haelfte: TP1 27 / SL 31 / ENDE 0   |   2. Haelfte: TP2 1 / SL 53 / ENDE 4   |   magenta Ringe = ENDE-Glattstellung am Fensterrand (4 Trades betroffen)
+  KONZENTRATION: bester Trade K103 (+51.668268 R, Risiko 0.2160 USD) = 129.1 % des SumR   ->   SumR OHNE diesen Trade -11.644525 R
+  DATEI-SHA256: 53f28e1b6971a64d...   (Basis/V020/Adapter byte-identisch arretiert)
+  PNG: F:\Python\PyLab\test\render_mai_sichttest.png
+  GEgenkanten-Kids: K6, K14, K24, K29, K108
+  getradete Kids  : K0, K1, K6, K8, K9, K11, K12, K14, K17, K24, K27, K29, K30, K34, K37, K40, K41, K43, K47, K62, K63, K65, K81, K82, K84, K96, K99, K102, K103, K125, K129
+
+===== JUN (2026-06-01 .. 2026-07-01 exkl.) | n=2009 | edges=117 seeds=40 =====
+  JUN  2026-06-01 .. 2026-06-30 (BKZ, ohne Offset)   |   Bars 0..2008   |   Vollauf box_end_bar = n   |   Modus A (hook=None, V020-Engine, arretiert)
+  Trades 56   |   SumR -26.883881 R   |   Win-Rate 14.29 % (8/48)   |   Profit-Faktor 0.3321
+  Risiko |sl-entry| USD:  min 0.0770   median 0.3025   max 0.6890   |   TP2 distinct: 3 (56.3750, 63.3520, 76.8490)
+  Exits  1. Haelfte: TP1 18 / SL 37 / ENDE 1   |   2. Haelfte: TP2 0 / SL 54 / ENDE 2   |   magenta Ringe = ENDE-Glattstellung am Fensterrand (2 Trades betroffen)
+  KONZENTRATION: bester Trade K170 (+10.014019 R, Risiko 0.2140 USD) = -37.2 % des SumR   ->   SumR OHNE diesen Trade -36.897899 R
+  DATEI-SHA256: 53f28e1b6971a64d...   (Basis/V020/Adapter byte-identisch arretiert)
+  PNG: F:\Python\PyLab\test\render_jun_sichttest.png
+  GEgenkanten-Kids: K14, K81, K170
+  getradete Kids  : K1, K7, K12, K21, K22, K27, K31, K49, K50, K54, K58, K72, K73, K77, K81, K86, K88, K96, K103, K105, K106, K107, K109, K147, K151, K156, K157, K164, K167, K170, K178
+
+===== JUL (2026-07-01 .. 2026-08-01 exkl.) | n=2100 | edges=79 seeds=14 =====
+  JUL  2026-07-01 .. 2026-07-31 (BKZ, ohne Offset)   |   Bars 0..2099   |   Vollauf box_end_bar = n   |   Modus A (hook=None, V020-Engine, arretiert)
+  Trades 68   |   SumR -11.395066 R   |   Win-Rate 10.29 % (7/61)   |   Profit-Faktor 0.7616
+  Risiko |sl-entry| USD:  min 0.0470   median 0.2140   max 0.5450   |   TP2 distinct: 4 (55.0240, 57.0430, 57.4460, 62.6740)
+  Exits  1. Haelfte: TP1 27 / SL 41 / ENDE 0   |   2. Haelfte: TP2 2 / SL 62 / ENDE 4   |   magenta Ringe = ENDE-Glattstellung am Fensterrand (4 Trades betroffen)
+  KONZENTRATION: bester Trade K38 (+10.155643 R, Risiko 0.2370 USD) = -89.1 % des SumR   ->   SumR OHNE diesen Trade -21.550709 R
+  DATEI-SHA256: 53f28e1b6971a64d...   (Basis/V020/Adapter byte-identisch arretiert)
+  PNG: F:\Python\PyLab\test\render_jul_sichttest.png
+  GEgenkanten-Kids: K3, K35, K71, K96
+  getradete Kids  : K0, K1, K3, K4, K6, K8, K9, K10, K13, K15, K19, K21, K25, K35, K38, K55, K56, K58, K68, K69, K70, K71, K72, K76, K77, K80, K85, K87, K91, K96
+

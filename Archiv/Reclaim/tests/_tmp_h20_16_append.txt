@@ -1,0 +1,265 @@
+
+#### H20.16 DEFINITIONS-AUDIT — alle Phasenbegriffe der Codebasis (read-only, 2026-09-12)
+
+**Auftrag (Anwender):** (1) Wie ist ein Phasenbeginn (neue Kante + Gegenkante)
+definiert — konkret fuer die Phasenstarts bei H1, H2, H2/2? (2) Gibt es ein
+Phasenende, oder ergibt es sich aus dem Beginn der neuen Phase? (3) Welche
+brauchbaren Start-/Ende-Definitionen existieren fuer Phasen/Segmente?
+
+**Methode.** Reine Quelltext-Inspektion, kein Lauf, kein Test, kein Einbrand:
+`test/tmp_kanten_engine_replay.py` (4.663 Z.), `backtest_lab/phasen_regime_adapter.py`
+(816 Z.), `test/SESSION_HANDOFF.md` (H20.1-H20.15), `reports/h2_phasenregime/
+H2_PHASENREGIME_ADAPTER_SPEZ.md`, `scripts/market_segmentation.py`,
+`scripts/macro_persistence.py`, `test/_tmp_e34_auto.py`, `test/_chk_kantenwechsel_o1.py`.
+Temporaere Inspektionsdateien wurden restlos entfernt; im Arbeitsbaum bleibt nur
+diese Handoff-Aenderung.
+
+**Befund 1 — H1 / H2 / H2-2 sind KEINE Phasen.**
+Es sind eine Kalender-Partition und ein Dokument-Titel.
+- `box_end_datum: str = "2026-08-19"` (Engine Z. 1915);
+  `box_end_bar = int(np.searchsorted(ts_arr, np.datetime64(cfg.box_end_datum)))`
+  (Engine Z. 2214) -> AUG **644**, AUG26 **1104**.
+- Partition: **H1 = `entry_bar < box_end_bar`**, **H2 = `entry_bar >= box_end_bar`**
+  (Handoff 5083/5084, 4412).
+- **Der Motor handelt ausschliesslich H1**: `for k in range(2, box_end - 3)`
+  (Engine Z. 2613) -> Signal-Scan endet bei Bar 640 (AUG) / 1100 (AUG26).
+  H2 wird nur gefahren, wenn der Harness `scan["box_end_bar"] = n` setzt
+  (H20.4; Renderer Z. 630).
+- **H2/2 hat keinen Code-Traeger.** Es ist der Arbeitstitel der zweiten
+  H2-Haelfte, Zielzone 1021..1287, entry >= 966 (Handoff 3392/3542) — inhaltlich
+  identisch mit **P12 (1171..1272)** bzw. **A2 (1174..1287)**. Der H2-Spec nennt
+  es unter "K73-Decke / K82-Boden" (Z. 1126).
+
+**Befund 2 — Die ENGINE kennt keinen Phasenbegriff (per Design).**
+Der Docstring sagt es selbst (Z. 9-11): "Reine OHLCV-Rohdaten - KEINE
+Phasen-Segmentierung, KEIN finales Zonen-Screening, **KEIN Phasen-Ende-Wissen.**
+Kanten entstehen kausal und sequenziell aus bestaetigten Pivots."
+Anstelle von Phasen fuehrt die Engine einen **Kanten-Lebenszyklus**:
+
+| Mechanik | Regel | Ort |
+|---|---|---|
+| Pivot | striktes 5-Bar-Fraktal, bestaetigt bei `k = m+2` | `_pivot_dual` Z. 1407; Aufruf Z. 2240 |
+| Geburt | kein gleichseitiger Docht im Band `touch_band_pct = 0.12 %` (Abstand >= 3) -> `_SEEdgeH(kid, seite, basis=px, geburts_bar=mbar, erster_pivot_bar=mbar)` | Z. 2243-2291 |
+| Keimung | `touch_anzahl >= 2` -> edge, sonst seed | Z. 2337-2340 |
+| Liveness | letzter bestaetigter Docht (`b+2 <= k`) juenger als `wall_live_bars = 96` | `_lebt` Z. 2462-2473; Z. 1895 |
+| Etablierung | `k - erster_pivot_bar >= min_wall_alter_bars = 24` | `_etabliert` Z. 2528-2533 |
+| 2-Body-Bruch | zwei aufeinanderfolgende **Koerper** ausserhalb: `min(op,cl)[k-1] > basis` UND `min(op,cl)[k] > basis` (OBEN) -> Kante `SCHLAFEND` | Z. 2293-2306 |
+| Reaktivierung | `body_reclaim_reaktivierung = True`; `_akzeptiere` setzt `SCHLAFEND -> AKTIV` | Z. 170, 2224-2235, 3166 |
+| Verfall (R21) | Alter >= 96, nicht `prim_anker`, nicht mehr aeusserste -> Tombstone; Ruhezeit roher Touch = 192 | Z. 2184-2197, 2309-2334, 1906 |
+| Gegenkante | aeusserste Gegenseite mit `touch_conf >= 2`, **SCHLAFEND ausdruecklich zulaessig** | `_gegenkante` Z. 2597-2611 |
+
+Die Paarung "Decke = max(OBEN) / Boden = min(UNTEN)" existiert nur als **lokale
+Hilfsgroesse je Bar** (`ecken`, `_gegenkante`); sie wird nie persistiert und nie
+zu einer Phase verdichtet.
+**=> Der Mentor-Befund "im bisherigen V019-Code existierte keine autonome
+Phasenberechnung" ist BESTAETIGT.**
+
+**Befund 3 — Der ADAPTER kennt nur GESETZTE Fenster.**
+`PhasenSegmentEintrag` (Z. 110-150): `phasen_id, start_bar, end_bar, decke, boden,
+ziel_preis_short, ziel_preis_long, touch_band_pct=0.12, provenienz_toleranz_pct=1.0,
+boden_deklariert_literal`; Abdeckung `start_bar <= bar_idx <= end_bar` (Z. 141-150).
+
+| Segment | `start_bar` | `end_bar` | Quelle |
+|---|---|---|---|
+| P9 / P9_DIRECT_69_87 / P9_BODEN_RECLAIM | **848** (Literal) | **1020** (LOAD-BEARING) | Z. 191-200, 215-227, 568-581 |
+| P12_RESERVE | 1171 | 1272 | Z. 242-254 |
+| A1_AUTO_77 | **1033** | **1173** | Z. 695-704 |
+| A2_AUTO_77 | **1174** | **1287** | Z. 717-726 |
+
+`verifiziere_niveau_overrides` / `verifiziere_boden_literale` / `verifiziere_gegen_scan`
+pruefen **Kanten-Kids und Niveaus** gegen den Scan — **die Bars werden nicht
+berechnet und nicht geprueft.**
+Einziges echtes Ende-Objekt: `kausale_segmentfenster` (Z. 762-807) — Index 0
+(Anker P9) unberuehrt; endogene Segmente behalten `start_bar`, `end_bar` wird auf
+`wirksam_ab(Nachfolger) - 1` verlaengert mit
+`wirksam_ab = start_bar + AUTO_VERSCHMELZUNG_SCHWELLE - 1` (Schwelle **77**).
+**=> Phasenstart = gesetzter Integer. Phasenende = (i) Literal oder (ii)
+`Nachfolger.wirksam_ab - 1`. Kein Kanten- oder Gegenkanten-Trigger.**
+
+**Befund 4 — E-34 Paragraph O1 (nur in `test/`): der einzige echte Wechsel-Detektor.**
+`test/_tmp_e34_auto.py`:
+
+| Schritt | Regel | Ort |
+|---|---|---|
+| `lebt` | `[b fuer (b,_) in wicks wenn b+2 <= k]`, `max(b) >= k - 96` | Z. 151-154 |
+| `ecken(k)` | `(argmax basis_bei(k) ueber OBEN, argmin ueber UNTEN)` | Z. 157-166 |
+| Start | Wechsel des Paares `(decke_kid, boden_kid)`; `ko is None or ku is None` -> uebersprungen (Korridor-Aufspannung!) | Z. 178-188, 213-218 |
+| Merge | Laenge `< min_bars` ODER `_nah` (beide Grenzniveaus <= 0.12 % gleich) | Z. 223-247 |
+| Ende | `ende := naechster_Start - 1`; letztes Segment bis `n-1` | Z. 216-218 |
+
+Mit `scan["box_end_bar"] = n` (Z. 143) laeuft die Regel ueber den ganzen Monat.
+Ergebnis (H20.13): **A1/A2 (1033/1174) bit-exakt, 848 NICHT erzeugt.**
+
+**Befund 5 — Die ALT-Generation (`scripts/`) hat Start UND Ende vollstaendig.**
+`PhaseData` (`scripts/market_segmentation.py` Z. 93-125; Klone in
+`phasen_volumen_profil.py`, `reclaim_live_kernel.py`, `counter_engine_profil.py`,
+`scripts/archiv/phasen_makro_swings.py`): `start, ende, U_final, L_final,
+birth_h/l, U_conf_ts/L_conf_ts, break_dir, brk_idx, brk_kante, U_hist/L_hist`.
+
+| Element | Definition | Ort |
+|---|---|---|
+| Start | `phasen_start = ts[i]`; `i = brk_idx` des Vorgaengers -> **die neue Phase beginnt am Bruch-Bar des Vorgaengers** | Z. 523, 727 |
+| Etablierung | `est_idx` = erster Bar mit `U` UND `L` und `n_touches(H)+n_touches(L) >= MIN_ESTABLISH = 4` | Z. 556-563 |
+| Linien | `_linie` = Schnittmengen-Cluster ueber max. 100 Pivots, `DENSITY_BAND = 0.15` | Z. 311-329 |
+| Ende | **2-Close-Bruch**: `close[j] > h_ref + TOL` UND `close[j+1] > h_ref + TOL`, fruehestens `MIN_PHASE_CANDLES = 46` nach Start; `TOL = 0.34` | Z. 579-607, 80, 84 |
+| Grenzreferenz | `h_ref = max(U, birth_h)`, `l_ref = min(L, birth_l)` | Z. 584-593 |
+| `ende` | **letzter Touch der GEGEN-Grenze vor dem Bruch** (`TOL_TOUCH = 0.15`), sonst `ts[i]` | Z. 644-693, 81 |
+| `PhaseBoundaryEvent` | "Kausales Phasenende (2-Close-Bruch), B = durchbrochene Kante" + `ended_phase_id` | `macro_persistence.py` Z. 104-110 |
+
+Die Alt-Generation ist **archiviert** und wird vom SE-Harness nicht importiert.
+
+**Befund 6 — Audit des Mentor-Textblocks (Einzelurteil).**
+
+| # | Mentor-Behauptung | Code-Realitaet | Urteil |
+|---|---|---|---|
+| 1 | Decke = hoechste lebende Kante OBEN (`basis_bei`) | `max` ueber OBEN, `_gegenkante` Z. 2609 | BELEGT |
+| 2 | Boden = tiefste lebende Kante UNTEN | `min` ueber UNTEN, Z. 2611 | BELEGT |
+| 3 | `wall_live_bars = 96` (24 Handelsstunden) | cfg Z. 1895; `_lebt` Z. 2462-2473 | BELEGT |
+| 4 | "V >= 3 Docht-Touches + 0,12 % = Strukturbestaetigung" | O1/`_gegenkante` fordern **`touch_conf >= 2`** (Z. 2606); `min_touches_handelbar = 3` gilt nur fuer **innere** Kandidaten (Z. 2592) und G4 (Z. 2787). Band 0.12 % ok | TEILS FALSCH |
+| 5 | "Eine einmal verlassene Phase wird NIEMALS reaktiviert" | `body_reclaim_reaktivierung = True` (Z. 170, 3166), `_akzeptiere` SCHLAFEND->AKTIV (Z. 2231), `_gegenkante` erlaubt SCHLAFEND (Z. 2598) | FALSCH fuer Kanten; gilt nur fuer Adapter-Fenster |
+| 6 | Start = Erschoepfungs-Peak + Gegenpeak + Korridor-Aufspannung | sinngemaess = O1 (beide Seiten muessen existieren, Z. 214), **aber nicht implementiert**; "Extremum 1/2" ist keine Codegroesse | KONZEPT OK, NICHT IMPLEMENTIERT |
+| 7 | Paragraph O1 detektiert NEU/VERFALL | H20.13: AUG 62 = 29+33+0; AUG26 97 = 50+47+0 | BELEGT |
+| 8 | V019 nutzte P9/848 bzw. 1308 als statische Setzung | Adapter Z. 193; 848+460 = 1308 | BELEGT |
+| 9 | `ausbruch_schwelle_pct = 0,60 %`, `High > Decke*1.006` | 0.60 existiert nur als `max_sweep_ueberdehnung_pct` (Z. 1887) = **Obergrenze des Reclaim-Korridors** ("dist > max_sweep -> Ueberdehnung, kein Trade", Z. 2586). Kein `ausbruch_schwelle_pct`, kein `1.006` | FALSCH / Zahl umgedeutet |
+| 10 | Zwei-Kerzen: `Low[k-1] > Decke` UND `Low[k] > Decke` | Motor prueft **Koerper** `min(op,cl)`, nicht die Spanne; wirkt auf die **Kante** (`SCHLAFEND`), nicht auf eine Phase; per Body-Reclaim umkehrbar | WOERTLICH FALSCH, sinngemaess richtig |
+| 11 | "n >= 4 Docht-Touches -> Reclaim gesperrt" | Zahl ist **3** (`min_touches_handelbar`, Z. 1886), Wirkung **umgekehrt**: ab 3 Touches wird eine innere Linie **handelbar** (Z. 2592). Kein 4-Touch-Absorptions-Lock; einziges Lock ist R21 nach **192** Bars (Z. 1906) | FALSCH |
+| 12 | Transition toxisch: "0/7 Treffer, -7,0 R" | H20.10 ZB: **7/7 Vollverluste eliminiert** (391/433/498/533/1222/1315/1812), Summe **-7.000000 R**, Delta vs Z0 **+7.000000**; ZB selbst 11 Trades / 4 Treffer / 5 SL / R_brutto **-0.991154** | BELEGT, aber die "7" sind die ELIMINIERTEN Trades |
+
+**Fazit Mentor-Block:** als Diskussionsgeruest brauchbar; **5 Punkte sachlich nicht
+haltbar (4, 5, 9, 10-wortlaut, 11)**, ein Punkt umgedeutet (9: 0.60 ist eine
+**Handelssperre**, kein Ausbruch). Der historische Kern ("keine autonome
+Phasenberechnung im V019-Code") ist **korrekt**.
+
+**Befund 7 — Bestandsaufnahme der vier vorhandenen Start/Ende-Kandidaten.**
+
+| Kandidat | Start | Ende | Traeger | Produktionspfad? | getestet? |
+|---|---|---|---|---|---|
+| E-34 Paragraph O1 | Wechsel des aeussersten lebenden Paares (beide Seiten muessen existieren) | `Nachfolger-1` (derivativ) | `test/_tmp_e34_auto.py`, `_chk_kantenwechsel_o1.py` | nein | ja (H20.13, K1-K3) |
+| Adapter-Fenster | Literal (848/1033/1174) | Literal (1020/1173/1287) bzw. kausal `wirksam_ab-1` | `phasen_regime_adapter.py` | **ja** | ja (E-34h...E-34n) |
+| Alt-Baseline | Bruch-Bar des Vorgaengers (`i = brk_idx`) | 2-Close-Bruch (`TOL 0.34`, >= 46 Bars) -> `ende` = letzter Gegen-Grenz-Touch | `scripts/market_segmentation.py` u. a. | nein (Alt-Generation) | historisch |
+| Box-Partition H1/H2 | `box_end_datum` (Kalender) | dito | Engine cfg Z. 1915 | **ja** (Gate/Reporting) | ja (V017/V018) |
+
+**Offene Entscheidungen aus diesem Audit (Textblock):** (D1) Endkriterium —
+derivatives Ende (Paragraph O1) oder eigenstaendiges (2-Close-Bruch, R21-Verfall,
+Kantenwechsel)? (D2) Bleibt "H2/2" zulaessig, obwohl es keinen Code-Traeger hat
+(= P12/A2)? (D3) Soll H2 in den Motor (zweite Box oder `box_end = n`), oder bleibt
+es Reporting-/Gate-Zone? (D4) Die Anker-Fragen F1-F3 (H20.14) sind Voraussetzung
+und weiter offen. (D5) Typisierter Datenvertrag, der die drei Herkuenfte
+(a) Paragraph-O1-Regel, (b) Alt-2-Close-Bruch, (c) Adapter-Fenster **getrennt**
+fuehrt?
+
+#### H20.17 TAXONOMIE-BESTAETIGUNG — mPhase = Paar (Decke, Boden) (read-only, 2026-09-12)
+
+**Anwender-Vorgabe (verbindlich formuliert):**
+1. Es wird **immer** eine lebende Decke UND ein lebender Boden ermittelt; dieses
+   Paar ist fuer den Anwender die Begrenzung der **aktuellen Balancephase = mPhase**.
+2. Die **Bildung eines neuen Paares** ist der **Phasenstart** — und zugleich das
+   **Phasenende** des vorherigen Paares.
+3. **Phasenende** = Ende der Balancephase mit dieser Decke und diesem Boden.
+4. Bestimmte Marktbewegungen beenden das aktuelle Paar = **Transition** zu einer
+   neuen Balance.
+5. Nomenklatur soll **nicht** an den KI-Eigenbezeichnungen (H1/H2/H2-2) haengen.
+
+**Antwort: JA, die Taxonomie ist mit der Codebasis vereinbar.** Sie ist sogar
+deckungsgleich mit dem Kantenwechsel-Port `ecken(k)` (`_tmp_e34_auto.py` Z. 157-166).
+Es fehlt nicht die Idee, sondern die **Formalisierung der Zwischenzustaende**.
+
+**A. Formalisierung der fuenf Punkte.**
+
+| Symbol | Definition (kausal) |
+|---|---|
+| **M(k)** | `(D(k), B(k))` mit `D(k) = argmax{basis_bei(k): OBEN lebend}`, `B(k) = argmin{basis_bei(k): UNTEN lebend}` |
+| lebend | letzter bestaetigter Docht `b+2 <= k` und `b >= k - 96` (`wall_live_bars`) |
+| **mPhase / BALANCE** | Zeitraum, in dem `M(k)` unveraendert und vertraut ist |
+| **PAARWECHSEL** | `M(k) != M(k-1)` — ein Ereignis, das **zugleich** Ende und Start ist |
+| **TRANSITION** | Zeitraum ohne vertrautes `M(k)` |
+| **PHASENENDE** | letzter Bar mit altem `M` = neuer Start - 1 (kein Overlap, kein Gap) |
+
+- Die Sichtbarkeitsbedingung ist im Code **bereits** so: `ko is None or ku is None`
+  -> Segment uebersprungen (Z. 214). Vor der Aufspannung existiert **keine** Balance.
+- **Ausloeser sind zwei diskrete Ereignisse, kein Preis-Schwellenwert:**
+
+| Ereignis | Bedeutung | Wirkung | Code |
+|---|---|---|---|
+| **NEU** | frisch bestaetigte Linie liegt weiter AUSSEN als die bisherige Wand | aeussere Grenze wandert nach aussen -> Paarwechsel | Z. 2243-2291 + `ecken` |
+| **VERFALL** | bisherige Aussenlinie ueberschreitet 96 Bars ohne Touch (bzw. R21-Tombstone) | naechste lebende Linie rueckt nach -> Paarwechsel (i.d.R. nach innen) | Z. 2309-2334, 2184-2197 |
+| beides gleichzeitig | — | — | **empirisch 0** (H20.13: AUG 29/33/0, AUG26 50/47/0) |
+
+- **Wichtige Nebenfolge (stuetzt die Taxonomie):** Eine **Geburt im Korridor**
+  (neue Linie zwischen Decke und Boden) aendert `M(k)` **nicht**; sie wird
+  ZWISCHEN_LEVEL und darf nur zusaetzlich handeln (Regel-2-Kaskade, `_kandidat`
+  Z. 2535-2595). Eine Balance endet also **nur** durch Aenderung der aeussersten
+  lebenden Grenze — nicht durch jede neue Linie.
+- **Zwei-Zustands-Automat (das fehlende Stueck):**
+  `Z1 BALANCE (M vertraut)` --Ereignis(NEU|VERFALL)--> `Z2 TRANSITION` --Vertrauensdauer--> `Z1'`.
+  Paragraph O1 implementiert **nur das Ereignis** und laesst Z2 auf Laenge **0**
+  zusammenfallen. V019 materialisiert Z2 als Luecke **1021..1032** (12 Bars,
+  fail-closed: keine Phase -> kein Trade). Beides ist mit der Taxonomie vereinbar
+  — es sind zwei Betriebsarten von Z2.
+
+**B. Fuenf unterbestimmte Stellen (muessen entschieden werden).**
+
+| # | Sachverhalt | Datenlage/Beleg |
+|---|---|---|
+| B1 | **Einseitigkeit:** Da "beides gleichzeitig" nie auftritt (0/62, 0/97), ist ein neues Paar zwingend ein **einseitiger** Wechsel. Formulierung muss lauten "mindestens eine der beiden Grenzen wird neu bestimmt" | H20.13 |
+| B2 | **Geraeuschlose Transition:** VERFALL kann eintreten, **ohne dass sich der Preis bewegt** (Ablauf der 96 Bars). Dann endet eine Balance ohne Marktereignis. Die Anwender-Definition ("bestimmte Marktbewegungen") deckt das **nicht** ab | Z. 2309-2334; H20.5-Drift |
+| B3 | **Mikro-Sprung:** Ein Wechsel auf praktisch gleichem Niveau ist strukturell kein neuer Zustand. Engine verschmilzt ueber `_nah` (<= 0.12 %). Empirie: nur **3,2 % (AUG) / 3,1 % (AUG26)** der Wechsel liegen darin; Median-Sprung **0,54 % / 0,62 %**. Ein **Strukturband** ist noch nicht gesetzt (0.12 % ist eine Touch-, nicht eine Struktur-Toleranz) | H20.13; H20.5 (0,5-0,8 %) |
+| B4 | **Grenze = Innenhuelle, nicht Marktextrem:** `basis_bei` liefert OBEN `min(wicks)`, UNTEN `max(wicks)` (Z. 2144-2147) -> `D(k)` monoton nicht-steigend, `B(k)` monoton nicht-fallend. Der Korridor kann sich **nur verengen**; Aufweitung ist zwingend Paarwechsel | Z. 2135-2147 |
+| B5 | **"Phasengrenze" != "Handelswand":** `_kandidat` steigt von aussen nach innen ab (Z. 2535-2595); `_gegenkante` nimmt die aeusserste Gegenseite mit `touch_conf >= 2` und **erlaubt SCHLAFEND** (Z. 2597-2611). Phasenstart (Paarbildung) und Signal (Kandidatenwand) muessen getrennt bleiben | Z. 2535, 2597 |
+
+**Nomenklatur-Bereinigung (Anwender-Vorgabe 5):** H1/H2/H2-2 werden im Weiteren
+ausschliesslich als **Reporting-Zonen** gefuehrt, nie als Phasen. Der Phasenbegriff
+ist `mPhase = M(k)` gemaess Tabelle A.
+
+**C. Verbindliche Symboltabelle (Vorschlag zur Bestaetigung).**
+
+| Symbol | Definition (kausal) | Abgrenzung |
+|---|---|---|
+| **M(k)** | Paar (Decke, Boden) der aeussersten lebenden Linien, beide vorhanden | nicht definiert, wenn eine Seite None |
+| **BALANCE / mPhase** | Zeitraum mit unveraendertem und vertrautem M(k) | nicht identisch mit "Box H1/H2" |
+| **PAARWECHSEL** | M(k) != M(k-1) via NEU oder VERFALL | Geburt innen zaehlt NICHT |
+| **TRANSITION** | Zeitraum ohne vertrautes M(k) | endet mit Vertrauen des neuen M |
+| **Vertrauensdauer** | bis das neue M als gueltig gilt | V019: Luecke 1021..1032; kausale Adapter-Variante: `start + 77 - 1` |
+| **PHASENENDE** | letzter Bar mit altem M | = neuer Start - 1 |
+
+**D. Offene Entscheidungsfragen (Textblock, kein Menue).**
+
+1. **Einseitigkeit bestaetigen.** Neues Paar durch **eine** geaenderte Grenze
+   (nie beide — 0/62 bzw. 0/97)? Oder soll ein "echtes" Paar beide Seiten neu
+   fordern (dann gaebe es in AUG/AUG26 **keinen einzigen** Phasenstart)?
+2. **Geraeuschlose Transition.** Zaehlt reiner **Zeitablauf** (96 Bars ohne Touch,
+   VERFALL) als legitime beendende Marktbewegung — oder gilt eine Balance als
+   fortdauernd, solange kein *preislicher* Bruch erfolgt (dann braucht VERFALL
+   ein Zusatzkriterium)?
+3. **Strukturband.** Ab welchem Niveau-Unterschied gilt ein Paarwechsel als **neue
+   Balance**? Zur Diskussion: Engine-Touchwert 0,12 % (nur ~3 % der Wechsel) vs.
+   strukturelles Band 0,5-0,8 % (H20.5). Diese Zahl ist **die** freie Groesse.
+4. **Balance-Grenze = Innenhuelle oder Mitte?** Code-Ist: Innenhuelle (monoton
+   verengend, Z. 2144-2147) vs. arretierter Mittelwert (`basis`-Feld, nur beim
+   Primaer-Anker eingefroren)?
+5. **Transition-Laenge.** **Laenge 0** (Paragraph O1 gapless) oder
+   **fail-closed-Luecke** (V019: 1021..1032)? Welche Semantik gilt fuer AUG26?
+6. **Zwei Lags getrennt halten.** Ist die Reife-Verzoegerung (Etikett erst ab
+   `start + 77 - 1`, `ADAPTER_V019_KAUSAL`) Teil der Transition — oder ein reiner
+   Ausfuehrungs-Lag ohne Bezug zur Phasendefinition?
+7. **Reihenfolge.** Bleiben F1-F3 (H20.14) **vor** jeder Formalisierung offen, oder
+   wird die Taxonomie zuerst festgeschrieben und der Anker danach als reine
+   Parameterfrage behandelt?
+
+**Engine-/Bestandsstand bei diesem Checkpoint (unveraendert):**
+
+| Artefakt | Bytes | SHA256 |
+|---|---|---|
+| `test/tmp_kanten_engine_replay.py` | 200.433 | `53f28e1b6971a64df59beaf3292b466fb37ac86b870278f238a1b385084fd006` |
+| `backtest_lab/phasen_regime_adapter.py` | 36.255 | `983192b3d25a1a50dcd06aac3b9230fc31f7759e5297c933d286b4fa88033cfb` |
+| `test/tmp_png_aug_sichttest.py` | 123.343 | `500b55762001d6667af3d977324c81eb4ecbceacc2fa0d8b62c36c7e383250e0` |
+
+Kein Einbrand. In H20.16/H20.17 wurde **kein** Code geaendert und **kein** Lauf
+ausgefuehrt — ausschliesslich Quelltext-Inspektion und Dokumentation.
+
+**Wiedervorlage morgen (Reihenfolge):**
+1. Antwort auf D.1-D.7 (Taxonomie) und D1-D5 (Audit) — Textform.
+2. Anker-Entscheid F1-F3 (H20.14) auf Basis der Taxonomie nachziehen.
+3. Danach erst: typisierter Datenvertrag (Type Hints, Google-Docstrings), der
+   `M(k)/mPhase`, PAARWECHSEL, TRANSITION und Vertrauensdauer als getrennte
+   Objekte fuehrt — ohne die drei Herkuenfte zu vermischen.

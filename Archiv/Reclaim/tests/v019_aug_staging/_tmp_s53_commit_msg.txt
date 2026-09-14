@@ -1,0 +1,21 @@
+feat(v019): Stufe 5 arretiert (5.1-5.3) - ZP-5-Vorlauf extrahiert, §75 normiert
+
+- 5.1: strukturelle Koppelung offengelegt (einmaliger Mutationsblock am
+  _se_trades-Anfang, nur durch die per-Lauf deepcopy gekapselt).
+- 5.2: Bit-Identitaets-Trockenlauf (Objekt- UND Trade-Ebene) gegen den
+  Inline-Patch A_KL_DOCHT: 23 / +85.577150 R, GESAMT OK.
+- 5.3: A_KL_DOCHT (Paar 5) aus _wende_zielzonen_patches_v019() geloescht
+  (Patchset jetzt 4 ZP-4-Regeln); erweitere_segmentwand_dochte() mit
+  6-Argument-Signatur im Renderer verankert und in _lauf() auf der
+  laufeigenen deepcopy (sc_copy) vor engine._se_trades() ausgefuehrt;
+  Doppel-Gatung KONF.mode == "V019" und len(hook.segmente) > 1;
+  Verifikations-Harness auf denselben Funktionspfad synchronisiert.
+- Engine unveraendert (53f28e1b...) -> kein Re-Pin; alle fuenf V019-PNGs
+  und das Protokoll SHA256-identisch zu E-34n/18 (reiner Refaktor).
+- §75 in der Spiegelspez (Kausalitaets-Trennung, Datenkante, Concurrency,
+  ZP-5-Vorlauf/Master-Kapselung, Realwert (b)/(a), Artefakte); H19 im
+  Handoff inkl. Neubeurkundung der Pruefsummen.
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

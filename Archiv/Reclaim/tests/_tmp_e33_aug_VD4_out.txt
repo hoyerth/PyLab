@@ -1,0 +1,47 @@
+==============================================================================================================
+E-33 AUG-ZIELERREICHUNG -- Variante VD4
+==============================================================================================================
+Engine : tmp_kanten_engine_replay.py  SHA 4a576a766670d684c3038196...
+n 1288  box_end(Kalender) 644  Laufgrenze 1288
+Segmente: [('P9', 848, 1020)]
+Schalter: VC=False M6=False UEB=False SB=True  ueberdehnung=0.6
+Laufzeit 0.7s   Setups 20
+
+   Schnitt                n             R     USD/Tr   Q_stop
+   gesamt                20    +55.902043    +0.7821    0.350
+   H1 (entry<644)        10    +36.919584    +1.0895    0.300
+   H2 (entry>=644)       10    +18.982458    +0.4747    0.400
+   H2b (entry>=966)       4    +19.315336    +1.1541    0.000
+   ZIELZONE (bar)         0     +0.000000    +0.0000    0.000
+
+   ABLEHNUNGS-TRICHTER (Signal-Bar):
+   Schnitt                Q29    F3  Blocker  Stufe0  Zyklus  keinRaum  Vakuum  keinGeg  SETUP
+   gesamt                 130     0       56       0      34        14       0        0      0
+   H1 (entry<644)          40     0       28       0      19         4       0        0      0
+   H2 (entry>=644)         90     0       28       0      15        10       0        0      0
+   H2b (entry>=966)        77     0        3       0       0         0       0        0      0
+   ZIELZONE (bar)          65     0        3       0       0         0       0        0      0
+
+   ALLE SETUPS (Signal-Bar, Entry-Bar, Richtung, kid, R):
+      bar   114 entry   115 SHORT  K16   R   -1.00000 STUFE_1_IN_BAR  
+      bar   229 entry   231 SHORT  K20   R   +6.88930 STUFE_2_KERZE_2 
+      bar   242 entry   245 SHORT  K20   R   +3.92512 STUFE_3_KERZE_3 
+      bar   246 entry   247 SHORT  K16   R   -1.00000 STUFE_1_IN_BAR  
+      bar   398 entry   399 LONG   K5    R   +5.69771 STUFE_1_IN_BAR  
+      bar   490 entry   491 SHORT  K16   R   -0.47508 STUFE_1_IN_BAR  
+      bar   509 entry   510 SHORT  K16   R   -0.34745 STUFE_1_IN_BAR  
+      bar   529 entry   531 SHORT  K20   R   +8.35994 STUFE_2_KERZE_2 
+      bar   564 entry   565 SHORT  K20   R  +15.87003 STUFE_1_IN_BAR  
+      bar   639 entry   640 LONG   K1    R   -1.00000 STUFE_1_IN_BAR  
+      bar   650 entry   653 LONG   K3    R   -1.00000 STUFE_3_KERZE_3  H2
+      bar   680 entry   681 LONG   K45   R   -1.00000 STUFE_1_IN_BAR   H2
+      bar   710 entry   711 SHORT  K16   R   -0.45265 STUFE_1_IN_BAR   H2
+      bar   711 entry   714 SHORT  K33   R   -1.00000 STUFE_3_KERZE_3  H2
+      bar   760 entry   762 SHORT  K51   R   -1.00000 STUFE_2_KERZE_2  H2
+      bar   903 entry   905 SHORT  K67   R   +4.11977 STUFE_2_KERZE_2  H2
+      bar   980 entry   981 SHORT  K67   R   +9.98768 STUFE_1_IN_BAR   H2
+      bar   981 entry   982 SHORT  K73   R   +2.69549 STUFE_1_IN_BAR   H2
+      bar  1002 entry  1003 LONG   K77   R   +3.62902 STUFE_1_IN_BAR   H2
+      bar  1020 entry  1021 SHORT  K67   R   +3.00316 STUFE_1_IN_BAR   H2
+
+ENDE E-33 VD4

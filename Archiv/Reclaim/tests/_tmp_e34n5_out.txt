@@ -1,0 +1,21 @@
+﻿====================================================================================================================
+E-34n/5  DIE VIER BARS 1072..1075 ALS EIGENSTAENDIGER LONG (read-only)
+====================================================================================================================
+K82 statische basis=67.5455 | A1-Segmentziel (LONG)=69.8990 | sl_buffer=0.05 | tp1_anteil=50.0%
+  bar          BKZ basis_bei  dist%  Stufe  e_bar    entry       sl   risk      poc    g1    g2         r
+ 1072 25.08. 15:00   67.5530  0.096 0/INBAR   1073  67.4970  67.4380 0.0590  67.6116   TP1    SL   +0.4716
+ 1073 25.08. 15:15   67.5530  0.135 0/INBAR   1074  67.4740  67.4120 0.0620  67.6116   TP1  ENDE  +14.7230
+ 1074 25.08. 15:30   67.5530  0.145 0/INBAR   1075  67.5340  67.4050 0.1290  67.6116   TP1  ENDE   +6.6110
+ 1075 25.08. 15:45   67.5530  0.197 1/INBAR   1076  67.6800  67.3700 0.3100  67.6116   TP1  ENDE   +2.2801
+
+====================================================================================================================
+REALER LAUF: Ein-Eintrag-Dedup (entry_bar) und 12-Bar-Zyklus
+====================================================================================================================
+  K62@1075 -> Stufe 2 (KERZE_2) -> entry_bar = 1077 (real: r=+1.4758)
+  1072..1074 wuerden alle auf entry_bar 1073/1074/1075 zeigen;
+  die Engine hat sie nie erreicht, weil _kandidat bei 1072..1074
+  den AUSSEN-Blocker K85/K82 (unerreichte Aussenwand) bediente.
+  K82.letzter_sweep_bar bleibt 1056 -> F3-Frische sperrt 1072..1074
+  zusaetzlich.
+
+ENDE E-34n/5

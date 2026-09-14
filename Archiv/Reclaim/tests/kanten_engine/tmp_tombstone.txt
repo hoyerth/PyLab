@@ -1,0 +1,133 @@
+######################################################################################################################
+# TOMBSTONE-TEST (READ-ONLY) -- AUG komplett
+# n=1288 | Original: Kanten 93 | Trades 9 / +23.02 R
+######################################################################################################################
+
+Regel R18 (Baseline): Singleton (<2 Touches) nach 96 Bars, nur wenn die
+Linie nie eine lebende Aussenlinie war (WAR_AUSSEN-Schutz).
+R20 = R18 + Tombstone: geloeschtes Preisband wird fuer Neugeburten gesperrt
+      (Band-Toleranz und Sperr-Fenster werden variiert).
+
+----------------------------------------------------------------------------------------------------------------------
+R18 (Baseline): geloescht 40 | Geburten gesperrt 0 | Kanten 66 (orig 93)
+  Trades 9 (orig 9) | Netto-R +15.28 (orig +23.02) | Signatur ABWEICHEND
+      orig (229, 'SHORT', 231, 6.9245) vs neu (229, 'SHORT', 231, 6.9245)
+      orig (398, 'LONG', 399, 5.6583) vs neu (398, 'LONG', 399, 5.6583)
+      orig (529, 'SHORT', 531, 8.4072) vs neu (529, 'SHORT', 531, 8.1509)   <<<
+      orig (639, 'LONG', 640, -1.0) vs neu (621, 'LONG', 622, -1.0)   <<<
+      orig (650, 'LONG', 653, -1.0) vs neu (639, 'LONG', 640, -1.0)   <<<
+      orig (679, 'LONG', 681, 6.4809) vs neu (650, 'LONG', 653, -1.0)   <<<
+      orig (716, 'SHORT', 718, -0.4525) vs neu (716, 'SHORT', 718, -0.4525)
+      orig (760, 'SHORT', 762, -1.0) vs neu (760, 'SHORT', 762, -1.0)
+      orig (853, 'SHORT', 855, -1.0) vs neu (853, 'SHORT', 855, -1.0)
+  FOLGEKANTEN: 8
+      neu: UNTEN pivot_bar= 209 px=65.049
+      neu: OBEN  pivot_bar= 376 px=64.708
+      neu: UNTEN pivot_bar= 398 px=63.485
+      neu: UNTEN pivot_bar= 479 px=65.414
+      neu: UNTEN pivot_bar= 707 px=64.824
+      neu: OBEN  pivot_bar=1001 px=68.699
+      neu: UNTEN pivot_bar=1124 px=69.084
+      neu: UNTEN pivot_bar=1234 px=68.233
+
+======================================================================================================================
+WIEDERGEBURT-DIAGNOSE: Folgekanten vs. geloeschte Baender (R18)
+======================================================================================================================
+  UNTEN pivot_bar= 209 px=  65.049 | Tombstone-Treffer (<=0.30%): 1 -> [(177, 65.009)]
+  OBEN  pivot_bar= 376 px=  64.708 | Tombstone-Treffer (<=0.30%): 2 -> [(224, 64.552), (271, 64.738)]
+  UNTEN pivot_bar= 398 px=  63.485 | Tombstone-Treffer (<=0.30%): 1 -> [(103, 63.464)]
+  UNTEN pivot_bar= 479 px=  65.414 | Tombstone-Treffer (<=0.30%): 4 -> [(200, 65.4), (351, 65.494), (387, 65.293)]
+  UNTEN pivot_bar= 707 px=  64.824 | Tombstone-Treffer (<=0.30%): 3 -> [(177, 65.009), (426, 64.823), (688, 64.818)]
+  OBEN  pivot_bar=1001 px=  68.699 | Tombstone-Treffer (<=0.30%): 1 -> [(938, 68.673)]
+  UNTEN pivot_bar=1124 px=  69.084 | Tombstone-Treffer (<=0.30%): 1 -> [(982, 69.043)]
+  UNTEN pivot_bar=1234 px=  68.233 | Tombstone-Treffer (<=0.30%): 2 -> [(924, 68.037), (1212, 68.183)]
+----------------------------------------------------------------------------------------------------------------------
+R20 band=0.30% fenster=1000000000: geloescht 26 | Geburten gesperrt 48 | Kanten 55 (orig 93)
+  Trades 8 (orig 9) | Netto-R +16.28 (orig +23.02) | Signatur ABWEICHEND
+      orig (229, 'SHORT', 231, 6.9245) vs neu (229, 'SHORT', 231, 6.9245)
+      orig (398, 'LONG', 399, 5.6583) vs neu (398, 'LONG', 399, 5.6583)
+      orig (529, 'SHORT', 531, 8.4072) vs neu (529, 'SHORT', 531, 8.1509)   <<<
+      orig (639, 'LONG', 640, -1.0) vs neu (621, 'LONG', 622, -1.0)   <<<
+      orig (650, 'LONG', 653, -1.0) vs neu (650, 'LONG', 653, -1.0)
+      orig (679, 'LONG', 681, 6.4809) vs neu (716, 'SHORT', 718, -0.4525)   <<<
+      orig (716, 'SHORT', 718, -0.4525) vs neu (760, 'SHORT', 762, -1.0)   <<<
+      orig (760, 'SHORT', 762, -1.0) vs neu (853, 'SHORT', 855, -1.0)   <<<
+      Anzahl: orig 9 vs neu 8
+  FOLGEKANTEN: 0
+----------------------------------------------------------------------------------------------------------------------
+R20 band=0.30% fenster=192: geloescht 32 | Geburten gesperrt 25 | Kanten 61 (orig 93)
+  Trades 9 (orig 9) | Netto-R +15.28 (orig +23.02) | Signatur ABWEICHEND
+      orig (229, 'SHORT', 231, 6.9245) vs neu (229, 'SHORT', 231, 6.9245)
+      orig (398, 'LONG', 399, 5.6583) vs neu (398, 'LONG', 399, 5.6583)
+      orig (529, 'SHORT', 531, 8.4072) vs neu (529, 'SHORT', 531, 8.1509)   <<<
+      orig (639, 'LONG', 640, -1.0) vs neu (621, 'LONG', 622, -1.0)   <<<
+      orig (650, 'LONG', 653, -1.0) vs neu (639, 'LONG', 640, -1.0)   <<<
+      orig (679, 'LONG', 681, 6.4809) vs neu (650, 'LONG', 653, -1.0)   <<<
+      orig (716, 'SHORT', 718, -0.4525) vs neu (716, 'SHORT', 718, -0.4525)
+      orig (760, 'SHORT', 762, -1.0) vs neu (760, 'SHORT', 762, -1.0)
+      orig (853, 'SHORT', 855, -1.0) vs neu (853, 'SHORT', 855, -1.0)
+  FOLGEKANTEN: 5
+      neu: UNTEN pivot_bar= 398 px=63.485
+      neu: UNTEN pivot_bar= 479 px=65.414
+      neu: OBEN  pivot_bar=1148 px=68.676
+      neu: UNTEN pivot_bar=1214 px=69.020
+      neu: UNTEN pivot_bar=1234 px=68.233
+----------------------------------------------------------------------------------------------------------------------
+R20 band=0.30% fenster=96: geloescht 37 | Geburten gesperrt 17 | Kanten 60 (orig 93)
+  Trades 9 (orig 9) | Netto-R +15.28 (orig +23.02) | Signatur ABWEICHEND
+      orig (229, 'SHORT', 231, 6.9245) vs neu (229, 'SHORT', 231, 6.9245)
+      orig (398, 'LONG', 399, 5.6583) vs neu (398, 'LONG', 399, 5.6583)
+      orig (529, 'SHORT', 531, 8.4072) vs neu (529, 'SHORT', 531, 8.1509)   <<<
+      orig (639, 'LONG', 640, -1.0) vs neu (621, 'LONG', 622, -1.0)   <<<
+      orig (650, 'LONG', 653, -1.0) vs neu (639, 'LONG', 640, -1.0)   <<<
+      orig (679, 'LONG', 681, 6.4809) vs neu (650, 'LONG', 653, -1.0)   <<<
+      orig (716, 'SHORT', 718, -0.4525) vs neu (716, 'SHORT', 718, -0.4525)
+      orig (760, 'SHORT', 762, -1.0) vs neu (760, 'SHORT', 762, -1.0)
+      orig (853, 'SHORT', 855, -1.0) vs neu (853, 'SHORT', 855, -1.0)
+  FOLGEKANTEN: 7
+      neu: UNTEN pivot_bar= 279 px=65.028
+      neu: OBEN  pivot_bar= 376 px=64.708
+      neu: UNTEN pivot_bar= 398 px=63.485
+      neu: UNTEN pivot_bar= 479 px=65.414
+      neu: UNTEN pivot_bar= 592 px=64.818
+      neu: UNTEN pivot_bar=1124 px=69.084
+      neu: OBEN  pivot_bar=1240 px=68.552
+----------------------------------------------------------------------------------------------------------------------
+R20 band=0.60% fenster=1000000000: geloescht 22 | Geburten gesperrt 72 | Kanten 48 (orig 93)
+  Trades 8 (orig 9) | Netto-R +16.28 (orig +23.02) | Signatur ABWEICHEND
+      orig (229, 'SHORT', 231, 6.9245) vs neu (229, 'SHORT', 231, 6.9245)
+      orig (398, 'LONG', 399, 5.6583) vs neu (398, 'LONG', 399, 5.6583)
+      orig (529, 'SHORT', 531, 8.4072) vs neu (529, 'SHORT', 531, 8.1509)   <<<
+      orig (639, 'LONG', 640, -1.0) vs neu (621, 'LONG', 622, -1.0)   <<<
+      orig (650, 'LONG', 653, -1.0) vs neu (650, 'LONG', 653, -1.0)
+      orig (679, 'LONG', 681, 6.4809) vs neu (716, 'SHORT', 718, -0.4525)   <<<
+      orig (716, 'SHORT', 718, -0.4525) vs neu (760, 'SHORT', 762, -1.0)   <<<
+      orig (760, 'SHORT', 762, -1.0) vs neu (853, 'SHORT', 855, -1.0)   <<<
+      Anzahl: orig 9 vs neu 8
+  FOLGEKANTEN: 0
+----------------------------------------------------------------------------------------------------------------------
+R20 band=1.00% fenster=1000000000: geloescht 19 | Geburten gesperrt 99 | Kanten 42 (orig 93)
+  Trades 8 (orig 9) | Netto-R +16.28 (orig +23.02) | Signatur ABWEICHEND
+      orig (229, 'SHORT', 231, 6.9245) vs neu (229, 'SHORT', 231, 6.9245)
+      orig (398, 'LONG', 399, 5.6583) vs neu (398, 'LONG', 399, 5.6583)
+      orig (529, 'SHORT', 531, 8.4072) vs neu (529, 'SHORT', 531, 8.1509)   <<<
+      orig (639, 'LONG', 640, -1.0) vs neu (621, 'LONG', 622, -1.0)   <<<
+      orig (650, 'LONG', 653, -1.0) vs neu (650, 'LONG', 653, -1.0)
+      orig (679, 'LONG', 681, 6.4809) vs neu (716, 'SHORT', 718, -0.4525)   <<<
+      orig (716, 'SHORT', 718, -0.4525) vs neu (760, 'SHORT', 762, -1.0)   <<<
+      orig (760, 'SHORT', 762, -1.0) vs neu (853, 'SHORT', 855, -1.0)   <<<
+      Anzahl: orig 9 vs neu 8
+  FOLGEKANTEN: 0
+----------------------------------------------------------------------------------------------------------------------
+R20 band=0.10% fenster=1000000000: geloescht 33 | Geburten gesperrt 29 | Kanten 59 (orig 93)
+  Trades 8 (orig 9) | Netto-R +16.28 (orig +23.02) | Signatur ABWEICHEND
+      orig (229, 'SHORT', 231, 6.9245) vs neu (229, 'SHORT', 231, 6.9245)
+      orig (398, 'LONG', 399, 5.6583) vs neu (398, 'LONG', 399, 5.6583)
+      orig (529, 'SHORT', 531, 8.4072) vs neu (529, 'SHORT', 531, 8.1509)   <<<
+      orig (639, 'LONG', 640, -1.0) vs neu (621, 'LONG', 622, -1.0)   <<<
+      orig (650, 'LONG', 653, -1.0) vs neu (650, 'LONG', 653, -1.0)
+      orig (679, 'LONG', 681, 6.4809) vs neu (716, 'SHORT', 718, -0.4525)   <<<
+      orig (716, 'SHORT', 718, -0.4525) vs neu (760, 'SHORT', 762, -1.0)   <<<
+      orig (760, 'SHORT', 762, -1.0) vs neu (853, 'SHORT', 855, -1.0)   <<<
+      Anzahl: orig 9 vs neu 8
+  FOLGEKANTEN: 0

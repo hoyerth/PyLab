@@ -1,0 +1,27 @@
+WIEDERHERSTELLUNGS-BEWEIS (korrigiert: frische deepcopy je Lauf)
+Modus A (hook=None). Split IMMER bei box_end = 644.
+
+==================================================================================
+A) AUG 2026-08-10 .. 2026-08-28 | n=1288 | box_end=644
+==================================================================================
+  Lauf                              n         SumR  H1 n         H1 R  H2 n         H2 R
+  Baseline  BOX(644)                8   +38.919584     8   +38.919584     0    +0.000000
+  V020-A    BOX(644)               14   +27.327383    14   +27.327383     0    +0.000000
+  Baseline  VOLL(1288)             14   +42.450970     8   +38.919584     6    +3.531386
+  V020-A    VOLL(1288)             29   +23.389914    14   +27.327383    15    -3.937470
+
+  Handoff-Soll:
+    V0 (nativ, Referenz, = BASELINE) = 14/+42.450970 (H1 8/+38.919584, H2 6/+3.531386)
+    AUG-Box-Kaltstart SSoT (= V020-A) = 14/+27.327383 (H1 14/+27.327383, H2 15/-3.937470, VOLL 29/+23.389914)
+
+==================================================================================
+B) Vollmonate (je frische deepcopy) -- Fair-Vergleich
+==================================================================================
+  Monat   BL n       BL SumR  V020 n     V020 SumR  n-Faktor
+  MAI       35    +38.318126      58    +40.023743      1.66x
+  JUN       28    -11.421155      56    -26.883881      2.00x
+  JUL       21     -4.325355      68    -11.395066      3.24x
+
+  Handoff §5 U1 (KONTAMINIERT -- V020 zuerst, Baseline auf demselben
+  Scan-Objekt): Baseline 12/15/5 bzw. V020 58/56/68.
+  FAIR (je frische Kopie): siehe Tabelle oben.

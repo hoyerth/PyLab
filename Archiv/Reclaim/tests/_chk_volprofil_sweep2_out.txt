@@ -1,0 +1,52 @@
+﻿================================================================================================================================
+SWEEP 2  |  zusaetzliche Achsen, Vorlauf-Varianten: [96, 192, 384]  (Konfigurationen: 3)
+================================================================================================================================
+Merkmal                             A              B_first               B_last                    C                    D
+vol_slope            -0.0392..-0.0392     -0.0030..-0.0030     -0.0030..-0.0030       0.0157..0.0157     -0.0052..-0.0052
+vol_cv                 0.4022..0.4022       0.3964..0.3964       0.3964..0.3964       0.3093..0.3093       0.3732..0.3732
+vol_persist            0.7849..0.7849       0.8218..0.8218       0.8218..0.8218       0.8964..0.8964       0.8605..0.8605
+vol_low_ratio          1.3763..1.3763       0.9672..0.9672       0.9672..0.9672       1.4613..1.4613       1.4189..1.4189
+vol_peak_pos           0.1818..0.1818       0.7018..0.7018       0.7018..0.7018       0.8000..0.8000       0.9412..0.9412
+vol_h2_h1              0.5526..0.5526       1.0897..1.0897       1.0897..1.0897       1.4242..1.4242       0.7377..0.7377
+vol_updown             0.3465..0.3465       0.7261..0.7261       0.7261..0.7261       0.9965..0.9965       0.6774..0.6774
+spike_count            1.0000..1.0000       1.0000..4.0000       1.0000..4.0000      5.0000..11.0000       0.0000..1.0000
+delta_norm           -0.1443..-0.1443     -0.0616..-0.0616     -0.0616..-0.0616     -0.0348..-0.0348     -0.0471..-0.0471
+quote_unter            0.9130..0.9130       1.0000..1.0000       0.4483..0.4483       0.0244..0.0244       1.0000..1.0000
+latenz_brk_low       20.0000..20.0000     55.0000..55.0000     27.0000..27.0000       0.0000..0.0000     68.0000..68.0000
+kaskade                6.0000..6.0000     34.0000..34.0000     34.0000..34.0000       1.0000..1.0000     31.0000..31.0000
+exc_pct                1.2183..1.2183       3.4723..3.4723       0.9627..0.9627       0.1686..0.1686       4.7038..4.7038
+leg_bars             23.0000..23.0000     58.0000..58.0000     58.0000..58.0000     41.0000..41.0000     69.0000..69.0000
+
+================================================================================================================================
+TRENNSCHAERFE  A vs X
+================================================================================================================================
+Merkmal                  vs B_first          vs B_last               vs C               vs D
+vol_slope               TRENNT (0%)        TRENNT (0%)        TRENNT (0%)        TRENNT (0%)
+vol_cv                  TRENNT (0%)        TRENNT (0%)        TRENNT (0%)        TRENNT (0%)
+vol_persist             TRENNT (0%)        TRENNT (0%)        TRENNT (0%)        TRENNT (0%)
+vol_low_ratio           TRENNT (0%)        TRENNT (0%)        TRENNT (0%)        TRENNT (0%)
+vol_peak_pos            TRENNT (0%)        TRENNT (0%)        TRENNT (0%)        TRENNT (0%)
+vol_h2_h1               TRENNT (0%)        TRENNT (0%)        TRENNT (0%)        TRENNT (0%)
+vol_updown              TRENNT (0%)        TRENNT (0%)        TRENNT (0%)        TRENNT (0%)
+spike_count         ueberlappt (0%)    ueberlappt (0%)        TRENNT (0%)    ueberlappt (0%)
+delta_norm              TRENNT (0%)        TRENNT (0%)        TRENNT (0%)        TRENNT (0%)
+quote_unter             TRENNT (0%)        TRENNT (0%)        TRENNT (0%)        TRENNT (0%)
+latenz_brk_low          TRENNT (0%)        TRENNT (0%)        TRENNT (0%)        TRENNT (0%)
+kaskade                 TRENNT (0%)        TRENNT (0%)        TRENNT (0%)        TRENNT (0%)
+exc_pct                 TRENNT (0%)        TRENNT (0%)        TRENNT (0%)        TRENNT (0%)
+leg_bars                TRENNT (0%)        TRENNT (0%)        TRENNT (0%)        TRENNT (0%)
+
+Robuste Merkmale (von 14):
+  A vs B_first  : 13/14  ->  ['vol_slope', 'vol_cv', 'vol_persist', 'vol_low_ratio', 'vol_peak_pos', 'vol_h2_h1', 'vol_updown', 'delta_norm', 'quote_unter', 'latenz_brk_low', 'kaskade', 'exc_pct', 'leg_bars']
+  A vs B_last   : 13/14  ->  ['vol_slope', 'vol_cv', 'vol_persist', 'vol_low_ratio', 'vol_peak_pos', 'vol_h2_h1', 'vol_updown', 'delta_norm', 'quote_unter', 'latenz_brk_low', 'kaskade', 'exc_pct', 'leg_bars']
+  A vs C        : 14/14  ->  ['vol_slope', 'vol_cv', 'vol_persist', 'vol_low_ratio', 'vol_peak_pos', 'vol_h2_h1', 'vol_updown', 'spike_count', 'delta_norm', 'quote_unter', 'latenz_brk_low', 'kaskade', 'exc_pct', 'leg_bars']
+  A vs D        : 13/14  ->  ['vol_slope', 'vol_cv', 'vol_persist', 'vol_low_ratio', 'vol_peak_pos', 'vol_h2_h1', 'vol_updown', 'delta_norm', 'quote_unter', 'latenz_brk_low', 'kaskade', 'exc_pct', 'leg_bars']
+
+================================================================================================================================
+KASKADEN (strukturell, unabhaengig vom Volumen)
+================================================================================================================================
+  A             : Bodenbraeuche im Fenster = 6
+  A vs B_first  : Bodenbraeuche im Fenster = 34
+  A vs B_last   : Bodenbraeuche im Fenster = 34
+  A vs C        : Bodenbraeuche im Fenster = 1
+  A vs D        : Bodenbraeuche im Fenster = 31

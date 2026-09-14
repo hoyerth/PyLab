@@ -1,0 +1,55 @@
+========================================================================================================
+PHASE 3.0 / SYMMETRIE-VORPROBE M6 <-> HOOK-1  (read-only, Generation V018/BKZ)
+========================================================================================================
+n=1288 | Kalendergrenze (H1/H2-Split)=644 | Fenster 848..1287
+touch_band_pct=0.12 %  |  max_seed_distanz_pct=0.75 %  |  max_sweep_ueberdehnung_pct=0.6 %  |  wall_live_bars=96
+
+-- Metrik-Vergleich (KEINE 1:1-Symmetrie!) --
+   M6   dist = |basis(aussen) - basis(kd)| / basis(kd) * 100   [Kante <-> Kante]   Schwelle 0.75 %
+   Hook1 diff = |sweep_px - basis(seite_kid)| / basis(seite_kid) * 100   [Docht <-> Kante]   Schwelle 0.12 %
+
+-- Die DREI M6-Sperr-Bars in P10_HYP (K67 als Sperr-Wand) --
+  bar   sweep_px  K67.basis    diff%  0.12%?  0.75%?  K73.basis  M6dist%  K67.lebt
+ 1122    69.7090    69.8990   0.2718   False    True    69.6380   0.3748     False
+ 1123    69.6430    69.8990   0.3662   False    True    69.6380   0.3748     False
+ 1272    69.7140    69.8990   0.2647   False    True    69.6110   0.4137     False
+
+-- Weite des Hebels: Bars mit K67-DOCHT-DEFIZIT im Band --
+   (deficit = hi[k] < K67.basis_bei(k), nur SHORT; dormante UND lebende K67)
+              Band Bars 848..1287  davon dormant  Bars 1021..1287  davon dormant
+      0.12 % (IST)              5              0                0              0
+       0.75 % (M6)             82             28               33             28
+
+-- H1-Strukturimmunitaet der Adapter-seitigen Aufweitung --
+   hook_1_freigabe_kid: erste Zeile = aktive_phase_bei(bar_idx); start_scope_bar=848
+   Fuer bar_idx < 848 -> seg is None -> return None (keine Freigabe moeglich).
+   H1 = entry_bar < 644  =>  Signal-Bar k <= 643 < 848  =>  H1 strukturell unberuehrbar.
+   (Gegenprobe Phase 2: punktuelle _FORCE-Freigabe liess H1 bei 8/+38.919584 R.)
+
+-- Restrisiko: M6-Blocker != seite_kid (Bandaufweitung wirkungslos) --
+   M6 bestimmt die AEUSSERSTE nicht erreichte Linie, nicht die Segmentkante.
+   Die Aufweitung greift nur, wenn der M6-Blocker == seite_kid ist
+   (in P10_HYP: K67). Andernfalls bleibt die Sperre bestehen.
+
+   bar 1122: seite_kid=K67 | Blocker=K67 | aussen(OBEN, nicht erreicht) K67 69.8990 (erreicht? False)
+   bar 1272: seite_kid=K67 | Blocker=K67 | aussen(OBEN, nicht erreicht) K67 69.8990 (erreicht? False)
+
+-- Harte Randbedingung 'Abwaertsstrecke 1023..1031 bleibt gesperrt' --
+  bar         O         H         L         C | LONG-Kandidat-Kontext
+ 1023   69.6340   69.6840   69.3830   69.3950 | K82@L 67.5350 dist +2.7364 % | deficit(L>K82)=True  0.75-Band=False
+ 1024   69.3910   69.5040   69.1370   69.3800 | K82@L 67.5350 dist +2.3721 % | deficit(L>K82)=True  0.75-Band=False
+ 1025   69.3790   69.4060   69.0450   69.1090 | K82@L 67.5350 dist +2.2359 % | deficit(L>K82)=True  0.75-Band=False
+ 1026   69.1080   69.2810   69.0180   69.1890 | K82@L 67.5350 dist +2.1959 % | deficit(L>K82)=True  0.75-Band=False
+ 1027   69.1840   69.2240   68.7070   68.7230 | K82@L 67.5350 dist +1.7354 % | deficit(L>K82)=True  0.75-Band=False
+ 1028   68.7160   68.8080   67.8900   68.0100 | K82@L 67.5350 dist +0.5257 % | deficit(L>K82)=True  0.75-Band=True
+ 1029   68.0090   68.3710   67.9860   68.3530 | K82@L 67.5350 dist +0.6678 % | deficit(L>K82)=True  0.75-Band=True
+ 1030   68.3410   68.3600   67.6080   67.6530 | K82@L 67.5350 dist +0.1081 % | deficit(L>K82)=True  0.75-Band=True
+ 1031   67.6480   67.8550   67.5350   67.7430 | K82@L 67.5350 dist +0.0000 % | deficit(L>K82)=False 0.75-Band=False
+
+   Befund Phase 2: alle drei Bars wurden von Q29 (25 %-Quartil) gestoppt;
+   Q29 liegt HINTER M6 und bleibt von einer K67-Aufweitung unberuehrt.
+
+-- SHA-Kontrolle --
+   Engine 4a576a766670d684c30381969e4d7349d5786b1b22ea6dda08b93b7d811bb38a
+
+ENDE PHASE 3.0

@@ -1,0 +1,31 @@
+docs(handoff): E-33 AUG-Zielerreichung — Zielzone mit +16,815995 R geoeffnet, H1 bit-identisch
+
+Methodik-Korrektur (Erratum E-33a):
+- E-28..E-32 liefen fuer AUG mit box_end_bar = 644; die Schleife
+  range(2, box_end-3) iterierte Bars 641..1287 nie. Alle AUG-Teilquoten
+  jener Kampagnen sind H1-Box-Zahlen, keine H2-Aussagen.
+- E-33 reproduziert den Produktionspfad (box_end_bar = n, Partition ueber
+  entry_bar) bit-identisch: 17 / +65,835576, H1 8 / +38,919584,
+  H2 9 / +26,915992.
+
+Befunde:
+- Das Segment allein ist inert (Z_FULL). Die Zielzone oeffnet erst das
+  Zusammenspiel Segment + V-C (Q29 phasenlokal) + M6-Liveness + Sleep-Bypass.
+- Globale V-D-Schalter zerstoeren H1 (VD1 -6,88 / VD4 -2,00 / VD_ALL -8,37 R).
+  Segment-lokale Verdrahtung (nur 1021..1287) haelt H1 bit-identisch.
+- P10 (1021..1170) + P12 (1171..1287) getrennt ist besser als ein Segment:
+  K76@1211 +2,53948 statt -1,00000.
+- Gewinner Z_1012_LOKAL: gesamt 24 / +82,651571 R (V018 +65,835576),
+  H2 16 / +43,731987, Zielzone 7 / +16,815995, Q_stop 0,208.
+- Zwei der drei avisierten Trades erfasst (1075 LONG K62 +1,99;
+  1122 SHORT K73 +10,75). Der dritte (1172 LONG) scheitert exakt an der
+  Hook-1-Pool-Semantik: K82 wird als freigegebene Wand aus dem Pool entfernt,
+  K62 liefert entry 67,9060 > poc 67,8294 -> kein_raum.
+- Spielart Phasenboden K85 (Monatstief) ist schlechter (+4,72).
+
+Kein Engine-/Adapter-Eingriff; Engine 4a576a76 / Adapter 0f3f8765 unveraendert.
+Kein S1, keine S2-Laeufe.
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

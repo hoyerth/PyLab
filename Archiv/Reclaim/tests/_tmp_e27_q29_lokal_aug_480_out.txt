@@ -1,0 +1,30 @@
+========================================================================================================
+E-27 Q29-LOKALISIERUNG -- AUG  Variante LOKAL 480
+========================================================================================================
+Engine   : tmp_kanten_engine_replay.py  SHA 4a576a766670d684c3038196...
+_se_trades Zeilen 2361..2769  |  n 1288  box_end_bar 644 -> Laufgrenze 644  |  Ladezeit 0.6s
+Instrumentierung: 14 × stats-Hook, Q29-Referenzzeilen ersetzt, Marker kandidat/stufe0/SETUP, _CUR-Richtungszeiger
+Laufzeit _se_trades: 0.1s   Setups 7
+
+   gesamt : n    7  R +39.267031  R_adj +23.396996  USD +11.2936  USD/Tr +1.6134  ATR/Tr +7.0645  Q_stop 0.143
+   H1     : n    7  R +39.267031  R_adj +23.396996  USD/Tr +1.6134  ATR/Tr +7.0645  Q_stop 0.143
+   H2     : n    0  R +0.000000  R_adj +0.000000  USD/Tr +0.0000  ATR/Tr +0.0000  Q_stop 0.000
+   LONG   : n    2   SHORT: n    5
+
+   Q29-TRICHTER (Kandidaten / Q29-Sperre / weiter / SETUP):
+   HaelfteRichtung  Kand.    Q29  weiter  Anteil  SETUP
+   H1     SHORT        39     11      28   71.8%      5
+   H1     LONG         31     20      11   35.5%      2
+   H2     SHORT         0      0       0    0.0%      0
+   H2     LONG          0      0       0    0.0%      0
+
+   TRADE-LISTE (Bar, Datum, Richtung, Kante, R, entry, sl, poc, tp2):
+         229 2026-08-12T11:15 SHORT K20   R   +6.88930  e  66.4240  sl  66.8260  poc  63.6900  tp2  63.6190
+         242 2026-08-12T14:30 SHORT K20   R   +3.92512  e  66.0920  sl  66.7130  poc  63.6900  tp2  63.6190
+         398 2026-08-14T07:30 LONG  K5    R   +5.69771  e  63.7630  sl  63.4350  poc  64.8047  tp2  66.4590
+         490 2026-08-17T07:30 SHORT K16   R   -0.47508  e  65.7690  sl  65.9170  poc  65.7616  tp2  63.4850
+         529 2026-08-17T17:15 SHORT K20   R   +8.35994  e  66.3240  sl  66.5880  poc  64.7490  tp2  63.4850
+         564 2026-08-18T03:00 SHORT K20   R  +15.87003  e  66.4340  sl  66.5800  poc  64.7490  tp2  63.4850
+         639 2026-08-18T21:45 LONG  K1    R   -1.00000  e  63.5340  sl  63.2980  poc  64.7124  tp2  66.4590
+
+ENDE AUG LB=480   Gesamtlaufzeit 0.8s

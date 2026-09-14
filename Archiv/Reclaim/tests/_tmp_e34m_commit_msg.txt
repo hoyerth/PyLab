@@ -1,0 +1,21 @@
+docs(handoff): E-34m — Modus V019 im Renderer eingebrannt (11 Hunks, ZP-4) und Sichtpruefung gefahren
+
+- Renderer test/tmp_png_aug_sichttest.py: 97.160 -> 104.221 B (LF 2.242,
+  CRLF 0), SHA256 eccc4d77536ac1f8dc068ea2637ed7c2db99f49edee359a407cece4796285148.
+  Zweistufiges Gating verankert: Quelltext-Ebene `KONF.mode == "V019"` +
+  Laufzeit-Ebene `_zv` am GEBUNDENEN Adapter (`len(segmente) > 1`).
+- ZP-4-Quelltext byte-identisch zum Messpfad (test/_tmp_e34_auto.py):
+  21.956 Zeichen, SHA256 8a3b7070582b620d997c2adfc0bcf3f20e016a94ab97faa84e5143410ee63778.
+- Lauf --mode V019: alle Fail-Loud-Asserts bestanden
+  (23 / +82.614385 R; H1 8/+38.919584; H2 +43.694801; P9 +23.435111;
+  R1-RB +34.798688; NIVEAUWECHSEL 66; len(V1)-len(V1_basis) 9;
+  5 PNG-Satz + Protokoll tmp_png_aug_sichttest_v019_out.txt).
+- Gegenproben: V1_basis bleibt im V019-Prozess 14/+47.815697 (Laufzeit-Gate);
+  --mode V018 mit Probe-Praefix liefert 17/+65.835576 (Quelltext-Gate).
+- Adapter 4f50b6b0... und Engine 4a576a76... unberuehrt.
+- Offen: test/ ist gitignored -> Renderer wird per SHA-Anker im Handoff
+  arretiert (Force-Add waere ein Bruch der Repo-Konvention).
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

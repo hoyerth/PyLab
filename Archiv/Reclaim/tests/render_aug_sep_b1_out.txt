@@ -1,0 +1,8 @@
+RENDER B1 | Universum=EXT n=2750 | AUG-Ursprung Bar 460 (= Box-Naht 1104 - 644)
+B1: 30 Trades / +67.030055 R
+B0: 33 Trades / +56.549174 R
+ELIMINIERT 4 (-4.000000 R) | NEU 1 (+6.480880 R)
+ELIM: K16@bar246 -1.000000 | K45@bar680 -1.000000 | K33@bar711 -1.000000 | K31@bar728 -1.000000
+NEU: K45@bar679 +6.480880
+Kanten gezeichnet: K1,K3,K4,K11,K12,K14,K15,K16,K20,K21,K23,K31,K33,K45,K51,K62,K67,K73,K76,K77
+Nahtstelle: sig/entry 679->681 (K45 NEU) vs elim 680->681 (K45 alt)

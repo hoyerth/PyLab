@@ -1,0 +1,56 @@
+TRADE-LOOP IDEMPOTENZ-NACHWEIS (read-only, MAI-Vollmonat)
+SHA-Guards OK: Baseline 53f28e1b / V020 e79c5c29 / Adapter 770eda2c
+
+### BASELINE: 1.Lauf n=35 R=+38.318126 | 2.Lauf n=11 R=-5.626439  -> NICHT idempotent
+  Feld 'cluster_hoch': 16 Kanten mutiert
+      K1: 0.0 -> 74.913
+      K17: 0.0 -> 75.813
+      K14: 0.0 -> 75.927
+      K12: 0.0 -> 76.32
+  Feld 'cluster_tief': 7 Kanten mutiert
+      K30: 0.0 -> 72.705
+      K6: 0.0 -> 72.885
+      K37: 0.0 -> 73.395
+      K40: 0.0 -> 74.613
+  Feld 'letzter_signal_bar': 23 Kanten mutiert
+      K1: -1000 -> 58
+      K17: -1000 -> 302
+      K14: -1000 -> 309
+      K12: -1000 -> 317
+  Feld 'letzter_sweep_bar': 23 Kanten mutiert
+      K1: -1000 -> 58
+      K17: -1000 -> 302
+      K14: -1000 -> 309
+      K12: -1000 -> 317
+
+### V020: 1.Lauf n=58 R=+40.023743 | 2.Lauf n=23 R=+9.796224  -> NICHT idempotent
+  Feld 'cluster_hoch': 17 Kanten mutiert
+      K1: 0.0 -> 74.913
+      K17: 0.0 -> 75.813
+      K14: 0.0 -> 76.113
+      K12: 0.0 -> 76.22
+  Feld 'cluster_tief': 15 Kanten mutiert
+      K29: 0.0 -> 72.439
+      K30: 0.0 -> 72.637
+      K6: 0.0 -> 72.835
+      K27: 0.0 -> 73.192
+  Feld 'letzter_signal_bar': 32 Kanten mutiert
+      K1: -1000 -> 58
+      K17: -1000 -> 1820
+      K14: -1000 -> 1840
+      K12: -1000 -> 1844
+  Feld 'letzter_sweep_bar': 32 Kanten mutiert
+      K1: -1000 -> 58
+      K17: -1000 -> 1820
+      K14: -1000 -> 1840
+      K12: -1000 -> 1844
+
+### Reihenfolge-Kontamination (gleiches scan-Objekt)
+  V020 zuerst        : V020=58/+40.023743
+  Baseline danach    : BL  =12/-5.959839
+  Baseline zuerst    : BL  =35/+38.318126
+  V020 danach        : V020=37/-18.038700
+  FAIR (je frische Kopie): BL=35/+38.318126 | V020=58/+40.023743
+
+  Handoff §5 U1 nennt fuer MAI Baseline 12/-5.959839 -- das ist
+  die Baseline NACH V020 auf demselben Objekt (kontaminiert).

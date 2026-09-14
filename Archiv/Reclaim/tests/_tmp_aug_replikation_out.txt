@@ -1,0 +1,63 @@
+============================================================================================================
+AUGUST-REPLIKATIONSBEWEIS EBENE 2 -- read-only, Generation V018 (BKZ)
+============================================================================================================
+Engine  : tmp_kanten_engine_replay.py  SHA256 4a576a766670d684c30381969e4d7349d5786b1b22ea6dda08b93b7d811bb38a
+Loader  : sys.modules['tmp_kanten_engine_replay']  (fixiert, Pickle-tauglich)
+Adapter : backtest_lab/phasen_regime_adapter.py UNVERAENDERT
+Entwurf : test/_tmp_vd_vertrag_entwurf.py (Ebene-2-Vertrag)
+n=1288 | box_end(H1/H2-Split)=644 | H2 ab Bar 644
+SOLL Ebene 1: 17 Trades / +65.835576 R (H1 8/+38.919584 | H2 9/+26.915992)
+
+Lauf                               Trd     R gesamt |                  H1 |                  H2 | Bewertung
+R0  kid  + PROVENIENZ (PHASE)       17   +65.835576 | H1  8/+38.919584 | H2  9/+26.915992 | BIT-IDENTISCH
+R1  ROLLE+ PROVENIENZ (PHASE)       17   +65.835576 | H1  8/+38.919584 | H2  9/+26.915992 | BIT-IDENTISCH
+R2  kid  + GEGENKANTE (MAKRO)       18   +51.255680 | H1  8/+38.919584 | H2 10/+12.336096 | ABWEICHUNG
+R3  ROLLE+ GEGENKANTE (MAKRO)       18   +51.255680 | H1  8/+38.919584 | H2 10/+12.336096 | ABWEICHUNG
+
+------------------------------------------------------------------------------------------------------------
+BEWEIS 1 -- RESOLVER (R0 vs R1, Zielmechanisma KONSTANT = PHASE)
+------------------------------------------------------------------------------------------------------------
+   R0 kid   :  17 /   +65.835576 R
+   R1 Rolle :  17 /   +65.835576 R
+   Delta    : +0 Trades / +0.000000000 R
+   Keys identisch: True
+   >> RESOLVER-BEWEIS: BESTANDEN
+   (AUSSEN_OBEN loest exakt wie kid=67 auf; Sollwert 17/+65.835576 getroffen: True)
+
+------------------------------------------------------------------------------------------------------------
+BEWEIS 2 -- NIVEAU (R0 vs R2, kid-Bindung KONSTANT)
+------------------------------------------------------------------------------------------------------------
+   R0 kid + PROVENIENZ (PHASE)  :  17 Trades /   +65.835576 R | H2 9/+26.915992
+   R2 kid + GEGENKANTE (MAKRO)  :  18 Trades /   +51.255680 R | H2 10/+12.336096
+   Delta R gesamt : -14.579896
+   Delta H2       : -14.579896
+   Keys verloren  : []
+   Keys gewonnen  : [(853, 59)]
+
+   Trades R0 mit bar/Kid/R  (H2-Bereich):
+      bar  903 entry  905 SHORT K67  R  +4.119775 tp2 68.3700
+      bar  980 entry  981 SHORT K67  R  +9.987676 tp2 68.3700
+      bar  981 entry  982 SHORT K73  R  +2.695488 tp2 68.3700
+      bar 1002 entry 1003 LONG  K77  R  +3.629016 tp2 69.8700
+      bar 1020 entry 1021 SHORT K67  R  +3.003157 tp2 68.3700
+   Trades R2 mit bar/Kid/R  (H2-Bereich):
+      bar  853 entry  855 SHORT K59  R  -1.000000 tp2 62.5770
+      bar  903 entry  905 SHORT K67  R  +1.633441 tp2 62.5770
+      bar  980 entry  981 SHORT K67  R  +4.542254 tp2 62.5770
+      bar  981 entry  982 SHORT K73  R  -1.000000 tp2 62.5770
+      bar 1002 entry 1003 LONG  K77  R  +3.629016 tp2 69.8700
+      bar 1020 entry 1021 SHORT K67  R  +1.050505 tp2 62.5770
+
+------------------------------------------------------------------------------------------------------------
+BEWEIS 3 -- KOMBINATION (R3)
+------------------------------------------------------------------------------------------------------------
+   R3 ROLLE+ GEGENKANTE :  18 /   +51.255680 R | H1 8/+38.919584 | H2 10/+12.336096
+   == R2? True  (Rolle und kid liefern bei MAKRO dasselbe)
+
+------------------------------------------------------------------------------------------------------------
+RESOLVER-LOG (EVENT_ROLE_UNRESOLVED = hook_4 fehlt)
+------------------------------------------------------------------------------------------------------------
+
+Engine-SHA Kontrolle: 4a576a766670d684c30381969e4d7349d5786b1b22ea6dda08b93b7d811bb38a  UNVERAENDERT
+
+ENDE AUGUST-REPLIKATIONSBEWEIS

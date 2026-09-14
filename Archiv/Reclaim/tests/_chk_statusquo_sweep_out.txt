@@ -1,0 +1,47 @@
+READ-ONLY STATUS-QUO-SWEEP (Morphing-Baseline, Modus A)
+Engine: basis = mean(alle Dochte) -- nicht stationaer (H20.47)
+SHAs: Baseline 53f28e1b / V020 e79c5c29 / Adapter 770eda2c (Adapter nicht importiert)
+Fenster: je Kaltstart (Warm-up = 0), Ende exklusiv; box_end_bar = n (Vollauf)
+
+--- MRZ: 2026-03-02 .. 2026-03-27 (exkl.)  | n=1752 | erste 2026-03-02 letzte 2026-03-26 ---
+   band edges seeds  r21 tomb warA Trades        SumR   Win%      PF
+   0.10    95    62  107   56  130     49  -18.353942  12.24  0.5458
+   0.12    91    57  107   55  122     50  -20.030648  12.00  0.5234
+   0.14    91    54   88   49  119     48  -23.894160  12.50  0.3475
+   0.16    91    47   82   46  114     50  -20.366658  14.00  0.4586
+
+--- MAI: 2026-05-04 .. 2026-05-29 (exkl.)  | n=1738 | erste 2026-05-04 letzte 2026-05-28 ---
+   band edges seeds  r21 tomb warA Trades        SumR   Win%      PF
+   0.10    75    31  156   44   96     55  +54.026249  14.55  2.4081
+   0.12    75    28  133   34   91     53  +38.211631  11.32  2.0902
+   0.14    77    24   93   28   90     52  +51.882554  13.46  2.5399
+   0.16    75    18   86   29   82     40  +35.787212  17.50  2.3615
+
+--- JUL: 2026-07-06 .. 2026-07-31 (exkl.)  | n=1748 | erste 2026-07-06 letzte 2026-07-30 ---
+   band edges seeds  r21 tomb warA Trades        SumR   Win%      PF
+   0.10    77    21  101   18   75     57  -31.829419   7.02  0.1875
+   0.12    76    15   52   13   69     51  -29.496642   7.84  0.1032
+   0.14    73    12   34   12   66     49  -26.981429   8.16  0.1117
+   0.16    72    12   23    6   65     47  -27.312780   6.38  0.0979
+
+--- AUG: 2026-08-03 .. 2026-08-28 (exkl.)  | n=1748 | erste 2026-08-03 letzte 2026-08-27 ---
+   band edges seeds  r21 tomb warA Trades        SumR   Win%      PF
+   0.10    93    24   68   36   79     28   -9.594832  21.43  0.4742
+   0.12    88    23   51   29   75     26   -6.225687  26.92  0.6193
+   0.14    86    19   47   26   71     32   -5.161701  25.00  0.7363
+   0.16    80    15   40   24   63     30   -1.931395  26.67  0.8818
+
+===== MATRIX SumR (Zeile=Fenster, Spalte=band) =====
+           0.10         0.12         0.14         0.16
+MRZ     -18.353942   -20.030648   -23.894160   -20.366658
+MAI     +54.026249   +38.211631   +51.882554   +35.787212
+JUL     -31.829419   -29.496642   -26.981429   -27.312780
+AUG      -9.594832    -6.225687    -5.161701    -1.931395
+
+===== STREUUNG je Fenster (ueber bands) =====
+  MRZ: SumR min -23.894160 max -18.353942 Spanne 5.540219 | Trades 48..50
+  MAI: SumR min +35.787212 max +54.026249 Spanne 18.239037 | Trades 40..55
+  JUL: SumR min -31.829419 max -26.981429 Spanne 4.847990 | Trades 47..57
+  AUG: SumR min -9.594832 max -1.931395 Spanne 7.663437 | Trades 26..32
+
+Laufzeit: 77.0s

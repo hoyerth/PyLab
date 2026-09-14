@@ -1,0 +1,75 @@
+﻿======================================================================================================================
+SCHRITT 1 -- TRADE 229 (SHORT K20): Zustand bei Bar 245 (Kandidaten-Entry 242/244)
+======================================================================================================================
+  Trade 229: entry_bar=231 E=66.424 SL=66.826 TP1=63.676 TP2=63.605
+  Rohdaten-Aufloesung:
+    SL   zuerst getroffen: bar 735 (19.08 22:45)
+    TP1  zuerst getroffen: bar 386 (14.08 04:30)
+    TP2  zuerst getroffen: bar 629 (18.08 19:15)
+    H1-Exit bar 386 | H2-Exit bar 398 | R = +6.92 (r1=+6.84, r2=+7.01)
+
+  -> DE-RISKING-ZEITPUNKT (TP1) = Bar 386 (14.08 04:30)
+  -> Kandidaten-Entry der Setups 242/244 = Bar 245 (12.08 15:15)
+  -> 245 < 386: Position war bei Bar 245 NOCH IM VOLLEN RISIKO.
+  -> SL war bis dahin nie erreicht: True
+
+  Zustand der Position bei Bar 245 (Rohdaten):
+      bar         zeit     high      low    close  low<=TP1?  high>=SL?
+      242  12.08 14:30   66.663   65.598   66.480      False      False
+      243  12.08 14:45   66.528   66.146   66.523      False      False
+      244  12.08 15:00   66.662   66.053   66.090      False      False
+      245  12.08 15:15   66.251   65.783   65.902      False      False
+      246  12.08 15:30   65.927   65.616   65.804      False      False
+
+======================================================================================================================
+SCHRITT 2 -- BAR 529: K20 (66.459) vs. K31 (66.327) in Rohdaten
+======================================================================================================================
+  K20-Basis frozen = 66.459 (Primaer-Anker ab Bar 229)
+  K31-Basis(529)   = mean(high[237],high[249],high[286]) = 66.327
+
+    bar         zeit     open     high      low    close     d20%     d31%
+    526  17.08 16:30   65.931   66.271   65.924   66.191  -0.2829  -0.0849
+    527  17.08 16:45   66.196   66.378   66.100   66.199  -0.1219  +0.0764
+    528  17.08 17:00   66.201   66.356   66.103   66.339  -0.1550  +0.0432
+    529  17.08 17:15   66.336   66.538   66.303   66.515  +0.1189  +0.3176
+    530  17.08 17:30   66.516   66.532   66.313   66.322  +0.1098  +0.3086
+    531  17.08 17:45   66.324   66.476   66.257   66.412  +0.0256  +0.2241
+    532  17.08 18:00   66.420   66.432   66.261   66.305  -0.0406  +0.1578
+    533  17.08 18:15   66.307   66.332   66.257   66.303  -0.1911  +0.0070
+
+  Bar 529: high=66.538 | K20-Basis=66.459 | Ueberdeckung = +0.0790 USD = +0.1189 %
+           reiner Sweep (High > Basis):        True
+           Mindest-Band-Sweep (> 0.12 %):      False
+           Schwelle 0.12 % entspricht Preis:   66.5388
+           Fehlbetrag zur Schwelle:            0.0008 USD
+
+======================================================================================================================
+SCHRITT 3 -- Hypothetisches K20-Setup an Bar 529 (reine Kantenueberdeckung)
+======================================================================================================================
+  Gegenkante (K1 UNTEN, kausal) = mean(high[7],high[398]) = 63.822
+  (Audit-TP2 des K31-Trades = 63.474 -> bestaetigt: False)
+
+  K20 (hypothetisch): basis=66.459 dist=+0.1189% -> STUFE_2_KERZE_2
+    entry_bar=531 (open=66.324) SL=66.588 (cluster_ext=66.538) TP1(POC)=63.888 TP2=63.822
+    Geometrie sl>entry>poc>tp2: True | risk=0.2640
+    Aufloesung: H1=TP1@620 (18.08 17:00) | H2=TP2@620 (18.08 17:00) | R = +9.35 (r1=+9.23, r2=+9.48)
+
+  K31 (arretiert): basis=66.327 dist=+0.3176% -> STUFE_2_KERZE_2
+    entry_bar=531 (open=66.324) SL=66.588 (cluster_ext=66.538) TP1(POC)=63.885 TP2=63.822
+    Geometrie sl>entry>poc>tp2: True | risk=0.2640
+    Aufloesung: H1=TP1@620 (18.08 17:00) | H2=TP2@620 (18.08 17:00) | R = +9.36 (r1=+9.24, r2=+9.48)
+
+======================================================================================================================
+ZUSATZ: Was aendert 'reine Ueberdeckung' an der KASKADE? (Code-Inspektion)
+======================================================================================================================
+  Gate (ii) _kandidat: `if dist <= cfg.touch_band_pct: continue`
+    -> K20 wird bei 529 VOR der Sweep-Pruefung uebersprungen (0.1189 <= 0.12).
+    -> Eine Entkopplung NUR von _reclaim_stufe (Gate iii) ist daher wirkungslos
+       (Teil 6, V1: 9 Trades / +23.02 R, Signatur identisch).
+  Erst Gate (ii)+(ii')+(iii) gemeinsam (Teil 6, V4):
+    sweep_min 0.02 -> 12 Trades / +21.12 R (3 neue Verlierer: 383/492/620)
+    sweep_min 0.05 -> 11 Trades / +21.52 R
+  Anker-Vorrang allein (V2): 8 Trades / +14.61 R (Trade 529 faellt weg,
+    weil _reclaim_stufe weiter 0.12 verlangt).
+  V3 (Anker-Vorrang + sweep_min 0.05): 9 Trades / +23.00 R ->
+    Trade 529 wandert K31 -> K20, R +8.41 -> +8.39.

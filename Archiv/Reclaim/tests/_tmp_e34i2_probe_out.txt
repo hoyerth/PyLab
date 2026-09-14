@@ -1,0 +1,52 @@
+====================================================================================================
+E-34i/2 GEGENPROBE: Renderer-Patch + 4 E-34-Zielzonen-Patches
+====================================================================================================
+Zielzonen-Fenster: 1033..1287 (P9 848..1020 ausgenommen)
+
+[HAZARD] DEFAULT_ADAPTER (v0.1-Basis) unter UN-gegatetem _zv:
+   V1_basis = 14 / +47.815697 R (Soll/arretiert: 14 / +47.815697) -> UNVERAENDERT
+
+[HAZARD] ADAPTER_V015 (V018) unter UN-gegatetem Zielzonen-Patchset:
+   V018 = 17 / +65.835576 R (abgenommen: 17 / +65.835576) -> UNVERAENDERT
+
+gesamt : 23 / +82.614385 R (Soll V019: 23 / +82.614385)
+H1     : 8 / +38.919584 R (Soll 8 / +38.919584)
+H2     : +43.694801 R (Soll +43.694801)
+ZIEL   : 6 / +16.778809 R (Soll 6 / +16.778809)
+
+--- ZIEL-Trades (1021..1287) ---
+  bar 1075 kid  62 LONG  entry_bar 1077 r +1.475768
+  bar 1122 kid  73 SHORT entry_bar 1123 r +10.752473
+  bar 1211 kid  76 SHORT entry_bar 1214 r +2.539476
+  bar 1268 kid  76 SHORT entry_bar 1269 r -1.000000
+  bar 1272 kid  73 SHORT entry_bar 1273 r +1.254682
+  bar 1280 kid  76 SHORT entry_bar 1281 r +1.756410
+
+--- Alle Trades ---
+  bar  229 kid  20 SHORT entry_bar  231 r +6.889303
+  bar  242 kid  20 SHORT entry_bar  245 r +3.925121
+  bar  398 kid   5 LONG  entry_bar  399 r +5.697713
+  bar  490 kid  16 SHORT entry_bar  491 r -0.475084
+  bar  509 kid  16 SHORT entry_bar  510 r -0.347446
+  bar  529 kid  20 SHORT entry_bar  531 r +8.359943
+  bar  564 kid  20 SHORT entry_bar  565 r +15.870034
+  bar  639 kid   1 LONG  entry_bar  640 r -1.000000
+  bar  650 kid   3 LONG  entry_bar  653 r -1.000000
+  bar  679 kid  45 LONG  entry_bar  681 r +6.480880
+  bar  714 kid  16 SHORT entry_bar  715 r -1.000000
+  bar  760 kid  51 SHORT entry_bar  762 r -1.000000
+  bar  903 kid  67 SHORT entry_bar  905 r +4.119775
+  bar  980 kid  67 SHORT entry_bar  981 r +9.987676
+  bar  981 kid  73 SHORT entry_bar  982 r +2.695488
+  bar 1002 kid  77 LONG  entry_bar 1003 r +3.629016
+  bar 1020 kid  67 SHORT entry_bar 1021 r +3.003157
+  bar 1075 kid  62 LONG  entry_bar 1077 r +1.475768
+  bar 1122 kid  73 SHORT entry_bar 1123 r +10.752473
+  bar 1211 kid  76 SHORT entry_bar 1214 r +2.539476
+  bar 1268 kid  76 SHORT entry_bar 1269 r -1.000000
+  bar 1272 kid  73 SHORT entry_bar 1273 r +1.254682
+  bar 1280 kid  76 SHORT entry_bar 1281 r +1.756410
+
+URSACHE BESTAETIGT (V019 braucht die 4 Zusatz-Patches): True
+
+ENDE E-34i/2

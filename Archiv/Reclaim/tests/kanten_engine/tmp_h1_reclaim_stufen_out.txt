@@ -1,0 +1,101 @@
+﻿==============================================================================================================================
+A) 12.08.2026 (Bars 226-250) -- K20-Trade 229 + die 2 Reclaims 242/244
+==============================================================================================================================
+    bar         zeit     open     high      low    close      B20     d20%      B31     d31%  Kandidat/Stufe
+    226  12.08 10:30   66.260   66.347   66.178   66.198   66.459  -0.1685   66.364  -0.0256  K20 nicht erreicht (dist < 0) -> kein Trade
+    227  12.08 10:45   66.197   66.220   66.102   66.106   66.459  -0.3596   66.364  -0.2170  K20 nicht erreicht (dist < 0) -> kein Trade
+    228  12.08 11:00   66.114   66.513   66.105   66.513   66.459  +0.0813   66.364  +0.2245  K20 IN-BAND (<=0.12%) -> Skip, Kaskade faellt nach innen | K31 KANDIDAT -> kein Reclaim (Close bleibt oben)
+    229  12.08 11:15   66.509   66.776   66.462   66.471   66.459  +0.4770   66.364  +0.6208  K20 KANDIDAT -> STUFE_2_KERZE_2 entry=231
+    230  12.08 11:30   66.470   66.510   66.410   66.419   66.459  +0.0767   66.364  +0.2200  K20 IN-BAND (<=0.12%) -> Skip, Kaskade faellt nach innen | K31 KANDIDAT -> STUFE_3_KERZE_3 entry=233
+    231  12.08 11:45   66.424   66.472   66.319   66.394   66.459  +0.0196   66.364  +0.1627  K20 IN-BAND (<=0.12%) -> Skip, Kaskade faellt nach innen | K31 KANDIDAT -> STUFE_2_KERZE_2 entry=233
+    232  12.08 12:00   66.400   66.403   66.304   66.346   66.459  -0.0843   66.364  +0.0588  K20 IN-BAND (<=0.12%) -> Skip, Kaskade faellt nach innen
+    233  12.08 12:15   66.348   66.417   66.327   66.340   66.459  -0.0632   66.364  +0.0799  K20 IN-BAND (<=0.12%) -> Skip, Kaskade faellt nach innen
+    234  12.08 12:30   66.345   66.353   66.252   66.265   66.459  -0.1595   66.364  -0.0166  K20 nicht erreicht (dist < 0) -> kein Trade
+    235  12.08 12:45   66.261   66.306   66.076   66.247   66.459  -0.2302   66.364  -0.0874  K20 nicht erreicht (dist < 0) -> kein Trade
+    236  12.08 13:00   66.255   66.301   66.116   66.223   66.459  -0.2377   66.364  -0.0949  K20 nicht erreicht (dist < 0) -> kein Trade
+    237  12.08 13:15   66.225   66.364   66.151   66.329   66.459  -0.1429   66.364  +0.0000  K20 nicht erreicht (dist < 0) -> kein Trade
+    238  12.08 13:30   66.328   66.349   66.223   66.278   66.459  -0.1655   66.364  -0.0226  K20 nicht erreicht (dist < 0) -> kein Trade
+    239  12.08 13:45   66.276   66.307   66.244   66.288   66.459  -0.2287   66.364  -0.0859  K20 nicht erreicht (dist < 0) -> kein Trade
+    240  12.08 14:00   66.291   66.291   66.046   66.104   66.459  -0.2528   66.364  -0.1100  K20 nicht erreicht (dist < 0) -> kein Trade
+    241  12.08 14:15   66.102   66.506   65.890   66.437   66.459  +0.0707   66.364  +0.2140  K20 IN-BAND (<=0.12%) -> Skip, Kaskade faellt nach innen | K31 KANDIDAT -> kein Reclaim (Close bleibt oben)
+    242  12.08 14:30   66.425   66.663   65.598   66.480   66.459  +0.3070   66.364  +0.4505  K20 KANDIDAT -> STUFE_3_KERZE_3 entry=245
+    243  12.08 14:45   66.483   66.528   66.146   66.523   66.459  +0.1038   66.364  +0.2471  K20 IN-BAND (<=0.12%) -> Skip, Kaskade faellt nach innen | K31 KANDIDAT -> kein Reclaim (Close bleibt oben)
+    244  12.08 15:00   66.525   66.662   66.053   66.090   66.459  +0.3055   66.364  +0.4490  K20 KANDIDAT -> STUFE_1_IN_BAR entry=245
+    245  12.08 15:15   66.092   66.251   65.783   65.902   66.459  -0.3130   66.364  -0.1703  K20 nicht erreicht (dist < 0) -> kein Trade
+    246  12.08 15:30   65.886   65.927   65.616   65.804   66.459  -0.8005   66.364  -0.6585  K20 nicht erreicht (dist < 0) -> kein Trade
+    247  12.08 15:45   65.796   66.205   65.780   66.134   66.459  -0.3822   66.364  -0.2396  K20 nicht erreicht (dist < 0) -> kein Trade
+    248  12.08 16:00   66.140   66.285   65.936   66.234   66.459  -0.2618   66.364  -0.1190  K20 nicht erreicht (dist < 0) -> kein Trade
+    249  12.08 16:15   66.232   66.330   66.020   66.087   66.459  -0.1941   66.364  -0.0512  K20 nicht erreicht (dist < 0) -> kein Trade
+    250  12.08 16:30   66.091   66.237   65.868   66.222   66.459  -0.3340   66.364  -0.1914  K20 nicht erreicht (dist < 0) -> kein Trade
+
+==============================================================================================================================
+B) 17.08./18.08.2026 (Bars 525-570) -- K20-Touches 529/565, K31-Trade 529
+==============================================================================================================================
+    bar         zeit     open     high      low    close      B20     d20%      B31     d31%  Kandidat/Stufe
+    525  17.08 16:15   65.775   66.271   65.757   65.924   66.459  -0.2829   66.327  -0.0849  K20 nicht erreicht (dist < 0) -> kein Trade
+    526  17.08 16:30   65.931   66.271   65.924   66.191   66.459  -0.2829   66.327  -0.0849  K20 nicht erreicht (dist < 0) -> kein Trade
+    527  17.08 16:45   66.196   66.378   66.100   66.199   66.459  -0.1219   66.327  +0.0764  K20 nicht erreicht (dist < 0) -> kein Trade
+    528  17.08 17:00   66.201   66.356   66.103   66.339   66.459  -0.1550   66.327  +0.0432  K20 nicht erreicht (dist < 0) -> kein Trade
+    529  17.08 17:15   66.336   66.538   66.303   66.515   66.459  +0.1189   66.327  +0.3176  K20 IN-BAND (<=0.12%) -> Skip, Kaskade faellt nach innen | K31 KANDIDAT -> STUFE_2_KERZE_2 entry=531
+    530  17.08 17:30   66.516   66.532   66.313   66.322   66.459  +0.1098   66.327  +0.3086  K20 IN-BAND (<=0.12%) -> Skip, Kaskade faellt nach innen | K31 KANDIDAT -> STUFE_1_IN_BAR entry=531
+    531  17.08 17:45   66.324   66.476   66.257   66.412   66.459  +0.0256   66.327  +0.2241  K20 IN-BAND (<=0.12%) -> Skip, Kaskade faellt nach innen | K31 KANDIDAT -> STUFE_2_KERZE_2 entry=533
+    532  17.08 18:00   66.420   66.432   66.261   66.305   66.459  -0.0406   66.327  +0.1578  K20 IN-BAND (<=0.12%) -> Skip, Kaskade faellt nach innen | K31 KANDIDAT -> STUFE_1_IN_BAR entry=533
+    533  17.08 18:15   66.307   66.332   66.257   66.303   66.459  -0.1911   66.327  +0.0070  K20 nicht erreicht (dist < 0) -> kein Trade
+    534  17.08 18:30   66.306   66.389   66.234   66.316   66.459  -0.1053   66.327  +0.0930  K20 IN-BAND (<=0.12%) -> Skip, Kaskade faellt nach innen
+    535  17.08 18:45   66.315   66.375   66.263   66.348   66.459  -0.1264   66.327  +0.0719  K20 nicht erreicht (dist < 0) -> kein Trade
+    536  17.08 19:00   66.346   66.399   66.245   66.245   66.459  -0.0903   66.327  +0.1080  K20 IN-BAND (<=0.12%) -> Skip, Kaskade faellt nach innen
+    537  17.08 19:15   66.248   66.277   65.939   65.974   66.459  -0.2739   66.327  -0.0759  K20 nicht erreicht (dist < 0) -> kein Trade
+    538  17.08 19:30   65.972   66.036   65.863   66.036   66.459  -0.6365   66.345  -0.4661  K20 nicht erreicht (dist < 0) -> kein Trade
+    539  17.08 19:45   66.037   66.092   65.884   65.893   66.459  -0.5522   66.345  -0.3817  K20 nicht erreicht (dist < 0) -> kein Trade
+    540  17.08 20:00   65.889   65.909   65.757   65.873   66.459  -0.8276   66.345  -0.6575  K20 nicht erreicht (dist < 0) -> kein Trade
+    541  17.08 20:15   65.872   65.984   65.803   65.849   66.459  -0.7147   66.345  -0.5445  K20 nicht erreicht (dist < 0) -> kein Trade
+    542  17.08 20:30   65.850   65.866   65.663   65.709   66.459  -0.8923   66.345  -0.7224  K20 nicht erreicht (dist < 0) -> kein Trade
+    543  17.08 20:45   65.710   65.825   65.680   65.777   66.459  -0.9540   66.345  -0.7842  K20 nicht erreicht (dist < 0) -> kein Trade
+    544  17.08 21:00   65.776   65.793   65.650   65.761   66.459  -1.0021   66.345  -0.8324  K20 nicht erreicht (dist < 0) -> kein Trade
+    545  17.08 21:15   65.767   65.958   65.767   65.897   66.459  -0.7538   66.345  -0.5837  K20 nicht erreicht (dist < 0) -> kein Trade
+    546  17.08 21:30   65.895   65.931   65.836   65.898   66.459  -0.7945   66.345  -0.6244  K20 nicht erreicht (dist < 0) -> kein Trade
+    547  17.08 21:45   65.904   65.963   65.807   65.879   66.459  -0.7463   66.345  -0.5762  K20 nicht erreicht (dist < 0) -> kein Trade
+    548  17.08 22:00   65.882   65.905   65.769   65.789   66.459  -0.8336   66.345  -0.6636  K20 nicht erreicht (dist < 0) -> kein Trade
+    549  17.08 22:15   65.786   65.826   65.744   65.759   66.459  -0.9525   66.345  -0.7826  K20 nicht erreicht (dist < 0) -> kein Trade
+    550  17.08 22:30   65.758   65.770   65.702   65.736   66.459  -1.0367   66.345  -0.8671  K20 nicht erreicht (dist < 0) -> kein Trade
+    551  17.08 22:45   65.739   65.779   65.725   65.755   66.459  -1.0232   66.345  -0.8535  K20 nicht erreicht (dist < 0) -> kein Trade
+    552  18.08 00:00   65.736   65.791   65.712   65.750   66.459  -1.0051   66.345  -0.8354  K20 nicht erreicht (dist < 0) -> kein Trade
+    553  18.08 00:15   65.752   65.758   65.599   65.644   66.459  -1.0548   66.345  -0.8851  K20 nicht erreicht (dist < 0) -> kein Trade
+    554  18.08 00:30   65.643   65.728   65.637   65.698   66.459  -1.0999   66.345  -0.9304  K20 nicht erreicht (dist < 0) -> kein Trade
+    555  18.08 00:45   65.696   65.713   65.609   65.633   66.459  -1.1225   66.345  -0.9530  K20 nicht erreicht (dist < 0) -> kein Trade
+    556  18.08 01:00   65.630   65.744   65.610   65.739   66.459  -1.0759   66.345  -0.9062  K20 nicht erreicht (dist < 0) -> kein Trade
+    557  18.08 01:15   65.740   65.863   65.737   65.814   66.459  -0.8968   66.345  -0.7269  K20 nicht erreicht (dist < 0) -> kein Trade
+    558  18.08 01:30   65.808   65.898   65.799   65.884   66.459  -0.8441   66.345  -0.6741  K20 nicht erreicht (dist < 0) -> kein Trade
+    559  18.08 01:45   65.880   65.952   65.861   65.948   66.459  -0.7629   66.345  -0.5927  K20 nicht erreicht (dist < 0) -> kein Trade
+    560  18.08 02:00   65.949   65.998   65.836   65.901   66.459  -0.6937   66.345  -0.5234  K20 nicht erreicht (dist < 0) -> kein Trade
+    561  18.08 02:15   65.899   66.430   65.886   66.369   66.459  -0.0436   66.345  +0.1277  K20 IN-BAND (<=0.12%) -> Skip, Kaskade faellt nach innen | K31 KANDIDAT -> STUFE_2_KERZE_2 entry=563
+    562  18.08 02:30   66.376   66.414   66.229   66.254   66.459  -0.0677   66.345  +0.1036  K20 IN-BAND (<=0.12%) -> Skip, Kaskade faellt nach innen
+    563  18.08 02:45   66.268   66.453   66.216   66.423   66.459  -0.0090   66.345  +0.1624  K20 IN-BAND (<=0.12%) -> Skip, Kaskade faellt nach innen | K31 KANDIDAT -> kein Reclaim (Close bleibt oben)
+    564  18.08 03:00   66.410   66.530   66.249   66.433   66.459  +0.1068   66.345  +0.2785  K20 IN-BAND (<=0.12%) -> Skip, Kaskade faellt nach innen | K31 KANDIDAT -> STUFE_3_KERZE_3 entry=567
+    565  18.08 03:15   66.434   66.536   66.193   66.419   66.459  +0.1159   66.345  +0.2875  K20 IN-BAND (<=0.12%) -> Skip, Kaskade faellt nach innen | K31 KANDIDAT -> STUFE_2_KERZE_2 entry=567
+    566  18.08 03:30   66.417   66.424   65.984   65.984   66.459  -0.0527   66.345  +0.1187  K20 IN-BAND (<=0.12%) -> Skip, Kaskade faellt nach innen
+    567  18.08 03:45   65.988   66.009   65.404   65.612   66.459  -0.6771   66.345  -0.5068  K20 nicht erreicht (dist < 0) -> kein Trade
+    568  18.08 04:00   65.618   65.619   65.333   65.405   66.459  -1.2639   66.345  -1.0947  K20 nicht erreicht (dist < 0) -> kein Trade
+    569  18.08 04:15   65.401   65.505   65.387   65.420   66.459  -1.4355   66.345  -1.2665  K20 nicht erreicht (dist < 0) -> kein Trade
+    570  18.08 04:30   65.414   65.416   65.181   65.235   66.459  -1.5694   66.345  -1.4006  K20 nicht erreicht (dist < 0) -> kein Trade
+
+==============================================================================================================================
+C) BLOCKER-RECHNUNG (aus Audit-Bericht: Positionen und Exit-Bars)
+==============================================================================================================================
+  Trade 229 SHORT K20: entry=231, H1=TP1@386  -> exit_final (Stacking-Text) = 398
+  Trade 529 SHORT K31: entry=531, H1=TP1@614  -> exit_final (Stacking-Text) = 639
+
+  12.08.: Setup bar 242 -> entry_bar 245 ; Setup bar 244 -> entry_bar 245
+          Stacking: entry 245 <= 398 (Position 231 offen) -> BEIDE GESPERRT
+          Zyklus  : 242-229 = 13 >= 12  -> NICHT die Ursache
+          Dedup   : beide Setups haetten entry_bar 245 -> max. 1 Trade
+
+  17.08.: Setup bar 529 -> K31 (K20 in-band) -> entry 531, GENOMMEN (+8.41R)
+  18.08.: Setup bar 565 -> entry waere 565+stufe; K31-Position 531 offen
+          bis 639 -> STACKING-SPERRE (Zyklus 565-529=36 >= 12)
+
+  K20-Promotion: bar 229, frozen basis = 66.459 (Basis des Referenz-Sweeps)
+  K20-Dochte nach Freeze: 529 -> 66.538 = +0.1189% (<= 0.12 -> in-band)
+                          565 -> 66.536 = +0.1159% (<= 0.12 -> in-band)
+  K20 braeuchte fuer einen Sweep: high > 66.539
+  Hoechster Kurs NACH der Promotion: 70.000 (Bar 881, 21.08 13:15)

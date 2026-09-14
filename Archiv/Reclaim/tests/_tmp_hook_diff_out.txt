@@ -1,0 +1,46 @@
+﻿========================================================================================================
+HOOK-VERGLEICH je Bar (Seiten UNTEN/OBEN, alle Kids im Pool)
+========================================================================================================
+
+--- Bar 903  21.08. 20:45  H 69.9280 L 69.7270 ---
+    IST (nur P9) aktive_phase=P9    | H2 LONG PHASE     ziel=69.914
+    P9 + P12     aktive_phase=P9    | H2 LONG PHASE     ziel=69.914
+      SHORT sweep  69.9280 | H1-Freigabe IST 67 | P9+P12 67
+      LONG  sweep  69.7270 | H1-Freigabe IST None | P9+P12 None
+
+--- Bar 980  24.08. 17:00  H 69.8990 L 69.1450 ---
+    IST (nur P9) aktive_phase=P9    | H2 LONG PHASE     ziel=69.914
+    P9 + P12     aktive_phase=P9    | H2 LONG PHASE     ziel=69.914
+      SHORT sweep  69.8990 | H1-Freigabe IST 67 | P9+P12 67
+      LONG  sweep  69.1450 | H1-Freigabe IST None | P9+P12 None
+
+--- Bar 981  24.08. 17:15  H 69.8510 L 69.4120 ---
+    IST (nur P9) aktive_phase=P9    | H2 LONG PHASE     ziel=69.914
+    P9 + P12     aktive_phase=P9    | H2 LONG PHASE     ziel=69.914
+      SHORT sweep  69.8510 | H1-Freigabe IST 67 | P9+P12 67
+      LONG  sweep  69.4120 | H1-Freigabe IST None | P9+P12 None
+
+--- Bar 1002  24.08. 22:30  H 68.6430 L 68.3080 ---
+    IST (nur P9) aktive_phase=P9    | H2 LONG PHASE     ziel=69.914
+    P9 + P12     aktive_phase=P9    | H2 LONG PHASE     ziel=69.914
+      SHORT sweep  68.6430 | H1-Freigabe IST None | P9+P12 None
+      LONG  sweep  68.3080 | H1-Freigabe IST None | P9+P12 None
+
+--- Bar 1020  25.08. 04:00  H 69.9240 L 69.4110 ---
+    IST (nur P9) aktive_phase=P9    | H2 LONG PHASE     ziel=69.914
+    P9 + P12     aktive_phase=P9    | H2 LONG PHASE     ziel=69.914
+      SHORT sweep  69.9240 | H1-Freigabe IST None | P9+P12 None
+      LONG  sweep  69.4110 | H1-Freigabe IST None | P9+P12 None
+
+--- Bar 1021  25.08. 04:15  H 69.6080 L 69.2840 ---
+.venv\Scripts\python.exe : Traceback (most recent call last):
+In Zeile:1 Zeichen:52
++ ... NG="utf-8"; .venv\Scripts\python.exe test\_tmp_hook_diff.py 2>&1 | Ou ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "F:\Python\PyLab\test\_tmp_hook_diff.py", line 52, in <module>
+    f"{None if seg is None else seg.phasen_id:<5} "
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: unsupported format string passed to NoneType.__format__

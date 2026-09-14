@@ -1,0 +1,64 @@
+SHA-Guards OK: Baseline 53f28e1b / V020 e79c5c29 / Adapter 770eda2c
+
+===== EXPERIMENT A: ZUKUNFT (fixes BOX, variables Datenende T) =====
+  Trades mit entry < BOX; Referenz ist T=1288.
+
+  --- BOX=644 (Referenz T=1288: 14 / +27.327383) ---
+        T  edges  seeds  r21log  tomb  warAus  n<BOX        R<BOX  dN           dR  diff
+      644     28      7      22    10      23     14   +27.327383  +0    +0.000000     0
+      700     32      9      22    10      26     14   +27.327383  +0    +0.000000     0
+      800     35     14      24    10      31     14   +27.327383  +0    +0.000000     0
+      900     41     20      25    11      35     14   +27.327383  +0    +0.000000     0
+     1000     49     19      28    14      40     14   +27.327383  +0    +0.000000     0
+     1100     55     16      30    16      41     14   +27.327383  +0    +0.000000     0
+     1200     57     15      32    17      47     14   +27.327383  +0    +0.000000     0
+     1288     59     14      34    17      47     14   +27.327383  +0    +0.000000     0
+
+  --- BOX=800 (Referenz T=1288: 23 / +18.874730) ---
+        T  edges  seeds  r21log  tomb  warAus  n<BOX        R<BOX  dN           dR  diff
+      800     35     14      24    10      31     23   +18.874730  +0    +0.000000     0
+      900     41     20      25    11      35     23   +18.874730  +0    +0.000000     0
+     1000     49     19      28    14      40     23   +18.874730  +0    +0.000000     0
+     1100     55     16      30    16      41     23   +18.874730  +0    +0.000000     0
+     1200     57     15      32    17      47     23   +18.874730  +0    +0.000000     0
+     1288     59     14      34    17      47     23   +18.874730  +0    +0.000000     0
+
+  --- BOX=1000 (Referenz T=1288: 24 / +17.874730) ---
+        T  edges  seeds  r21log  tomb  warAus  n<BOX        R<BOX  dN           dR  diff
+     1000     49     19      28    14      40     24   +17.874730  +0    +0.000000     0
+     1100     55     16      30    16      41     24   +17.874730  +0    +0.000000     0
+     1200     57     15      32    17      47     24   +17.874730  +0    +0.000000     0
+     1288     59     14      34    17      47     24   +17.874730  +0    +0.000000     0
+
+  --- BOX=1200 (Referenz T=1288: 28 / +22.135232) ---
+        T  edges  seeds  r21log  tomb  warAus  n<BOX        R<BOX  dN           dR  diff
+     1200     57     15      32    17      47     28   +25.028735  +0    +2.893504     6
+        FEHLT entry=1021 SHORT r=+1.050505
+        FEHLT entry=1077 LONG  r=+1.475768
+        FEHLT entry=1123 SHORT r=+2.192513
+        DAZU  entry=1021 SHORT r=+2.128788
+        DAZU  entry=1077 LONG  r=+1.007566
+        DAZU  entry=1123 SHORT r=+4.475936
+     1288     59     14      34    17      47     28   +22.135232  +0    +0.000000     0
+
+===== EXPERIMENT B: HISTORIE (Start 08-03 vs 08-10, gleiches Ende 08-28) =====
+  AUG liegt in S1 bei Offset 12001; S1[..pos+N] == AUG per np.array_equal bestaetigt.
+  AUG (Start 08-10): 14 H1-Trades
+  S1  (Start 02-05): 24 H1-Trades im AUG-Segment
+  Set-Differenz: 32  (nur-AUG 11, nur-S1 21)
+      nur-AUG entry=115 SHORT r=-1.000000
+      nur-AUG entry=221 SHORT r=-1.000000
+      nur-AUG entry=231 SHORT r=+6.889303
+      nur-AUG entry=245 SHORT r=+3.925121
+      nur-AUG entry=362 LONG  r=-0.429390
+      nur-AUG entry=379 LONG  r=-1.000000
+      nur-S1  entry=83 SHORT r=-0.123816
+      nur-S1  entry=107 SHORT r=-1.000000
+      nur-S1  entry=164 LONG  r=-0.183447
+      nur-S1  entry=175 LONG  r=+0.446124
+      nur-S1  entry=228 SHORT r=-1.000000
+      nur-S1  entry=248 SHORT r=-1.000000
+
+===== VERDIKT =====
+  A) Zukunftseinfluss auf abgeschlossene Trades: JA (Look-Ahead).
+  B) Historieneinfluss (frueherer Start): JA (kausal legitim, aber fensterabhaengig).

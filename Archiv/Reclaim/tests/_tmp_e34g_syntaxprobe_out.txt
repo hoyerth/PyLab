@@ -1,0 +1,51 @@
+================================================================================================
+E-34g SYNTAX-/KONSTRUKTIONSPROBE DES GUTACHTEN-DIFFS (read-only)
+================================================================================================
+Adapter-SHA vorher : 0f3f8765b1682910a7332b2bcb6f30f79fb56afaec180bdca674693d3ec2b01b
+Codeblock: 104 Zeilen extrahiert.
+exec: OK (syntaktisch korrekt)
+Neue Namen im Namespace: ['A1_AUTO_77', 'A2_AUTO_77', 'ADAPTER_V019', 'AKTIVE_SEGMENTE_V019', 'PLATEAU_MAX_BARS', 'PLATEAU_MIN_BARS', 'PLATEAU_REFERENZ_BARS', 'PhasenReifeKonfiguration']
+
+--- Struktur ---
+  AKTIVE_SEGMENTE_V019 = ['P9', 'A1_AUTO_77', 'A2_AUTO_77']
+  ADAPTER_V019.segmente = ['P9', 'A1_AUTO_77', 'A2_AUTO_77']
+  P9-Boden-Literal (uebernommen): 68.4
+  P9-Override (uebernommen)     : 69.87
+  A1_AUTO_77: 1033..1173 K67/K82 tol=1.0 literal=None
+  A2_AUTO_77: 1174..1287 K73/K82 tol=1.0 literal=None
+
+--- Plateau-SSoT ---
+  d=  40: ist_im_plateau=False
+  d=  41: ist_im_plateau=True
+  d=  77: ist_im_plateau=True
+  d= 114: ist_im_plateau=True
+  d= 115: ist_im_plateau=False
+
+--- Nahtstellen (fail-closed) ---
+  bar 1020: PHASE      phase=P9
+  bar 1021: BLOCKIERT  phase=None
+  bar 1032: BLOCKIERT  phase=None
+  bar 1033: PHASE      phase=A1_AUTO_77
+  bar 1173: PHASE      phase=A1_AUTO_77
+  bar 1174: PHASE      phase=A2_AUTO_77
+  bar 1287: PHASE      phase=A2_AUTO_77
+  bar 1288: BLOCKIERT  phase=None
+  aktive Phasen 1021..1287: 255 / 267
+
+--- Fail-Loud-Pruefer gegen den echten Scan ---
+  REF  848: verifiziere_gegen_scan OK
+  REF  980: verifiziere_gegen_scan OK
+  REF 1259: verifiziere_gegen_scan OK
+  verifiziere_niveau_overrides   OK
+  verifiziere_boden_literale     OK
+
+--- Inertheit: Bestand unberuehrt ---
+  DEFAULT_ADAPTER.segmente: ['P9']
+  ADAPTER_V015.segmente   : ['P9']
+  P9.phasen_id            : P9
+  P9_BODEN_RECLAIM is S0  : True
+
+Adapter-SHA nachher: 0f3f8765b1682910a7332b2bcb6f30f79fb56afaec180bdca674693d3ec2b01b
+BIT-IDENTISCH: True
+
+ENDE E-34g-Syntaxprobe

@@ -1,0 +1,60 @@
+============================================================================================================
+E-34k  V018 -> V019  (gleiches Patchset; BKZ = Broker-Kerzen-Zeit)
+============================================================================================================
+box_end=644 | n=1288 | Zielzone 1033..1287 (P9 848..1020)
+
+v0.1-Basis : 14 Trades / +47.815697 R
+V018       : 17 Trades / +65.835576 R
+V019       : 23 Trades / +82.614385 R
+
+============================================================================================================
+A) DER EIGENTLICHE VERGLEICH (abgenommene Version V018)
+============================================================================================================
+
+V018 -> V019:  +0 verloren / +6 gewonnen
+  GEWONNEN (1075, 62)  r=+1.475768
+  GEWONNEN (1122, 73)  r=+10.752473
+  GEWONNEN (1211, 76)  r=+2.539476
+  GEWONNEN (1268, 76)  r=-1.000000
+  GEWONNEN (1272, 73)  r=+1.254682
+  GEWONNEN (1280, 76)  r=+1.756410
+  gemeinsame Schluessel: 17; R-Abweichungen: 0
+  -> V018 \ V019 ist LEER: keine von V018 abgenommene Position geht verloren.
+  -> R der 17 gemeinsamen Positionen: siehe Abweichungen oben (erwartet 0).
+
+============================================================================================================
+B) DIE 6 NEUEN ZIELZONEN-TRADES (V019) MIT BKZ-ZEIT
+============================================================================================================
+  (1075, 62)  LONG  sig 25.08. 15:45 BKZ | entry 25.08. 16:15 BKZ | r +1.475768
+  (1122, 73)  SHORT sig 26.08. 04:30 BKZ | entry 26.08. 04:45 BKZ | r +10.752473
+  (1211, 76)  SHORT sig 27.08. 03:45 BKZ | entry 27.08. 04:30 BKZ | r +2.539476
+  (1268, 76)  SHORT sig 27.08. 18:00 BKZ | entry 27.08. 18:15 BKZ | r -1.000000
+  (1272, 73)  SHORT sig 27.08. 19:00 BKZ | entry 27.08. 19:15 BKZ | r +1.254682
+  (1280, 76)  SHORT sig 27.08. 21:00 BKZ | entry 27.08. 21:15 BKZ | r +1.756410
+
+============================================================================================================
+C) GEGENPROBE: der dokumentierte 'referenz_soll'-Verlust liegt
+   gegenueber der v0.1-BASIS, NICHT gegenueber V018
+============================================================================================================
+
+v0.1-Basis -> V019:  -1 verloren / +10 gewonnen
+  VERLOREN (980, 73)  r=+2.412991
+  GEWONNEN (903, 67)  r=+4.119775
+  GEWONNEN (980, 67)  r=+9.987676
+  GEWONNEN (981, 73)  r=+2.695488
+  GEWONNEN (1002, 77)  r=+3.629016
+  GEWONNEN (1075, 62)  r=+1.475768
+  GEWONNEN (1122, 73)  r=+10.752473
+  GEWONNEN (1211, 76)  r=+2.539476
+  GEWONNEN (1268, 76)  r=-1.000000
+  GEWONNEN (1272, 73)  r=+1.254682
+  GEWONNEN (1280, 76)  r=+1.756410
+  gemeinsame Schluessel: 13; R-Abweichungen: 1
+    (1020, 67): +3.002241 -> +3.003157 (delta +0.000915)
+
+--- Kontrolle: Trades V018 ausserhalb der Zielzone unveraendert ---
+  gemeinsame 17 Schluessel, max |dR| = 0.000e+00
+  P9-Fenster (<1021) V018=+65.835576 V019=+65.835576
+  H1 (entry_bar<644) V018=8 / +38.919584 | V019=8 / +38.919584
+
+ENDE E-34k

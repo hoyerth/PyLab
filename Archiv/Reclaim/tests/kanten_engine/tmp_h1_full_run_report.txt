@@ -1,0 +1,48 @@
+============================================================================================================
+H1-MULTI-TIMEFRAME VOLLAEUFE S1 & S2 (E1-E6) - SILVER H1
+H1-Resonanz-Set: MIN_CANDLES/MIN_PHASE_CANDLES=12, TOL=0.68, TOL_TOUCH=0.30,
+  DENSITY_BAND=0.30, SHIFT_TOL=0.10, VA_PCT=0.93 | Baseline unveraendert
+============================================================================================================
+
+=== S1-H1  (2026-02-05 .. 2026-08-28, Ende exklusiv) ===
+  Bars (H1)                : 3324
+  Phasen gesamt / handelbar: 42 / 26
+  Trades                   : 68  (Long 35 / Short 33)
+  Win-Rate                 : 38.2%
+  Summe R (netto)          : +62.45R
+  Profit-Faktor            : 2.63
+  Avg Win / Avg Loss       : +3.88R / -0.91R
+  TP1-Quote                : 31 / 68 (45.6%)
+  TP2-Quote (Runner)       : 21 / 68 (30.9%)
+  Laengste Verlustserie    : 4
+  R/Trade-Effizienz        : +0.918 R/Trade
+
+=== S2-H1  (2025-01-01 .. 2025-12-01, Ende exklusiv) ===
+  Bars (H1)                : 5409
+  Phasen gesamt / handelbar: 26 / 17
+  Trades                   : 104  (Long 48 / Short 56)
+  Win-Rate                 : 30.8%
+  Summe R (netto)          : +51.51R
+  Profit-Faktor            : 1.83
+  Avg Win / Avg Loss       : +3.55R / -0.86R
+  TP1-Quote                : 45 / 104 (43.3%)
+  TP2-Quote (Runner)       : 25 / 104 (24.0%)
+  Laengste Verlustserie    : 11
+  R/Trade-Effizienz        : +0.495 R/Trade
+
+M15 vs. H1 GEGENUEBERSTELLUNG (M15 = Baseline-Referenz, Kontext)
+------------------------------------------------------------------------------------------------------------
+FensterTF       Bars   Ph   Tr   WR%     SumR    PF   AvgW   AvgL   R/Tr Streak
+------------------------------------------------------------------------------------------------------------
+S1     M15     13289  139  201  44.3  +197.26  3.01  +3.32  -0.88 +0.981      7
+S1     H1       3324   42   68  38.2   +62.45  2.63  +3.88  -0.91 +0.918      4
+S2     M15     21624   62  210  35.2   +99.88  1.80  +3.04  -0.92 +0.476     17
+S2     H1       5409   26  104  30.8   +51.51  1.83  +3.55  -0.86 +0.495     11
+------------------------------------------------------------------------------------------------------------
+SUMME  H1                  172        +113.97
+
+BEWERTUNG
+------------------------------------------------------------------------------------------------------------
+  Funktions-Nachweis: laeuft die Reclaim-Engine auf H1 mit dem Resonanz-Set,
+  positive R, intakte TP1/TP2-Struktur, plausibler Streak?
+  (H1 hat ~1/4 der Bars -> weniger Phasen/Trades; R-Paritaet mit M15 ist KEIN Ziel.)

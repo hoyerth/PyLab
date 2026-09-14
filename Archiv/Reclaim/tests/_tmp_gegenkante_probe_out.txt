@@ -1,0 +1,102 @@
+========================================================================================================
+A  RECLAIM_AT_OPENING -- VERIFIKATION (Ereignisfamilie)
+========================================================================================================
+
+A.1  Bar 1002 (P9-Suedschenkel / G4-Reclaim) -- Marktdaten
+   bar 1002  ts=2026-08-24T20:30  O=68.6140 H=68.6430 L=68.3080 C=68.5090
+   bar 1075  ts=2026-08-25T15:45  O=67.5340 H=67.6910 L=67.4200 C=67.6780
+
+   G4-Bedingung (Adapter-Literal 68.4000): lo[k] < 68.4000 < cl[k]
+      bar 934: lo=68.3920 < 68.4000 < cl=68.6210  | K77.touch_conf=0 (>= 3? False)
+      bar 991: lo=68.3480 < 68.4000 < cl=68.5170  | K77.touch_conf=1 (>= 3? False)
+      bar 997: lo=68.3680 < 68.4000 < cl=68.5000  | K77.touch_conf=2 (>= 3? False)
+      bar 999: lo=68.3180 < 68.4000 < cl=68.4660  | K77.touch_conf=2 (>= 3? False)
+      bar 1000: lo=68.2880 < 68.4000 < cl=68.4350  | K77.touch_conf=2 (>= 3? False)
+      bar 1001: lo=68.3820 < 68.4000 < cl=68.6100  | K77.touch_conf=2 (>= 3? False)
+      bar 1002: lo=68.3080 < 68.4000 < cl=68.5090  | K77.touch_conf=3 (>= 3? True)
+      bar 1045: lo=68.2770 < 68.4000 < cl=68.4950  | K77.touch_conf=3 (>= 3? True)
+      bar 1082: lo=68.3130 < 68.4000 < cl=68.8360  | K77.touch_conf=3 (>= 3? True)
+      bar 1116: lo=68.1830 < 68.4000 < cl=68.5340  | K77.touch_conf=3 (>= 3? True)
+      bar 1157: lo=68.3570 < 68.4000 < cl=68.4670  | K77.touch_conf=3 (>= 3? True)
+      bar 1167: lo=68.2280 < 68.4000 < cl=68.4450  | K77.touch_conf=4 (>= 3? True)
+      bar 1196: lo=68.3520 < 68.4000 < cl=68.4580  | K77.touch_conf=4 (>= 3? True)
+      bar 1227: lo=68.3600 < 68.4000 < cl=68.6800  | K77.touch_conf=5 (>= 3? True)
+      bar 1233: lo=68.3290 < 68.4000 < cl=68.4810  | K77.touch_conf=6 (>= 3? True)
+      bar 1235: lo=68.2920 < 68.4000 < cl=68.4310  | K77.touch_conf=6 (>= 3? True)
+      bar 1239: lo=68.3710 < 68.4000 < cl=68.5120  | K77.touch_conf=6 (>= 3? True)
+      bar 1241: lo=68.3330 < 68.4000 < cl=68.4110  | K77.touch_conf=6 (>= 3? True)
+      bar 1247: lo=68.2960 < 68.4000 < cl=68.4500  | K77.touch_conf=6 (>= 3? True)
+      bar 1262: lo=68.3070 < 68.4000 < cl=68.6950  | K77.touch_conf=6 (>= 3? True)
+
+A.2  Ereignis-Aufloesung: welche UNTEN-Kante reclaimt an welchem Bar?
+     (je Kante ihre EIGENE kausale Basis, >= Stufe 1)
+   bar 1002: 1 Kante(n) mit Reclaim >= 1
+      K77   basis= 68.3920 stufe=1 (STUFE_1_IN_BAR)
+   bar 1075: 0 Kante(n) mit Reclaim >= 1
+
+A.3  Oeffnungs-Trigger (P10): erster Bar >= 1021 mit Reclaim >= 1
+     gegen die DEKLARIERTE Grenzkante
+      K82 (UNTEN): erster Reclaim >= 1 bei bar 1075 stufe=1 (STUFE_1_IN_BAR)
+      K67 (OBEN): kein Reclaim >= 1 in [1021, 1288)
+
+========================================================================================================
+B  GEGENKANTEN-WAHL -- welche Kante ist TP2-Anker?
+========================================================================================================
+
+B.1  P9-Arretierung: wohin zeigt 'ziel_preis_short'?
+   P9.boden.kid            = K77
+   P9.boden.provenienz     = 68.3700
+   P9.ziel_preis_short     = 68.3700
+   >> IDENTISCH: True
+   P9.decke.kid            = K67  (Override 69.87)  ziel_preis_long=69.9140
+
+   >> Der PHASE-Zielpreis ist bereits die phaseneigene Gegenkante!
+
+B.2  Kausale Basen der Kandidaten-Gegenkanten an den Signal-Bars
+  bar    ri  kid  seg.boden basis  K77.basis  K48.basis  INNEN_U1  sweep/H/L
+  903 SHORT K67           68.3920    68.3920    62.5770   62.8590    69.9280
+  980 SHORT K67           68.3920    68.3920    62.5770   62.8590    69.8990
+  981 SHORT K73           68.3920    68.3920    62.5770   62.8590    69.8510
+ 1002  LONG K77           68.3920    68.3920    62.5770   62.8590    68.3080
+ 1020 SHORT K67           68.3920    68.3920    62.5770   62.8590    69.9240
+
+B.3  Rang der Kandidaten im UNTEN-Pool (existierende Kanten)
+   bar 903: Pool(18) = [('K48', 62.577), ('K49', 62.859), ('K3', 62.967), ('K45', 63.156), ('K4', 63.252), ('K41', 63.916)]
+   bar 980: Pool(18) = [('K48', 62.577), ('K49', 62.859), ('K3', 62.967), ('K45', 63.156), ('K4', 63.252), ('K41', 63.916)]
+   bar 1002: Pool(15) = [('K48', 62.577), ('K49', 62.859), ('K3', 62.967), ('K45', 63.156), ('K4', 63.252), ('K41', 63.916)]
+   bar 1020: Pool(16) = [('K48', 62.577), ('K49', 62.859), ('K3', 62.967), ('K45', 63.156), ('K4', 63.252), ('K41', 63.916)]
+
+========================================================================================================
+C  ZIELMECHANISMEN -- Wirkung auf die P9-H2-Trades (kid-Bindung konstant)
+========================================================================================================
+   PHASE      gesamt 17 Trades /  +65.835576 R | P9-Segment-Trades:
+        bar  903 SHORT K67  R  +4.119775 tp2  68.3700
+        bar  980 SHORT K67  R  +9.987676 tp2  68.3700
+        bar  981 SHORT K73  R  +2.695488 tp2  68.3700
+        bar 1002 LONG  K77  R  +3.629016 tp2  69.8700
+        bar 1020 SHORT K67  R  +3.003157 tp2  68.3700
+
+   MAKRO      gesamt 18 Trades /  +51.255680 R | P9-Segment-Trades:
+        bar  853 SHORT K59  R  -1.000000 tp2  62.5770
+        bar  903 SHORT K67  R  +1.633441 tp2  62.5770
+        bar  980 SHORT K67  R  +4.542254 tp2  62.5770
+        bar  981 SHORT K73  R  -1.000000 tp2  62.5770
+        bar 1002 LONG  K77  R  +3.629016 tp2  69.8700
+        bar 1020 SHORT K67  R  +1.050505 tp2  62.5770
+
+   SEG_BODEN  gesamt 17 Trades /  +65.504879 R | P9-Segment-Trades:
+        bar  903 SHORT K67  R  +4.049920 tp2  68.3920
+        bar  980 SHORT K67  R  +9.834683 tp2  68.3920
+        bar  981 SHORT K73  R  +2.642500 tp2  68.3920
+        bar 1002 LONG  K77  R  +3.629016 tp2  69.8700
+        bar 1020 SHORT K67  R  +2.948295 tp2  68.3920
+
+   INNEN1     gesamt 18 Trades /  +51.255680 R | P9-Segment-Trades:
+        bar  853 SHORT K59  R  -1.000000 tp2  62.8590
+        bar  903 SHORT K67  R  +1.633441 tp2  62.8590
+        bar  980 SHORT K67  R  +4.542254 tp2  62.8590
+        bar  981 SHORT K73  R  -1.000000 tp2  62.8590
+        bar 1002 LONG  K77  R  +3.629016 tp2  69.8700
+        bar 1020 SHORT K67  R  +1.050505 tp2  62.8590
+
+Engine-SHA: 4a576a766670d684c30381969e4d7349d5786b1b22ea6dda08b93b7d811bb38a  UNVERAENDERT

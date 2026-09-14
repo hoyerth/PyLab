@@ -1,0 +1,261 @@
+==  895 SHORT poolsort freigabe None kd None
+==  895 LONG poolsort freigabe None kd None
+==  896 SHORT poolsort freigabe None kd None
+==  896 LONG poolsort freigabe None kd None
+==  897 SHORT poolsort freigabe None kd None
+==  897 LONG poolsort freigabe None kd None
+==  898 SHORT poolsort freigabe None kd None
+==  898 LONG poolsort freigabe None kd None
+==  899 SHORT poolsort freigabe None kd None
+==  899 LONG poolsort freigabe None kd None
+==  900 SHORT poolsort freigabe None kd None
+==  900 LONG poolsort freigabe None kd None
+==  901 SHORT poolsort freigabe None kd None
+==  901 LONG poolsort freigabe None kd None
+==  902 SHORT poolsort freigabe None kd None
+==  902 LONG poolsort freigabe None kd None
+==  903 SHORT poolsort freigabe None kd 67
+   basis 69.87 raw 69.975
+   STUFE 2 STUFE_2_KERZE_2
+   F3 -1000
+   ZYKLUS vor None entry 905
+   GEGNER 48
+   H2 PHASE 68.37 gegen_basis 62.577
+   POC 68.4075 68.37 69.87
+   DEDUP 905 False sl 69.981 poc 68.4075 tp2 68.37 risk 0.311
+   >>> TRADE 903 67 905 4.119775
+==  903 LONG poolsort freigabe None kd None
+==  904 SHORT poolsort freigabe None kd 67
+   basis 69.87 raw 69.975
+   STUFE 1 STUFE_1_IN_BAR
+   F3 903
+   ZYKLUS vor 905 entry 905
+==  904 LONG poolsort freigabe None kd None
+==  905 SHORT poolsort freigabe None kd None
+==  905 LONG poolsort freigabe None kd None
+==  906 SHORT poolsort freigabe None kd None
+==  906 LONG poolsort freigabe None kd None
+==  907 SHORT poolsort freigabe None kd None
+==  907 LONG poolsort freigabe None kd None
+==  908 SHORT poolsort freigabe None kd None
+==  908 LONG poolsort freigabe None kd None
+==  909 SHORT poolsort freigabe None kd None
+==  909 LONG poolsort freigabe None kd None
+==  910 SHORT poolsort freigabe None kd None
+==  910 LONG poolsort freigabe None kd None
+==  911 SHORT poolsort freigabe None kd None
+==  911 LONG poolsort freigabe None kd None
+==  912 SHORT poolsort freigabe None kd None
+==  912 LONG poolsort freigabe None kd None
+==  913 SHORT poolsort freigabe None kd None
+==  913 LONG poolsort freigabe None kd None
+==  914 SHORT poolsort freigabe None kd None
+==  914 LONG poolsort freigabe None kd None
+==  915 SHORT poolsort freigabe None kd None
+==  915 LONG poolsort freigabe None kd None
+==  916 SHORT poolsort freigabe None kd None
+==  916 LONG poolsort freigabe None kd None
+==  917 SHORT poolsort freigabe None kd None
+==  917 LONG poolsort freigabe None kd None
+==  918 SHORT poolsort freigabe None kd None
+==  918 LONG poolsort freigabe None kd None
+==  919 SHORT poolsort freigabe None kd None
+==  919 LONG poolsort freigabe None kd None
+==  920 SHORT poolsort freigabe None kd None
+==  920 LONG poolsort freigabe None kd None
+==  921 SHORT poolsort freigabe None kd None
+==  921 LONG poolsort freigabe None kd None
+==  922 SHORT poolsort freigabe None kd None
+==  922 LONG poolsort freigabe None kd None
+==  923 SHORT poolsort freigabe None kd None
+==  923 LONG poolsort freigabe None kd None
+==  924 SHORT poolsort freigabe None kd None
+==  924 LONG poolsort freigabe None kd None
+==  925 SHORT poolsort freigabe None kd None
+==  925 LONG poolsort freigabe None kd None
+==  926 SHORT poolsort freigabe None kd None
+==  926 LONG poolsort freigabe None kd None
+==  927 SHORT poolsort freigabe None kd None
+==  927 LONG poolsort freigabe None kd None
+==  928 SHORT poolsort freigabe None kd None
+==  928 LONG poolsort freigabe None kd None
+==  929 SHORT poolsort freigabe None kd None
+==  929 LONG poolsort freigabe None kd None
+==  930 SHORT poolsort freigabe None kd None
+==  930 LONG poolsort freigabe None kd None
+==  931 SHORT poolsort freigabe None kd None
+==  931 LONG poolsort freigabe None kd None
+==  932 SHORT poolsort freigabe None kd None
+==  932 LONG poolsort freigabe None kd None
+==  933 SHORT poolsort freigabe None kd None
+==  933 LONG poolsort freigabe None kd None
+==  934 SHORT poolsort freigabe None kd None
+==  934 LONG poolsort freigabe None kd None
+==  935 SHORT poolsort freigabe None kd None
+==  935 LONG poolsort freigabe None kd None
+==  936 SHORT poolsort freigabe None kd None
+==  936 LONG poolsort freigabe None kd None
+==  937 SHORT poolsort freigabe None kd None
+==  937 LONG poolsort freigabe None kd None
+==  938 SHORT poolsort freigabe None kd None
+==  938 LONG poolsort freigabe None kd None
+==  939 SHORT poolsort freigabe None kd None
+==  939 LONG poolsort freigabe None kd 66
+==  940 SHORT poolsort freigabe None kd None
+==  940 LONG poolsort freigabe None kd 66
+==  941 SHORT poolsort freigabe None kd None
+==  941 LONG poolsort freigabe None kd None
+==  942 SHORT poolsort freigabe None kd None
+==  942 LONG poolsort freigabe None kd None
+==  943 SHORT poolsort freigabe None kd None
+==  943 LONG poolsort freigabe None kd None
+==  944 SHORT poolsort freigabe None kd None
+==  944 LONG poolsort freigabe None kd None
+==  945 SHORT poolsort freigabe None kd None
+==  945 LONG poolsort freigabe None kd None
+==  946 SHORT poolsort freigabe None kd None
+==  946 LONG poolsort freigabe None kd None
+==  947 SHORT poolsort freigabe None kd None
+==  947 LONG poolsort freigabe None kd None
+==  948 SHORT poolsort freigabe None kd None
+==  948 LONG poolsort freigabe None kd None
+==  949 SHORT poolsort freigabe None kd None
+==  949 LONG poolsort freigabe None kd 66
+==  950 SHORT poolsort freigabe None kd None
+==  950 LONG poolsort freigabe None kd 66
+==  951 SHORT poolsort freigabe None kd None
+==  951 LONG poolsort freigabe None kd 66
+==  952 SHORT poolsort freigabe None kd None
+==  952 LONG poolsort freigabe None kd None
+==  953 SHORT poolsort freigabe None kd None
+==  953 LONG poolsort freigabe None kd None
+==  954 SHORT poolsort freigabe None kd None
+==  954 LONG poolsort freigabe None kd None
+==  955 SHORT poolsort freigabe None kd None
+==  955 LONG poolsort freigabe None kd None
+==  956 SHORT poolsort freigabe None kd None
+==  956 LONG poolsort freigabe None kd None
+==  957 SHORT poolsort freigabe None kd None
+==  957 LONG poolsort freigabe None kd None
+==  958 SHORT poolsort freigabe None kd None
+==  958 LONG poolsort freigabe None kd None
+==  959 SHORT poolsort freigabe None kd None
+==  959 LONG poolsort freigabe None kd 66
+==  960 SHORT poolsort freigabe None kd None
+==  960 LONG poolsort freigabe None kd 66
+==  961 SHORT poolsort freigabe None kd None
+==  961 LONG poolsort freigabe None kd 66
+==  962 SHORT poolsort freigabe None kd None
+==  962 LONG poolsort freigabe None kd 66
+==  963 SHORT poolsort freigabe None kd None
+==  963 LONG poolsort freigabe None kd None
+==  964 SHORT poolsort freigabe None kd None
+==  964 LONG poolsort freigabe None kd None
+==  965 SHORT poolsort freigabe None kd None
+==  965 LONG poolsort freigabe None kd None
+==  966 SHORT poolsort freigabe None kd None
+==  966 LONG poolsort freigabe None kd None
+==  967 SHORT poolsort freigabe None kd None
+==  967 LONG poolsort freigabe None kd None
+==  968 SHORT poolsort freigabe None kd None
+==  968 LONG poolsort freigabe None kd None
+==  969 SHORT poolsort freigabe None kd None
+==  969 LONG poolsort freigabe None kd None
+==  970 SHORT poolsort freigabe None kd None
+==  970 LONG poolsort freigabe None kd None
+==  971 SHORT poolsort freigabe None kd None
+==  971 LONG poolsort freigabe None kd None
+==  972 SHORT poolsort freigabe None kd None
+==  972 LONG poolsort freigabe None kd None
+==  973 SHORT poolsort freigabe None kd None
+==  973 LONG poolsort freigabe None kd None
+==  974 SHORT poolsort freigabe None kd None
+==  974 LONG poolsort freigabe None kd None
+==  975 SHORT poolsort freigabe None kd None
+==  975 LONG poolsort freigabe None kd None
+==  976 SHORT poolsort freigabe None kd None
+==  976 LONG poolsort freigabe None kd None
+==  977 SHORT poolsort freigabe None kd None
+==  977 LONG poolsort freigabe None kd None
+==  978 SHORT poolsort freigabe None kd None
+==  978 LONG poolsort freigabe None kd None
+==  979 SHORT poolsort freigabe None kd None
+==  979 LONG poolsort freigabe None kd None
+==  980 SHORT poolsort freigabe None kd 67
+   basis 69.87 raw 69.931
+   STUFE 1 STUFE_1_IN_BAR
+   F3 903
+   ZYKLUS vor 905 entry 981
+   GEGNER 48
+   H2 PHASE 68.37 gegen_basis 62.577
+   POC 68.4075 68.37 69.87
+   DEDUP 981 False sl 69.949 poc 68.4075 tp2 68.37 risk 0.142
+   >>> TRADE 980 67 981 9.987676
+==  980 LONG poolsort freigabe None kd None
+==  981 SHORT poolsort freigabe 67 kd 73
+   basis 69.638 raw 69.638
+   STUFE 1 STUFE_1_IN_BAR
+   F3 -1000
+   ZYKLUS vor None entry 982
+   GEGNER 48
+   H2 PHASE 68.37 gegen_basis 62.577
+   POC 68.4017 68.37 69.638
+   DEDUP 982 False sl 69.901 poc 68.4017 tp2 68.37 risk 0.41
+   >>> TRADE 981 73 982 2.695488
+==  981 LONG poolsort freigabe None kd None
+==  982 SHORT poolsort freigabe None kd None
+==  982 LONG poolsort freigabe None kd None
+==  983 SHORT poolsort freigabe None kd None
+==  983 LONG poolsort freigabe None kd None
+==  984 SHORT poolsort freigabe None kd None
+==  984 LONG poolsort freigabe None kd None
+==  985 SHORT poolsort freigabe None kd None
+==  985 LONG poolsort freigabe None kd 79
+==  986 SHORT poolsort freigabe None kd None
+==  986 LONG poolsort freigabe None kd None
+==  987 SHORT poolsort freigabe None kd None
+==  987 LONG poolsort freigabe None kd None
+==  988 SHORT poolsort freigabe None kd None
+==  988 LONG poolsort freigabe None kd None
+==  989 SHORT poolsort freigabe None kd None
+==  989 LONG poolsort freigabe None kd None
+==  990 SHORT poolsort freigabe None kd None
+==  990 LONG poolsort freigabe None kd None
+==  991 SHORT poolsort freigabe None kd None
+==  991 LONG poolsort freigabe None kd 79
+==  992 SHORT poolsort freigabe None kd None
+==  992 LONG poolsort freigabe None kd 79
+==  993 SHORT poolsort freigabe None kd None
+==  993 LONG poolsort freigabe None kd None
+==  994 SHORT poolsort freigabe None kd None
+==  994 LONG poolsort freigabe None kd None
+==  995 SHORT poolsort freigabe None kd None
+==  995 LONG poolsort freigabe None kd None
+==  996 SHORT poolsort freigabe None kd None
+==  996 LONG poolsort freigabe None kd None
+==  997 SHORT poolsort freigabe None kd None
+==  997 LONG poolsort freigabe None kd 79
+==  998 SHORT poolsort freigabe None kd None
+==  998 LONG poolsort freigabe 77 kd 79
+==  999 SHORT poolsort freigabe None kd None
+==  999 LONG poolsort freigabe None kd None
+==  1000 SHORT poolsort freigabe None kd None
+==  1000 LONG poolsort freigabe None kd None
+==  1001 SHORT poolsort freigabe None kd None
+==  1001 LONG poolsort freigabe None kd None
+==  1002 SHORT poolsort freigabe None kd None
+==  1002 LONG poolsort freigabe None kd 77
+==  1003 SHORT poolsort freigabe None kd None
+==  1003 LONG poolsort freigabe 77 kd None
+==  1004 SHORT poolsort freigabe None kd None
+==  1004 LONG poolsort freigabe 77 kd None
+==  1005 SHORT poolsort freigabe None kd None
+==  1005 LONG poolsort freigabe 77 kd None
+==  1006 SHORT poolsort freigabe None kd None
+==  1006 LONG poolsort freigabe None kd None
+==  1007 SHORT poolsort freigabe None kd None
+==  1007 LONG poolsort freigabe None kd None
+==  1008 SHORT poolsort freigabe None kd None
+==  1008 LONG poolsort freigabe None kd None
+==  1009 SHORT poolsort freigabe None kd None
+==  1009 LONG poolsort freigabe None kd None

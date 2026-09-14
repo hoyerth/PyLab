@@ -1,0 +1,45 @@
+refactor(zeitbasis): S4 - Peripherie auf BKZ harmonisiert (tz_offset_hours entfernt)
+
+Stufe S4 der Zeitbasis-Bereinigung. Die Peripherie (Chart-Engine/Plugins,
+Signal-Lab-Runner/Notebooks, Backtest-Lab-UI) rechnete teilweise mit einer
+manuell durchgereichten Stunden-Offset-Groesse (tz_offset_hours) bzw. mit
+naiven .timestamp()-Aufrufen. Alles ersetzt durch die einzige Rechenbasis
+gemaess docs/ZEITBASIS_KANON.md: BKZ = SQL "time" AT TIME ZONE 'UTC'
+(naive UTC). Europe/Berlin|Budapest nur noch Anzeige.
+
+Aenderungen je Datei:
+- algos/chart_engine.py: SQL projiziert BKZ ("time" AT TIME ZONE 'UTC'
+  AS time); Parameter tz_offset_hours komplett entfernt (Signatur).
+- algos/chart_plugins.py: neue _EPOCH/_epoch_sec(ts) ersetzt 5x
+  int(...timestamp()); tz-aware-Guard defensiv beibehalten.
+- signal_lab/quick_look.py, sweep_runner.py: Offset-Block und
+  tz_offset_hours-Parameter entfallen; SQL auf BKZ.
+- signal_lab/run_definition.py: available_date_range() liefert
+  MIN/MAX("time" AT TIME ZONE 'UTC').
+- Notebooks/00_DB_Service.py, 01_Chart_Inspector.py, 02_Signal_Lab.py:
+  Aufrufer ohne tz_offset_hours; SQL auf BKZ.
+- backtest_lab/db.py: neue oeffentliche Anzeige-Dublette
+  to_display_bp(series) (delegiert an _fmt_wallclock_series);
+  _to_utc_naive() als BKZ-Garantie fuer Ladepfade.
+- backtest_lab/ui.py: _format_created_at delegiert an db.to_display_bp
+  (kein Zugriff auf modul-private _fmt_wallclock_series mehr).
+
+Verhaltensneutralitaet:
+- _epoch_sec(t) == int(t.timestamp()) fuer tz-naive (5 Stuetzstellen inkl.
+  DST-Randfaelle 2026-03-29/2026-10-25).
+- available_date_range() == direkte BKZ-MIN/MAX-Abfrage auf market_data.
+- ui._format_created_at == db.to_display_bp (naive + tz-aware);
+  Anzeige = BKZ + 02:00 (Sommer) / + 01:00 (Winter).
+
+Nachweise (test/, gitignored): py_compile 10/10 OK; test/test.py 48 OK /
+0 FAIL; SHA-Anker unveraendert - Engine test/tmp_kanten_engine_replay.py
+4a576a766670d684c30381969e4d7349d5786b1b22ea6dda08b93b7d811bb38a,
+Renderer test/tmp_png_aug_sichttest.py
+0d145ef4c5ea0aa9b9b158c00bd54d97bfb1abd68e4a2a32f4e496fcea1f6fc7,
+Adapter backtest_lab/phasen_regime_adapter.py
+0f3f8765b1682910a7332b2bcb6f30f79fb56afaec180bdca674693d3ec2b01b.
+Keine UI-/Regressionstests (Hausregel).
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

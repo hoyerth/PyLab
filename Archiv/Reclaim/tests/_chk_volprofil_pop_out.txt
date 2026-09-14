@@ -1,0 +1,69 @@
+﻿python : F:\Python\PyLab\test\_chk_volprofil_pop.py:80: RuntimeWarning: Mean of empty slice
+In Zeile:1 Zeichen:118
++ ... topwatch]::StartNew(); python test/_chk_volprofil_pop.py 2>&1 | Out-F ...
++                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (F:\Python\PyLab... of empty slice:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  h2h1 = float(v[half:].mean() / (v[:half].mean() or 1)) if len(v) else 1.0
+F:\Python\PyLab\.venv\Lib\site-packages\numpy\_core\_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+Populations-Fenster ('2026-01-01', '2026-09-12'): n=16489 Bars, 357 edges
+Detektierte frische Bodenbraeuche (H=24): 335
+davon mit Exkursion >= 0.25%: 301
+
+======================================================================================================================
+GRUNDGESAMTHEIT (n=301, Exkursion >= 0.25%)  |  Perzentile je Merkmal
+======================================================================================================================
+Merkmal              p05       p25       p50       p75       p95       min       max
+exc_pct           0.3743    0.9474    1.3417    2.5095    6.0926    0.2570   24.6162
+vol_low_ratio     0.7831    1.0000    1.1007    1.4384    1.9303    0.4474    2.8473
+vol_h2_h1            nan       nan       nan       nan       nan       nan       nan
+vol_peak_pos      0.0000    0.0000    0.5000    1.0000    1.0000    0.0000    1.0000
+delta_norm       -0.4480   -0.2052   -0.1090   -0.0114    0.2742   -0.8952    0.9932
+quote_unter       0.0000    0.3571    0.7619    1.0000    1.0000    0.0000    1.0000
+vol_slope        -0.0570   -0.0155    0.0000    0.0466    0.1245   -0.2414    0.3839
+reclaim_bars     -1.0000    0.0000    0.0000    1.0000    8.0000   -1.0000   17.0000
+vol_cv            0.0000    0.1102    0.2255    0.3589    0.5359    0.0000    0.8669
+
+======================================================================================================================
+EINORDNUNG A / B / C / D IN DER GRUNDGESAMTHEIT  (Perzentil, 0=niedrigster)
+======================================================================================================================
+Merkmal                 A        B_f        B_l          C          D
+exc_pct                0%         0%         0%         0%         0%
+vol_low_ratio         53%        67%        53%        69%        63%
+vol_h2_h1             62%        13%        52%        32%        68%
+vol_peak_pos          73%         0%         0%        28%        64%
+delta_norm             6%        93%        88%        62%        64%
+quote_unter            0%         0%         0%         0%         0%
+vol_slope             97%        23%        67%        33%        72%
+reclaim_bars          13%        13%        13%        13%        13%
+vol_cv                26%        66%        44%        58%        58%
+
+======================================================================================================================
+TRENNSCHAERFE GEGEN DIE POPULATION  (liegt A ausserhalb des 5-95%-Kerns?)
+======================================================================================================================
+Merkmal            A-Wert       p05       p95  A-Lage
+exc_pct          -33.7929    0.3743    6.0926  AUSSERHALB unten
+vol_low_ratio      1.1336    0.7831    1.9303  im 5-95-Kern
+vol_h2_h1          1.2534       nan       nan  im 5-95-Kern
+vol_peak_pos       1.0000    0.0000    1.0000  im 5-95-Kern
+delta_norm        -0.4214   -0.4480    0.2742  im 5-95-Kern
+quote_unter        0.0000    0.0000    1.0000  im 5-95-Kern
+vol_slope          0.1391   -0.0570    0.1245  AUSSERHALB oben
+reclaim_bars       0.0000   -1.0000    8.0000  im 5-95-Kern
+vol_cv             0.1138    0.0000    0.5359  im 5-95-Kern
+
+======================================================================================================================
+GEGENPROBE: liegen B/C/D im selben Bereich wie A? (Nur dann ist A NICHT
+allein durch dieses Merkmal von den uebrigen Ausreissern zu trennen.)
+======================================================================================================================
+  exc_pct        B_f=0%(A=0%)  B_l=0%(A=0%)  C=0%(A=0%)  D=0%(A=0%)
+  vol_low_ratio  B_f=67%(A=53%)  B_l=53%(A=53%)  C=69%(A=53%)  D=63%(A=53%)
+  vol_h2_h1      B_f=13%(A=62%)  B_l=52%(A=62%)  C=32%(A=62%)  D=68%(A=62%)
+  vol_peak_pos   B_f=0%(A=73%)  B_l=0%(A=73%)  C=28%(A=73%)  D=64%(A=73%)
+  delta_norm     B_f=93%(A=6%)  B_l=88%(A=6%)  C=62%(A=6%)  D=64%(A=6%)
+  quote_unter    B_f=0%(A=0%)  B_l=0%(A=0%)  C=0%(A=0%)  D=0%(A=0%)
+  vol_slope      B_f=23%(A=97%)  B_l=67%(A=97%)  C=33%(A=97%)  D=72%(A=97%)
+  reclaim_bars   B_f=13%(A=13%)  B_l=13%(A=13%)  C=13%(A=13%)  D=13%(A=13%)
+  vol_cv         B_f=66%(A=26%)  B_l=44%(A=26%)  C=58%(A=26%)  D=58%(A=26%)

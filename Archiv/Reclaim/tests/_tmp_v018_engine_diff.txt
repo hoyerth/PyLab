@@ -1,0 +1,52 @@
+--- V017
++++ V018
+@@ -64,7 +64,8 @@
+      (close[-1], Grund ENDE).
+ 
+ Datenvertrag: df-Spalten ts (tz-naiv)/open/high/low/close/tick_volume, geladen
+-mit ``time AT TIME ZONE 'UTC'`` (Wanduhr-Invariante). Fenster exakt wie frozen:
++mit ``time AT TIME ZONE 'UTC'`` (BKZ-Kanon, `docs/ZEITBASIS_KANON.md`).
++Fenster exakt wie frozen:
+ AUG 2026-08-10..08-28, S1 2026-02-05..08-28, S2 2025-01-01..12-01.
+ 
+ Aufruf:
+@@ -584,20 +585,32 @@
+ 
+ 
+ # ==============================================================================
+-# DATEN-LADUNG (Wanduhr-Invariante)
++# DATEN-LADUNG (BKZ-Kanon: AT TIME ZONE 'UTC')
+ # ==============================================================================
+ 
+ 
+ def _lade_fenster(fenster: FensterTyp) -> pd.DataFrame:
+-    """OHLCV-Fenster tz-naiv (time AT TIME ZONE 'UTC', Wanduhr)."""
++    """OHLCV-Fenster tz-naiv (time AT TIME ZONE 'UTC' = BKZ).
++
++    Zeitbasis-Kanon K1/K4 (`docs/ZEITBASIS_KANON.md`): Rechenbasis ist
++    ausschliesslich die Broker-Kerzen-Zeit (BKZ) = ``time AT TIME ZONE
++    'UTC'``. Regionale Projektionen (`Europe/Berlin`/`Europe/Budapest`)
++    sind reine Anzeige-Dubletten und werden hier nicht verwendet.
++
++    Returns:
++        DataFrame mit ``ts`` (BKZ, tz-naiv) sowie open/high/low/close/
++        tick_volume, aufsteigend nach ``ts``.
++    """
+     start, ende = FENSTER[fenster]
+     con = duckdb.connect(str(DB_PATH), read_only=True)
+     d = con.execute(f"""
+-        -- Wanduhr-Invariante (Mentor): MT5-Epochs sind Berlin-encoded.
+-        -- ANZEIGE = Berlin-Wanduhr; die Fenstergrenzen unten bleiben
+-        -- UTC-formuliert, damit der Zeilensatz (und damit alle
+-        -- arretierten Kennzahlen) byte-identisch bleibt.
+-        SELECT time AT TIME ZONE 'Europe/Berlin' AS ts, open, high,
++        -- Zeitbasis-Kanon K1/K4 (docs/ZEITBASIS_KANON.md):
++        -- SELECT und WHERE nutzen dieselbe Basis (BKZ = AT TIME ZONE 'UTC').
++        -- Die frueher verwendete Berlin-Projektion erzeugte einen
++        -- DST-abhaengigen Offset (+1 h Winter / +2 h Sommer) und verschob
++        -- Kalendergrenzen um 4 bzw. 8 Bars.
++        -- Migration V017 -> V018: box_end_bar 640 -> 644.
++        SELECT time AT TIME ZONE 'UTC' AS ts, open, high,
+                low, close, tick_volume
+         FROM ohlcv_bars
+         WHERE symbol='SILVER' AND timeframe='M15'

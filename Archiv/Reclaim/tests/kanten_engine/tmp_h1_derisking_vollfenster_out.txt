@@ -1,0 +1,89 @@
+﻿================================================================================================================
+SCHRITT 4A -- Stacking vs. De-Risking: ALLE Sperren des Voll-Laufs (n=1288)
+================================================================================================================
+  Setup-Bar  Kante  Entry T1-Entry  T1-TP1  T1-exit   Stacking  De-Risking
+        242    K20    245      229     386      398   GESPERRT    GESPERRT
+        244    K20    245      229     386      398   GESPERRT    GESPERRT
+        564    K31    567      529     614      639   GESPERRT    GESPERRT
+        865    K59    866      853     nie      867   GESPERRT    GESPERRT
+
+  -> Alle 4 Sperren sind unter BEIDEN Lesarten gesperrt.
+  -> De-Risking gibt zusaetzlich frei: K20 386->398 (12 Bars),
+     K31 614->639 (25 Bars). K59/K62: nie de-risked (R=-1,00 = SL).
+
+================================================================================================================
+SCHRITT 4B -- Geometrie der freigegebenen Fenster (kann dort ein Re-Entry entstehen?)
+================================================================================================================
+  K20 (Basis 66.459, SHORT-Re-Entry braucht high > 66.5388):
+    freies Fenster 386..398 (14.08 04:30 .. 14.08 07:30)
+    max high = 64.184 | max low = 64.046 | Abstand zum Re-Entry = +2.3548 USD (+3.54 %)
+    -> geometrisch moeglicher KK20-Re-Entry im freien Fenster: False
+  K31 (Basis 66.327, SHORT-Re-Entry braucht high > 66.4066):
+    freies Fenster 614..639 (18.08 15:30 .. 18.08 21:45)
+    max high = 65.296 | max low = 64.644 | Abstand zum Re-Entry = +1.1106 USD (+1.67 %)
+    -> geometrisch moeglicher KK31-Re-Entry im freien Fenster: False
+
+  -> Nach TP1 steht der Kurs am Kursziel (63.7 bzw. 64.7), nicht an der
+     Basis (66.46 bzw. 66.33). Das freie Fenster ist strukturell leer:
+     die De-Risking-Lesart kann im vorliegenden Datensatz KEINEN
+     zusaetzlichen Trade erzeugen -> +19,99 R (Box) / +23,02 R (Voll)
+     bleiben identisch.
+
+================================================================================================================
+SCHRITT 4C -- K20 'tote Zone' nach der Promotion (Bar 229)
+================================================================================================================
+  In-Band (kein Handel):  66.459 < high <= 66.5388
+  Sweep-faehig:           high >  66.5388  (>= 66.539)
+  Dochte ueber der Basis (Bar >= 229): 564
+    davon IN-BAND  (<= 0.12 %, Skip)  : 9  -> Bars [230, 231, 241, 243, 529, 530, 531, 564] ...
+    davon Sweep-faehig (>0.12 %)     : 555
+    davon mit Reclaim (Close <= Basis in k..k+2): 6  -> Bars [229, 242, 244, 789, 790, 791]
+
+  Die beiden einzigen Range-internen Sweeps:
+    Bar 529 (17.08 17:15): high=66.538 | dist=+0.1189 % | Fehlbetrag zur Schwelle = 0.0008 USD
+    Bar 565 (18.08 03:15): high=66.536 | dist=+0.1159 % | Fehlbetrag zur Schwelle = 0.0028 USD
+
+  -> Range-intern verfehlt K20 die Schwelle zweimal knapp (0.0008 / 0.0028 USD).
+     Alle spaeteren Dochte (ab Bar 733) liegen im Ausbruch: der Reclaim
+     (Close <= Basis innerhalb von 2 Bars) findet dort nie statt ->
+     kein K20-Setup. K20 ist nach Bar 229 praktisch nie wieder handelbar.
+
+================================================================================================================
+SCHRITT 4E -- Fallstrick im Vertrag ReTestDeRiskingPruefung (Semantik-Falle)
+================================================================================================================
+  Naive Lesart: ist_nach_de_risking_zulaessig = kandidat_entry_bar > tp1_bar
+
+  K59 (OBEN pivot 805 / 68.972, = Teil-6-K62):
+    Trade bar 853 entry=855 -> R = -1,00 (beide Haelften SL, exit_final 867)
+    -> ein TP1-Bar EXISTIERT NICHT.
+    -> naive Lesart: 866 > (None/-1)  =  TRUE  -> Kandidat 865 FREI
+    -> Folge: zusaetzlicher Trade bar 866 (Teil 4 ┬º3: R = -1,00)
+    -> Voll-Lauf: 10 Trades / +22,02 R  statt  9 / +23,02 R  (-1,00 R).
+
+  Praezise Lesart: ein Trade OHNE erreichtes TP1 (SL/ENDE) gilt als
+    NICHT de-risked -> Sperre bis exit_final.
+    -> 866 GESPERRT -> +23,02 R identisch zur Stacking-Lesart.
+
+  -> Der Vertrag braucht daher zwingend den Zusatz:
+     'Hat der laufende Trade sein TP1 nicht erreicht (grund1 != TP1),
+      ist er NICHT de-risked; es gilt die Sperre bis exit_final_bar.'
+
+================================================================================================================
+SCHRITT 4D -- Robustheit der Sweep-Entkopplung (Messlage Teil 6, Voll-Lauf)
+================================================================================================================
+  V0 arretiert                         :  9 Trades / +23,02 R  (Referenz)
+  V1 nur Gate (iii) auf 0,05 %         :  9 Trades / +23,02 R  (wirkungslos)
+  V2 nur Anker-Vorrang (ii)            :  8 Trades / +14,61 R  (-8,41 R)
+  V3 Anker-Vorrang + (iii) 0,05 %      :  9 Trades / +23,00 R  (K31 -> K20)
+  V4 (ii)+(ii')+(iii) 0,02 %           : 12 Trades / +21,12 R  (-1,90 R)
+  V4 (ii)+(ii')+(iii) 0,05 %           : 11 Trades / +21,52 R  (-1,50 R)
+  V4 (ii)+(ii')+(iii) 0,08 %           : 11 Trades / +21,52 R  (-1,50 R)
+  V4 (ii)+(ii')+(iii) 0,10 %           : 11 Trades / +21,52 R  (-1,50 R)
+  sweep_min 0,12/0,15 % (>= Band)      :  9 Trades / +23,02 R  (signaturgleich)
+  sweep_min 0,30 %                     :  7 Trades / +24,65 R  (Verschaerfung)
+  sweep_min 0,60 %                     :  0 Trades
+
+  -> Kein Entkopplungswert haelt das arretierte Ergebnis und lockert
+     zugleich das Band. Der einzige motivierende Fall (K20@529) ist
+     -0,02 R wert; die Regel├ñnderung kostet -1,50 bis -1,90 R.
+  -> Neue Verlierer in V4 (Teil 6): Bars 383, 492, 620.

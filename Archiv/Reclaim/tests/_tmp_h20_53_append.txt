@@ -1,0 +1,387 @@
+## H20.53 - Zulassungs-Funnel-Telemetrie: Aufloesung der Juni-Asymmetrie und Erratum K7
+
+Anlass: Die Zulassungskette von `_se_trades` war bislang eine Blackbox.
+`stats` fuehrte 6 Abbruch-Ursachen ueberhaupt nicht (Befund M7) und
+`stats["kein_raum"]` aggregierte 8 Code-Stellen / 5 Ursachen zu einer nackten
+Zahl (Befund M6). Diese Sitzung hat die Kette erstmals vollstaendig
+instrumentiert und damit die beiden offenen Fragen beantwortet:
+
+    L6  Warum und wie oft verwirft der Zielraum?
+    L7  Warum feuert JUN 28/28 LONG in einem fallenden Monat (0 SHORT)?
+
+Verfahren: Der Quelltext der ORIGINAL-`_se_trades` wird per AST extrahiert und
+VERBATIM ausgefuehrt; eingefuegt werden ausschliesslich Zaehlerzeilen
+`_c("<site>", richtung)`. Eine freie Nachrechnung waere unzulaessig:
+`letzter_sweep_bar` (nur bei genommenem Trade fortgeschrieben),
+`getradete_entry_bars` und die Concurrency-Sperre machen die Ablehnung eines
+Bares vom Ausgang der VORHERIGEN Bares abhaengig. Nur die Ausfuehrung des
+echten Codes ist zustandstreu. KEIN Motorwert wurde geaendert, kein Feld
+umbenannt, kein Gate verschoben. Die Sonde hat keine Handelswirkung.
+
+### 0. Status
+
+| Gegenstand | Stand |
+|---|---|
+| Motoren/Adapter/Renderer | byte-identisch arretiert (3 Anker, Paragraph 11) |
+| `_se_trades` (Baseline) | unveraendert; nur extern instrumentiert |
+| Handelswirkung der Sonde | keine (read-only, 29 reine Zaehlerzeilen) |
+| Zulassungskette | erstmals vollstaendig bilanzierbar (15/15 Budgets) |
+| Zielraum-Vertrag | Erratum K7: zweiteilig, in zwei ungleichen Teilen |
+| `tp_mindist_pct` | Falsifikationsvermerk (Paragraph 1b, Paragraph 9) |
+| V022 | nicht begonnen; Vertrag aus H20.52b Paragraph 11 bleibt Vormerkung |
+
+### 1. Erratum K7 - der Zielraum-Vertrag zerfaellt in zwei ungleiche Teile
+
+Bisher galt die zweiteilige Zielraum-Klausel (Zulaessigkeits-Halbraum +
+`tp_mindist_pct`) als EIN Vertragspunkt (H20.52b Paragraph 3, Beschluss F15).
+Die Telemetrie widerlegt die Gleichbehandlung:
+
+    (a) Halbraum  (Z2678/2686)   0 Bindungen in 5/5 Fenstern
+    (b) tp_mindist_pct = 1.5     0 Bindungen in 5/5 Fenstern
+    Bezugsgroesse: 17164 (k, richtung)-Einheiten
+
+TEIL (a) IST NICHT INERT, SONDERN KONSERVIERT. `_gegenkante`
+(`tmp_kanten_engine_replay.py` Z2609-2611) liefert `max`/`min` ueber den
+GESAMTEN Gegenpool. Das Extremum liegt damit strukturell auf der zulaessigen
+Seite; der Halbraum ist die Invariante, die die EXTREM-Regel garantiert -- und
+genau die Bedingung, die die `NAECHSTE`-Variante in 22 von 84 Diagnosezeilen
+reisst (Erratum K3, H20.52b Paragraph 3). Der Halbraum ist ein TRIPWIRE MIT
+NULLINIE: faellt er auf 0 zu bleiben auf, ist die Zielwahl gekippt.
+
+TEIL (b) IST INERT - UND ZWAR STRUKTURELL BEWEISBAR. `_gegenkante` waehlt das
+EXTREMUM; das Mindestabstandsgat prueft genau dieses Extremum. Das Gate kann
+folglich nur feuern, wenn der GESAMTE Gegenpool innerhalb 1.5 % liegt.
+Extremwahl (maximiert Distanz) und Mindestabstandsgat (verwirft kleine
+Distanzen) stehen in direkter struktureller Opposition. `tp_mindist_pct` ist
+damit kein "noch zu belegendes" Feld, sondern ein strukturell nahezu
+unerreichbares. Empirisch: 0 Bindungen in 5/5 Fenstern.
+
+Vertragsfolge (Beschluss C/G1, 14.09.2026):
+
+* `tp_mindist_pct` bleibt als baseline-kompatibles Invarianz-Feld
+  (Default 1.5) im V022-Vertrag -- mit FALSIFIKATIONSVERMERK im Docstring
+  (Wortlaut in Paragraph 9).
+* Der Halbraum erhaelt KEINEN Falsifikations-, sondern einen
+  KONSERVIERUNGSVERMERK: "durch EXTREM garantiert; Bindungs-Nullinie,
+  Tripwire fuer die NAECHSTE-Variante".
+
+### 2. Der kein_raum-Block ist 6/8-fach tot
+
+`stats["kein_raum"]` zerlegt sich in 8 Stellen / 5 Ursachen. Summen ueber alle
+5 Fenster und beide Richtungen:
+
+    r_halb_short        0     (Halbraum, SHORT)
+    r_mindist_short     0     (Mindestabstand, SHORT)
+    r_halb_long         0     (Halbraum, LONG)
+    r_mindist_long      0     (Mindestabstand, LONG)
+    r_poc               0     (POC-Band)
+    r_risk              0     (Risk)
+    r_ord_short         8     (Ordnung sl > entry > poc > tp2)
+    r_ord_long         16     (Ordnung sl < entry < poc < tp2)
+    ------------------------------------------------------------
+    Summe              24     == stats["kein_raum"] je Fenster exakt
+
+Aufschluesselung je Fenster (r_ord_short / r_ord_long):
+
+    MAI       4 /  2 =  6      (stats 6)
+    JUN       0 /  3 =  3      (stats 3)
+    JUL       4 /  9 = 13      (stats 13)
+    AUG_BASE  0 /  1 =  1      (stats 1)
+    AUG_WAND  0 /  1 =  1      (stats 1)
+
+Das EINZIGE handelswirksame Mitglied der Zielraum-Pruefung ist das
+ORDNUNGS-GATE `sl > entry > poc > tp2`. Weder Halbraum noch Mindestabstand
+noch POC-Band noch Risk haben in 17164 Einheiten je ein Setup entfernt.
+
+### 3. Sonden-Diagnose (Werkzeug, kein Motorbefund)
+
+ERSTLAUF: fail-loud Abbruch VOR dem Protokoll (Beschluss O4 wirkt).
+
+    AssertionError: Budgetidentitaet verletzt -- kein Protokoll.
+      | MAI/TOTAL:      (I) Summe Ausgaenge -1 != eintritt 3834
+      | JUN/TOTAL:      ... | JUL/TOTAL: ...
+      | AUG_BASE/TOTAL: ... | AUG_WAND/TOTAL: ...
+
+URSCHE: Sentinel-Kollision im SONDEN-WERKZEUG, nicht im Motor. Die
+Aggregatzeile `TOTAL` traegt `summe_ausgaenge = -1` als "auf dieser Ebene
+nicht pruefbar"; `ist_valide` verglich ihn aber unbedingt gegen `eintritt`.
+Nur die 5 TOTAL-Zeilen schlugen falsch an -- alle 10 richtungsgetrennten
+Budgets waren bereits im Erstlauf gruen, ebenso (IV) exakt.
+
+BELEG: Der read-only Wrapper `test/_tmp_funnel_budget_diag.py` fuehrt die
+Sonde UNVERAENDERT aus und schreibt nur die erzeugten
+`TelemetrieBudget`-Instanzen mit. Das trennt Werkzeugfehler von Motorbefund,
+ohne die Sonde zu liften.
+
+KORREKTUR: Sentinels symmetrisch (`summe_ausgaenge < 0` und
+`kand_none_summe < 0` gelten wie `kein_raum_summe < 0` als "nicht pruefbar").
+O4 bleibt unveraendert (kein Protokoll bei Verletzung), aber die
+VERLETZUNGSZEILEN werden in die Exception gehoben -- sonst ist die Ursache im
+Abbruchprotokoll unsichtbar.
+
+ZWEITER LAUF: exit 0, Protokoll 19210 B.
+
+LEHRE: Ein Markerwert (-1) darf nie in einen Vergleich eingehen, den er nicht
+kennt. Der Abbruch war ein Werkzeugdefekt -- und der Wrapper ist der Nachweis,
+dass er nicht in den Motor reicht.
+
+### 4. Budgetidentitaet - 15/15 geschlossen
+
+Statisch nachgeprueft (`test/_tmp_ausgang_probe.py`, AST, kein Motorlauf):
+`_se_trades` hat in der `richtung`-Schleife 17 Ausgaenge + 1 Erfolg
+(`setups.append`), jeder Ausgang ist instrumentiert; `_kandidat` liefert an
+GENAU 4 Stellen `None`. Damit sind (I) und (III) strukturell, nicht nur
+empirisch, geschlossen.
+
+    (I)   eintritt == Summe Ausgaenge         10/10 Paarungen exakt
+    (II)  eintritt == box_end - 5              5/5 Fenster exakt
+    (III) kand_none == 4 Detailstellen        10/10 Paarungen exakt
+    (IV)  stats["kein_raum"] == 8er-Zerlegung  5/5 (6/6, 3/3, 13/13, 1/1, 1/1)
+    (V)   Anker == stats-Wert                 alle Schluessel exakt
+    (V+)  accept + g4_accept == stats["v_s"]   5/5 exakt (35/28/21/14/18)
+
+G4-DOPPELZAEHLUNG (Werkzeug, verifiziert): `stats["concurrency_blockiert"]`
+wird an ZWEI Stellen erhoeht (Z2727 Hauptloop, Z2818 Hook-3-Block) und
+`setups` an zwei Stellen angehaengt (Z2751, Z2824). Ohne getrennte Zaehler
+waere (V) falsch-positiv gebrochen. Damit ist auch das O5-Caveat aus der
+Sondenspezifikation verschaerft: geprueft wird jetzt die GLEICHHEIT
+`accept + g4_accept == stats["v_s"]` statt der Ungleichung `accept <= v_s`
+(die Ungleichung ist darin enthalten).
+
+MESSERGEBNIS: G4 == 0 IN ALLEN 5 FENSTERN. Die Einzeldatei-Kette definiert
+kein Modul-globales `_hook`, und `V021._baue_ns` setzt keines. Der
+Hook-3-Block ist in dieser Kette also STRUKTURELL inert, nicht nur faktisch --
+ein Nebenbefund, der die Regressionfreiheit der Einzeldatei-Sicht erklaert.
+
+### 5. Kompaktlage (SOLL bit-identisch bestaetigt)
+
+| Fenster | Ziel | Trades / SumR | LONG / SHORT | kein_raum | accept |
+|---|---|---|---|---|---|
+| MAI | T1 | 35 / +38.318126 | 12 / 23 | 6 | 35 |
+| JUN | T1 | 28 / -11.421155 | 28 / 0 | 3 | 28 |
+| JUL | T1 | 21 / -4.325355 | 17 / 4 | 13 | 21 |
+| AUG_BASE | T1 | 14 / +42.450970 | 4 / 10 | 1 | 14 |
+| AUG_WAND | T2 | 18 / +52.876174 | 6 / 12 | 1 | 18 |
+
+AUG_WAND zusaetzlich: H1 (entry_bar < 644) 8 / +38.919584 und
+H2 (entry_bar >= 644) 10 / +13.956589 -- beide arretiert, beide getroffen.
+
+### 6. Die Juni-Asymmetrie ist ein ZWEISTUFIGER Befund
+
+JUN, eintritt identisch 2004 / 2004 (gleicher Nenner!):
+
+    STUFE 1 -- _kandidat
+      kand_pool_leer         S   95   L  478
+      kand_lebende_wand      S 1618   L 1117
+      kand_ueberdehnung      S   21   L   34
+      kand_erschoepft        S  235   L  155
+      kand_none              S 1969   L 1784      Faktor 1.10x
+      Survivors              S   35   L  220      Faktor 6.29x
+
+    STUFE 2 -- Gate-Kette (Bezug: Survivors)
+      Q29 quartil            S   33   L   58      94.29 % vs 26.36 %
+      g_stufe0               S    2   L   50
+      g_zyklus               S    0   L   63
+      g_blocker              S    0   L   17
+      g_concurrency          S    0   L    1
+      kein_raum (Ordnung)    S    0   L    3
+      accept                 S    0   L   28      0.00 % vs 12.73 %
+
+W1 -- DIE PROZENTPAARE DER STUFE 1 DUERFEN NICHT ALS 10x-ASYMMETRIE GELESEN
+WERDEN. Der Nenner ist gleich (2004/2004), und die grossen Draene heben sich
+fast auf: `kand_lebende_wand` +501 gegen SHORT versus `kand_pool_leer` -383
+gegen LONG, `kand_erschoepft` +80, `kand_ueberdehnung` -13 -- NETTO NUR 185
+Einheiten. Die Kandidatenstufe trennt mit Faktor 1.10x bei gegenlaeufigen
+Komponenten; erst die Survivorzahlen liegen 6.29x auseinander.
+
+W3 -- ENTSCHEIDEND IST STUFE 2 / HYPOTHESE A. Binomialargument: bei der
+LONG-Referenzrate 26.36 % waeren von 35 Survivors 9.2 Q29-Kills zu erwarten --
+beobachtet wurden 33. Sampling erklaert das nicht.
+
+MECHANIK (Q29, Z2475-2490). `_im_aussenquartil` verlangt, dass das
+Sweep-Extremum im aeussersten Viertel der GESAMTEN Kausalspanne 0..k liegt
+(`quartil_distanz_pct = 25.0`):
+
+    ex_hi = np.max(hi[:k+1]); ex_lo = np.min(lo[:k+1]); spanne = ex_hi - ex_lo
+    distanz = ((ex_hi - sweep_px) if richtung == "SHORT"
+               else (sweep_px - ex_lo)) / spanne * 100.0
+    return distanz <= cfg.quartil_distanz_pct
+
+Im fallenden Juni bleibt `ex_hi` der Junianfang; jeder Short-Kandidat
+unterhalb 75 % dieser Spanne ist gesperrt. Das Gate ist damit PER KONSTRUKTION
+BLIND FUER TREND-PULLBACK-SHORTS.
+
+KEIN EINZELSIGER UNTER A-F. Die Kette lautet:
+
+    1. Der Short-Pool ist auf 35 Survivors ausgeduennt (Kandidatenstufe).
+    2. Q29 toetet 33 davon (Hypothese A).
+    3. Die letzten 2 sterben an `g_stufe0` (Hypothese F).
+
+A und B sind beide notwendig, keiner allein hinreichend. Fuer JUN LONG erzeugt
+dieselbe Kette 220 Survivors und 28 Trades -- das System ist strukturell blind
+fuer Trend-Pullback-Shorts und fischt im Abwaertstrend am Boden nach
+Long-Reclaims.
+
+### 7. Korrektur zur Dormanz (Befund G) - Symptom, nicht Ursache
+
+`kand_dormant` ist ein per-Element-Zaehler (nicht terminal, siehe Paragraph 8):
+
+    Fenster     SHORT    LONG    Faktor S/L
+    MAI          8832    7741    1.14x
+    JUN         17796    1751   10.16x
+    JUL         14848    4654    3.19x
+    AUG_BASE      741    2770    0.27x   (invertiert)
+    AUG_WAND      741    2770    0.27x   (invertiert)
+
+W2 -- DIE 10.16x SIND EIN SYMPTOM DER TRENDRICHTUNG, KEINE WIRKURSACHE. Im
+August ist das Verhaeltnis invertiert (0.27x), obwohl derselbe Code laeuft.
+Formaler Grund: `kand_dormant` (Z2585) und `kand_lebende_wand` (Z2584) sind
+zwei Zweige DESSELBEN Entscheids auf DEMSELBEN Element --
+
+    if dist < 0.0:
+        if _lebt(e, k): return None    # lebende_wand -- terminiert
+        continue                       # dormant       -- laeuft weiter
+
+-- sie sind pro (Element, Bar) MUTUAL EXKLUSIV und haben verschiedene Nenner
+(max. 1x je Einheit versus n x je Einheit). Dormanz "verursacht" die
+nicht erreichte lebende Wand daher nicht; sie ist der andere Zweig desselben
+Tests. Die Zaehlung ist als INDIKATOR zu fuehren, nicht als Befundgroesse.
+
+EBENFALLS FESTGEHALTEN: die Zahl ist eine EREIGNISZAHL (Element x Bar),
+NICHT die Zahl distinkter dormanter Linien. Letztere ist mit dieser Sonde
+nicht gemessen (offene Frage F25).
+
+### 8. Nebenprotokolle (Rohdatenblatt)
+
+DURCHLASSQUOTEN aller 10 Paarungen. Die Quellensummen wurden je Zeile gegen
+`eintritt` verifiziert (10/10 exakt); "Surv" = eintritt - kand_none.
+
+| Fenster | R | eintritt | kand_none | Surv | Surv% | Q29 | Q29/Surv | Zyklus | accept | Acc/Surv | Acc/Ein |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| MAI | L | 1917 | 1839 | 78 | 4.07 % | 15 | 19.23 % | 15 | 12 | 15.38 % | 0.626 % |
+| MAI | S | 1917 | 1733 | 184 | 9.60 % | 62 | 33.70 % | 45 | 23 | 12.50 % | 1.200 % |
+| JUN | L | 2004 | 1784 | 220 | 10.98 % | 58 | 26.36 % | 63 | 28 | 12.73 % | 1.397 % |
+| JUN | S | 2004 | 1969 | 35 | 1.75 % | 33 | 94.29 % | 0 | 0 | 0.00 % | 0.000 % |
+| JUL | L | 2095 | 1947 | 148 | 7.06 % | 53 | 35.81 % | 21 | 17 | 11.49 % | 0.811 % |
+| JUL | S | 2095 | 1953 | 142 | 6.78 % | 94 | 66.20 % | 5 | 4 | 2.82 % | 0.191 % |
+| AUG_BASE | L | 1283 | 1192 | 91 | 7.09 % | 58 | 63.74 % | 6 | 4 | 4.40 % | 0.312 % |
+| AUG_BASE | S | 1283 | 1204 | 79 | 6.16 % | 10 | 12.66 % | 32 | 10 | 12.66 % | 0.779 % |
+| AUG_WAND | L | 1283 | 1194 | 89 | 6.94 % | 40 | 44.94 % | 7 | 6 | 6.74 % | 0.468 % |
+| AUG_WAND | S | 1283 | 1203 | 80 | 6.24 % | 10 | 12.50 % | 33 | 12 | 15.00 % | 0.935 % |
+
+NEU BEWACHTE AUSGAENGE (waren vor H20.53 blind):
+
+* `kand_pool_leer` -- vierstellig (95 / 478 im Juni), vorher unsichtbar.
+* `g_stufe0` (Z2641) und `g_dedup` (Z2730) -- `g_stufe0` ist mit 50/2 im Juni
+  der ZWEITE Short-Bottleneck.
+* `g_concurrency` -- feuert 1x (JUN LONG, Z2727). Die Sperre ist also nicht
+  vakuum-inert.
+
+TOTE GATES ueber alle 5 Fenster und beide Richtungen:
+
+    g_f3 0, g_kein_gegner 0, g_dedup 0, kand_kein_durchstich 4.
+    stats["stacking_blockiert"] wird an KEINER Stelle inkrementiert
+    (Z2712-2714 "kein Stacking-Gate") -- weiterhin toter Zaehler.
+    sweep_mindestdurchstich_pct = 0.0 macht Z2588-2589 faktisch inert
+    (Z2582 faengt dist < 0.0 ab, es bleibt nur die exakte Null).
+
+AUG_BASE -> AUG_WAND (T2) -- Segmentwand-Patch telemetrisch isoliert:
+
+    Bis kand_pool_leer / kand_lebende_wand identisch (69/204, 952).
+    Divergenz ausschliesslich in:
+      kand_erschoepft       LONG  52 -> 10   (-42)
+      kand_lebende_wand     LONG 1066 -> 1111 (+45)
+      kand_ueberdehnung     LONG   5 ->  4
+      accept                L 4->6, S 10->12  (14 -> 18)
+    Der Patch RETTET Kandidaten, die die globale Ueberdehnungsschranke zuvor
+    getoetet hatte -- mechanisch exakt der Designzweck, hier erstmals sichtbar.
+
+ANKER-KOLLISIONEN (Methode, fail-loud): Zwei der 29 Anker waren zunaechst
+mehrdeutig und mussten ueber Kontext diskriminiert werden --
+
+* `kand_pool_leer`: `if not pool: / return None` steht 2x (`_kandidat` und
+  `_gegenkante`). Diskriminator ist die FOLGEZEILE
+  (`pool.sort(key=lambda e: e.basis_bei(k), ...)` -- nur in `_kandidat`).
+* `g_concurrency`: `stats["concurrency_blockiert"] += 1` steht 2x (Z2727
+  Hauptloop, Z2818 G4-Block); der 20-Leerzeichen-Text ist Teilstring der
+  24-Leerzeichen-Zeile. Diskriminator ist die VORZEILE (`_offen` statt
+  `_offen_g4`).
+
+Beide Faelle sind der Grund, warum jeder Anker als count == 1 geprueft wird,
+statt auf Zeilennummern zu bauen.
+
+### 9. Docstring-Vermerk fuer V022 (Beschluss G3)
+
+Der folgende Text ist als Docstring-Zeile von
+`V022KantenKonfiguration.tp_mindist_pct` vorgesehen (Text jetzt arretiert,
+Code erst mit der V022-Freigabe):
+
+    FALSIFIKATIONSVERMERK (Erratum K7, H20.53 Paragraph 1b):
+    Empirisch inert in 5/5 Fenstern (0 Bindungen in 17164 Einheiten).
+    Grund ist strukturell, nicht zufaellig: `_gegenkante` waehlt das EXTREMUM
+    des Gegenpools, und das Gate prueft genau dieses Extremum. Es kann daher
+    nur feuern, wenn der GESAMTE Gegenpool innerhalb der Schwelle liegt.
+    Extremwahl (maximiert Distanz) und Mindestabstandsgat (verwirft kleine
+    Distanzen) stehen in direkter Opposition. KEIN STEUERUNGSHEBEL -- das
+    Feld bleibt ausschliesslich zur Baseline-Kompatibilitaet (Default 1.5).
+
+Analog gilt fuer den zweiten Teil des Zielraum-Vertrags (Halbraum):
+
+    KONSERVIERUNGSVERMERK (Erratum K7, H20.53 Paragraph 1a):
+    0 Bindungen in 5/5 Fenstern -- NICHT inert, sondern KONSERVIERT.
+    `_gegenkante` mit `GEGENKANTE_MODUS = "EXTREM"` garantiert die
+    zulaessige Seite strukturell. Der Halbraum ist die Bindungs-NULLINIE
+    dieser Invariante: faellt er auf 0 zu bleiben aus, ist die Zielwahl
+    gekippt (Beleg: Erratum K3, 22/84 Zeilen unter `NAECHSTE`).
+
+### 10. Offene Entscheidungsfragen
+
+F24. Q29-Reform (`quartil_distanz_pct`). Die Telemetrie belegt die
+     Trend-Blindheit des Quartil-Gates (94.29 % versus 26.36 %); offen ist
+     der Weg. Vorschlag: ZUERST die V022-Kapsel arretieren (Nullpunkt), DANN
+     eine MESSENDE Parameter-Sonde ueber ALLE 5 Fenster (25 -> 40/50/75),
+     read-only, kein Motorwert. Begruendung: Q29 ist ein Regime-Gate;
+     Aufweichung kauft Trend-Pullbacks und bezahlt sie mit Range-Rauschen.
+     Mit nur 35 JUN-Survivors ist JUN allein statistisch zu duenn fuer eine
+     Reformbewertung. Kontrollfenster: MAI (Aufwaertstrend), JUL
+     (Trendfortsetzung), AUG_BASE/AUG_WAND (beide Modi).
+
+F25. Distinkte dormante Linien (Befund G) sind NICHT gemessen; die
+     Ereigniszahl ist kein Ersatz (Grund: Paragraph 7). Eigene Sonde erst
+     nach V022.
+
+F26. `stats["kein_raum"]` ist nicht richtungsgetrennt -- (IV) daher nur im
+     Fenster-Aggregat pruefbar. Eine richtungsgetrennte Fuehrung waere ein
+     Motor-Eingriff und ist NICHT beauftragt.
+
+F27. Der Vorschlag eines Code-Datenvertrags `JuniAsymmetrieBefund` mit
+     hartcodierten Messwerten wurde verworfen: Er waere eine zweite Wahrheit
+     gegenueber dem Protokoll (SHAs aendern sich, Zahlen nicht mit). Wenn ein
+     Code-Artefakt gewuenscht ist, dann ein LESER des Protokolls
+     (Parser + Assert gegen die Zaehlerstaende), nicht eine Kopie.
+
+### 11. Artefakte (Voll-SHA256)
+
+    test/_chk_zulassung_funnel.py
+      ddf8d89c53d5e9f1bea187d9110c4a9475b90316f3729516a0cd939763d5efc9   40449 B
+    test/_chk_zulassung_funnel_out.txt
+      07e24cd015c9e1dc4a537d4a5209067a1f582c1db8d38c75f6e79819e87ae9b4   19210 B
+    test/_tmp_funnel_budget_diag.py
+      aa5e0542818cd0df9887cc0f4d1f14b60bc5be2843aa313490bea08b859f9563    4623 B
+    test/_tmp_funnel_budget_diag_out.txt
+      6786dfb7e861cba9c79588dd832bce704f158ee5adb8e9c6399a7136e613a54f   22421 B
+    test/_tmp_funnel_quoten.py
+      0d39b24cd9178fbea0561f28a7eaaee038f3eac10d31feb709236cfa32e7aa29    4645 B
+    test/_tmp_ausgang_probe.py
+      898e31d0f084271a7af8409ab8778f6f96bc93195116b17483ef809bf2fcfcdf    7208 B
+    test/_tmp_stats_probe.py
+      7e555348dbc5845dd2118fcf2e8c579da0c1f6af0b64ed4e39f837d711dcd7e1    2391 B
+
+Arretierte Fremdstaende unveraendert (die Sonde prueft sie bei jedem Start):
+
+    Baseline  53f28e1b6971a64df59beaf3292b466fb37ac86b870278f238a1b385084fd006
+    V021      cda9e5b189ed4137198795e1547cec00436dffe64222434bb6ec4c448e598e89
+    Adapter   770eda2c75aaa135961ef0d235d850759678de62cd9e00e3b5db110c8ed28f14
+
+Die Baseline-V0/V020/V021-Motoren, der Renderer, der Adapter und alle
+Bildsaetze sind unberuehrt.

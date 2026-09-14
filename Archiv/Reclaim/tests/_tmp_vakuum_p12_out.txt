@@ -1,0 +1,77 @@
+﻿============================================================================================================
+1) VAKUUM-KARTE -- welcher Bar hat welchen Hook-2-Modus?
+============================================================================================================
+
+  IST (nur P9)
+        0..847   ( 848 Bars,  212.0 h) MAKRO
+      848..1020  ( 173 Bars,   43.2 h) PHASE
+     1021..1287  ( 267 Bars,   66.8 h) BLOCKIERT
+    -> autorisiert: 1021/1288 Bars (79.3 %), Vakuum 267 Bars
+
+  P9 + P12
+        0..847   ( 848 Bars,  212.0 h) MAKRO
+      848..1020  ( 173 Bars,   43.2 h) PHASE
+     1021..1170  ( 150 Bars,   37.5 h) BLOCKIERT
+     1171..1272  ( 102 Bars,   25.5 h) PHASE
+     1273..1287  (  15 Bars,    3.8 h) BLOCKIERT
+    -> autorisiert: 1123/1288 Bars (87.2 %), Vakuum 165 Bars
+
+============================================================================================================
+2) LIEGEN DIE GROSSEN SCHWAENGE IM VAKUUM?
+============================================================================================================
+  29 Schwaenge >= 1.00 USD im gesamten AUG-Fenster
+    Bars   63->67   1.2440 USD | Ist MAKRO     | P9+P12 MAKRO
+    Bars   81->85   1.0370 USD | Ist MAKRO     | P9+P12 MAKRO
+    Bars  104->107  1.0590 USD | Ist MAKRO     | P9+P12 MAKRO
+    Bars  114->122  1.4830 USD | Ist MAKRO     | P9+P12 MAKRO
+    Bars  214->220  1.1360 USD | Ist MAKRO     | P9+P12 MAKRO
+    Bars  242->246  1.0470 USD | Ist MAKRO     | P9+P12 MAKRO
+    Bars  279->286  1.2600 USD | Ist MAKRO     | P9+P12 MAKRO
+    Bars  306->312  1.0180 USD | Ist MAKRO     | P9+P12 MAKRO
+    Bars  336->342  1.0000 USD | Ist MAKRO     | P9+P12 MAKRO
+    Bars  420->433  1.1110 USD | Ist MAKRO     | P9+P12 MAKRO
+    Bars  466->473  1.4600 USD | Ist MAKRO     | P9+P12 MAKRO
+    Bars  520->529  1.4940 USD | Ist MAKRO     | P9+P12 MAKRO
+    Bars  614->621  1.7890 USD | Ist MAKRO     | P9+P12 MAKRO
+    Bars  689->706  2.4300 USD | Ist MAKRO     | P9+P12 MAKRO
+    Bars  707->710  1.0970 USD | Ist MAKRO     | P9+P12 MAKRO
+    Bars  786->792  1.3260 USD | Ist MAKRO     | P9+P12 MAKRO
+    Bars  792->805  3.3590 USD | Ist MAKRO     | P9+P12 MAKRO
+    Bars  805->810  1.0750 USD | Ist MAKRO     | P9+P12 MAKRO
+    Bars  864->873  1.1810 USD | Ist PHASE     | P9+P12 PHASE
+    Bars  932->934  1.1290 USD | Ist PHASE     | P9+P12 PHASE
+    Bars  980->985  1.2680 USD | Ist PHASE     | P9+P12 PHASE
+    Bars 1023->1031 2.1490 USD | Ist BLOCKIERT | P9+P12 BLOCKIERT
+    Bars 1075->1083 1.4660 USD | Ist BLOCKIERT | P9+P12 BLOCKIERT
+    Bars 1116->1122 1.5260 USD | Ist BLOCKIERT | P9+P12 BLOCKIERT
+    Bars 1162->1165 1.0690 USD | Ist BLOCKIERT | P9+P12 BLOCKIERT
+    Bars 1169->1172 1.0540 USD | Ist BLOCKIERT | P9+P12 PHASE
+    Bars 1193->1202 1.1520 USD | Ist BLOCKIERT | P9+P12 PHASE
+    Bars 1208->1211 1.1980 USD | Ist BLOCKIERT | P9+P12 PHASE
+    Bars 1259->1268 1.9680 USD | Ist BLOCKIERT | P9+P12 PHASE
+  -> davon Ende im Vakuum (nur P9): 8/29
+
+============================================================================================================
+3) P12-KOMBINATIONEN -- H1/H2/Ziel getrennt
+============================================================================================================
+  Variante                                 Trd |          R1 |       H1 Trd/R |       H2 Trd/R | Ziel
+  --------------------------------------------------------------------------------------------------------
+  IST (nur P9)                              17 |  +65.835576 |  7/+39.919584 | 10/+25.915992 |    0
+  W1  nur P12 zusaetzlich aktiv             14 |  +47.815697 |  7/+39.919584 |  7/ +7.896113 |    0
+  W2  W1 + M6 lebend                        18 |  +45.076704 |  6/+33.044402 | 12/+12.032302 |    3
+        K76 SHORT signal 1211 27.08 05:45 entry_bar 1214 r +5.881508
+        K76 SHORT signal 1268 27.08 20:00 entry_bar 1269 r -1.000000
+        K73 SHORT signal 1272 27.08 21:00 entry_bar 1273 r +1.254682
+  W3  W2 + Ueberdehnung 0.80                18 |  +43.688879 |  6/+33.044402 | 12/+10.644477 |    3
+        K76 SHORT signal 1211 27.08 05:45 entry_bar 1214 r +5.881508
+        K76 SHORT signal 1268 27.08 20:00 entry_bar 1269 r -1.000000
+        K73 SHORT signal 1272 27.08 21:00 entry_bar 1273 r +1.254682
+  W4  W3 + Q29 aus (200 %)                  24 |  +39.971861 | 11/+30.327383 | 13/ +9.644477 |    3
+        K76 SHORT signal 1211 27.08 05:45 entry_bar 1214 r +5.881508
+        K76 SHORT signal 1268 27.08 20:00 entry_bar 1269 r -1.000000
+        K73 SHORT signal 1272 27.08 21:00 entry_bar 1273 r +1.254682
+  W5  W4 + V-S>=2                           24 |  +39.937127 | 11/+30.292650 | 13/ +9.644477 |    3
+        K76 SHORT signal 1211 27.08 05:45 entry_bar 1214 r +5.881508
+        K76 SHORT signal 1268 27.08 20:00 entry_bar 1269 r -1.000000
+        K73 SHORT signal 1272 27.08 21:00 entry_bar 1273 r +1.254682
+============================================================================================================

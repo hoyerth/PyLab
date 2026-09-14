@@ -1,0 +1,289 @@
+====================================================================================================
+E-26 LONG-BLOCKADE -- Instrumentierte `_se_trades` (S2)
+====================================================================================================
+Engine     : tmp_kanten_engine_replay.py  SHA 4a576a766670d684c3038196...
+Funktion   : _se_trades  Zeilen 2361..2769  (409 Zeilen)
+n 21624  box_end_bar (Cache) 17692  -> Laufgrenze 21624  Split 17692  (H1 17692 / H2 3932 Bars)
+Ersetzt    : 14 × `stats[..] += 1` -> `_hit(_CUR, ..)`
+Injektionen: kaskade_leer/kandidat(+Detail) · stufe0 · dedup · SETUP
+Ergebnis   : 299 Setups gesamt  (LONG 5 / SHORT 294)
+
+====================================================================================================
+TRICHTER (je Richtung, getrennt nach H1/H2)
+====================================================================================================
+
+   SHORT -- H1 (Bars 0..17691)
+   Gate                              Haeufigkeit
+   Kaskade liefert Kandidaten               1972
+     -> keine Kaskade (kein Kand.)         15718
+   M6 Innenlevel-Blocker                     286
+   Q29 Niemandsland-Sperre                   301
+     -> _reclaim_stufe == 0                  611
+   Q24 Linie zu jung                         112
+   Q21 Retest-Zyklus                         520
+   Raum/TP2/POC/Risk-Gate                     14
+   ==> SETUP erzeugt                         240
+   -- Kandidatenbasis                           
+   Summe Kandidaten                     1972
+
+   SHORT -- H2 (Bars 17692..21623)
+   Gate                              Haeufigkeit
+   Kaskade liefert Kandidaten                334
+     -> keine Kaskade (kein Kand.)          3595
+   M6 Innenlevel-Blocker                      46
+   Q29 Niemandsland-Sperre                    14
+     -> _reclaim_stufe == 0                  136
+   Q24 Linie zu jung                          43
+   Q21 Retest-Zyklus                          84
+   ==> SETUP erzeugt                          54
+   -- Kandidatenbasis                           
+   Summe Kandidaten                      334
+
+   LONG -- H1 (Bars 0..17691)
+   Gate                              Haeufigkeit
+   Kaskade liefert Kandidaten                894
+     -> keine Kaskade (kein Kand.)         16796
+   Q29 Niemandsland-Sperre                   882
+     -> _reclaim_stufe == 0                    5
+   Q24 Linie zu jung                          60
+   Q21 Retest-Zyklus                           2
+   ==> SETUP erzeugt                           5
+   -- Kandidatenbasis                           
+   Summe Kandidaten                      894
+
+   LONG -- H2 (Bars 17692..21623)
+   Gate                              Haeufigkeit
+   Kaskade liefert Kandidaten                144
+     -> keine Kaskade (kein Kand.)          3785
+   Q29 Niemandsland-Sperre                   144
+   Q24 Linie zu jung                          28
+   -- Kandidatenbasis                           
+   Summe Kandidaten                      144
+
+====================================================================================================
+LONG-KANDIDATEN IN H2 -- vollstaendige Liste (mit Sterbe-Gate)
+====================================================================================================
+   Kandidaten (kd is not None): 144
+       BarDatum         Kante    Basis    Sweep   Sterbe-Gate               
+     178512025-10-02   K394    45.9770  45.9100   quartil_blockiert         
+     178542025-10-02   K394    45.9770  45.8910   quartil_blockiert         
+     180712025-10-07   K440    48.3440  48.3080   quartil_blockiert         
+     180722025-10-07   K440    48.3440  48.2310   quartil_blockiert         
+     180732025-10-07   K440    48.3440  48.2730   quartil_blockiert         
+     180962025-10-07   K440    48.3440  48.1020   quartil_blockiert         
+     180972025-10-07   K430    47.9190  47.7180   quartil_blockiert         
+     183212025-10-09   K437    48.4750  48.4190   quartil_blockiert         
+     188542025-10-17   K492    52.8070  52.5750   quartil_blockiert         
+     188552025-10-17   K492    52.8070  52.6190   quartil_blockiert         
+     188572025-10-17   K486    51.9800  51.6930   quartil_blockiert         
+     188582025-10-17   K489    52.2600  52.0010   quartil_blockiert         
+     188592025-10-17   K489    52.2600  52.1680   quartil_blockiert         
+     188602025-10-17   K489    52.2600  52.0040   quartil_blockiert         
+     188612025-10-17   K486    51.9800  51.7280   quartil_blockiert         
+     188622025-10-17   K486    51.9800  51.8800   quartil_blockiert         
+     188642025-10-17   K486    51.9800  51.7400   quartil_blockiert         
+     188662025-10-17   K484    51.4560  51.3590   quartil_blockiert         
+     188692025-10-17   K478    51.3230  51.1040   quartil_blockiert         
+     188702025-10-17   K478    51.3230  51.0600   quartil_blockiert         
+     188932025-10-20   K478    51.3330  51.2480   quartil_blockiert         
+     188942025-10-20   K478    51.3330  51.2510   quartil_blockiert         
+     190072025-10-21   K484    51.4560  51.4110   quartil_blockiert         
+     190082025-10-21   K478    51.3330  51.1620   quartil_blockiert         
+     190092025-10-21   K484    51.4560  51.4460   quartil_blockiert         
+     190182025-10-21   K462    49.6180  49.5250   quartil_blockiert         
+     190192025-10-21   K468    49.7090  49.6300   quartil_blockiert         
+     190202025-10-21   K462    49.6180  49.5010   quartil_blockiert         
+     190212025-10-21   K462    49.6180  49.4950   quartil_blockiert         
+     190322025-10-21   K464    49.8470  49.7770   quartil_blockiert         
+     190332025-10-21   K462    49.6180  49.5570   quartil_blockiert         
+     190342025-10-21   K462    49.6180  49.4490   quartil_blockiert         
+     190352025-10-21   K462    49.6180  49.4910   quartil_blockiert         
+     190362025-10-21   K462    49.6180  49.5610   quartil_blockiert         
+     190382025-10-21   K462    49.6180  49.4210   quartil_blockiert         
+     190402025-10-21   K451    48.8610  48.7790   quartil_blockiert         
+     190412025-10-21   K437    48.4750  48.4180   quartil_blockiert         
+     190422025-10-21   K435    48.2310  48.1860   quartil_blockiert         
+     192772025-10-24   K440    48.3870  48.3720   quartil_blockiert         
+     192782025-10-24   K440    48.3870  48.1930   quartil_blockiert         
+     192792025-10-24   K440    48.3870  48.2880   quartil_blockiert         
+     192842025-10-24   K435    48.2660  48.1420   quartil_blockiert         
+     192852025-10-24   K435    48.2660  48.0500   quartil_blockiert         
+     192862025-10-24   K435    48.2660  48.1120   quartil_blockiert         
+     192882025-10-24   K435    48.2660  48.2460   quartil_blockiert         
+     192902025-10-24   K435    48.2660  48.2400   quartil_blockiert         
+     192912025-10-24   K435    48.2660  48.0660   quartil_blockiert         
+     192932025-10-24   K444    47.8530  47.8330   quartil_blockiert         
+     192942025-10-24   K444    47.8530  47.8140   quartil_blockiert         
+     193042025-10-24   K444    47.8530  47.8150   quartil_blockiert         
+     193682025-10-27   K444    47.8530  47.7680   quartil_blockiert         
+     193692025-10-27   K444    47.8530  47.8180   quartil_blockiert         
+     193702025-10-27   K444    47.8530  47.8460   quartil_blockiert         
+     193872025-10-27   K431    47.7200  47.5550   quartil_blockiert         
+     193882025-10-27   K431    47.7200  47.6540   quartil_blockiert         
+     193962025-10-27   K428    47.4370  47.3610   quartil_blockiert         
+     193972025-10-27   K428    47.4370  47.4110   quartil_blockiert         
+     193982025-10-27   K424    47.3460  47.3080   quartil_blockiert         
+     193992025-10-27   K424    47.3460  47.3340   quartil_blockiert         
+     194002025-10-27   K424    47.3460  47.3080   quartil_blockiert         
+     194012025-10-27   K428    47.4370  47.4280   quartil_blockiert         
+     194052025-10-27   K428    47.4370  47.3830   quartil_blockiert         
+     194062025-10-27   K418    47.2000  47.0800   quartil_blockiert         
+     194072025-10-27   K418    47.2000  46.9230   quartil_blockiert         
+     194092025-10-27   K402    46.6530  46.4040   quartil_blockiert         
+     197842025-10-31   K449    48.7690  48.4900   quartil_blockiert         
+     197902025-10-31   K440    48.3870  48.3740   quartil_blockiert         
+     198042025-11-03   K440    48.3870  48.3150   quartil_blockiert         
+     198082025-11-03   K440    48.3870  48.3250   quartil_blockiert         
+     198092025-11-03   K440    48.3870  48.2440   quartil_blockiert         
+     198102025-11-03   K440    48.3870  48.2900   quartil_blockiert         
+     198122025-11-03   K435    48.2660  48.1900   quartil_blockiert         
+     198702025-11-03   K435    48.2660  48.1400   quartil_blockiert         
+     198732025-11-03   K435    48.2660  48.2280   quartil_blockiert         
+     198742025-11-03   K435    48.2660  48.1950   quartil_blockiert         
+     198812025-11-03   K435    48.2660  48.2280   quartil_blockiert         
+     198822025-11-03   K435    48.2660  48.2310   quartil_blockiert         
+     198832025-11-03   K435    48.2660  48.1600   quartil_blockiert         
+     198842025-11-03   K435    48.2660  47.9790   quartil_blockiert         
+     198952025-11-04   K444    47.8530  47.6780   quartil_blockiert         
+     198962025-11-04   K444    47.8530  47.7840   quartil_blockiert         
+     199222025-11-04   K446    47.6140  47.5420   quartil_blockiert         
+     199232025-11-04   K446    47.6140  47.4830   quartil_blockiert         
+     199522025-11-04   K533    47.5030  47.4600   quartil_blockiert         
+     199532025-11-04   K533    47.5030  47.4670   quartil_blockiert         
+     199542025-11-04   K428    47.4390  47.3790   quartil_blockiert         
+     199552025-11-04   K428    47.4390  47.4100   quartil_blockiert         
+     199562025-11-04   K428    47.4390  47.4180   quartil_blockiert         
+     199572025-11-04   K415    46.8660  46.8530   quartil_blockiert         
+     199932025-11-05   K415    46.8660  46.8390   quartil_blockiert         
+     201522025-11-06   K431    47.7200  47.6380   quartil_blockiert         
+     201532025-11-06   K431    47.7200  47.6720   quartil_blockiert         
+     206012025-11-13   K506    52.9110  52.6320   quartil_blockiert         
+     206022025-11-13   K506    52.9110  52.6680   quartil_blockiert         
+     206052025-11-13   K506    52.9110  52.6070   quartil_blockiert         
+     206262025-11-13   K489    52.2680  52.1870   quartil_blockiert         
+     206272025-11-13   K489    52.2680  52.2530   quartil_blockiert         
+     206302025-11-13   K489    52.2680  52.2640   quartil_blockiert         
+     206312025-11-14   K489    52.2680  52.1740   quartil_blockiert         
+     206792025-11-14   K489    52.2680  52.2370   quartil_blockiert         
+     206802025-11-14   K489    52.2680  52.1630   quartil_blockiert         
+     206812025-11-14   K489    52.2680  52.2660   quartil_blockiert         
+     206822025-11-14   K489    52.2680  51.9790   quartil_blockiert         
+     206872025-11-14   K484    51.4650  51.2560   quartil_blockiert         
+     206882025-11-14   K495    50.8420  50.6660   quartil_blockiert         
+     208052025-11-17   K464    49.8470  49.7900   quartil_blockiert         
+     208062025-11-17   K468    49.7090  49.6520   quartil_blockiert         
+     208072025-11-17   K462    49.6180  49.5570   quartil_blockiert         
+     208172025-11-18   K462    49.6180  49.4800   quartil_blockiert         
+     208182025-11-18   K462    49.6180  49.5650   quartil_blockiert         
+     208362025-11-18   K527    49.4950  49.4190   quartil_blockiert         
+     208372025-11-18   K527    49.4950  49.4720   quartil_blockiert         
+     208452025-11-18   K527    49.4950  49.4730   quartil_blockiert         
+     208462025-11-18   K527    49.4950  49.4940   quartil_blockiert         
+     208472025-11-18   K527    49.4950  49.3380   quartil_blockiert         
+     208482025-11-18   K527    49.4950  49.3920   quartil_blockiert         
+     208492025-11-18   K527    49.4950  49.4070   quartil_blockiert         
+     209802025-11-19   K521    50.5600  50.5370   quartil_blockiert         
+     210702025-11-20   K480    50.3190  50.2480   quartil_blockiert         
+     210712025-11-20   K480    50.3190  50.2000   quartil_blockiert         
+     210732025-11-20   K480    50.3190  50.2190   quartil_blockiert         
+     210742025-11-20   K480    50.3190  50.2300   quartil_blockiert         
+     210782025-11-20   K480    50.3190  50.2320   quartil_blockiert         
+     210792025-11-20   K480    50.3190  50.2540   quartil_blockiert         
+     210992025-11-21   K480    50.3190  50.1620   quartil_blockiert         
+     211002025-11-21   K480    50.3190  50.2020   quartil_blockiert         
+     211012025-11-21   K480    50.3190  50.1590   quartil_blockiert         
+     211022025-11-21   K480    50.3190  50.2720   quartil_blockiert         
+     211072025-11-21   K464    49.8650  49.7020   quartil_blockiert         
+     211132025-11-21   K462    49.6180  49.5420   quartil_blockiert         
+     211142025-11-21   K462    49.6180  49.6050   quartil_blockiert         
+     211172025-11-21   K462    49.6180  49.5330   quartil_blockiert         
+     211182025-11-21   K527    49.4950  49.3430   quartil_blockiert         
+     211192025-11-21   K462    49.6180  49.5650   quartil_blockiert         
+     211202025-11-21   K527    49.4950  49.4300   quartil_blockiert         
+     211212025-11-21   K527    49.4950  49.4570   quartil_blockiert         
+     211222025-11-21   K527    49.4950  49.4000   quartil_blockiert         
+     211232025-11-21   K527    49.4950  49.2060   quartil_blockiert         
+     211242025-11-21   K527    49.4950  49.2260   quartil_blockiert         
+     211252025-11-21   K527    49.4950  49.2660   quartil_blockiert         
+     211352025-11-21   K457    49.0150  48.8850   quartil_blockiert         
+     211362025-11-21   K449    48.7690  48.6210   quartil_blockiert         
+     211372025-11-21   K449    48.7690  48.6210   quartil_blockiert         
+     211382025-11-21   K449    48.7690  48.7350   quartil_blockiert         
+
+====================================================================================================
+Q29-TIEFENANALYSE -- warum die Sperre im Trend systematisch LONG trifft
+====================================================================================================
+   Q29 vergleicht das Sweep-Extremum mit dem LAUFENDEN GESAMT-Extrem
+   (ex_hi/ex_lo ueber Bars 0..k, NICHT das lokale Fenster):
+     SHORT: distanz = (ex_hi - hi[k]) / (ex_hi - ex_lo) * 100
+     LONG : distanz = (lo[k] - ex_lo) / (ex_hi - ex_lo) * 100
+   Handelbar nur bei distanz <= 25.0 %.
+
+       BarDatum            ex_lo    ex_hi   Spanne  LONG-Schwelle    lo[k]  Q29-Dist  Status
+     176922025-10-01     28.2860  47.1580  18.8720        33.0040  46.6110     97.1%  GESPERRT
+     179322025-10-03     28.2860  48.0310  19.7450        33.2223  47.5140     97.4%  GESPERRT
+     181722025-10-08     28.2860  48.7500  20.4640        33.4020  48.3120     97.9%  GESPERRT
+     184122025-10-10     28.2860  51.2200  22.9340        34.0195  49.7030     93.4%  GESPERRT
+     186522025-10-15     28.2860  53.5030  25.2170        34.5902  52.7040     96.8%  GESPERRT
+     188922025-10-20     28.2860  54.4460  26.1600        34.8260  51.3550     88.2%  GESPERRT
+     191322025-10-22     28.2860  54.4460  26.1600        34.8260  48.3470     76.7%  GESPERRT
+     193722025-10-27     28.2860  54.4460  26.1600        34.8260  47.9610     75.2%  GESPERRT
+     196122025-10-29     28.2860  54.4460  26.1600        34.8260  47.5690     73.7%  GESPERRT
+     198522025-11-03     28.2860  54.4460  26.1600        34.8260  48.5870     77.6%  GESPERRT
+     200922025-11-06     28.2860  54.4460  26.1600        34.8260  47.7500     74.4%  GESPERRT
+     203322025-11-10     28.2860  54.4460  26.1600        34.8260  49.9490     82.8%  GESPERRT
+     205722025-11-13     28.2860  54.4460  26.1600        34.8260  53.9640     98.2%  GESPERRT
+     208122025-11-17     28.2860  54.4460  26.1600        34.8260  50.1240     83.5%  GESPERRT
+     210522025-11-20     28.2860  54.4460  26.1600        34.8260  50.9480     86.6%  GESPERRT
+     212922025-11-25     28.2860  54.4460  26.1600        34.8260  51.4530     88.6%  GESPERRT
+     215322025-11-27     28.2860  54.4460  26.1600        34.8260  53.2470     95.4%  GESPERRT
+
+   Ende: ex_lo 28.2860  ex_hi 56.5250  Spanne 28.2390
+   LONG-Schwelle waere lo[k] <= 35.3458 USD
+   H2-Tief ist aber 45.5300 USD -> Abstand zur Schwelle 10.1842 USD
+
+   Die 5 GELUNGENEN H1-LONGs (Vergleichsgruppe):
+      Bar   6120 (2025-04-04)  K20    Dist  15.5%  R -1.00000  close 29.7770
+      Bar   6121 (2025-04-04)  K6     Dist   8.6%  R -1.00000  close 29.6430
+      Bar   6131 (2025-04-04)  K2     Dist   5.5%  R -1.00000  close 29.3650
+      Bar   6323 (2025-04-08)  K14    Dist  21.7%  R -1.00000  close 29.7660
+      Bar   6343 (2025-04-09)  K6     Dist  16.3%  R +16.71116  close 29.4980
+
+====================================================================================================
+UNTEN-KANTEN-INVENTAR (Grundlage des LONG-Pfads)
+====================================================================================================
+   UNTEN-Kanten gesamt: 233  /  OBEN-Kanten: 215
+   (Tabellenausschnitt: nur kausal-zum-Split existente UNTEN-Kanten mit Basis >= 45,00 USD)
+     kid     basis   pivot      status  letzter Docht  lebend bei Split
+   --> 10 relevante Kanten
+     404   46.7860   17555       AKTIV          17617                JA
+     407   46.7090   17588   SCHLAFEND          17592              nein
+     402   46.6380   17537   SCHLAFEND          17688                JA
+     405   46.5060   17568   SCHLAFEND          17571              nein
+     412   46.3150   17680       AKTIV          17680                JA
+     400   46.2230   17515       AKTIV          17671                JA
+     410   46.0690   17652       AKTIV          17652                JA
+     397   46.0070   17502   SCHLAFEND          17506              nein
+     394   45.9770   17489   SCHLAFEND          17662                JA
+     409   45.7890   17647       AKTIV          17647                JA
+
+====================================================================================================
+MINIMALBEDINGUNG DES LONG-PFADS -- wie oft strukturell ueberhaupt moeglich?
+====================================================================================================
+   LONG verlangt: eine UNTEN-Kante wird vom Bar-Low DURCHSTOCHEN
+   (dist = (basis - lo[k])/basis > sweep_mindestdurchstich_pct).
+   sweep_mindestdurchstich_pct = 0.0   max_sweep_ueberdehnung_pct = 0.6
+   bei Split kausal existente UNTEN-Kanten: 173
+   H2-Bars mit lo[k] unter IRGENDEINER kausalen UNTEN-Basis: 114 / 3932
+   H2-Tief 45.5300  (Split-close 46.6240)
+   UNTEN-Basen bei Split, die im H2 NIEMALS unterschritten werden (10):
+      K394    45.9770   (H2-Tief 45.5300, Abstand  0.4470 USD)
+      K397    46.0070   (H2-Tief 45.5300, Abstand  0.4770 USD)
+      K400    46.2230   (H2-Tief 45.5300, Abstand  0.6930 USD)
+      K402    46.6380   (H2-Tief 45.5300, Abstand  1.1080 USD)
+      K404    46.7860   (H2-Tief 45.5300, Abstand  1.2560 USD)
+      K405    46.5060   (H2-Tief 45.5300, Abstand  0.9760 USD)
+      K407    46.7090   (H2-Tief 45.5300, Abstand  1.1790 USD)
+      K409    45.7890   (H2-Tief 45.5300, Abstand  0.2590 USD)
+      K410    46.0690   (H2-Tief 45.5300, Abstand  0.5390 USD)
+      K412    46.3150   (H2-Tief 45.5300, Abstand  0.7850 USD)

@@ -1,0 +1,34 @@
+docs(handoff): E-34n/13 — ZP-5(D) eingebrannt (24/+88.116626), V018-Gegenprobe 17/+65.835576
+
+- Einbrand autorisiert und ausgefuehrt in test/tmp_png_aug_sichttest.py
+  (gitignored; Arretierung ueber SHA-Anker). 4 inhaltliche Aenderungen,
+  difflib zerlegt sie in 6 @@-Bloecke (Docstring-Block 2x):
+  (1) KONFIGURATION_V019: 23->24 Trades, 82.614385 -> 88.116626 R,
+      ziel_r_h2 43.694801 -> 49.197042, delta_rb 34.798688 -> 40.300929,
+      neu_basis_soll + (1172, 82); ziel_r_h1/p9/Quartett unveraendert.
+  (2) Docstring _wende_zielzonen_patches_v019 um ZP-5 (E-34n) erweitert.
+  (3) 5. Paar A_KL_DOCHT (seite_edges-Anker), Schwellen aus SSoT
+      (cfg.touch_band_pct unten, _ueb(_kb) oben), OBEN+UNTEN symmetrisch,
+      P9 via boden_deklariert_literal ausgenommen, _b0 = basis_bei(seg.start_bar)
+      als TRAGENDE Wahl dokumentiert.
+  (4) Fail-Loud-Zweig Z. 959-974: 9 -> 10 plus drei Geometrie-Asserts
+      1073/1074/1075 (kein Wert-Pin).
+- Trockenpruefung: alle 5 Anker count == 1; injizierter _se_trades kompiliert.
+  Marker-Zaehlung im gepatchten Quelltext: cfg.touch_band_pct=2, 0.12=0,
+  _ueb(_kb)=1, 0.80=0 -> keine Literale.
+- Messlauf --mode V019 exit=0, alle Fail-Loud-Asserts gruen:
+  24 / +88.116626 R (H1 8/+38.919584 | H2 16/+49.197042 | P9 5/+23.435111),
+  Delta +40.300929 (Soll), V1-V1_basis 10, Niveauwechsel 66.
+  Invarianz-Indiz: PNG 02 (H1-Box) und 04 (P9) byte-gleich zum Vorlauf.
+- V018-Gegenprobe exit=0: 17 / +65.835576 (H1 8/+38.919584, H2 9/+26.915992),
+  Delta +18.019879 -> ZP-5(D) beruehrt den V018-Pfad nicht.
+- Betriebsnotiz: Lauf 1 scheiterte im finalen savefig an Windows-Dateilock
+  (OSError Errno 22) nach bestandenen Asserts; Lauf 2 nach Remove-Item saubere.
+- Engine und Adapter byte-identisch (SHA-Anker im Handoff, Abschnitt A6).
+- Offen (Kosmetik, nicht ZP-5): shade_phases zeichnet Literal-Phasen;
+  visuelle Abnahme bleibt beim Anwender. Kein §75, kein S1, kein S2,
+  keine UI-/Regressionstests, kein git add -f.
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

@@ -1,0 +1,75 @@
+========================================================================================================================
+S1-AUDIT: SERIELLE RICHTUNGS-FEHLTRADES INNERHALB EINER PHASE (READ-ONLY)
+========================================================================================================================
+Fenster          : 2026-02-05 .. 2026-08-28 | 201 Baseline-Trades | Summe +197.26R
+Cap-Modell       : max. 2 Versuche je (Phase_ID, Richtung); blockwuerdig = Trade bei consecutive_losses >= 2
+SL-Kalibrierung  : SL_PCT 0.45% vom Entry (LONG: Entry*(1-0.45%), SHORT: Entry*(1+0.45%))
+Zeiten           : Entry-Bar (UTC) aus market_data.duckdb via Bar_Entry-Index
+Kanten           : Kante U / Kante L / POC aus Monatsberichten (Signal-Bar)
+
+------------------------------------------------------------------------------------------------------------------------
+TEIL A | OBDUKTION PHASE 102 (T137-T143, alle LONG)
+------------------------------------------------------------------------------------------------------------------------
+  Nr BarSig BarEnt Entry-Zeit (UTC)  Dir      Entry       SL       R  Kante U  Kante L      POC
+------------------------------------------------------------------------------------------------------------------------
+ 137   9250   9251 26.06.2026 21:30  LONG    58.866   58.601   -1.00   59.446   58.856   59.206
+ 138   9262   9263 29.06.2026 01:30  LONG    58.657   58.393   -1.00   59.465   58.623   59.217
+    | seit T137:   12 Bars Handelszeit (3.0 h) | Kalender 52.0 h | dU +0.019 dL -0.233 dPOC +0.011
+ 139   9284   9286 29.06.2026 07:15  LONG    58.310   58.048   -1.00   59.430   58.267   58.633
+    | seit T138:   23 Bars Handelszeit (5.8 h) | Kalender 5.8 h | dU -0.035 dL -0.356 dPOC -0.584
+ 140   9310   9312 29.06.2026 13:45  LONG    57.867   57.607   -0.01   59.520   57.794   58.639
+    | seit T139:   26 Bars Handelszeit (6.5 h) | Kalender 6.5 h | dU +0.090 dL -0.473 dPOC +0.006
+ 141   9322   9323 29.06.2026 16:30  LONG    58.074   57.813   -1.00   59.448   57.722   58.495
+    | seit T140:   11 Bars Handelszeit (2.8 h) | Kalender 2.8 h | dU -0.072 dL -0.072 dPOC -0.144
+ 142   9361   9363 30.06.2026 03:30  LONG    57.707   57.447   -1.00   59.408   57.627   58.196
+    | seit T141:   40 Bars Handelszeit (10.0 h) | Kalender 11.0 h | dU -0.040 dL -0.095 dPOC -0.299
+ 143   9373   9374 30.06.2026 06:15  LONG    57.349   57.091   -1.00   59.408   57.281   58.196
+    | seit T142:   11 Bars Handelszeit (2.8 h) | Kalender 2.8 h | dU +0.000 dL -0.346 dPOC +0.000
+------------------------------------------------------------------------------------------------------------------------
+Phase 102 (26.06. 16:00 -> 30.06. 07:30, 37.8h, 24H/23L): 7 Trades, alle LONG, alle Verluste | Summe -6.01R
+  Kante-L-Verlauf ueber die 7 Trades: 58.856 -> 57.281 (-1.575) | Kante-U 59.446 -> 59.408 (-0.038) | POC 59.206 -> 58.196 (-1.010)
+  Entry-Verlauf: 58.866 -> 57.349 (-1.517 USD, -2.58 %) - die Kante L driftet mit dem fallenden Markt, jeder Reclaim-LONG kauft in den Abwaertskanal.
+
+------------------------------------------------------------------------------------------------------------------------
+TEIL B | S1-GESAMTPRUEFUNG (Cap = 2 je Phase+Richtung; chronologisch)
+------------------------------------------------------------------------------------------------------------------------
+Phase Dir   >=Cap Verluste gespart R Gewinne gekillt R  Trade-Nrn (blockwuerdig)
+------------------------------------------------------------------------------------------------------------------------
+   19 LONG      1        1     +1.00       0     +0.00  T24
+   25 SHORT     1        0     +0.00       1     +5.94  T35
+   45 LONG      1        1     +0.47       0     +0.00  T57
+   57 LONG      1        1     +1.00       0     +0.00  T72
+   63 LONG      1        0     +0.00       1     +5.06  T84
+   95 SHORT     1        0     +0.00       1     +2.88  T131
+  100 LONG      1        0     +0.00       1     +1.62  T136
+  102 LONG      5        5     +4.01       0     +0.00  T139,T140,T141,T142,T143
+  112 SHORT     1        0     +0.00       1     +7.82  T154
+  132 SHORT     4        3     +3.00       1     +6.71  T185,T186,T187,T188
+------------------------------------------------------------------------------------------------------------------------
+SUMME          17       11     +9.48       6    +30.03
+
+GEKILLTE GEWINNER (waeren durch Cap=2 verhindert worden - einzeln):
+  Nr Phase Dir   Entry-Zeit (UTC)     Entry       R  Kante U  Kante L      POC
+------------------------------------------------------------------------------------------------------------------------
+  35    25 SHORT 10.03.2026 16:30    89.560   +5.94   89.631   86.401   88.949
+  84    63 LONG  05.05.2026 02:30    72.466   +5.06   74.678   72.470   72.878
+ 131    95 SHORT 15.06.2026 15:15    70.993   +2.88   71.010   69.823   70.398
+ 136   100 LONG  25.06.2026 04:15    56.452   +1.62   60.008   56.442   58.862
+ 154   112 SHORT 10.07.2026 05:15    60.585   +7.82   60.639   57.831   59.977
+ 188   132 SHORT 17.08.2026 19:15    66.248   +6.71   66.284   63.689   65.546
+
+------------------------------------------------------------------------------------------------------------------------
+TEIL C | NETTO-R-BILANZ DES FIKTIVEN CAPS (max. 2 Versuche je Phase+Richtung)
+------------------------------------------------------------------------------------------------------------------------
+  Blockwuerdige Trades       : 17  (kamen bei consecutive_losses >= 2)
+  Davon Verluste             : 11  -> gesparte R    : +9.48R
+  Davon Gewinne              : 6  -> gekillte R     : +30.03R
+  NETTO-Bilanz des Caps      : -20.55R  (positiv = Cap haette R gebracht)
+  Verhaeltnis gespart:gekillt: 9.48 : 30.03  (= 0.32x)
+------------------------------------------------------------------------------------------------------------------------
+Hinweis: Ex-post-Zaehlung auf den realen Serien. Ein echter Cap haette die
+Serien real unterbrochen (geblockte Verluste erhoehen den Zaehler nicht);
+die Netto-Bilanz hier ist die statische Obergrenze der Ersparnis. Phase 102
+steuert den groessten Block bei: T137/T138 waeren die 2 erlaubten Versuche,
+T139-T143 (5 Trades, 4.01R) waeren geblockt.
+

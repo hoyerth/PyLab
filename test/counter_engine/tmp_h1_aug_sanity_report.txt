@@ -1,0 +1,43 @@
+====================================================================================================
+H1-MULTI-TIMEFRAME AUG-PROBELAUF (Sanity) - SILVER H1
+Fenster: 2026-08-10 .. 2026-08-28 (Ende exklusiv) | Tabelle ohlcv_bars, timeframe='H1'
+====================================================================================================
+
+ANGELEGTE PATCHES (In-Memory, Baseline unveraendert):
+  SQL-Timeframe, MIN_CANDLES, MIN_PHASE_CANDLES, TOL, TOL_TOUCH, DENSITY_BAND, SHIFT_TOL, VA_PCT (unveraendert)
+
+ENGINE-DURCHLAUF: fehlerfrei
+
+KENNZAHLEN AUG-H1
+----------------------------------------------------------------------------------------------------
+  Phasen gesamt            : 3
+  Phasen handelbar         : 3
+  Reclaim-Signale          : 10
+  Trades (mit Exit)        : 10
+  Long / Short             : 3 / 7
+  Win-Rate                 : 40.0%  (4 Gewinn / 6 Verlust / 0 Neutral)
+  Summe R (netto)          : +14.70R
+  Avg Win / Avg Loss       : +4.96R / -0.86R
+  Profit-Faktor            : 3.85
+  Bars im Fenster (H1)     : 322
+
+EXIT-STRUKTUR (TP1/TP2-Erreichung)
+----------------------------------------------------------------------------------------------------
+  TP1 erreicht             : 5 / 10 (50.0%)
+  TP2 erreicht             : 4 / 10 (40.0%)
+
+TRADE-LOG (erste 30)
+----------------------------------------------------------------------------------------------------
+    1. SHORT ph=1   ts=2026-08-10 09:00:00  R=-0.16  VERLOREN TP1=1 TP2=0
+    2. SHORT ph=1   ts=2026-08-11 02:00:00  R=-1.00  VERLOREN TP1=0 TP2=0
+    3. SHORT ph=1   ts=2026-08-12 09:00:00  R=-1.00  VERLOREN TP1=0 TP2=0
+    4. LONG  ph=1   ts=2026-08-14 07:00:00  R=+5.58  GEWONNEN TP1=1 TP2=1
+    5. SHORT ph=1   ts=2026-08-17 16:00:00  R=-1.00  VERLOREN TP1=0 TP2=0
+    6. SHORT ph=3   ts=2026-08-21 04:00:00  R=-1.00  VERLOREN TP1=0 TP2=0
+    7. SHORT ph=3   ts=2026-08-21 18:00:00  R=+5.88  GEWONNEN TP1=1 TP2=1
+    8. SHORT ph=3   ts=2026-08-25 02:00:00  R=+3.53  GEWONNEN TP1=1 TP2=1
+    9. LONG  ph=3   ts=2026-08-25 05:00:00  R=-1.00  VERLOREN TP1=0 TP2=0
+   10. LONG  ph=3   ts=2026-08-26 17:00:00  R=+4.86  GEWONNEN TP1=1 TP2=1
+
+M15-REFERENZ (Kontext, KEIN Ziel): AUG +24,97R / 27 Trades / WR 44,4% / PF 2,83
+  H1 hat ~1/4 der Bars -> weniger Phasen/Signale; Funktions-Nachweis statt R-Parität.

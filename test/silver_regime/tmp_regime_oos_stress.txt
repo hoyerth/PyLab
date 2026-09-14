@@ -1,0 +1,57 @@
+======================================================================================================================
+STUFE-5-OOS: ONE-SHOT-BLINDTEST ZONE ZSTRESS (2025-12-01 .. 2026-02-05, ende-exklusiv)
+Siegel-Hash S1: e55b72e614adbd7b...
+Siegel-Hash S2: 948a9c217720bafd...
+Zonen-Hash     : 187fdb99fa25a15b... (nur Doku, kein Soll)
+Freeze-Schwellen: {'ema_slope_min': 0.07, 'ema_slope_max': -0.03, 'adx_schwelle_min': 25.0, 'tol_band_quote_max': 0.6}
+Klassifikation : TREND 28 | SHAKEOUT 18 | UNKLAR 7 (von 53 Phasen)
+Gated: sum_f4=3.34 sum_ref=0.71 (n_gewertet=20, zensiert=0, init=16, zeit=4, hd=35)
+B48  : sum_f4=-3.90 sum_ref=-8.28
+B96  : sum_f4=-5.00 (Sekundaer-Baseline)
+PRIMAER-DELTA (gated - B48): +7.24R
+======================================================================================================================
+
+ABSCHNITTE (chronologisch, UNKLAR eigenstaendig):
+  Regime         Phasen | sum_f4_gated sum_f4_b48    delta | Befund (Fassung 1)
+  UNKLAR        1-1    |         0.00       0.00    +0.00 | OK
+  TREND         2-2    |        -1.00       0.00    -1.00 | VERLETZT (b): delta <= 0
+  SHAKEOUT      3-4    |        -1.00      -1.00    +0.00 | OK
+  UNKLAR        5-5    |         0.00       0.00    +0.00 | OK
+  SHAKEOUT      6-6    |         0.00       0.00    +0.00 | OK
+  TREND         7-8    |        -2.00       0.00    -2.00 | VERLETZT (b): delta <= 0
+  UNKLAR        9-9    |         0.00       0.00    +0.00 | OK
+  SHAKEOUT     10-10   |         0.00       0.00    +0.00 | OK
+  TREND        11-12   |         6.56       0.00    +6.56 | OK
+  UNKLAR       13-13   |         0.00       0.00    +0.00 | OK
+  TREND        14-14   |        -1.00      -1.00    +0.00 | VERLETZT (b): delta <= 0
+  UNKLAR       15-15   |         0.00       0.00    +0.00 | OK
+  SHAKEOUT     16-18   |         0.36       0.36    +0.00 | OK
+  TREND        19-20   |        -1.00       0.00    -1.00 | VERLETZT (b): delta <= 0
+  SHAKEOUT     21-22   |         0.00       0.00    +0.00 | OK
+  UNKLAR       23-24   |         0.00       0.00    +0.00 | OK
+  TREND        25-27   |        -2.00      -0.53    -1.47 | VERLETZT (b): delta <= 0
+  SHAKEOUT     28-28   |        -1.00      -1.00    +0.00 | OK
+  TREND        29-29   |         0.00       0.00    +0.00 | VERLETZT (b): delta <= 0
+  SHAKEOUT     30-30   |         0.00       0.00    +0.00 | OK
+  TREND        31-33   |         0.00       0.00    +0.00 | VERLETZT (b): delta <= 0
+  SHAKEOUT     34-35   |        -2.00      -2.00    +0.00 | OK
+  TREND        36-36   |         4.00       2.27    +1.73 | OK
+  SHAKEOUT     37-37   |         0.00       0.00    +0.00 | OK
+  TREND        38-39   |         0.00       0.00    +0.00 | VERLETZT (b): delta <= 0
+  SHAKEOUT     40-40   |        -1.00      -1.00    +0.00 | OK
+  TREND        41-42   |        -1.00       0.00    -1.00 | VERLETZT (b): delta <= 0
+  SHAKEOUT     43-43   |         0.00       0.00    +0.00 | OK
+  TREND        44-47   |         7.43       0.00    +7.43 | OK
+  SHAKEOUT     48-48   |         0.00       0.00    +0.00 | OK
+  TREND        49-50   |        -1.00       0.00    -1.00 | VERLETZT (b): delta <= 0
+  SHAKEOUT     51-51   |         0.00       0.00    +0.00 | OK
+  TREND        52-53   |        -1.00       0.00    -1.00 | VERLETZT (b): delta <= 0
+
+HINWEIS (a): No-Harm-Identitaet - in SHAKEOUT/UNKLAR waehlt
+das Gate exakt die B48-Baseline (Delta = 0.00 je Block,
+konstruktionsbedingt, §2.16-F.2).
+FASSUNG-2-SUMMARY (bindend ab ZSTRESS, §2.16-F.4):
+  TREND-Bloecke: 14 | Sigma-Delta-TREND (roh): +7.24R | Primaer-Delta: +7.24R | Identitaets-Check |diff|<1e-6: True
+URTEIL FASSUNG 1 (Audit-Historie): a=True b=False c=True -> NICHT BESTANDEN
+GESAMTURTEIL FASSUNG 2 (Bindend ab ZSTRESS): a=True b'=True c=True -> BESTANDEN
+======================================================================================================================

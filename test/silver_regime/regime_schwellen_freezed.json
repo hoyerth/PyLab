@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "datum": "2026-09-05",
+  "quelle_fenster": [
+    "S1",
+    "S2"
+  ],
+  "regel": "Plateau-Zentrum (konservativster Punkt, nie Peak); Sequenz >= 3; +/-10%-Umgebung abgedeckt durch Grid-Schritte; Klippen-Regel >30% verboten; CoV <= 0.5 je Fenster; Response >= 1.0R in mind. einem Fenster; S1 >= -0.5R und S2 >= -0.5R und S2-Trend-Anteil > 50% je Punkt; beide Fenster separat; V2-Bereinigung: 4 Parameter (revidiert 05.09.2026, E-1/B/C)",
+  "schwellen": {
+    "ema_slope_min": 0.07,
+    "ema_slope_max": -0.03,
+    "adx_schwelle_min": 25.0,
+    "tol_band_quote_max": 0.6
+  },
+  "historie_defaults": {
+    "ema_slope_min": 0.05,
+    "ema_slope_max": -0.02,
+    "adx_schwelle_min": 25.0,
+    "tol_band_quote_max": 0.6
+  },
+  "metrik_config": {
+    "tol": 0.34,
+    "ema_slope_lookback": 5.0,
+    "atr_periode": 14.0,
+    "ema_periode": 20.0,
+    "adx_periode": 14.0,
+    "tol_band_messfenster_bars": 16.0,
+    "durchstoss_fenster_bars": 46.0,
+    "konsolidierung_min_bars": 46.0
+  },
+  "gate_config": {
+    "hysterese_puffer": 0.05,
+    "kaltstart_min_bars": 46,
+    "fallback_horizont": 48,
+    "fallback_nur_raw_a": true
+  },
+  "sha256_states_s1": "e55b72e614adbd7bb3314a6c432c467cf3852819ec90a1daa166cdad6e084b35",
+  "sha256_states_s2": "948a9c217720bafd9588a760c02509010082ad796167f4ffe70f5282d1cd2689",
+  "schwellen_obj_repr": "RegimeSchwellen(ema_slope_min=0.07, ema_slope_max=-0.03, adx_schwelle_min=25.0, tol_band_quote_max=0.6)"
+}

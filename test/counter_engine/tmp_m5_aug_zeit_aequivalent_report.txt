@@ -1,0 +1,41 @@
+========================================================================================================
+M5-ZEIT-AEQUIVALENTER BEREINIGUNGSLAUF AUG - SILVER M5
+Fenster: 2026-08-10 .. 2026-08-28 (Ende exklusiv) | timeframe='M5'
+========================================================================================================
+
+ANGELEGTE PATCHES (In-Memory, Baseline unveraendert):
+  - SQL-Timeframe
+  - MIN_CANDLES
+  - MIN_PHASE_CANDLES
+  - TOL
+  - TOL_TOUCH
+  - DENSITY_BAND
+  - SHIFT_TOL
+  - VA_PCT (unveraendert)
+  - MIN_SIGNAL_ABSTAND_BARS 12->36 (3h Cooldown)
+  - PIVOT_LOOKBACK 2->6 (30min)
+
+ENGINE-DURCHLAUF: fehlerfrei
+
+VERGLEICH: Unskaliert (Cooldown 12 M5-Bars=1h, Pivots 2) vs. Zeit-aequivalent (36=3h, 6=30min)
+--------------------------------------------------------------------------------------------------------
+Metrik                      Unskaliert  Zeit-aequiv.       Delta
+--------------------------------------------------------------------------------------------------------
+Bars (M5)                          n/a          3863
+Phasen gesamt                       16            21          +5
+Phasen handelbar                     5             2          -3
+Trades                              42            23         -19
+Win-Rate %                       61.90         47.83      -14.07
+Summe R                         +63.09        +12.62      -50.47
+Profit-Faktor                     5.28          2.20       -3.08
+Avg Win R                        +2.99         +2.10       -0.89
+Avg Loss R                       -0.92         -0.88       +0.04
+Max Loss-Streak                      4             3          -1
+R/Trade                          +1.50         +0.55       -0.95
+--------------------------------------------------------------------------------------------------------
+
+EXIT-STRUKTUR zeit-aequiv.: TP1 13/23 (56.5%) | TP2 9/23 (39.1%)
+
+M15-REFERENZ (Kontext): AUG-M15 +24,97R / 27 Tr / WR 44,4% / PF 2,83 / R-Trade +0,925
+  Zeit-aequivalente M5-Konfiguration sollte die M15-Kennzahlen deutlich besser spiegeln,
+  wenn der Cooldown-/Pivot-Konfundierer die primaere Verzerrung war.

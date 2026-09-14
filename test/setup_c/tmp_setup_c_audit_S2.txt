@@ -1,0 +1,91 @@
+========================================================================================================================
+SETUP C - SCHRITT 2: RE-SEGMENTIERUNG & SIGNAL-REPLAY (tmp_setup_c_audit.py)
+Fenster: S2 | Symbol: SILVER M15 | Datum: 2026-09-05 | Baseline: docs/setup_c_experiment.md c48c9c7 (F4-F8) + Baseline v0.4.0-frozen
+F4 struktureller Stop | F5 Volumen SMA20(shift1) | F6 open[k+1] | F7 Timeout 16 | F8 Verwerfen bei Stop-Verletzung
+========================================================================================================================
+df-Bars: 21624 | Phasen gesamt: 62 | echte 2-Close-Brueche (F3): 61
+
+========================================================================================================================
+ARM CONFIRMED  (n=61 Objekte)
+  Status: SIGNAL=61
+  SL-Abstand (SIGNAL):
+  USD : p25=0.554 med=0.596 p75=0.724 max=1.942
+  PCT%: p25=1.225 med=1.415 p75=1.738 max=3.624
+  R_ref (0.45%): p25=2.722 med=3.144 p75=3.863 max=8.052   <-- R-Kompression (Kanten-Gap) je >1.0
+  Frueh-Kollaps (erste 4 Bars):
+  0.45%-Referenz : 37.7%  (MAE@4 >= 1.0R_ref)
+  F4-Stop        : 0.0%  (MAE@4 >= sl_usd)
+  MFE/MAE Fenster 12 (R = sl_usd, nur volle Fenster):
+    Grp     n   medianR   >=1R   >=2R   >=3R | MAE med   p90    max
+    up       47    0.34   8.5%  4.3%  0.0% |    0.29  0.83   1.14
+    down     14    0.24  28.6% 14.3%  0.0% |    0.32  0.62   0.83
+    alle     61    0.32  13.1%  6.6%  0.0% |    0.29  0.80   1.14
+  MFE/MAE Fenster 24 (R = sl_usd, nur volle Fenster):
+    Grp     n   medianR   >=1R   >=2R   >=3R | MAE med   p90    max
+    up       46    0.44  13.0%  2.2%  0.0% |    0.38  1.17   2.73
+    down     14    0.58  42.9% 14.3%  7.1% |    0.40  0.94   1.24
+    alle     60    0.44  20.0%  5.0%  1.7% |    0.38  1.14   2.73
+  MFE/MAE Fenster 48 (R = sl_usd, nur volle Fenster):
+    Grp     n   medianR   >=1R   >=2R   >=3R | MAE med   p90    max
+    up       46    0.52  28.3%  6.5%  2.2% |    0.64  1.58   3.26
+    down     14    0.93  50.0% 14.3% 14.3% |    0.40  0.94   1.46
+    alle     60    0.58  33.3%  8.3%  5.0% |    0.57  1.47   3.26
+
+
+========================================================================================================================
+ARM RAW  (n=122 Objekte)
+  Status: SIGNAL=78 | KEIN_VOLUMEN=10 | KEIN_DURCHSTOSS=34
+  SL-Abstand (SIGNAL):
+  USD : p25=0.225 med=0.296 p75=0.405 max=0.827
+  PCT%: p25=0.566 med=0.672 p75=0.906 max=2.159
+  R_ref (0.45%): p25=1.259 med=1.493 p75=2.012 max=4.798   <-- R-Kompression (Kanten-Gap) je >1.0
+  Frueh-Kollaps (erste 4 Bars):
+  0.45%-Referenz : 30.8%  (MAE@4 >= 1.0R_ref)
+  F4-Stop        : 15.4%  (MAE@4 >= sl_usd)
+  MFE/MAE Fenster 12 (R = sl_usd, nur volle Fenster):
+    Grp     n   medianR   >=1R   >=2R   >=3R | MAE med   p90    max
+    up       45    0.72  28.9%  4.4%  2.2% |    0.49  1.71   3.52
+    down     33    0.53  27.3%  9.1%  3.0% |    0.82  2.65   5.89
+    alle     78    0.61  28.2%  6.4%  2.6% |    0.61  1.89   5.89
+  MFE/MAE Fenster 24 (R = sl_usd, nur volle Fenster):
+    Grp     n   medianR   >=1R   >=2R   >=3R | MAE med   p90    max
+    up       44    0.90  43.2%  9.1%  2.3% |    0.68  2.02   5.11
+    down     33    0.53  36.4% 15.2% 12.1% |    0.89  2.69   6.02
+    alle     77    0.79  40.3% 11.7%  6.5% |    0.81  2.35   6.02
+  MFE/MAE Fenster 48 (R = sl_usd, nur volle Fenster):
+    Grp     n   medianR   >=1R   >=2R   >=3R | MAE med   p90    max
+    up       44    1.01  50.0% 18.2%  6.8% |    1.19  2.40  11.82
+    down     33    0.80  45.5% 24.2% 18.2% |    1.11  3.07  11.11
+    alle     77    0.91  48.1% 20.8% 11.7% |    1.17  2.73  11.82
+
+
+========================================================================================================================
+ARM RETEST  (n=61 Objekte)
+  Status: SIGNAL=18 | VERWORFEN_STOP_VERLETZT=1 | TIMEOUT=42
+  SL-Abstand (SIGNAL):
+  USD : p25=0.302 med=0.322 p75=0.363 max=0.425
+  PCT%: p25=0.601 med=0.736 p75=0.874 max=1.024
+  R_ref (0.45%): p25=1.336 med=1.635 p75=1.943 max=2.275   <-- R-Kompression (Kanten-Gap) je >1.0
+  Frueh-Kollaps (erste 4 Bars):
+  0.45%-Referenz : 33.3%  (MAE@4 >= 1.0R_ref)
+  F4-Stop        : 16.7%  (MAE@4 >= sl_usd)
+  MFE/MAE Fenster 12 (R = sl_usd, nur volle Fenster):
+    Grp     n   medianR   >=1R   >=2R   >=3R | MAE med   p90    max
+    up       16    0.64  37.5% 12.5%  6.2% |    0.84  2.52   4.03
+    down      2    0.68   0.0%  0.0%  0.0% |    1.34  1.79   1.91
+    alle     18    0.64  33.3% 11.1%  5.6% |    0.85  2.28   4.03
+  MFE/MAE Fenster 24 (R = sl_usd, nur volle Fenster):
+    Grp     n   medianR   >=1R   >=2R   >=3R | MAE med   p90    max
+    up       16    1.06  62.5% 25.0% 18.8% |    0.84  2.87   4.03
+    down      2    0.73   0.0%  0.0%  0.0% |    1.74  2.52   2.71
+    alle     18    1.02  55.6% 22.2% 16.7% |    0.85  2.84   4.03
+  MFE/MAE Fenster 48 (R = sl_usd, nur volle Fenster):
+    Grp     n   medianR   >=1R   >=2R   >=3R | MAE med   p90    max
+    up       16    1.42  75.0% 37.5% 25.0% |    0.91  2.87   4.03
+    down      2    1.20  50.0%  0.0%  0.0% |    1.98  2.94   3.18
+    alle     18    1.32  72.2% 33.3% 22.2% |    0.91  3.15   4.03
+
+
+========================================================================================================================
+VERIFIKATIONSANKER: CONFIRMED SIGNAL=61 DATEN_ENDE=0 (erwartet: F3-Brueche 61, DATEN_ENDE nur bei brk_idx=n-2)
+========================================================================================================================

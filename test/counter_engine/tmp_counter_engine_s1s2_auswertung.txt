@@ -1,0 +1,23 @@
+======================================================================================================================
+KONSOLIDIERTE AUSWERTUNG SETUP A (COUNTER-ENGINE) | S1+S2 je Arm
+SILVER M15 | CANDLE_REJECTION | MAX_TOUCH 2 | F1+F3 aktiv | Stand HEAD 5fd2eae
+======================================================================================================================
+Kennzahl                       AUG bef  AUG betr    S1 bef   S1 betr    S2 bef   S2 betr   S1+S2 bef  S1+S2 betr
+----------------------------------------------------------------------------------------------------------------------
+Signale/Trades                       8         8        71        71        52        52         123         123
+Win-Rate %                       37.50     37.50     35.20     46.50     51.90     69.20       42.28       56.10
+Summe R                          +0.31     -0.13     +6.59     +6.43    +16.20    +12.82      +22.79      +19.25
+Profit-Faktor                     1.06      0.97      1.17      1.17      1.87      1.80        1.39        1.36
+Brutto-Gewinn R                  +5.31     +4.87    +46.43    +44.43    +34.78    +28.82      +81.21      +73.25
+Brutto-Verlust R                  5.00      5.00     39.84     38.00     18.57     16.00       58.41       54.00
+TP1-Hit                              3         3        33        33        36        36          69          69
+TP2-Hit                              2         1        18        14        25        16          43          30
+BE-Exit                              0         2         0        19         0        20           0          39
+----------------------------------------------------------------------------------------------------------------------
+
+AUG-SUBMENGE IM S1-LAUF (Signal-ts >= 2026-08-10) - Segmentierungs-Konsistenz:
+  S1_befalse: 8 Signale | Summe R -1.26 | 2W/6L   (isoliert AUG bef: 8 | +0,31 | 3W/5L)
+  S1_betrue : 8 Signale | Summe R -0.26 | 3W/5L   (isoliert AUG betr: 8 | -0,13 | 3W/5L)
+
+F2-DELTA (S1+S2): bef - betr = +3.54R
+F7-CHECK (S1+S2, Headline bef): PF 1.39 (>=1,5? NEIN) | Summe R +22.79 (>=+50? NEIN) | S1>0? JA | S2>0? JA

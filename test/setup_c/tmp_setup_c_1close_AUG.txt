@@ -1,0 +1,67 @@
+========================================================================================================================
+SETUP C - SCHRITT 4b: CONFIRMED 1-CLOSE vs 2-CLOSE A/B-TIMING-AUDIT (tmp_setup_c_1close.py)
+Fenster: AUG | Symbol: SILVER M15 | Datum: 2026-09-05 | Baseline: docs/setup_c_experiment.md c48c9c7 (F4-F8) + Baseline v0.4.0-frozen
+G1 open[b+1] | G2 Stop min(low[b],kante)-0.15 (RAW-analog) | G3 F4 intrabar + Zeit-Exit 48/96 | G4 r_ref + SL-Delta | G5 Stufe 1 (F3-Population)
+========================================================================================================================
+df-Bars: 1288 | gepaarte SIGNAL-Paare (2-Close SIGNAL, G4-Referenz): 11
+
+--- SL-DELTA-DIAGNOSE (G2/G4, alle Paare, stop-unabhaengig) ---
+  n_Paare = 11
+  sl_usd 2-Close (Referenz) : median=0.7760 USD
+  sl_usd 1-Close            : median=0.6799 USD
+  sl_delta_ratio (1c/2c)       : median=0.919  p25=0.766  p75=1.032
+  -> ratio < 1 bedeutet engerer 1-Close-Stop (kleinerer R-Nenner); r_f4-Delta ist dann teils mechanisch. sum r_ref bleibt die neutrale Waehrung.
+
+========================================================================================================================
+HORIZONT N = 48  (48 M15-Bars; Exit am Close der Bar entry+48; Stop-Vorrang intrabar)
+
+  ENTRY CONFIRMED_1CLOSE (open[b+1])  (n=11, zensiert=0, gewertet=11)
+  -------------------------------------------------------------------
+  sum r_f4=     5.42  mean r_f4=   0.49  median=   0.41  WR=63.6%  PF=2.60
+  sum r_ref (0.45%-Basis) = 9.85
+  Exit: INITIAL_SL_INTRABAR=3 | ZEIT_EXIT_CLOSE=8 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 41 Bars
+
+  ENTRY CONFIRMED_2CLOSE (open[b+2], Referenz)  (n=11, zensiert=0, gewertet=11)
+  -----------------------------------------------------------------------------
+  sum r_f4=     3.42  mean r_f4=   0.31  median=   0.31  WR=63.6%  PF=1.98
+  sum r_ref (0.45%-Basis) = 6.45
+  Exit: INITIAL_SL_INTRABAR=3 | ZEIT_EXIT_CLOSE=8 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 40 Bars
+
+  DELTA 1-Close - 2-Close (paarweise, nur wo beide gewertet, n=11):
+    sum d_r_f4=     2.00  median d_r_f4=   0.10  sum d_r_ref (0.45%%)=3.39
+
+========================================================================================================================
+HORIZONT N = 96  (96 M15-Bars; Exit am Close der Bar entry+96; Stop-Vorrang intrabar)
+
+  ENTRY CONFIRMED_1CLOSE (open[b+1])  (n=11, zensiert=0, gewertet=11)
+  -------------------------------------------------------------------
+  sum r_f4=     0.65  mean r_f4=   0.06  median=  -1.00  WR=36.4%  PF=1.09
+  sum r_ref (0.45%-Basis) = -1.92
+  Exit: INITIAL_SL_INTRABAR=7 | ZEIT_EXIT_CLOSE=4 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 68 Bars
+
+  ENTRY CONFIRMED_2CLOSE (open[b+2], Referenz)  (n=11, zensiert=0, gewertet=11)
+  -----------------------------------------------------------------------------
+  sum r_f4=    -1.80  mean r_f4=  -0.16  median=  -1.00  WR=36.4%  PF=0.74
+  sum r_ref (0.45%-Basis) = -7.46
+  Exit: INITIAL_SL_INTRABAR=7 | ZEIT_EXIT_CLOSE=4 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 68 Bars
+
+  DELTA 1-Close - 2-Close (paarweise, nur wo beide gewertet, n=11):
+    sum d_r_f4=     2.46  median d_r_f4=   0.00  sum d_r_ref (0.45%%)=5.55
+
+========================================================================================================================
+VERGLEICH  (sum r_f4 je EntryTyp; zensiert in Klammern)
+    N    EntryTyp                             sum_r_f4  sum_r_ref  n_gew  n_zens
+    48   CONFIRMED_1CLOSE (open[b+1])             5.42       9.85     11       0
+    48   CONFIRMED_2CLOSE (open[b+2], Referenz)       3.42       6.45     11       0
+         DELTA (1c-2c, paarweise)                 2.00       3.39     11
+    96   CONFIRMED_1CLOSE (open[b+1])             0.65      -1.92     11       0
+    96   CONFIRMED_2CLOSE (open[b+2], Referenz)      -1.80      -7.46     11       0
+         DELTA (1c-2c, paarweise)                 2.46       5.55     11
+========================================================================================================================
+========================================================================================================================
+VERIFIKATIONSANKER: gepaarte Paare = CONFIRMED-SIGNAL-Zahl aus Schritt 2 (AUG=11, S1=138, S2=61, abzueglich DATEN_ENDE)
+========================================================================================================================

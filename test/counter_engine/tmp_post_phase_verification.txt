@@ -1,0 +1,63 @@
+==============================================================================================================
+SCHRITT 0: FOLGEPHASEN-AUSBEUTE der 5 TRUE-Phasen (S2 Ph3/4/13/19, S1 Ph102)
+Fenster: 72h / 168h ab Phasenende | Richtung = Streak-Richtung (LONG)
+==============================================================================================================
+
+
+Fen Ph Ende (UTC)      Strk-DirStreak-R | Fenster  Tr  W  L |  real. R |  Netto(Strk+real)
+--------------------------------------------------------------------------------------------------------------
+S2   3 03.02.2025 16:15  LONG      -4.47 |  72h     3  1  2 |    +1.25 |             -3.22
+S2   3 03.02.2025 16:15  LONG      -4.47 | 168h     5  1  4 |    +0.10 |             -4.37
+S2   4 11.02.2025 14:15  LONG      -4.15 |  72h     0  0  0 |    +0.00 |             -4.15
+S2   4 11.02.2025 14:15  LONG      -4.15 | 168h     4  0  4 |    -3.17 |             -7.32
+S2  13 17.07.2025 14:45  LONG      -5.00 |  72h     0  0  0 |    +0.00 |             -5.00
+S2  13 17.07.2025 14:45  LONG      -5.00 | 168h     0  0  0 |    +0.00 |             -5.00
+S2  19 27.08.2025 15:30  LONG      -3.42 |  72h     0  0  0 |    +0.00 |             -3.42
+S2  19 27.08.2025 15:30  LONG      -3.42 | 168h     2  0  2 |    -2.00 |             -5.42
+S1 102 30.06.2026 07:30  LONG      -6.01 |  72h     4  2  2 |    +1.44 |             -4.57
+S1 102 30.06.2026 07:30  LONG      -6.01 | 168h     5  3  2 |    +3.86 |             -2.15
+
+==============================================================================================================
+DETAIL: Folge-Trades in Streak-Richtung (168h-Fenster)
+==============================================================================================================
+
+  S2 Ph3 (LONG, Streak -4.47R, Ende 03.02 16:15):
+    T 34 Ph  4 06.02 09:30 LONG  Entry   32.020   -1.00R
+    T 35 Ph  4 06.02 12:30 LONG  Entry   31.986   -1.00R
+    T 36 Ph  4 06.02 16:00 LONG  Entry   31.925   +3.25R
+    T 38 Ph  4 07.02 18:30 LONG  Entry   31.963   -1.00R
+    T 39 Ph  4 10.02 01:15 LONG  Entry   31.889   -0.15R
+
+  S2 Ph4 (LONG, Streak -4.15R, Ende 11.02 14:15):
+    T 42 Ph  5 14.02 16:15 LONG  Entry   32.836   -1.00R
+    T 43 Ph  5 14.02 19:30 LONG  Entry   32.304   -1.00R
+    T 44 Ph  5 14.02 22:45 LONG  Entry   32.164   -1.00R
+    T 45 Ph  5 17.02 07:00 LONG  Entry   32.039   -0.17R
+
+  S2 Ph13 (LONG, Streak -5.00R, Ende 17.07 14:45):
+    (keine Folge-Trades in Streak-Richtung im 168h-Fenster)
+
+  S2 Ph19 (LONG, Streak -3.42R, Ende 27.08 15:30):
+    T131 Ph 21 02.09 10:00 LONG  Entry   40.452   -1.00R
+    T132 Ph 21 02.09 14:30 LONG  Entry   40.379   -1.00R
+
+  S1 Ph102 (LONG, Streak -6.01R, Ende 30.06 07:30):
+    T144 Ph104 01.07 09:00 LONG  Entry   57.353   +1.55R
+    T146 Ph105 01.07 19:15 LONG  Entry   59.961   -1.00R
+    T147 Ph106 02.07 09:45 LONG  Entry   59.620   +1.89R
+    T148 Ph107 02.07 18:30 LONG  Entry   60.784   -1.00R
+    T149 Ph109 07.07 07:30 LONG  Entry   60.469   +2.42R
+
+==============================================================================================================
+AGGREGAT (5 TRUE-Phasen, 168h-Fenster in Streak-Richtung)
+==============================================================================================================
+  Streak-Verlust der 5 TRUE-Phasen gesamt: -23.05R
+  Realisierte R der Folgephasen (168h, Streak-Richtung): -1.21R (16 Trades: 4W/12L)
+  Netto-Zyklus (Streak + 168h-Folge): -24.26R
+  WR der Folge-Trades: 25.0%
+
+  Interpretation:
+  - Ist realisierte R deutlich positiv und deckt den Streak-Verlust -> KEIN
+    Ausfuehrungs-Vakuum, sondern Fehlversuch-Kaskade vor dem Turn (der Turn
+    wurde in den Folgephasen gehandelt).
+  - Ist realisierte R klein/negativ -> tatsaechliche Sequenzer-Luecke.

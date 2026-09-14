@@ -1,0 +1,95 @@
+================================================================================
+PRUEFBERICHT S1/S2-EVALUATION SETUP A (COUNTER-ENGINE / PING-PONG)
+Skript: scripts/counter_engine_profil.py | HEAD: 5fd2eae | Datum: 2026-09-03
+Konfig: SILVER M15 | CANDLE_REJECTION | MAX_TOUCH 2 | VA 0.93 | F1+F3 aktiv
+Artefakte: test/stats_counter_{S1,S2}_{befalse,betrue}.txt + Replays in test/
+================================================================================
+
+A) KONSOLIDIERTE ERGEBNISTABELLE (S1+S2 je Arm; AUG = isolierter Checkpoint,
+   NICHT additiv, da AUG Teilmenge von S1)
+--------------------------------------------------------------------------------
+ Kennzahl            AUG bef  AUG betr   S1 bef  S1 betr   S2 bef  S2 betr  S1+S2 bef S1+S2 betr
+ Signale/Trades        8        8        71       71       52       52       123       123
+ Win-Rate %         37.50    37.50     35.20    46.50    51.90    69.20     42.28     56.10
+ Summe R            +0.31    -0.13     +6.59    +6.43   +16.20   +12.82    +22.79    +19.25
+ Profit-Faktor       1.06     0.97      1.17     1.17     1.87     1.80      1.39      1.36
+ Brutto-Gewinn R    +5.31    +4.87    +46.43   +44.43   +34.78   +28.82    +81.21    +73.25
+ Brutto-Verlust R    5.00     5.00     39.84    38.00    18.57    16.00     58.41     54.00
+ TP1-Hit              3        3        33       33       36       36        69        69
+ TP2-Hit              2        1        18       14       25       16        43        30
+ BE-Exit              0        2         0       19        0       20         0        39
+ R/Trade (SummeR/N) +0.039   -0.016    +0.093   +0.091   +0.312   +0.247    +0.185    +0.156
+
+B) F7-URTEIL (Headline-Arm = F6-Default BE=false, praeregistriert)
+-----------------------------------------------------------------
+  Kriterium            Schwelle     Ist (S1+S2 bef)   Erfuellt?
+  PF                   >= 1,5        1,39              NEIN
+  Summe R              >= +50R       +22,79R           NEIN
+  S1 (Summe R > 0)     JA            +6,59R            JA
+  S2 (Summe R > 0)     JA            +16,20R           JA
+  => SETUP A VERFEHLT DIE AKZEPTANZ: PF 1,39 (0,11 unter Schwelle) und
+     Summe R +22,79R (weniger als die Haelfte der +50R-Huerde). Setup A
+     wird NICHT als eigenstaendiges Produktionssystem akzeptiert. Das
+     Experiment bleibt vollstaendig dokumentiert.
+
+C) F2-ENTSCHEIDUNG (Runner vs. BE-Nachzug)
+-------------------------------------------
+  Delta = SummeR(bef) - SummeR(betr) ueber S1+S2 = +22,79 - +19,25 = +3,54R
+  => F2-Hypothese (Runner-Philosophie schlaegt Scheinsicherheit) BESTAETIGT,
+     aber das Delta ist klein: +3,54R / 123 Trades = +0,029R/Trade.
+  Mechanik: BE=true erhoeht die Win-Rate massiv (56,1% vs 42,3%), zahlt
+  aber mit TP2-Hits (30 vs 43, -30% Runner) - die Topf-B-Expansion wird
+  nach TP1 beschnitten. BE=false laesst die Restposition atmen (43 TP2-Hits
+  = 35,0% aller Trades) - derselbe Hebel wie in Setup B (§8.20/8.21).
+  Da BEIDE Arme die F7-Schwelle verfehlen, ist F2 fuer die Systemfrage
+  sekundaer: Der Runner-Hebel existiert, aber die Kanten-Reversion traegt
+  das System nicht ueber die Akzeptanz.
+
+D) GEOMETRISCHE DEKONSTRUKTION (warum verfehlt Setup A die Huerde?)
+--------------------------------------------------------------------
+  D1  Signal-Basis zu schmal: 123 Trades ueber 20 Monate (S1+S2) vs. Setup B
+      411 Trades - die Touch+Rejection+Cooldown-Kaskade (MAX_TOUCH 2,
+      CANDLE_REJECTION, 12-Bar-Cooldown) erzeugt nur ~0,3 Signale/Tag.
+  D2  R/Trade zu niedrig: +0,185R (befalse) = ~26% der Setup-B-Qualitaet
+      (+0,723R/Tr). Um +50R zu erreichen, waeren +0,41R/Tr oder ~270 Trades
+      bei gleichem R/Tr noetig - beides nicht vorhanden.
+  D3  S1-Schwaeche (2026, Trend/Expansion): WR 35,2%, TP1 nur 33/71 (46,5%),
+      SL1 38/71 (53,5%) -> im Expansionsregime laeuft der Markt haeufig
+      DURCH die Kante (Momentum), bevor der POC erreicht wird. Die Mean-
+      Reversion hat im Trend keine Basis.
+  D4  S2-Staerke (2025, Konsolidierung): PF 1,87, WR 51,9%, TP1 36/52
+      (69,2%) -> widerlegt die Mentor-Erwartung "S2 zerreiht die Engine":
+      Der Ping-Pong funktioniert im Range-REgime deutlich besser. Setup A
+      ist ein REGIME-SYSTEM (Range), kein Allwetter-System.
+  D5  AUG-Submengen-Diskrepanz (methodisch wichtig): Die 8 AUG-Signale im
+      S1-Lauf (Segmentierung ab 2026-02-05) ergeben -1,26R (befalse) bzw.
+      -0,26R (betrue) - VOLLSTAENDIG andere Werte als der isolierte AUG-Lauf
+      (+0,31 / -0,13) bei gleicher Signalzahl. Ursache: Die Phasen-
+      Segmentierung haengt an der Vorgeschichte (F7-Antwort, arretiert).
+      Konsequenz: AUG-isoliert ist mit dem S1-Lauf NICHT vergleichbar; die
+      S1/S2-Laeufe sind die einzige Benchmark-Wahrheit. Der isolierte AUG-
+      Lauf war ein reiner Entwicklungs-Checkpoint.
+
+E) SETUP-B-BENCHMARK (eingefroren, phasen_volumen_profil.py v0.4.0)
+---------------------------------------------------------------------
+  Setup B: S1+S2 +297,14R / 411 Trades / PF 2,33 / R-Tr +0,723 (WR 39,7%)
+  Setup A: S1+S2 +22,79R / 123 Trades / PF 1,39 / R-Tr +0,185 (WR 42,3%)
+  => Setup B erzielt das 13-fache R bei 3,3-facher Trade-Zahl und mehr als
+     der doppelten Edge-Qualitaet pro Trade. Die Reclaim-Bestätigung
+     (Fehlausbruch) ist der ueberlegene Mechanismus gegenueber der
+     antizipativen Kanten-Reversion.
+
+F) SCHLUSSFOLGERUNG & EMPFEHLUNG (kein Eingriff ohne Auftrag)
+--------------------------------------------------------------
+  Setup A (Counter/Ping-Pong) verfehlt die praeregistrierten Akzeptanz-
+  kriterien klar. Es wird als eigenstaendiges System NICHT weiterverfolgt.
+  F2-Frage ist beantwortet (Runner > BE, Delta +3,54R), aber systemrelevant
+  ist sie nicht, da beide Arme scheitern.
+  Optionale Folgeuntersuchungen (NUR bei ausdruecklichem Auftrag, keine
+  Heuristik-Flickerei):
+    - Regime-Gatter: Setup A NUR in Range-Phasen (S2-Beleg PF 1,87) als
+      komplementaeres Modul zu Setup B - Synthese-Experiment (F4 war:
+      Synthese erst nach Isolation; die Isolation ist jetzt abgeschlossen).
+    - Direktionalitaets-Analyse S1: Warum laeuft der Markt 2026 so oft
+      durch die Kante? (Makro-Struktur, nicht Code.)
+================================================================================

@@ -1,0 +1,57 @@
+================================================================================
+SESSION-STAND: Setup A Analysephase - Interview-Entscheidungen (arretiert)
+Datum: 2026-09-03  |  Skript: scripts/counter_engine_profil.py  |  HEAD: 61cd472
+================================================================================
+
+KONTEXT
+-------
+Mentor-Urteil zu Setup A (Ping-Pong) mit 3 institutionellen Schwachstellen:
+  (1) Retail-Falle DIRECT_TOUCH       -> blinder Kanten-Fade
+  (2) BE-Trugschluss (§8.20)          -> 92% Alpha aus Topf-B-Runnern bis TP2;
+                                        BE nach TP1 schneidet Oszillations-Runner ab
+  (3) Kausale Zonen-Verschiebung      -> laufende Kante driftet; Zaehler muss
+                                        drift-stabil sein (Bar k verschiebt ihr
+                                        eigenes VAH -> Kante flieht vor eigenem Touch)
+
+ENTSCHEIDUNGEN (F1-F4) - ARRETIERT, KEINE WEITERE AUSWAHLFRAGE
+----------------------------------------------------------------
+F1  Touch bei Kanten-Drift:
+    => A: Touch gegen KANTE DER VOR-BAR evaluieren
+       vz_prev = _laufende_zone(df, p, k-1)
+       Bedingung: hi[k] >= vah_prev  (SHORT)  bzw.  lo[k] <= val_prev (LONG)
+       Einmal beruehrt = verbraucht (monoton, kein Re-Touch auf derselben Kante).
+       Kein Lookahead; laufende Drift ist vom Touch-Test entkoppelt.
+
+F2  BE-Aktivierung nach TP1:
+    => A: Status quo BE erst ab t1+1 (Intrabar-Reihenfolge ohne Ticks unbeweisbar)
+       ZUSAETZLICH A/B-Variante "KEIN BE-NACHZUG" (Baseline-konform, testet den
+       BE-Trugschluss empirisch gegen die Status-quo-Variante).
+       CLI: --be-nachzug true|false  (Default true = Status quo)
+
+F3  Outside-Bar (hi[k]>=vah UND lo[k]<=val auf derselben Bar):
+    => A: BEIDE VERWERFEN
+       if hi[k] >= vah and lo[k] <= val: continue
+       Beseitigt Doppelzaehlung / Hedge-Artefakt (SHORT+LONG-Bloecke feuern
+       aktuell unabhaengig voneinander).
+
+F4  Verhaeltnis zu Setup B (bestehende Sperren/Cooldowns):
+    => A: KOMPLETT AUTARK (eigene Cooldown-Kaskade, keine Sperre durch Setup B)
+       Synthese erst NACH Isolation beider Setups, nie davor.
+
+MENTOR-KONSEQUENZEN (aus F1-F4 abgeleitet)
+------------------------------------------
+  K1  Touch-Tracking wird drift-stabil (F1) -> behebt Schwachstelle (3).
+  K2  BE-Trugschluss wird empirisch getestet (F2-A/B) -> behebt (2).
+  K3  Outside-Bar wird neutralisiert (F3) -> behebt Doppelzaehlung.
+  K4  Setup A bleibt isoliert messbar (F4) -> saubere Attribution.
+
+NAECHSTE SCHRITTE (Exploration, rein statisch - kein Test/Compiler)
+-------------------------------------------------------------------
+  Schritt 1: Statische Auditierung find_counter_signals (Z. 884-1004):
+             Kausalitaet / Typ-Integritaet / Lookahead-Freiheit
+  Schritt 2: Mathematischer Audit _aufloesen_counter (Z. 1007-1103):
+             Intrabar-Reihenfolge TP1/TP2/BE, Puffer, BE ab t1+1
+  Schritt 3: Lese-Replay test/tmp_counter_engine_audit.py
+             (AUG-2026, DuckDB read-only) - nur nach Genehmigung
+  Schritt 4: Pruefbericht + Genehmigung VOR Implementierung
+================================================================================

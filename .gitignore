@@ -60,7 +60,10 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
-test/
+# Testverzeichnis: Inhalte sind grundsaetzlich ignoriert (Projektregel:
+# alle Tests gehoeren nach test/). Ausgenommen sind unten die versionierten
+# Themeninseln.
+test/*
 
 # Translations
 *.mo
@@ -246,5 +249,19 @@ Notebooks/03_Backtest_Lab.py
 data/backtest_ui_state.json
 # docs/Archiv/reclaim_v04_mentor_vorlage.md -> 2026-09-14 nach
 # Archiv/Reclaim/docs/ verschoben und dort bewusst versioniert (Ignore entfaellt).
+
+# ==============================================================================
+# Versionierte Testinseln (2026-09-14)
+# ==============================================================================
+# Das Testverzeichnis ist grundsaetzlich ignoriert (siehe "test/*" oben). Die
+# thematisch geschlossenen Inseln werden als Arbeitsstand dauerhaft
+# nachvollziehbar gemacht. Abgeleitete Grafiken (*.png) bleiben bewusst
+# ausgenommen - sie sind aus den versionierten Skripten reproduzierbar.
+!test/archiv/
+!test/silver_regime/
+!test/setup_c/
+!test/counter_engine/
+!test/_ref_baseline_pre_ema/
+test/**/*.png
 
 

@@ -1,0 +1,80 @@
+================================================================================
+SCHRITT 3 - F2/F6 --be-nachzug CLI-HEBEL + A/B-AUSWERTUNG (AUG 2026)
+Skript: scripts/counter_engine_profil.py | HEAD: 3a854fa + Schritt 3 (uncommitted)
+Datum: 2026-09-03 | Freigabe: erteilt (Mentor, Schritt 3)
+Artefakte: test/stats_counter_AUG_befalse.txt | test/stats_counter_AUG_betrue.txt
+           test/tmp_counter_engine_replay_AUG_{befalse,betrue}.txt
+================================================================================
+
+A) UMGESETZT (F2/F6, arretiert: F6-Default = false)
+----------------------------------------------------
+  A1  Konstante USE_BE: bool = False (Trade-Management-Block, F6-Default =
+      KEIN BE-Nachzug, Runner-Philosophie wie Baseline/Setup B).
+  A2  CLI-Override: --be-nachzug=true|false (Werte true/1/yes -> True;
+      alles andere -> False), print-Bestaetigung "==> USE_BE ...".
+  A3  find_counter_signals: Parameter use_be: bool = USE_BE ergaenzt,
+      reicht an _aufloesen_counter(df, sig, use_be=use_be) durch (beide
+      Aufrufstellen SHORT/LONG).
+  A4  _aufloesen_counter: Parameter use_be: bool = USE_BE; Haelfte-2-Logik
+      umgestellt: if tp1_hit and use_be -> BE-Pfad ab t1+1 (Kontroll-Arm);
+      else -> sl_init bleibt aktiv bis TP2 / SL / ENDE (Default).
+      Kein Lookahead; t_sl0 ist im tp1_hit-Fall stets > t1 (t1 < t_sl0 aus
+      Haelfte-1-Aufloesung) -> SL nach TP1 korrekt moeglich.
+  A5  Konsolen- + Stats-Header drucken die aktive BE-Variante (A/B-Artefakt-
+      Unterscheidung, Protokoll-Pflicht F6).
+  py_compile: OK.
+
+B) A/B-VERGLEICH AUG 2026 (SILVER M15, CANDLE_REJECTION, F1+F3 aktiv)
+---------------------------------------------------------------------
+  Gleiche 8 Signale in beiden Armen (Signal-Erzeugung identisch; nur die
+  Aufloesung von Haelfte 2 nach TP1 differiert):
+
+  Kennzahl              | BE=false (F6-Default) | BE=true (Kontroll-Arm)
+  ----------------------|-----------------------|-----------------------
+  Signale/Trades        | 8                     | 8
+  Summe R               | +0,31                 | -0,13
+  Win-Rate              | 37,5 % (3W/5L)        | 37,5 % (3W/5L)
+  Profit-Faktor         | 1,06 (5,31/5,00)      | 0,97 (4,87/5,00)
+  Avg Win (R)           | +1,77                 | +1,62
+  TP1-Hit               | 3/8                   | 3/8
+  TP2-Hit               | 2/8 (25,0 %)          | 1/8 (12,5 %)
+  SL2 (Haelfte 2)       | 6                     | 5
+  BE-Exit (Haelfte 2)   | 0                     | 2
+  Delta Summe R         | +0,44 zugunsten BE=false (Preis des BE-Nachzugs)
+
+  TRADE-FUER-TRADE-DELTA (nur die 3 TP1-Trades differenzieren):
+  Nr  Trade        | Haelfte-2 BE=false            | Haelfte-2 BE=true
+  ---- ------------|-------------------------------|-------------------------------
+  2   P3 LONG      | TP2 65,147 (+1,89)  -> +1,38R | BE 64,597 (+0,00) -> +0,43R
+                   | Runner erreicht Gegenseite!   | BE schneidet Runner ab (-0,95R)
+  4   P7 SHORT     | SL 67,296 (-1,00)   -> +1,39R | BE 66,995 (+0,00) -> +1,89R
+                   | Dreher zurueck bis voller SL  | BE schuetzt (-0,50R gespart)
+  8   P12 LONG     | TP2 69,296 (+4,59)  -> +2,54R | TP2 69,296 (+4,59) -> +2,54R
+                   | identisch (TP1+TP2 gleiche Bar)
+
+C) EINORDNUNG (kein Urteil, AUG n=8 = Rauschen)
+------------------------------------------------
+  C1  BE-Trugschluss-BELEG (Mentor §8.20): Trade 2 (P3 LONG) ist der
+      Vorzeige-Fall - der Kurs laeuft nach TP1 (POC 64,848) weiter bis TP2
+      (VAH 65,147); der BE-Nachzug stoppt Haelfte 2 bei 0,0R und gibt
+      +0,95R ab. Der Runner-Edge EXISTIERT auch im Ping-Pong.
+  C2  ABER Schutzfunktion real: Trade 4 (P7 SHORT) dreht nach TP1 zurueck
+      bis zum vollen SL (67,296); BE=true spart hier -0,50R. Der BE ist
+      kein reiner Selbstbetrug - er ist eine Versicherung mit Preis.
+  C3  Netto in AUG: Runner-Effekt (+0,95R aus Trade 2) > Versicherungskosten
+      (-0,50R aus Trade 4) -> BE=false gewinnt +0,44R. TP2-Hit verdoppelt
+      (1/8 -> 2/8), Avg Win +1,62 -> +1,77R, PF kippt von 0,97 auf 1,06.
+  C4  Statistische Grenze: n=8, 5 Verlusttrades in beiden Armen identisch.
+      Nur 3 Trades differenzieren. Das Urteil (F2-Hypothese: "KEIN BE-
+      Nachzug > BE-Nachzug") faellt erst im Gesamtlauf AUG+S1+S2 (~400+
+      Signale) mit beiden Armen - dort wird das Delta signifikant testbar.
+  C5  Baseline-Vergleichsanker Setup B (SILVER M15 AUG): +24,97R/27 Tr/PF 2,83
+      - Setup A ist bei 8 Trades im Einzelfenster nicht vergleichbar.
+
+D) NAECHSTER SCHRITT
+---------------------
+  Schritt 4 (Typ-Integritaet & Datenvertraege): CounterConfig um
+  use_be: bool = USE_BE ergaenzen (1:1-Spiegel der Defaults); CounterSignal
+  pruefen; CLI-Liste + Stats-Header konsolidieren. Danach Gesamtlauf
+  (AUG+S1+S2, beide BE-Arme) fuer die F2-Entscheidung.
+================================================================================

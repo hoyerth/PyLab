@@ -1,0 +1,69 @@
+================================================================================
+SCHRITT 4 - PRUEFBERICHT SETUP A (COUNTER-ENGINE) - EXPLORATION ABGESCHLOSSEN
+Skript: scripts/counter_engine_profil.py | HEAD: 61cd472 | Datum: 2026-09-03
+Belege: test/tmp_counter_engine_entscheidungen.txt
+        test/tmp_counter_engine_audit_schritt1.txt
+        test/tmp_counter_engine_audit_schritt2.txt
+        test/tmp_counter_engine_replay_AUG.txt  (Replay-Output, UTF-16)
+        test/stats_counter_AUG.txt             (Trade-Log des Replays)
+================================================================================
+
+1) STATUS-QUO-REFERENZ (Lese-Replay AUG 2026, SILVER M15, Engine UNVERAENDERT)
+-----------------------------------------------------------------------------
+  Counter-Signale: 9 (5 SHORT / 4 LONG) | Phasen 12 (5 handelbar)
+  Summe R: +4,69  | Win-Rate 66,7 % (6W/3L/0N) | PF 2,56 (grossW +7,69 / 3,00)
+  TP1-Hit 6/9 | TP2-Hit 1/9 | SL 3 | BE-Exit 5/9
+  => Empirischer Fingerabdruck des BE-Trugschlusses (F2): Nach 6 TP1-Hits
+     wurden 5 Haelfte-2 bei Break-even gestoppt, nur 1 erreichte TP2.
+  Vergleich Setup B (Baseline SILVER M15 AUG): +24,97R / 27 Tr / PF 2,83.
+
+2) AUDIT-ERGEBNISSE (Zusammenfassung)
+--------------------------------------
+  SCHRITT 1 (find_counter_signals, Z. 884-1004): lookahead-frei (Zone kausal
+    als Praefix i_start..k; Entry open k+1; finale Phasen-Huelle nie gelesen),
+    typ-sauber. Aber:
+    - F1: Touch laeuft gegen eine Kante, die Bar k selbst mitverschoben hat
+      (Z. 928-936) -> Mentor-Kritik (3) bestaetigt, Entscheid F1=A offen.
+    - F3: Outside-Bar feuert SHORT UND LONG unabhaengig (Z. 944-1000) ->
+      Hedge-Artefakt + Doppelzaehlung, Entscheid F3=A offen.
+    - Fehlbefunde (Info, kein Eingriff ohne Auftrag): min_zone_candles liegt
+      VOR der Touch-Zaehlung (Absorptionsfilter am Phasenanfang blind);
+      tote Bedingung k+1<=p.i_ende; kein Gap-Filter bei DIRECT_TOUCH; kein
+      p.handelbar-Gate; O(n^2) Zonen-Neuberechnung.
+  SCHRITT 2 (_aufloesen_counter, Z. 1007-1110): mathematisch konsistent,
+    lookahead-frei, exakt F2=A (BE ab t1+1, konservative Gleichzeit-
+    Aufloesung). Haelfte 2 ist nach TP1 strukturell NIE negativ. Offen:
+    A/B-Hebel "KEIN BE-Nachzug" fehlt (Parametrisierung noetig, da nur
+    Modul-Globale gelesen werden).
+
+3) IMPLEMENTIERUNGSVORSCHLAG (NUR nach Genehmigung - arretierte F1-F4)
+----------------------------------------------------------------------
+  P1  F1 (Kanten-Drift): Touch-Test gegen Kante der VOR-Bar. EINE Zonen-
+      Referenz vz_ref = _laufende_zone(df, p, k-1) fuer Touch UND Geometrie
+      (POC/TP1/TP2/entry>poc) -> Zaehler und TP-Level gehoeren zu einem
+      stabilen Snapshot VOR Bar k; Bar k kann ihre eigene Kante nicht mehr
+      verschieben. (Empfehlung aus Schritt-1-Befund B2.)
+  P2  F3 (Outside-Bar): vor den beiden Signal-Bloecken
+      if hi[k] >= vah_ref and lo[k] <= val_ref: continue  -> kein Hedge,
+      keine Doppelzaehlung, Zaehler werden NICHT inkrementiert.
+  P3  F2 (A/B-Variante): _aufloesen_counter parametrisieren
+      (be_nachzug: bool = True) + CLI/Config --be-nachzug true|false.
+      be_nachzug=False: Haelfte 2 behaelt sl_init nach TP1 (kein BE-Stop,
+      laeuft bis TP2/SL/ENDE) -> empirischer Test des BE-Trugschlusses
+      gegen den Status quo (Default true).
+  P4  F4 (Autarkie): bereits gegeben (kein Setup-B-State-Zugriff); nur
+      dokumentieren, keine Code-Aenderung.
+  VORBEMERKUNGEN (bewusst NICHT in P1-P4, nur wenn vom Nutzer beauftragt):
+    - V1: min_zone_candles nach der Touch-Zaehlung (Absorptionszaehler ab
+      Phasenstart) - korrigiert die Blindheit am Phasenanfang.
+    - V2: Gap-Filter (Entry-Open jenseits der Kante verwerfen) fuer
+      DIRECT_TOUCH/CANDLE_REJECTION.
+    - V3: p.handelbar-Gate fuer den Counter-Scan.
+    - V4: Rolling-Zone-Optimierung (O(n^2) -> O(n)).
+
+4) GENEHMIGUNGSPUNKT
+---------------------
+  Die Exploration (Schritt 1-4) ist abgeschlossen. Die Implementierung von
+  P1-P3 erfolgt ERST nach ausdruecklicher Genehmigung. V1-V4 bleiben
+  unangetastet, bis sie separat beauftragt werden.
+================================================================================

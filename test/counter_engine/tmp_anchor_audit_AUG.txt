@@ -1,0 +1,77 @@
+exec-Import OK | AUG-Bars 1288 | Phasen 12 | Signale 27
+
+Erweitertes Fenster (Vorlauf ab 01.07): 3848 Bars | 2026-07-01 00:00:00 .. 2026-08-27 22:45:00
+Pivots im erweiterten Fenster: 1052 (H 532, L 520)
+
+======================================================================================================================================================
+ANCHOR-AUDIT je Trade (Kante vs. Vorphasen-Pivots der Seite, ts < Phasenstart)
+======================================================================================================================================================
+ # Ph Sig-Zeit         Dir      Entry      R |   Kante Pstart           | nVor  bDist bRatio bPivotBar        | n015 s15 s20 |  A15  A20 AN15 AN20
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ 1  1 10.08 02:00 SHORT   63.966  +1.29 |  63.971 10.08 00:00 |  353  0.077   1.26      07.08 08:45 |   1   0   0 | False False False False
+ 2  1 10.08 03:30 LONG    63.252  +1.69 |  63.019 10.08 00:00 |  347  0.021   0.75      07.08 19:00 |   2   0   0 | False False False False
+ 3  1 10.08 08:45 SHORT   64.163  -0.29 |  64.177 10.08 00:00 |  353  0.163   1.63      07.08 15:45 |   0   0   0 | False False False False
+ 4  2 10.08 18:00 SHORT   65.098  -1.00 |  65.134 10.08 16:30 |  365  0.017   2.39      07.08 14:30 |   1   1   1 | True True True True
+ 5  2 10.08 21:45 SHORT   65.722  -1.00 |  66.019 10.08 16:30 |  365  0.902   2.39      07.08 14:30 |   0   0   0 | False False False False
+ 6  2 11.08 04:00 SHORT   66.294  +4.59 |  66.291 10.08 16:30 |  365  1.174   2.39      07.08 14:30 |   0   0   0 | False False False False
+ 7  3 11.08 07:30 LONG    64.702  -1.00 |  64.470 11.08 07:15 |  364  0.045   1.07      10.08 17:15 |   1   0   0 | False False False False
+ 8  3 11.08 12:15 SHORT   64.968  -1.00 |  65.029 11.08 07:15 |  374  0.088   2.39      07.08 14:30 |   1   1   1 | True True True True
+ 9  5 14.08 08:45 SHORT   64.244  -1.00 |  64.309 14.08 03:00 |  407  0.003   1.07      10.08 07:45 |   7   1   0 | True False False False
+10  5 14.08 11:45 SHORT   64.750  -1.00 |  64.790 14.08 03:00 |  407  0.001   0.96      13.08 09:45 |   8   1   0 | True False False False
+11  5 14.08 14:45 SHORT   64.910  -1.00 |  65.038 14.08 03:00 |  407  0.014   0.69      13.08 12:45 |   8   2   2 | True True False False
+12  5 17.08 03:45 SHORT   65.671  -1.00 |  65.752 14.08 03:00 |  407  0.019   1.32      12.08 05:00 |   4   0   0 | False False False False
+13  5 17.08 07:30 SHORT   65.769  -1.00 |  65.798 14.08 03:00 |  407  0.049   0.38      10.08 22:30 |   4   0   0 | False False False False
+14  5 17.08 18:45 SHORT   66.248  +6.71 |  66.284 14.08 03:00 |  407  0.004   2.40      13.08 02:30 |   4   2   1 | True True True True
+15  5 18.08 02:15 SHORT   66.268  +6.60 |  66.284 14.08 03:00 |  407  0.004   2.40      13.08 02:30 |   4   2   1 | True True True True
+16  6 18.08 22:00 LONG    63.500  -1.00 |  63.478 18.08 17:00 |  435  0.007   1.43      14.08 07:30 |   5   2   0 | True False False False
+17  6 19.08 02:00 LONG    63.011  -1.00 |  62.855 18.08 17:00 |  435  0.112   1.91      10.08 03:30 |   1   1   0 | True False True False
+18  7 19.08 21:45 SHORT   66.316  -1.00 |  66.341 19.08 17:45 |  449  0.011   1.26      12.08 16:15 |   7   4   3 | True True False False
+19  7 20.08 02:15 SHORT   66.995  +4.26 |  67.258 19.08 17:45 |  449  0.482   1.62      12.08 11:15 |   0   0   0 | False False False False
+20  9 21.08 13:30 SHORT   69.832  +3.06 |  69.868 21.08 05:00 |  468  0.862   1.33      21.08 04:45 |   0   0   0 | False False False False
+21  9 21.08 18:45 SHORT   69.897  +2.67 |  69.890 21.08 05:00 |  468  0.884   1.33      21.08 04:45 |   0   0   0 | False False False False
+22  9 24.08 02:15 LONG    68.974  -0.36 |  68.791 21.08 05:00 |  464  0.754   0.40      21.08 00:00 |   0   0   0 | False False False False
+23  9 24.08 15:00 SHORT   69.491  +2.10 |  69.786 21.08 05:00 |  468  0.780   1.33      21.08 04:45 |   0   0   0 | False False False False
+24  9 24.08 20:15 LONG    68.614  +2.96 |  68.602 21.08 05:00 |  464  0.565   0.40      21.08 00:00 |   0   0   0 | False False False False
+25 12 26.08 17:00 LONG    67.589  +1.83 |  67.510 26.08 16:45 |  507  0.025   1.65      25.08 04:45 |   3   2   0 | True False True False
+26 12 27.08 03:15 SHORT   69.041  -1.00 |  69.126 26.08 16:45 |  515  0.005   0.48      25.08 00:00 |  10   0   0 | False False False False
+27 12 27.08 17:45 SHORT   69.430  +0.86 |  69.435 26.08 16:45 |  515  0.010   0.90      24.08 00:00 |   8   2   1 | True True False False
+
+==========================================================================================
+BILANZ: Anker-Bedingung (anchored = >=1 Vorphasen-Pivot im +-0.15-Fenster mit Spike)
+==========================================================================================
+
+--- Schwelle 1.5x (irgendein Pivot im Fenster) ---
+15 VERLIERER: ohne Anker (waeren geblockt, korrekt?) = 7 | mit Anker (nicht erkannt) = 8
+  ohne Anker: T3(P1,-0.29R), T5(P2,-1.00R), T7(P3,-1.00R), T12(P5,-1.00R), T13(P5,-1.00R), T22(P9,-0.36R), T26(P12,-1.00R)
+  mit Anker : T4(P2,-1.00R), T8(P3,-1.00R), T9(P5,-1.00R), T10(P5,-1.00R), T11(P5,-1.00R), T16(P6,-1.00R), T17(P6,-1.00R), T18(P7,-1.00R)
+12 GEWINNER: mit Anker (bleiben unangetastet) = 4 | ohne Anker (waeren faelschlich geblockt) = 8
+  ohne Anker: T1(P1,+1.29R), T2(P1,+1.69R), T6(P2,+4.59R), T19(P7,+4.26R), T20(P9,+3.06R), T21(P9,+2.67R), T23(P9,+2.10R), T24(P9,+2.96R)
+  mit Anker : T14(P5,+6.71R), T15(P5,+6.60R), T25(P12,+1.83R), T27(P12,+0.86R)
+  Netto-Wirkung Blocken: verhinderte Verluste +5.64R | verlorene Gewinne -22.62R | Netto -16.98R
+
+--- Schwelle 2.0x (irgendein Pivot im Fenster) ---
+15 VERLIERER: ohne Anker (waeren geblockt, korrekt?) = 11 | mit Anker (nicht erkannt) = 4
+  ohne Anker: T3(P1,-0.29R), T5(P2,-1.00R), T7(P3,-1.00R), T9(P5,-1.00R), T10(P5,-1.00R), T12(P5,-1.00R), T13(P5,-1.00R), T16(P6,-1.00R), T17(P6,-1.00R), T22(P9,-0.36R), T26(P12,-1.00R)
+  mit Anker : T4(P2,-1.00R), T8(P3,-1.00R), T11(P5,-1.00R), T18(P7,-1.00R)
+12 GEWINNER: mit Anker (bleiben unangetastet) = 3 | ohne Anker (waeren faelschlich geblockt) = 9
+  ohne Anker: T1(P1,+1.29R), T2(P1,+1.69R), T6(P2,+4.59R), T19(P7,+4.26R), T20(P9,+3.06R), T21(P9,+2.67R), T23(P9,+2.10R), T24(P9,+2.96R), T25(P12,+1.83R)
+  mit Anker : T14(P5,+6.71R), T15(P5,+6.60R), T27(P12,+0.86R)
+  Netto-Wirkung Blocken: verhinderte Verluste +9.64R | verlorene Gewinne -24.45R | Netto -14.81R
+
+--- Schwelle 1.5x (NAECHSTER Pivot) ---
+15 VERLIERER: ohne Anker (waeren geblockt, korrekt?) = 12 | mit Anker (nicht erkannt) = 3
+  ohne Anker: T3(P1,-0.29R), T5(P2,-1.00R), T7(P3,-1.00R), T9(P5,-1.00R), T10(P5,-1.00R), T11(P5,-1.00R), T12(P5,-1.00R), T13(P5,-1.00R), T16(P6,-1.00R), T18(P7,-1.00R), T22(P9,-0.36R), T26(P12,-1.00R)
+  mit Anker : T4(P2,-1.00R), T8(P3,-1.00R), T17(P6,-1.00R)
+12 GEWINNER: mit Anker (bleiben unangetastet) = 3 | ohne Anker (waeren faelschlich geblockt) = 9
+  ohne Anker: T1(P1,+1.29R), T2(P1,+1.69R), T6(P2,+4.59R), T19(P7,+4.26R), T20(P9,+3.06R), T21(P9,+2.67R), T23(P9,+2.10R), T24(P9,+2.96R), T27(P12,+0.86R)
+  mit Anker : T14(P5,+6.71R), T15(P5,+6.60R), T25(P12,+1.83R)
+  Netto-Wirkung Blocken: verhinderte Verluste +10.64R | verlorene Gewinne -23.48R | Netto -12.84R
+
+--- Schwelle 2.0x (NAECHSTER Pivot) ---
+15 VERLIERER: ohne Anker (waeren geblockt, korrekt?) = 13 | mit Anker (nicht erkannt) = 2
+  ohne Anker: T3(P1,-0.29R), T5(P2,-1.00R), T7(P3,-1.00R), T9(P5,-1.00R), T10(P5,-1.00R), T11(P5,-1.00R), T12(P5,-1.00R), T13(P5,-1.00R), T16(P6,-1.00R), T17(P6,-1.00R), T18(P7,-1.00R), T22(P9,-0.36R), T26(P12,-1.00R)
+  mit Anker : T4(P2,-1.00R), T8(P3,-1.00R)
+12 GEWINNER: mit Anker (bleiben unangetastet) = 2 | ohne Anker (waeren faelschlich geblockt) = 10
+  ohne Anker: T1(P1,+1.29R), T2(P1,+1.69R), T6(P2,+4.59R), T19(P7,+4.26R), T20(P9,+3.06R), T21(P9,+2.67R), T23(P9,+2.10R), T24(P9,+2.96R), T25(P12,+1.83R), T27(P12,+0.86R)
+  mit Anker : T14(P5,+6.71R), T15(P5,+6.60R)
+  Netto-Wirkung Blocken: verhinderte Verluste +11.64R | verlorene Gewinne -25.31R | Netto -13.67R

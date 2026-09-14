@@ -1,0 +1,130 @@
+============================================================================================================
+SIMULATION: VARIANTE 1: A = 8-Bar-Preis-Proxi in Signalrichtung (alle 411 Trades)
+============================================================================================================
+S1       n=201 | blockiert  47 (WR 36.2%) | spart  +25.96R | killt  +55.14R | NETTO  -29.18R
+S2       n=210 | blockiert  53 (WR 35.8%) | spart  +33.17R | killt  +64.37R | NETTO  -31.20R
+GESAMT   n=411 | blockiert 100 (WR 36.0%) | spart  +59.13R | killt +119.51R | NETTO  -60.38R
+
+  Gekillte Gewinner (R>0, fälschlich blockiert):
+    T171  S2 14.10 LONG  R  +8.37 (A+B)
+    T69   S2 25.03 LONG  R  +7.03 (A+B)
+    T98   S2 30.06 LONG  R  +6.94 (A+B)
+    T188  S1 17.08 SHORT R  +6.71 (A+B)  <== TOP-WINNER
+    T189  S1 18.08 SHORT R  +6.60 (A+B)  <== TOP-WINNER
+    T35   S1 10.03 SHORT R  +5.94 (A+B)  <== TOP-WINNER
+    T84   S1 05.05 LONG  R  +5.06 (A+B)  <== TOP-WINNER
+    T15   S2 14.01 LONG  R  +5.06 (A+B)
+    T182  S1 11.08 LONG  R  +4.47 (A+B)
+    T201  S2 13.11 SHORT R  +4.08 (A+B)
+    T124  S2 14.08 SHORT R  +3.94 (A+B)
+    T119  S2 12.08 LONG  R  +3.84 (A+B)
+    T185  S2 30.10 LONG  R  +3.80 (A+B)
+    T9    S1 18.02 LONG  R  +3.76 (A+B)
+    T36   S2 06.02 LONG  R  +3.25 (A+B)
+    T20   S1 26.02 LONG  R  +3.06 (A+B)
+    T77   S1 29.04 SHORT R  +2.94 (A+B)
+    T39   S1 18.03 SHORT R  +2.89 (A+B)
+    T88   S2 05.06 LONG  R  +2.78 (A+B)
+    T96   S1 15.05 SHORT R  +2.66 (A+B)
+    T150  S2 25.09 LONG  R  +2.57 (A+B)
+    T33   S2 05.02 SHORT R  +2.54 (A+B)
+    T197  S1 24.08 SHORT R  +2.10 (A+B)  <== TOP-WINNER
+    T165  S1 24.07 LONG  R  +2.05 (A+B)
+    T174  S2 17.10 LONG  R  +1.97 (A+B)
+    T89   S2 17.06 SHORT R  +1.66 (A+B)
+    T136  S1 25.06 LONG  R  +1.62 (A+B)
+    T139  S2 12.09 LONG  R  +1.57 (A+B)
+    T37   S1 17.03 LONG  R  +1.51 (A+B)
+    T186  S2 31.10 SHORT R  +1.49 (A+B)
+    T205  S2 18.11 LONG  R  +1.49 (A+B)
+    T104  S1 22.05 LONG  R  +1.47 (A+B)
+    T130  S2 01.09 SHORT R  +1.45 (A+B)
+    T175  S1 05.08 SHORT R  +1.21 (A+B)
+    T113  S1 29.05 SHORT R  +1.09 (A+B)
+    T18   S2 17.01 SHORT R  +0.54 (A+B)
+
+  Status Spitzen-Winner (durch Signatur blockiert?):
+    T35   S1 R  +5.94 | toxisch=JA  (A=ja, B=ja, barsExt=7, proxy=+0.40%)
+    T35   S2 R  -1.00 | toxisch=nein (A=nein, B=ja, barsExt=11, proxy=+0.36%)
+    T54   S1 R  -1.00 | toxisch=nein (A=nein, B=ja, barsExt=8, proxy=+0.40%)
+    T54   S2 R +14.05 | toxisch=nein (A=nein, B=ja, barsExt=24, proxy=+0.10%)
+    T59   S1 R +10.69 | toxisch=nein (A=ja, B=nein, barsExt=0, proxy=-3.69%)
+    T59   S2 R  -0.41 | toxisch=nein (A=nein, B=ja, barsExt=15, proxy=+0.42%)
+    T84   S1 R  +5.06 | toxisch=JA  (A=ja, B=ja, barsExt=19, proxy=-0.17%)
+    T84   S2 R  -1.00 | toxisch=nein (A=ja, B=nein, barsExt=3, proxy=+0.39%)
+    T154  S1 R  +7.82 | toxisch=nein (A=ja, B=nein, barsExt=0, proxy=+0.44%)
+    T154  S2 R  -1.00 | toxisch=nein (A=nein, B=ja, barsExt=31, proxy=+0.54%)
+    T188  S1 R  +6.71 | toxisch=JA  (A=ja, B=ja, barsExt=5, proxy=+0.40%)
+    T188  S2 R  -1.00 | toxisch=nein (A=ja, B=nein, barsExt=1, proxy=-0.72%)
+    T189  S1 R  +6.60 | toxisch=JA  (A=ja, B=ja, barsExt=31, proxy=+0.05%)
+    T189  S2 R  -1.00 | toxisch=nein (A=nein, B=ja, barsExt=13, proxy=+0.32%)
+    T197  S1 R  +2.10 | toxisch=JA  (A=ja, B=ja, barsExt=5, proxy=+0.73%)
+    T197  S2 R  +8.63 | toxisch=nein (A=ja, B=nein, barsExt=3, proxy=-0.37%)
+
+============================================================================================================
+SIMULATION: VARIANTE 2 (Robustheit): A = geloggte Engine-Kanten-Drift, Trade-Paar (nur Trades mit Vorgaenger)
+============================================================================================================
+S1       n=201 | blockiert  36 (WR 38.9%) | spart  +19.28R | killt  +51.74R | NETTO  -32.46R
+S2       n=210 | blockiert  51 (WR 29.4%) | spart  +34.58R | killt  +64.08R | NETTO  -29.50R
+GESAMT   n=411 | blockiert  87 (WR 33.3%) | spart  +53.86R | killt +115.82R | NETTO  -61.96R
+
+  Gekillte Gewinner (R>0, fälschlich blockiert):
+    T54   S2 28.02 LONG  R +14.05 (A+B)  <== TOP-WINNER
+    T171  S2 14.10 LONG  R  +8.37 (A+B)
+    T65   S2 21.03 LONG  R  +7.15 (A+B)
+    T98   S2 30.06 LONG  R  +6.94 (A+B)
+    T188  S1 17.08 SHORT R  +6.71 (A+B)  <== TOP-WINNER
+    T35   S1 10.03 SHORT R  +5.94 (A+B)  <== TOP-WINNER
+    T2    S1 09.02 SHORT R  +5.29 (A+B)
+    T84   S1 05.05 LONG  R  +5.06 (A+B)  <== TOP-WINNER
+    T15   S2 14.01 LONG  R  +5.06 (A+B)
+    T182  S1 11.08 LONG  R  +4.47 (A+B)
+    T124  S2 14.08 SHORT R  +3.94 (A+B)
+    T13   S1 19.02 LONG  R  +3.85 (A+B)
+    T119  S2 12.08 LONG  R  +3.84 (A+B)
+    T136  S2 04.09 LONG  R  +3.49 (A+B)
+    T15   S1 19.02 LONG  R  +3.47 (A+B)
+    T36   S2 06.02 LONG  R  +3.25 (A+B)
+    T77   S1 29.04 SHORT R  +2.94 (A+B)
+    T58   S2 18.03 SHORT R  +2.94 (A+B)
+    T40   S1 18.03 SHORT R  +2.86 (A+B)
+    T75   S1 28.04 LONG  R  +2.73 (A+B)
+    T195  S1 21.08 SHORT R  +2.67 (A+B)
+    T96   S1 15.05 SHORT R  +2.66 (A+B)
+    T33   S2 05.02 SHORT R  +2.54 (A+B)
+    T136  S1 25.06 LONG  R  +1.62 (A+B)
+    T104  S1 22.05 LONG  R  +1.47 (A+B)
+    T145  S2 23.09 LONG  R  +1.21 (A+B)
+    T18   S2 17.01 SHORT R  +0.54 (A+B)
+    T17   S2 17.01 SHORT R  +0.49 (A+B)
+    T22   S2 22.01 SHORT R  +0.27 (A+B)
+
+  Status Spitzen-Winner (durch Signatur blockiert?):
+    T35   S1 R  +5.94 | toxisch=JA  (A=ja, B=ja, barsExt=7, proxy=+0.40%)
+    T35   S2 R  -1.00 | toxisch=JA  (A=ja, B=ja, barsExt=11, proxy=+0.36%)
+    T54   S1 R  -1.00 | toxisch=nein (A=nein, B=ja, barsExt=8, proxy=+0.40%)
+    T54   S2 R +14.05 | toxisch=JA  (A=ja, B=ja, barsExt=24, proxy=+0.10%)
+    T59   S1 R +10.69 | toxisch=nein (A=ja, B=nein, barsExt=0, proxy=-3.69%)
+    T59   S2 R  -0.41 | toxisch=JA  (A=ja, B=ja, barsExt=15, proxy=+0.42%)
+    T84   S1 R  +5.06 | toxisch=JA  (A=ja, B=ja, barsExt=19, proxy=-0.17%)
+    T84   S2 R  -1.00 | toxisch=nein (A=ja, B=nein, barsExt=3, proxy=+0.39%)
+    T154  S1 R  +7.82 | toxisch=nein (A=ja, B=nein, barsExt=0, proxy=+0.44%)
+    T154  S2 R  -1.00 | toxisch=nein (A=nein, B=ja, barsExt=31, proxy=+0.54%)
+    T188  S1 R  +6.71 | toxisch=JA  (A=ja, B=ja, barsExt=5, proxy=+0.40%)
+    T188  S2 R  -1.00 | toxisch=nein (A=nein, B=nein, barsExt=1, proxy=-0.72%)
+    T189  S1 R  +6.60 | toxisch=nein (A=nein, B=ja, barsExt=31, proxy=+0.05%)
+    T189  S2 R  -1.00 | toxisch=JA  (A=ja, B=ja, barsExt=13, proxy=+0.32%)
+    T197  S1 R  +2.10 | toxisch=nein (A=nein, B=ja, barsExt=5, proxy=+0.73%)
+    T197  S2 R  +8.63 | toxisch=nein (A=ja, B=nein, barsExt=3, proxy=-0.37%)
+
+============================================================================================================
+EINZELBEDINGUNGEN (Proxi, zur Zerlegung der Signatur)
+============================================================================================================
+A allein (Treibsand)         S1       n=139 (WR 46.0%) | spart  +66.47 | killt +212.48 | NETTO -146.01
+A allein (Treibsand)         S2       n=169 (WR 34.9%) | spart +100.48 | killt +179.57 | NETTO  -79.09
+A allein (Treibsand)         GESAMT   n=308 (WR 39.9%) | spart +166.95 | killt +392.05 | NETTO -225.10
+
+B allein (barsExt>=5)        S1       n=109 (WR 38.5%) | spart  +57.54 | killt +137.97 | NETTO  -80.43
+B allein (barsExt>=5)        S2       n= 94 (WR 36.2%) | spart  +57.93 | killt +109.94 | NETTO  -52.01
+B allein (barsExt>=5)        GESAMT   n=203 (WR 37.4%) | spart +115.47 | killt +247.91 | NETTO -132.44
+

@@ -1,0 +1,68 @@
+====================================================================================================
+REGIME_FILTER AUG-LOGIKTEST (test/tmp_test_regime.py, Stufe 5)
+Fenster AUG: 2026-08-10 .. 2026-08-28 (Ende-exklusiv)
+DuckDB (read_only): F:\Python\PyLab\data\market_data.duckdb
+Segmente gesamt: 12 | echte Bruch-Phasen: 11
+  [ OK ] K1: Pipeline fehlerfrei (load/segment/indikatoren/metriken/klassif)
+
+K2/K3 (Anzahl + NaN-Doktrin):
+  [ OK ] K2: len(states)==n_F3==11
+  [ OK ] K3: NaN-Doktrin konsistent (0/11 States im UNKLAR-Pfad)
+
+K4 (Truncation-Kausalitaets-Assert je Phase):
+  [ OK ] K4 Phase  1 brk=  66: Indikatoren kausal
+  [ OK ] K4 Phase  1: Metriken identisch (spread=0.71450, dichte=0.34783, quote=0.66667)
+  [ OK ] K4 Phase  2 brk= 121: Indikatoren kausal
+  [ OK ] K4 Phase  2: Metriken identisch (spread=0.28050, dichte=0.41304, quote=0.78571)
+  [ OK ] K4 Phase  3 brk= 218: Indikatoren kausal
+  [ OK ] K4 Phase  3: Metriken identisch (spread=0.86067, dichte=0.32609, quote=0.92857)
+  [ OK ] K4 Phase  4 brk= 380: Indikatoren kausal
+  [ OK ] K4 Phase  4: Metriken identisch (spread=2.32450, dichte=0.23913, quote=0.83333)
+  [ OK ] K4 Phase  5 brk= 620: Indikatoren kausal
+  [ OK ] K4 Phase  5: Metriken identisch (spread=2.26950, dichte=0.04348, quote=0.50000)
+  [ OK ] K4 Phase  6 brk= 715: Indikatoren kausal
+  [ OK ] K4 Phase  6: Metriken identisch (spread=2.84100, dichte=0.32609, quote=0.85714)
+  [ OK ] K4 Phase  7 brk= 802: Indikatoren kausal
+  [ OK ] K4 Phase  7: Metriken identisch (spread=1.59000, dichte=0.17391, quote=0.80000)
+  [ OK ] K4 Phase  8 brk= 848: Indikatoren kausal
+  [ OK ] K4 Phase  8: Metriken identisch (spread=0.37900, dichte=0.28261, quote=0.76923)
+  [ OK ] K4 Phase  9 brk=1030: Indikatoren kausal
+  [ OK ] K4 Phase  9: Metriken identisch (spread=1.51600, dichte=0.30435, quote=0.75000)
+  [ OK ] K4 Phase 10 brk=1082: Indikatoren kausal
+  [ OK ] K4 Phase 10: Metriken identisch (spread=0.66100, dichte=0.17391, quote=0.88889)
+  [ OK ] K4 Phase 11 brk=1171: Indikatoren kausal
+  [ OK ] K4 Phase 11: Metriken identisch (spread=0.82590, dichte=0.76087, quote=0.92308)
+
+GATE-DETERMINISMUS (§2.16-D):
+  [ OK ] Gate synthetisch/TREND: TREND -> (True,True,96)
+  [ OK ] Gate synthetisch/SHAKEOUT: SHAKEOUT -> (False,False,48)
+  [ OK ] Gate synthetisch/UNKLAR: UNKLAR -> (False,False,48)
+  [ OK ] Gate real/Phase1: UNKLAR -> (False,False,48)
+  [ OK ] Gate real/Phase2: UNKLAR -> (False,False,48)
+  [ OK ] Gate real/Phase3: UNKLAR -> (False,False,48)
+  [ OK ] Gate real/Phase4: UNKLAR -> (False,False,48)
+  [ OK ] Gate real/Phase5: UNKLAR -> (False,False,48)
+  [ OK ] Gate real/Phase6: TREND -> (True,True,96)
+  [ OK ] Gate real/Phase7: TREND -> (True,True,96)
+  [ OK ] Gate real/Phase8: TREND -> (True,True,96)
+  [ OK ] Gate real/Phase9: TREND -> (True,True,96)
+  [ OK ] Gate real/Phase10: TREND -> (True,True,96)
+  [ OK ] Gate real/Phase11: TREND -> (True,True,96)
+
+METRIK-VEKTOREN (Roh, vor Klassifikation):
+  #Ph  brk   spread$   sp/atr  dichte  quote konsB   emaSlp    adx  regime
+    1   66   0.71450  2.62271 0.34783 0.66667    66  0.06549 21.40951  UNKLAR
+    2  121   0.28050  1.20534 0.41304 0.78571    55 -0.15682 26.76234  UNKLAR
+    3  218   0.86067  4.28040 0.32609 0.92857    97  0.07720 22.75675  UNKLAR
+    4  380   2.32450 11.53189 0.23913 0.83333   162 -0.12875 34.92126  UNKLAR
+    5  620   2.26950  5.93888 0.04348 0.50000   240 -0.15942 38.29538  UNKLAR
+    6  715   2.84100  6.56337 0.32609 0.85714    95  0.21882 61.44630  TREND
+    7  802   1.59000  4.29813 0.17391 0.80000    87  0.18480 22.83063  TREND
+    8  848   0.37900  1.42367 0.28261 0.76923    46  0.14547 24.06275  TREND
+    9 1030   1.51600  3.78055 0.30435 0.75000   182 -0.17350 31.22870  TREND
+   10 1082   0.66100  1.91555 0.17391 0.88889    52  0.10683 14.90577  TREND
+   11 1171   0.82590  2.57864 0.76087 0.92308    89 -0.07662 18.24407  TREND
+
+====================================================================================================
+GESAMTURTEIL: ALLE PRUEFUNGEN BESTANDEN ([ OK ], 0 Fehler)
+====================================================================================================

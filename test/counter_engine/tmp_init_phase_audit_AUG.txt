@@ -1,0 +1,216 @@
+======================================================================================================================
+AUG-INITIALISIERUNGSAUDIT | exec-Import (Cut nach Baseline-Signal-Loop)
+======================================================================================================================
+df 1288 Bars | Phasen 12 | Signale 27 | Mapping bitgenau 27/27 | Pivots gesamt 344 (H 178/L 166)
+
+ # Ph Zeit         Dir        R   Rc Alter  Ant% |     cl0     clk   Net%   Kante     Ext | mRetrC mRetrX PB15@ PB30@ #15 | hP lP       letzterPiv  Kls
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+ 1  1 10.08 02:00 SHORT  +1.29   9  14.1 |  63.697  63.963  +0.42  63.971  64.009 |  0.406  0.555     1     7   5 |  1  0        B5H63.906 PB30
+ 2  1 10.08 03:30 LONG   +1.69  15  23.4 |  63.697  63.256  -0.69  63.019  62.967 |  0.720  0.770     0     0  12 |  3  1       B12H63.670 PB30
+ 3  1 10.08 08:45 SHORT  -0.29  36  56.2 |  63.697  64.247  +0.86  64.177  64.312 |  1.012  1.046     1     7  28 |  6  4       B31H64.312 PB30
+ 4  2 10.08 18:00 SHORT  -1.00   7  14.3 |  64.693  65.097  +0.62  65.134  65.256 |  0.310  0.555    68    69   3 |  1  1       B69L64.515 PB30
+ 5  2 10.08 21:45 SHORT  -1.00  22  44.9 |  64.693  65.720  +1.59  66.019  66.046 |  0.418  0.636    68    69  12 |  4  3       B85H66.046 PB30
+ 6  2 11.08 04:00 SHORT  +4.59  43  87.8 |  64.693  66.286  +2.46  66.291  66.459 |  0.447  0.823    68    69  30 |  7  6      B104L65.400 PB30
+ 7  3 11.08 07:30 LONG   -1.00   2   3.5 |  65.038  64.704  -0.51  64.470  64.455 |  0.249  0.588  None  None   0 |  0  0                - INIT
+ 8  3 11.08 12:15 SHORT  -1.00  21  36.8 |  65.038  65.035  -0.00  65.029  65.354 |  1.016  1.146   121   121  20 |  2  4      B136L64.600 PB30
+ 9  5 14.08 08:45 SHORT  -1.00  24  12.9 |  63.926  64.336  +0.64  64.309  64.384 |  0.469  0.699   380   383  18 |  4  3      B400H64.384 PB30
+10  5 14.08 11:45 SHORT  -1.00  36  19.4 |  63.926  64.871  +1.48  64.790  64.883 |  0.469  0.699   380   383  20 |  5  5      B410L64.472 PB30
+11  5 14.08 14:45 SHORT  -1.00  48  25.8 |  63.926  65.056  +1.77  65.038  65.092 |  0.469  0.699   380   383  27 |  6  7      B420L64.573 PB30
+12  5 17.08 03:45 SHORT  -1.00  96  51.6 |  63.926  65.672  +2.73  65.752  66.206 |  1.044  1.072   380   383  69 | 11 13      B473H66.206 PB30
+13  5 17.08 07:30 SHORT  -1.00 111  59.7 |  63.926  65.764  +2.88  65.798  66.206 |  1.044  1.072   380   383  84 | 12 16      B485L65.362 PB30
+14  5 17.08 18:45 SHORT  +6.71 156  83.9 |  63.926  66.348  +3.79  66.284  66.538 |  1.076  1.162   380   383 125 | 18 23      B529H66.538 PB30
+15  5 18.08 02:15 SHORT  +6.60 182  97.8 |  63.926  66.369  +3.82  66.284  66.538 |  1.076  1.162   380   383 151 | 21 27      B553L65.599 PB30
+16  6 18.08 22:00 LONG   -1.00  21  38.9 |  63.789  63.501  -0.45  63.478  63.348 |  0.501  0.609   622   623  17 |  4  4      B638H63.838 PB30
+17  6 19.08 02:00 LONG   -1.00  33  61.1 |  63.789  63.012  -1.22  62.855  62.721 |  0.501  0.609   622   623  21 |  5  6      B650L62.721 PB30
+18  7 19.08 21:45 SHORT  -1.00  17  21.8 |  65.877  66.374  +0.75  66.341  66.420 |  0.522  0.571   717   721   9 |  2  2      B725L65.474 PB30
+19  7 20.08 02:15 SHORT  +4.26  31  39.7 |  65.877  66.996  +1.70  67.258  67.288 |  0.522  0.571   717   721  12 |  4  2      B736H67.076 PB30
+20  9 21.08 13:30 SHORT  +3.06  35  20.2 |  68.846  69.848  +1.46  69.868  70.000 |  0.775  0.820   849   857  22 |  3  3      B876L69.155 PB30
+21  9 21.08 18:45 SHORT  +2.67  56  32.4 |  68.846  69.876  +1.50  69.890  70.000 |  1.011  1.130   849   857  43 |  5  7      B900L69.316 PB30
+22  9 24.08 02:15 LONG   -0.36  82  47.4 |  68.846  68.976  +0.19  68.791  68.681 |  1.273  1.319   848   852  77 |  9  9      B924L68.874 PB30
+23  9 24.08 15:00 SHORT  +2.10 133  76.9 |  68.846  69.810  +1.40  69.786  70.000 |  1.418  1.608   849   857 119 | 19 18      B978L68.902 PB30
+24  9 24.08 20:15 LONG   +2.96 154  89.0 |  68.846  68.610  -0.34  68.602  68.288 |  1.418  1.507   848   852 145 | 23 20      B996H68.884 PB30
+25 12 26.08 17:00 LONG   +1.83   2   2.0 |  67.877  67.598  -0.41  67.510  67.494 |  0.104  0.547  None  None   0 |  0  0                - INIT
+26 12 27.08 03:15 SHORT  -1.00  39  38.2 |  67.877  69.039  +1.71  69.126  69.243 |  0.826  0.930  1171  1171  29 |  3  4     B1202H69.021 PB30
+27 12 27.08 17:45 SHORT  +0.86  97  95.1 |  67.877  69.425  +2.28  69.435  69.611 |  1.713  2.011  1171  1171  85 | 13 12     B1259L67.600 PB30
+
+AGGREGAT | Winner 12 | Loser 15 (davon Voll-SL 13, Teilverlust 2: T3 -0.29R, T22 -0.36R)
+  WINNER: n=12 | Alter(1b) min/med/max 2/56/182 | Anteil<40: 5 | INIT 1 | PB15 0 | PB30 11
+      Einzel-Kls: T1:PB30, T2:PB30, T6:PB30, T14:PB30, T15:PB30, T19:PB30, T20:PB30, T21:PB30, T23:PB30, T24:PB30, T25:INIT, T27:PB30
+  LOSER: n=15 | Alter(1b) min/med/max 2/33/111 | Anteil<40: 11 | INIT 1 | PB15 0 | PB30 14
+      Einzel-Kls: T3:PB30, T4:PB30, T5:PB30, T7:INIT, T8:PB30, T9:PB30, T10:PB30, T11:PB30, T12:PB30, T13:PB30, T16:PB30, T17:PB30, T18:PB30, T22:PB30, T26:PB30
+  VOLL-SL: n=13 | Alter(1b) min/med/max 2/24/111 | Anteil<40: 10 | INIT 1 | PB15 0 | PB30 12
+      Einzel-Kls: T4:PB30, T5:PB30, T7:INIT, T8:PB30, T9:PB30, T10:PB30, T11:PB30, T12:PB30, T13:PB30, T16:PB30, T17:PB30, T18:PB30, T26:PB30
+  WINNER INIT: 1 Trades (R +1.83R) -> T25 +1.83R A2
+  LOSER INIT: 1 Trades (R -1.00R) -> T7 -1.00R A2
+
+----------------------------------------------------------------------------------------------------------------------
+FOKUS-ZEITLINIEN (P5-Geister T9-T11, T26 P12, Kontrast-Winner T14/T15, T25/T27 P12)
+----------------------------------------------------------------------------------------------------------------------
+
+T9 P5 SHORT E64.244 R-1.00 | Signal 14.08 08:45 (B403), Phasenstart 14.08 03:00 (B380) cl0 63.926 | Kante 64.309 | Alter 24 (0b 23) | mRetrC 0.469 PB15@380 PB30@383 | Kls PB30
+   Piv 1: B380 14.08 03:00 L 63.716 (Abstand zu Signal 23)
+   Piv 2: B386 14.08 04:30 H 64.077 (Abstand zu Signal 17)
+   Piv 3: B390 14.08 05:30 H 64.184 (Abstand zu Signal 13)
+   Piv 4: B392 14.08 06:00 L 63.916 (Abstand zu Signal 11)
+   Piv 5: B396 14.08 07:00 H 63.993 (Abstand zu Signal 7)
+   Piv 6: B398 14.08 07:30 L 63.485 (Abstand zu Signal 5)
+   Piv 7: B400 14.08 08:00 H 64.384 (Abstand zu Signal 3)
+
+T10 P5 SHORT E64.750 R-1.00 | Signal 14.08 11:45 (B415), Phasenstart 14.08 03:00 (B380) cl0 63.926 | Kante 64.790 | Alter 36 (0b 35) | mRetrC 0.469 PB15@380 PB30@383 | Kls PB30
+   Piv 1: B380 14.08 03:00 L 63.716 (Abstand zu Signal 35)
+   Piv 2: B386 14.08 04:30 H 64.077 (Abstand zu Signal 29)
+   Piv 3: B390 14.08 05:30 H 64.184 (Abstand zu Signal 25)
+   Piv 4: B392 14.08 06:00 L 63.916 (Abstand zu Signal 23)
+   Piv 5: B396 14.08 07:00 H 63.993 (Abstand zu Signal 19)
+   Piv 6: B398 14.08 07:30 L 63.485 (Abstand zu Signal 17)
+   Piv 7: B400 14.08 08:00 H 64.384 (Abstand zu Signal 15)
+   Piv 8: B406 14.08 09:30 L 64.213 (Abstand zu Signal 9)
+   Piv 9: B407 14.08 09:45 H 64.681 (Abstand zu Signal 8)
+   Piv 10: B410 14.08 10:30 L 64.472 (Abstand zu Signal 5)
+
+T11 P5 SHORT E64.910 R-1.00 | Signal 14.08 14:45 (B427), Phasenstart 14.08 03:00 (B380) cl0 63.926 | Kante 65.038 | Alter 48 (0b 47) | mRetrC 0.469 PB15@380 PB30@383 | Kls PB30
+   Piv 1: B380 14.08 03:00 L 63.716 (Abstand zu Signal 47)
+   Piv 2: B386 14.08 04:30 H 64.077 (Abstand zu Signal 41)
+   Piv 3: B390 14.08 05:30 H 64.184 (Abstand zu Signal 37)
+   Piv 4: B392 14.08 06:00 L 63.916 (Abstand zu Signal 35)
+   Piv 5: B396 14.08 07:00 H 63.993 (Abstand zu Signal 31)
+   Piv 6: B398 14.08 07:30 L 63.485 (Abstand zu Signal 29)
+   Piv 7: B400 14.08 08:00 H 64.384 (Abstand zu Signal 27)
+   Piv 8: B406 14.08 09:30 L 64.213 (Abstand zu Signal 21)
+   Piv 9: B407 14.08 09:45 H 64.681 (Abstand zu Signal 20)
+   Piv 10: B410 14.08 10:30 L 64.472 (Abstand zu Signal 17)
+   Piv 11: B414 14.08 11:30 L 64.619 (Abstand zu Signal 13)
+   Piv 12: B416 14.08 12:00 H 64.900 (Abstand zu Signal 11)
+   Piv 13: B420 14.08 13:00 L 64.573 (Abstand zu Signal 7)
+
+T14 P5 SHORT E66.248 R+6.71 | Signal 17.08 18:45 (B535), Phasenstart 14.08 03:00 (B380) cl0 63.926 | Kante 66.284 | Alter 156 (0b 155) | mRetrC 1.076 PB15@380 PB30@383 | Kls PB30
+   Piv 1: B380 14.08 03:00 L 63.716 (Abstand zu Signal 155)
+   Piv 2: B386 14.08 04:30 H 64.077 (Abstand zu Signal 149)
+   Piv 3: B390 14.08 05:30 H 64.184 (Abstand zu Signal 145)
+   Piv 4: B392 14.08 06:00 L 63.916 (Abstand zu Signal 143)
+   Piv 5: B396 14.08 07:00 H 63.993 (Abstand zu Signal 139)
+   Piv 6: B398 14.08 07:30 L 63.485 (Abstand zu Signal 137)
+   Piv 7: B400 14.08 08:00 H 64.384 (Abstand zu Signal 135)
+   Piv 8: B406 14.08 09:30 L 64.213 (Abstand zu Signal 129)
+   Piv 9: B407 14.08 09:45 H 64.681 (Abstand zu Signal 128)
+   Piv 10: B410 14.08 10:30 L 64.472 (Abstand zu Signal 125)
+   Piv 11: B414 14.08 11:30 L 64.619 (Abstand zu Signal 121)
+   Piv 12: B416 14.08 12:00 H 64.900 (Abstand zu Signal 119)
+   Piv 13: B420 14.08 13:00 L 64.573 (Abstand zu Signal 115)
+   Piv 14: B433 14.08 16:15 H 65.684 (Abstand zu Signal 102)
+   Piv 15: B437 14.08 17:15 L 64.964 (Abstand zu Signal 98)
+   Piv 16: B442 14.08 18:30 L 64.696 (Abstand zu Signal 93)
+   Piv 17: B444 14.08 19:00 H 64.961 (Abstand zu Signal 91)
+   Piv 18: B447 14.08 19:45 L 64.705 (Abstand zu Signal 88)
+   Piv 19: B452 14.08 21:00 L 64.647 (Abstand zu Signal 83)
+   Piv 20: B454 14.08 21:30 H 64.788 (Abstand zu Signal 81)
+   Piv 21: B458 14.08 22:30 L 64.612 (Abstand zu Signal 77)
+   Piv 22: B463 17.08 00:45 H 65.220 (Abstand zu Signal 72)
+   Piv 23: B466 17.08 01:30 L 64.746 (Abstand zu Signal 69)
+   Piv 24: B473 17.08 03:15 H 66.206 (Abstand zu Signal 62)
+   Piv 25: B475 17.08 03:45 L 65.604 (Abstand zu Signal 60)
+   Piv 26: B478 17.08 04:30 H 65.820 (Abstand zu Signal 57)
+   Piv 27: B479 17.08 04:45 L 65.414 (Abstand zu Signal 56)
+   Piv 28: B485 17.08 06:15 L 65.362 (Abstand zu Signal 50)
+   Piv 29: B492 17.08 08:00 H 65.940 (Abstand zu Signal 43)
+   Piv 30: B493 17.08 08:15 L 65.654 (Abstand zu Signal 42)
+   Piv 31: B495 17.08 08:45 H 65.954 (Abstand zu Signal 40)
+   Piv 32: B497 17.08 09:15 L 65.594 (Abstand zu Signal 38)
+   Piv 33: B498 17.08 09:30 H 65.973 (Abstand zu Signal 37)
+   Piv 34: B500 17.08 10:00 L 65.478 (Abstand zu Signal 35)
+   Piv 35: B503 17.08 10:45 L 65.433 (Abstand zu Signal 32)
+   Piv 36: B508 17.08 12:00 L 65.424 (Abstand zu Signal 27)
+   Piv 37: B510 17.08 12:30 H 65.844 (Abstand zu Signal 25)
+   Piv 38: B512 17.08 13:00 L 65.534 (Abstand zu Signal 23)
+   Piv 39: B514 17.08 13:30 H 65.829 (Abstand zu Signal 21)
+   Piv 40: B520 17.08 15:00 L 65.044 (Abstand zu Signal 15)
+   Piv 41: B529 17.08 17:15 H 66.538 (Abstand zu Signal 6)
+
+T15 P5 SHORT E66.268 R+6.60 | Signal 18.08 02:15 (B561), Phasenstart 14.08 03:00 (B380) cl0 63.926 | Kante 66.284 | Alter 182 (0b 181) | mRetrC 1.076 PB15@380 PB30@383 | Kls PB30
+   Piv 1: B380 14.08 03:00 L 63.716 (Abstand zu Signal 181)
+   Piv 2: B386 14.08 04:30 H 64.077 (Abstand zu Signal 175)
+   Piv 3: B390 14.08 05:30 H 64.184 (Abstand zu Signal 171)
+   Piv 4: B392 14.08 06:00 L 63.916 (Abstand zu Signal 169)
+   Piv 5: B396 14.08 07:00 H 63.993 (Abstand zu Signal 165)
+   Piv 6: B398 14.08 07:30 L 63.485 (Abstand zu Signal 163)
+   Piv 7: B400 14.08 08:00 H 64.384 (Abstand zu Signal 161)
+   Piv 8: B406 14.08 09:30 L 64.213 (Abstand zu Signal 155)
+   Piv 9: B407 14.08 09:45 H 64.681 (Abstand zu Signal 154)
+   Piv 10: B410 14.08 10:30 L 64.472 (Abstand zu Signal 151)
+   Piv 11: B414 14.08 11:30 L 64.619 (Abstand zu Signal 147)
+   Piv 12: B416 14.08 12:00 H 64.900 (Abstand zu Signal 145)
+   Piv 13: B420 14.08 13:00 L 64.573 (Abstand zu Signal 141)
+   Piv 14: B433 14.08 16:15 H 65.684 (Abstand zu Signal 128)
+   Piv 15: B437 14.08 17:15 L 64.964 (Abstand zu Signal 124)
+   Piv 16: B442 14.08 18:30 L 64.696 (Abstand zu Signal 119)
+   Piv 17: B444 14.08 19:00 H 64.961 (Abstand zu Signal 117)
+   Piv 18: B447 14.08 19:45 L 64.705 (Abstand zu Signal 114)
+   Piv 19: B452 14.08 21:00 L 64.647 (Abstand zu Signal 109)
+   Piv 20: B454 14.08 21:30 H 64.788 (Abstand zu Signal 107)
+   Piv 21: B458 14.08 22:30 L 64.612 (Abstand zu Signal 103)
+   Piv 22: B463 17.08 00:45 H 65.220 (Abstand zu Signal 98)
+   Piv 23: B466 17.08 01:30 L 64.746 (Abstand zu Signal 95)
+   Piv 24: B473 17.08 03:15 H 66.206 (Abstand zu Signal 88)
+   Piv 25: B475 17.08 03:45 L 65.604 (Abstand zu Signal 86)
+   Piv 26: B478 17.08 04:30 H 65.820 (Abstand zu Signal 83)
+   Piv 27: B479 17.08 04:45 L 65.414 (Abstand zu Signal 82)
+   Piv 28: B485 17.08 06:15 L 65.362 (Abstand zu Signal 76)
+   Piv 29: B492 17.08 08:00 H 65.940 (Abstand zu Signal 69)
+   Piv 30: B493 17.08 08:15 L 65.654 (Abstand zu Signal 68)
+   Piv 31: B495 17.08 08:45 H 65.954 (Abstand zu Signal 66)
+   Piv 32: B497 17.08 09:15 L 65.594 (Abstand zu Signal 64)
+   Piv 33: B498 17.08 09:30 H 65.973 (Abstand zu Signal 63)
+   Piv 34: B500 17.08 10:00 L 65.478 (Abstand zu Signal 61)
+   Piv 35: B503 17.08 10:45 L 65.433 (Abstand zu Signal 58)
+   Piv 36: B508 17.08 12:00 L 65.424 (Abstand zu Signal 53)
+   Piv 37: B510 17.08 12:30 H 65.844 (Abstand zu Signal 51)
+   Piv 38: B512 17.08 13:00 L 65.534 (Abstand zu Signal 49)
+   Piv 39: B514 17.08 13:30 H 65.829 (Abstand zu Signal 47)
+   Piv 40: B520 17.08 15:00 L 65.044 (Abstand zu Signal 41)
+   Piv 41: B529 17.08 17:15 H 66.538 (Abstand zu Signal 32)
+   Piv 42: B534 17.08 18:30 L 66.234 (Abstand zu Signal 27)
+   Piv 43: B536 17.08 19:00 H 66.399 (Abstand zu Signal 25)
+   Piv 44: B544 17.08 21:00 L 65.650 (Abstand zu Signal 17)
+   Piv 45: B547 17.08 21:45 H 65.963 (Abstand zu Signal 14)
+   Piv 46: B550 17.08 22:30 L 65.702 (Abstand zu Signal 11)
+   Piv 47: B552 18.08 00:00 H 65.791 (Abstand zu Signal 9)
+   Piv 48: B553 18.08 00:15 L 65.599 (Abstand zu Signal 8)
+
+T25 P12 LONG E67.589 R+1.83 | Signal 26.08 17:00 (B1172), Phasenstart 26.08 16:45 (B1171) cl0 67.877 | Kante 67.510 | Alter 2 (0b 1) | mRetrC 0.104 PB15@None PB30@None | Kls INIT
+   Pivots bis Signal: KEINE bestaetigten (i0..k-2) -> Preis lief seit Phasenstart ohne 2-Bar-Bestaetigung eines Extrems
+
+T26 P12 SHORT E69.041 R-1.00 | Signal 27.08 03:15 (B1209), Phasenstart 26.08 16:45 (B1171) cl0 67.877 | Kante 69.126 | Alter 39 (0b 38) | mRetrC 0.826 PB15@1171 PB30@1171 | Kls PB30
+   Piv 1: B1172 26.08 17:00 L 67.494 (Abstand zu Signal 37)
+   Piv 2: B1175 26.08 17:45 H 68.123 (Abstand zu Signal 34)
+   Piv 3: B1176 26.08 18:00 L 67.807 (Abstand zu Signal 33)
+   Piv 4: B1183 26.08 19:45 L 67.901 (Abstand zu Signal 26)
+   Piv 5: B1190 26.08 21:30 H 68.285 (Abstand zu Signal 19)
+   Piv 6: B1193 26.08 22:15 L 67.869 (Abstand zu Signal 16)
+   Piv 7: B1202 27.08 01:30 H 69.021 (Abstand zu Signal 7)
+
+T27 P12 SHORT E69.430 R+0.86 | Signal 27.08 17:45 (B1267), Phasenstart 26.08 16:45 (B1171) cl0 67.877 | Kante 69.435 | Alter 97 (0b 96) | mRetrC 1.713 PB15@1171 PB30@1171 | Kls PB30
+   Piv 1: B1172 26.08 17:00 L 67.494 (Abstand zu Signal 95)
+   Piv 2: B1175 26.08 17:45 H 68.123 (Abstand zu Signal 92)
+   Piv 3: B1176 26.08 18:00 L 67.807 (Abstand zu Signal 91)
+   Piv 4: B1183 26.08 19:45 L 67.901 (Abstand zu Signal 84)
+   Piv 5: B1190 26.08 21:30 H 68.285 (Abstand zu Signal 77)
+   Piv 6: B1193 26.08 22:15 L 67.869 (Abstand zu Signal 74)
+   Piv 7: B1202 27.08 01:30 H 69.021 (Abstand zu Signal 65)
+   Piv 8: B1208 27.08 03:00 L 68.413 (Abstand zu Signal 59)
+   Piv 9: B1211 27.08 03:45 H 69.611 (Abstand zu Signal 56)
+   Piv 10: B1214 27.08 04:30 L 69.020 (Abstand zu Signal 53)
+   Piv 11: B1217 27.08 05:15 H 69.486 (Abstand zu Signal 50)
+   Piv 12: B1222 27.08 06:30 L 68.852 (Abstand zu Signal 45)
+   Piv 13: B1225 27.08 07:15 H 69.104 (Abstand zu Signal 42)
+   Piv 14: B1227 27.08 07:45 L 68.360 (Abstand zu Signal 40)
+   Piv 15: B1229 27.08 08:15 H 68.852 (Abstand zu Signal 38)
+   Piv 16: B1234 27.08 09:30 L 68.233 (Abstand zu Signal 33)
+   Piv 17: B1236 27.08 10:00 H 68.559 (Abstand zu Signal 31)
+   Piv 18: B1240 27.08 11:00 H 68.552 (Abstand zu Signal 27)
+   Piv 19: B1244 27.08 12:00 L 67.950 (Abstand zu Signal 23)
+   Piv 20: B1247 27.08 12:45 H 68.477 (Abstand zu Signal 20)
+   Piv 21: B1250 27.08 13:30 H 68.507 (Abstand zu Signal 17)
+   Piv 22: B1253 27.08 14:15 H 68.432 (Abstand zu Signal 14)
+   Piv 23: B1256 27.08 15:00 L 67.671 (Abstand zu Signal 11)
+   Piv 24: B1258 27.08 15:30 H 68.376 (Abstand zu Signal 9)
+   Piv 25: B1259 27.08 15:45 L 67.600 (Abstand zu Signal 8)

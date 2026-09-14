@@ -1,0 +1,48 @@
+================================================================================
+SETUP C - INTERVIEW-ANTWORTEN F1-F3 (Schritt 1: Move-/Ausbruchs-Audit)
+Datum: 2026-09-03 | Doku-Basis: docs/setup_c_experiment.md (Commit 9cc4097)
+Arbeitsmodus: rein statische Analyse (kein Test/Compiler/Feature-Code)
+================================================================================
+
+F1  MESSHORIZONT NACH AUSBRUCH (ab brk_idx)  =>  B: FESTES KERZENFENSTER
+-----------------------------------------------------------------------
+  Primaere Raster: 12 / 24 / 48 M15-Bars (3 / 6 / 12 h)
+  Zusaetzlich informativ: 96 M15-Bars (24 h) und "bis erster Gegentrend-
+  2-Close-Bruch" (natuerliche Bewegungsgrenze, NICHT primaer).
+  Begruendung:
+    - Option A ("bis i_start der Folgephase") ist der NULL-Horizont: Die
+      Baseline-Segmentierung setzt nach einem Bruch i = brk_idx, die
+      Folgephase beginnt AN der Bruch-Bar. Die Expansion laeuft durch die
+      naechste Balance hindurch (Saegezahn) - Option A misst nichts.
+    - Festes Fenster = deterministisch, vergleichbar ueber alle Ausbrueche,
+      frei von Segmentierungs-Arbitraritaet.
+    - MFE/MAE-Zeitverteilung (12 vs 24 vs 48) liefert die Verweildauer-
+      Charakteristik fuer das Stufen-Trailing (Schritt 3):
+      MFE@48 >> MFE@12  -> Energie laeuft nach (Laufenlassen lohnt)
+      MFE@12 ~= MFE@48  -> frontgeladene Bewegung (fruehes Trailing ok)
+
+F2  MFE/MAE-REFERENZ  =>  open[brk_idx+2] (strikt kausal), + open[brk_idx+1]
+-----------------------------------------------------------------------------
+  Primaere Referenz: open[brk_idx+2] = Eroeffnung der Bar NACH der
+  Bestaetigungs-Bar (close[brk_idx+1] ist der 2. Close des
+  BREAKOUT_CONFIRMED; open[brk_idx+2] ist der frueheste handelbare Preis).
+  Kein Intrabar-Bias, kein Lookahead - Baseline-Konvention (Einstieg =
+  Open der Folgebar nach Signal-Bar).
+  Sensitivitaets-Spalte: open[brk_idx+1] (fuer BREAKOUT_RAW: Trigger an
+  der Bruch-Bar brk_idx, Einstieg open der Folge-Bar).
+  MFE/MAE werden relativ zum jeweiligen Referenzpreis in R gerechnet
+  (Risk = SL_PCT 0,45 % des Referenzpreises) und zusaetzlich in USD.
+
+F3  TERMINALE NICHT-BRUCH-PHASEN  =>  AUSSCHLIESSEN (bestaetigt)
+----------------------------------------------------------------
+  Nur Phasen mit break_dir != None UND brk_idx != None (echter
+  2-Close-Bruch) bilden die Ausbruchs-Statistik.
+  Terminale Phasen (Datenende / Regel-7-Finalize) haben keinen brk_idx
+  -> keine messbare Ausbruchs-Folgebewegung -> ausgeschlossen.
+  Regel-7-Finalize-Moves sind KEINE 2-Close-Ausbrueche (Kontakt-Ende
+  statt Bruch-Ende, andere Dynamik) -> ebenfalls ausgeschlossen.
+  KEIN Code-Eingriff - reiner Analysefilter.
+
+TEILSCHRITT 1.1 (als naechstes): Erfassung der 11 AUG-Abbrueche aus
+  docs/makro_swings_experiment.md §4.2 als Benchmark-Matrix.
+================================================================================

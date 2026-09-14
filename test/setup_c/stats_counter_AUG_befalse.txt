@@ -1,0 +1,32 @@
+==============================================================================================================
+STATS & TRADE-REPORT | SETUP A COUNTER-ENGINE | Fenster: AUG  (2026-08-10 - 2026-08-28)
+Symbol: SILVER | Timeframe: M15 | VA_PCT: 0.93 | MIN_CANDLES: 46
+Entry-Mode: CANDLE_REJECTION | MAX_TOUCH_COUNT: 2 | MIN_ZONE_CANDLES: 30
+Trade-Management: SL_PCT=0.45 | Split 50/50 (TP1=POC) | TP2_PUFFER_PCT=0.2 | Cooldown=12 Bars
+BE-Variante (F2/F6): KEIN BE-Nachzug (Default, Runner-Philosophie)
+==============================================================================================================
+Phasen gesamt: 12 | handelbar: 5
+Signale/Trades gesamt : 8
+Long / Short          : 4 / 4
+Win-Rate              : 37.5%  (3 Gewinn / 5 Verlust / 0 Neutral)
+Summe R (kumuliert)   : +0.31
+Avg Win (R)           : +1.77  (ueber 3 Gewinntrades)
+Avg Loss (R)          : -1.00  (ueber 5 Verlusttrades)
+Profit-Faktor         : 1.06  (Brutto-Gewinn-R +5.31 / Brutto-Verlust-R -5.00)
+TP1-Hit               : 3/8 (37.5%)
+TP2-Hit               : 2/8 (25.0%)
+BE-Exit (Haelfte 2)   : 0
+
+TRADE-LOG (alle Trades; R-mult = gewichtete 2-Haelfte)
+Nr | Ph | Signal-Bar(ts)      | Typ  | Mode | Tch | EntryBar | Entry   | POC     | VAH     | VAL     | TP1     | TP2     | Exit1  | G1 | R1    | Exit2  | G2 | R2    | R-mult | Resultat
+--------------------------------------------------------------------------------------------------------------
+ 1 | P2  | 2026-08-11 02:00 | SHORT | CAND |   1 |      101 |  65.987 |  65.099 |  65.993 |  64.525 |  65.099 |  64.654 |  66.284 | SL   | -1.00 |  66.284 | SL   | -1.00 |  -1.00 | VERLOREN
+ 2 | P3  | 2026-08-11 17:30 | LONG  | CAND |   1 |      163 |  64.597 |  64.848 |  65.278 |  64.380 |  64.848 |  65.147 |  64.848 | TP1  | +0.86 |  65.147 | TP2  | +1.89 |  +1.38 | GEWONNEN
+ 3 | P5  | 2026-08-14 10:30 | SHORT | CAND |   1 |      411 |  64.580 |  63.953 |  64.681 |  63.704 |  63.953 |  63.832 |  64.871 | SL   | -1.00 |  64.871 | SL   | -1.00 |  -1.00 | VERLOREN
+ 4 | P7  | 2026-08-20 02:15 | SHORT | CAND |   1 |      746 |  66.995 |  65.853 |  67.157 |  65.474 |  65.853 |  65.605 |  65.853 | TP1  | +3.79 |  67.296 | SL   | -1.00 |  +1.39 | GEWONNEN
+ 5 | P9  | 2026-08-24 00:00 | LONG  | CAND |   1 |      921 |  69.365 |  69.461 |  69.890 |  68.813 |  69.461 |  69.750 |  69.053 | SL   | -1.00 |  69.053 | SL   | -1.00 |  -1.00 | VERLOREN
+ 6 | P11 | 2026-08-26 02:15 | LONG  | CAND |   1 |     1114 |  68.528 |  68.834 |  69.082 |  68.521 |  68.834 |  68.944 |  68.220 | SL   | -1.00 |  68.220 | SL   | -1.00 |  -1.00 | VERLOREN
+ 7 | P12 | 2026-08-27 01:30 | SHORT | CAND |   2 |     1203 |  68.970 |  68.012 |  68.986 |  67.595 |  68.012 |  67.730 |  69.280 | SL   | -1.00 |  69.280 | SL   | -1.00 |  -1.00 | VERLOREN
+ 8 | P12 | 2026-08-27 15:30 | LONG  | CAND |   2 |     1259 |  67.892 |  68.041 |  69.435 |  67.812 |  68.041 |  69.296 |  68.041 | TP1  | +0.49 |  69.296 | TP2  | +4.59 |  +2.54 | GEWONNEN
+==============================================================================================================
+Bezug Setup B (SILVER M15 Baseline AUG): +24,97R / 27 Tr / PF 2,83

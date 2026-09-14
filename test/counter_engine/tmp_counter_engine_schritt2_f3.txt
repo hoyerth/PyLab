@@ -1,0 +1,62 @@
+================================================================================
+SCHRITT 2 - F3 OUTSIDE-BAR-FILTER: EINBAU + ISOLIERTER CHECKPOINT
+Skript: scripts/counter_engine_profil.py | Stand: HEAD e123952 + F3 (uncommitted)
+Datum: 2026-09-03 | Freigabe: erteilt (Mentor, Schritt 2)
+================================================================================
+
+A) UMGESETZT (F3, Entscheid A - arretiert)
+------------------------------------------
+  In find_counter_signals, direkt nach Touch-Berechnung (Z. ~956-971):
+    if touch_vah and touch_val:
+        continue
+  - Outside-Bar: high >= vah UND low <= val gegen den vz_prev-Snapshot
+    (F1-Regime) in DERSELBEN Bar k.
+  - Beide Seiten verworfen; Absorptionszaehler (touches_vah/touches_val)
+    werden NICHT inkrementiert.
+  - Eliminiert das Hedge-Artefakt (SHORT- und LONG-Block feuerten vorher
+    unabhaengig -> zwei gegenlaeufige Trades, Entry open k+1, einer +/einer -)
+    und die Doppelzaehlung derselben Bar.
+  Header-Docstring + Funktions-Docstring aktualisiert (F3 dokumentiert).
+  py_compile: OK.
+
+B) ISOLIERTER CHECKPOINT AUG 2026 (SILVER M15, CANDLE_REJECTION, BE true)
+-------------------------------------------------------------------------
+  Konfiguration: identisch ueber alle Laeufe (nur die Engine-Logik variiert).
+
+    Status quo (Zone inkl. k, kein F3):  9 Signale | +4,69R | 6W/3L
+                                          | PF 2,56 | TP1 6/9 | TP2 1/9 | BE 5
+    F1 isoliert (vz_prev):                8 Signale | -0,13R | 3W/5L
+                                          | PF 0,97 | TP1 3/8 | TP2 1/8 | BE 2
+    F1+F3 (dieser Checkpoint):            8 Signale | -0,13R | 3W/5L
+                                          | PF 0,97 | TP1 3/8 | TP2 1/8 | BE 2
+                                          => BITIDENTISCH zu F1 isoliert
+
+  Trade-Log (F1+F3) unveraendert gegen F1 isoliert: 8 Trades
+   (P2 SHORT SL, P3 LONG TP1+BE, P5 SHORT SL, P7 SHORT TP1+BE,
+    P9 LONG SL, P11 LONG SL, P12 SHORT SL, P12 LONG TP1+TP2)
+
+C) EINORDNUNG (kein Urteil, Zwischenstand)
+------------------------------------------
+  F3 ist im AUG-Fenster VERHALTENSNEUTRAL: Unter dem vz_prev-Regime (F1)
+  existiert in AUG kein Outside-Bar-Doppelfeuer (keine Bar k mit high>=vah
+  UND low<=val, die zugleich beide Geometrie-Guards entry>poc/entry<poc und
+  die Cooldown/Rejection-Filter passiert haette). Der Filter entfernt in
+  diesem Fenster daher keinen einzigen Trade.
+  Bedeutung: F3 ist ein protektiver, kein selektiver Eingriff - er
+  GARANTIERT die Abwesenheit des Hedge-Artefakts ueber alle Fenster
+  (S1/S2/GOLD/Multi-TF), wirkt aber nur dort, wo Outside-Bars mit
+  doppelfaehiger Geometrie koinzidieren. Der Gesamtlauf (AUG+S1+S2) muss
+  zeigen, ob/wo F3 Trades entfernt (Attribution in Schritt 3-Protokoll).
+  Kein Eingriff noetig: Implementierung exakt wie arretiert (F3=A).
+
+D) NAECHSTER SCHRITT
+---------------------
+  Schritt 3 (F2/F6): --be-nachzug CLI-Hebel + A/B-Auswertung.
+    - _aufloesen_counter um use_be: bool parametrisieren (Default false
+      laut F6-Entscheid fuer den 1. Gesamtlauf).
+    - CLI-Override --be-nachzug true|false + Konfig/CLI-Print.
+    - Stats/Report druckt die aktive BE-Variante; A/B-Protokoll weist
+      BEIDE Varianten aus (Delta = Preis des BE-Nachzugs).
+    - Typ-Integritaet & Datenvertraege (Schritt 4): CounterConfig/
+      CounterSignal/CLI-Ausgabe konsistent erweitern.
+================================================================================

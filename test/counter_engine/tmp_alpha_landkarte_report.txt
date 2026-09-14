@@ -1,0 +1,75 @@
+============================================================================================================
+ALPHA-LANDKARTE: crv/crv2-Verteilung & Konzentration der 163 Winner (S1+S2)
+============================================================================================================
+crv  = |POC-Entry|/risk | crv2 = |Gegenseiten-Kante-Entry|/risk | risk=Entry*0.45%
+
+TABELLE 1: R-Klassen der Gewinner
+--- S1 (n=89) ---
+Klasse          n  Trade-%      SumR      R-%  kum R-%  Med crv Med crv2  Med R
+------------------------------------------------------------------------------------------------------------
+K1 <2.0R       23    25.8%    +33.17    11.2%    11.2%     1.28     1.64  +1.51
+K2 2.0-3.99R   44    49.4%   +131.41    44.5%    55.7%     1.88     3.33  +2.95
+K3 4.0-7.99R   20    22.5%   +102.25    34.6%    90.4%     1.80     5.55  +4.50
+K4 >=8.0R       2     2.2%    +28.48     9.6%   100.0%     9.18    15.93 +14.24
+GESAMT         89            +295.31                  
+
+--- S2 (n=74) ---
+Klasse          n  Trade-%      SumR      R-%  kum R-%  Med crv Med crv2  Med R
+------------------------------------------------------------------------------------------------------------
+K1 <2.0R       32    43.2%    +37.40    16.6%    16.6%     1.27     1.82  +1.46
+K2 2.0-3.99R   26    35.1%    +77.97    34.6%    51.2%     1.90     3.19  +2.94
+K3 4.0-7.99R   12    16.2%    +69.33    30.8%    82.0%     4.25     6.46  +6.01
+K4 >=8.0R       4     5.4%    +40.44    18.0%   100.0%     6.31    10.39  +9.01
+GESAMT         74            +225.14                  
+
+--- GESAMT (n=163) ---
+Klasse          n  Trade-%      SumR      R-%  kum R-%  Med crv Med crv2  Med R
+------------------------------------------------------------------------------------------------------------
+K1 <2.0R       55    33.7%    +70.57    13.6%    13.6%     1.28     1.77  +1.49
+K2 2.0-3.99R   70    42.9%   +209.38    40.2%    53.8%     1.88     3.28  +2.95
+K3 4.0-7.99R   32    19.6%   +171.58    33.0%    86.8%     2.12     5.74  +5.06
+K4 >=8.0R       6     3.7%    +68.92    13.2%   100.0%     7.88    10.85 +10.04
+GESAMT        163            +520.45                  
+
+Feinaufloesung K4 (Fat-Tail-Kern):
+  S1: n=2 | SumR +28.48 | T27 +17.8R, T59 +10.7R
+  S2: n=4 | SumR +40.44 | T54 +14.1R, T74 +9.4R, T197 +8.6R, T171 +8.4R
+  GESAMT: n=6 | SumR +68.92 | T27 +17.8R, T54 +14.1R, T59 +10.7R, T74 +9.4R, T197 +8.6R, T171 +8.4R
+
+TABELLE 2: Pareto-Konzentration (alle 163 Winner absteigend nach R)
+  Top 5  (n=8)   SumR   +83.89 =  16.1% des Gewinns
+  Top 10 (n=16)  SumR  +138.80 =  26.7% des Gewinns
+  Top 20 (n=33)  SumR  +219.88 =  42.2% des Gewinns
+  Gewinner-Basis gesamt: +520.45R ueber 163 Trades
+
+TABELLE 3: Robustheits-Stresstests (System-Netto S1+S2 = +297,14R)
+  Baseline (alle 411):                    Netto  +297.16R
+  ohne Top 5                                   Netto  +236.61R (Delta   -60.55R | entfernt: +60.55R)
+  ohne Top 10                                  Netto  +199.16R (Delta   -98.00R | entfernt: +98.00R)
+  ohne K4 (alle 6 >=8R)                        Netto  +228.24R (Delta   -68.92R | entfernt: +68.92R)
+
+  Entfernte Top-5 im Detail:
+    T27   S1 LONG  R  +17.79 | crv 8.04 | crv2 21.04 | eff/crv2 85%
+    T54   S2 LONG  R  +14.05 | crv 12.90 | crv2 14.43 | eff/crv2 97%
+    T59   S1 LONG  R  +10.69 | crv 10.31 | crv2 10.82 | eff/crv2 99%
+    T74   S2 LONG  R   +9.39 | crv 4.90 | crv2 10.88 | eff/crv2 86%
+    T197  S2 LONG  R   +8.63 | crv 7.72 | crv2 8.94 | eff/crv2 97%
+
+TABELLE 4: Exekutions-Effizienz (realisierte R / versprochenes crv2)
+Klasse          n Med crv2   Med R Eff vs crv2 Eff vs expected
+------------------------------------------------------------------------------------------------------------
+K1 <2.0R       55     1.77   +1.49         92%            100%
+K2 2.0-3.99R   70     3.28   +2.95         90%            100%
+K3 4.0-7.99R   32     5.74   +5.06         85%            100%
+K4 >=8.0R       6    10.85  +10.04         91%            100%
+ALLE Winner   163     3.37   +2.85         90%            100%
+
+Hinweis: Eff vs crv2 ist strukturell <100%, weil Haelfte 1 bei TP1 (crv<crv2) schliesst.
+Eff vs expected (0.25*crv+0.75*crv2) misst die reine Laufguete bis zum Ziel.
+
+FAZIT-Kennzahlen
+------------------------------------------------------------------------------------------------------------
+Top-5-Anteil am Gewinn: 11.6% | Top-10: 18.8%
+K4 (>=8R) Anteil: 13.2% (6 Trades)
+K2+K3 (2-8R, solide Mitte) Anteil: 73.2%
+K1 (<2R) Anteil: 13.6%

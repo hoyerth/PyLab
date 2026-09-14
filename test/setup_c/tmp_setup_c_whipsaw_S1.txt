@@ -1,0 +1,98 @@
+========================================================================================================================
+SETUP C - SCHRITT 4b STUFE 2: WHIPSAW-SCAN & NETTO-GEGENRECHNUNG (tmp_setup_c_whipsaw.py)
+Fenster: S1 | Symbol: SILVER M15 | Datum: 2026-09-05 | Baseline: docs/setup_c_experiment.md c48c9c7 (F4-F8) + Baseline v0.4.0-frozen
+F1 Negativ-Spiegel close[j+1]<=kante+TOL | F2 volle Simulation KEIN_TRAILING 48/96 (E2) | F3 Suppression (Default) + Sensitivitaet | Scope: F3-Bruchphasen der Stufe-1-Population, Bruchrichtung
+========================================================================================================================
+df-Bars: 13289 | Stufe-1-Population (Paare): 138 | gescannte F3-Phasen: 138 | Whipsaw-Kandidaten (Roh, beide Horizonte): 79
+
+========================================================================================================================
+HORIZONT N = 48  (48 M15-Bars; Exit am Close der Bar entry+48; Stop-Vorrang intrabar)
+
+  STUFE-1 CONFIRMED_1CLOSE (Referenz, ohne Whipsaws)  (n=138, zensiert=0, gewertet=138)
+  -------------------------------------------------------------------------------------
+  sum r_f4=    18.22  mean r_f4=   0.13  median=  -1.00  WR=39.1%  PF=1.25
+  sum r_ref (0.45%-Basis) = 46.95
+  Exit: INITIAL_SL_INTRABAR=70 | ZEIT_EXIT_CLOSE=68 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 33 Bars
+
+  STUFE-1 CONFIRMED_2CLOSE (Referenz)  (n=138, zensiert=0, gewertet=138)
+  ----------------------------------------------------------------------
+  sum r_f4=    -8.56  mean r_f4=  -0.06  median=  -1.00  WR=35.5%  PF=0.89
+  sum r_ref (0.45%-Basis) = 0.50
+  Exit: INITIAL_SL_INTRABAR=71 | ZEIT_EXIT_CLOSE=67 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 32 Bars
+
+  WHIPSAW-SCAN (F3-Suppression AKTIV)  (Kand.=79, suppr.=26, akzeptiert=53, zensiert=0, gewertet=53)
+  --------------------------------------------------------------------------------------------------
+  sum r_f4=   -16.40  mean r_f4=  -0.31  median=  -1.00  WR=18.9%  PF=0.62
+  sum r_ref (0.45%-Basis) = -40.93
+  Exit: INITIAL_SL_INTRABAR=43 | ZEIT_EXIT_CLOSE=10 | RECHTS_ZENSIERT=0
+  Subtypen (akzeptiert): RETRACE n=4 (sum r_f4 -4.00, gewertet) | TOL_BAND n=49 (sum r_f4 -12.40, gewertet)
+  mittl. Haltedauer (gewertet) = 19 Bars
+
+  NETTO sum r_f4 =      1.83   (Stufe-1   18.22 + Whipsaw  -16.40)
+  NETTO sum r_ref =     6.01   (Stufe-1   46.95 + Whipsaw  -40.93)
+  NETTO n_gewertet = 191   (Stufe-1 138 + Whipsaw 53; zensiert Stufe-1 0 + Whipsaw 0)
+
+  SENS: WHIPSAW ohne Suppression (alle Kandidaten)  (Kand.=79, suppr.=0, akzeptiert=79, zensiert=0, gewertet=79)
+  --------------------------------------------------------------------------------------------------------------
+  sum r_f4=   -38.30  mean r_f4=  -0.48  median=  -1.00  WR=15.2%  PF=0.43
+  sum r_ref (0.45%-Basis) = -84.96
+  Exit: INITIAL_SL_INTRABAR=67 | ZEIT_EXIT_CLOSE=12 | RECHTS_ZENSIERT=0
+  Subtypen (akzeptiert): RETRACE n=4 (sum r_f4 -4.00, gewertet) | TOL_BAND n=75 (sum r_f4 -34.30, gewertet)
+  mittl. Haltedauer (gewertet) = 17 Bars
+
+  NETTO sum r_f4 =    -20.08   (Stufe-1   18.22 + Whipsaw  -38.30)
+  NETTO sum r_ref =   -38.01   (Stufe-1   46.95 + Whipsaw  -84.96)
+  NETTO n_gewertet = 217   (Stufe-1 138 + Whipsaw 79; zensiert Stufe-1 0 + Whipsaw 0)
+
+========================================================================================================================
+HORIZONT N = 96  (96 M15-Bars; Exit am Close der Bar entry+96; Stop-Vorrang intrabar)
+
+  STUFE-1 CONFIRMED_1CLOSE (Referenz, ohne Whipsaws)  (n=138, zensiert=0, gewertet=138)
+  -------------------------------------------------------------------------------------
+  sum r_f4=    28.31  mean r_f4=   0.21  median=  -1.00  WR=29.7%  PF=1.31
+  sum r_ref (0.45%-Basis) = 15.61
+  Exit: INITIAL_SL_INTRABAR=91 | ZEIT_EXIT_CLOSE=47 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 53 Bars
+
+  STUFE-1 CONFIRMED_2CLOSE (Referenz)  (n=138, zensiert=0, gewertet=138)
+  ----------------------------------------------------------------------
+  sum r_f4=    -7.32  mean r_f4=  -0.05  median=  -1.00  WR=29.7%  PF=0.92
+  sum r_ref (0.45%-Basis) = -36.47
+  Exit: INITIAL_SL_INTRABAR=91 | ZEIT_EXIT_CLOSE=47 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 52 Bars
+
+  WHIPSAW-SCAN (F3-Suppression AKTIV)  (Kand.=79, suppr.=26, akzeptiert=53, zensiert=0, gewertet=53)
+  --------------------------------------------------------------------------------------------------
+  sum r_f4=    -8.98  mean r_f4=  -0.17  median=  -1.00  WR=18.9%  PF=0.79
+  sum r_ref (0.45%-Basis) = -26.36
+  Exit: INITIAL_SL_INTRABAR=43 | ZEIT_EXIT_CLOSE=10 | RECHTS_ZENSIERT=0
+  Subtypen (akzeptiert): RETRACE n=4 (sum r_f4 -4.00, gewertet) | TOL_BAND n=49 (sum r_f4 -4.98, gewertet)
+  mittl. Haltedauer (gewertet) = 28 Bars
+
+  NETTO sum r_f4 =     19.33   (Stufe-1   28.31 + Whipsaw   -8.98)
+  NETTO sum r_ref =   -10.75   (Stufe-1   15.61 + Whipsaw  -26.36)
+  NETTO n_gewertet = 191   (Stufe-1 138 + Whipsaw 53; zensiert Stufe-1 0 + Whipsaw 0)
+
+  SENS: WHIPSAW ohne Suppression (alle Kandidaten)  (Kand.=79, suppr.=0, akzeptiert=79, zensiert=0, gewertet=79)
+  --------------------------------------------------------------------------------------------------------------
+  sum r_f4=   -23.57  mean r_f4=  -0.30  median=  -1.00  WR=15.2%  PF=0.65
+  sum r_ref (0.45%-Basis) = -56.01
+  Exit: INITIAL_SL_INTRABAR=67 | ZEIT_EXIT_CLOSE=12 | RECHTS_ZENSIERT=0
+  Subtypen (akzeptiert): RETRACE n=4 (sum r_f4 -4.00, gewertet) | TOL_BAND n=75 (sum r_f4 -19.57, gewertet)
+  mittl. Haltedauer (gewertet) = 24 Bars
+
+  NETTO sum r_f4 =      4.75   (Stufe-1   28.31 + Whipsaw  -23.57)
+  NETTO sum r_ref =   -40.40   (Stufe-1   15.61 + Whipsaw  -56.01)
+  NETTO n_gewertet = 217   (Stufe-1 138 + Whipsaw 79; zensiert Stufe-1 0 + Whipsaw 0)
+
+========================================================================================================================
+VERGLEICH  (sum r_f4 | sum r_ref; gewertet, zensiert isoliert E2)
+    N             Stufe1_1c        Whipsaw_suppr           NETTO_1c         2Close_Ref         Whipsaw_ohne         NETTO_ohne
+    48      18.22|   46.95    -16.40|   -40.93     1.83|    6.01    -8.56|    0.50    -38.30|   -84.96   -20.08|  -38.01
+    96      28.31|   15.61     -8.98|   -26.36    19.33|  -10.75    -7.32|  -36.47    -23.57|   -56.01     4.75|  -40.40
+========================================================================================================================
+========================================================================================================================
+VERIFIKATIONSANKER: gescannte F3-Phasen == Stufe-1-Population (AUG=11, S1=138, S2=61) -> 138 == 138  [OK]
+========================================================================================================================

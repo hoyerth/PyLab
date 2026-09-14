@@ -1,0 +1,104 @@
+========================================================================================================================
+BASELINE-REPLAY AUG | exec-Import Produktion (Cut nach Baseline-Signal-Loop)
+========================================================================================================================
+df-Zeilen: 1288 | Phasen: 12 | reclaim_signals: 27
+Phasen (i_start/ts, i_ende/ts, n_candles):
+  P 1 i_start     0 (2026-08-10 00:00:00) -> i_ende    63 (2026-08-10 15:45:00) | n_candles 64
+  P 2 i_start    66 (2026-08-10 16:30:00) -> i_ende   114 (2026-08-11 05:30:00) | n_candles 49
+  P 3 i_start   121 (2026-08-11 07:15:00) -> i_ende   177 (2026-08-11 21:15:00) | n_candles 57
+  P 4 i_start   218 (2026-08-12 08:30:00) -> i_ende   242 (2026-08-12 14:30:00) | n_candles 25
+  P 5 i_start   380 (2026-08-14 03:00:00) -> i_ende   565 (2026-08-18 03:15:00) | n_candles 186
+  P 6 i_start   620 (2026-08-18 17:00:00) -> i_ende   673 (2026-08-19 07:15:00) | n_candles 54
+  P 7 i_start   715 (2026-08-19 17:45:00) -> i_ende   792 (2026-08-20 14:00:00) | n_candles 78
+  P 8 i_start   802 (2026-08-20 16:30:00) -> i_ende   840 (2026-08-21 03:00:00) | n_candles 39
+  P 9 i_start   848 (2026-08-21 05:00:00) -> i_ende  1020 (2026-08-25 02:00:00) | n_candles 173
+  P10 i_start  1030 (2026-08-25 04:30:00) -> i_ende  1075 (2026-08-25 15:45:00) | n_candles 46
+  P11 i_start  1082 (2026-08-25 17:30:00) -> i_ende  1134 (2026-08-26 07:30:00) | n_candles 53
+  P12 i_start  1171 (2026-08-26 16:45:00) -> i_ende  1272 (2026-08-27 19:00:00) | n_candles 102
+
+Log-Trades (Baseline-Block): 27
+Mapping bitgenau: 27/27 | Phase-Zuordnung Log==Replay: 27/27
+
+ # Ph Zeit (Signal)     Dir   Rc          Entry      R | Alter   Kante     POC POCdist    Pen RcDepth Bo   CD | G1       r1 G2       r2
+---------------------------------------------------------------------------------------------------------------------------------------
+ 1  1 10.08 02:00 SHORT in_bar     63.966  +1.29 |    9  63.971  63.658    1.07  0.038   0.008  2 None | TP1   +1.07 TP2   +1.36
+ 2  1 10.08 03:30 LONG  in_bar     63.252  +1.69 |   15  63.019  63.638    1.36  0.052   0.237  2 None | TP1   +1.36 TP2   +1.80
+ 3  1 10.08 08:45 SHORT next_bar   64.163  -0.29 |   36  64.177  63.628    1.85  0.096   0.020  2   27 | TP1   +1.85 SL    -1.00
+ 4  2 10.08 18:00 SHORT in_bar     65.098  -1.00 |    7  65.134  64.655    1.51  0.122   0.037  2 None | SL    -1.00 SL    -1.00
+ 5  2 10.08 21:45 SHORT in_bar     65.722  -1.00 |   22  66.019  65.099    2.11  0.007   0.299  2   15 | SL    -1.00 SL    -1.00
+ 6  2 11.08 04:00 SHORT in_bar     66.294  +4.59 |   43  66.291  65.771    1.75  0.033   0.005  2   21 | TP1   +1.75 TP2   +5.54
+ 7  3 11.08 07:30 LONG  in_bar     64.702  -1.00 |    2  64.470  65.032    1.13  0.015   0.234  2 None | SL    -1.00 SL    -1.00
+ 8  3 11.08 12:15 SHORT next_bar   64.968  -1.00 |   21  65.029  64.485    1.65  0.093   0.053  3 None | SL    -1.00 SL    -1.00
+ 9  5 14.08 08:45 SHORT next_bar   64.244  -1.00 |   24  64.309  63.942    1.04  0.051   0.068  3 None | SL    -1.00 SL    -1.00
+10  5 14.08 11:45 SHORT next_bar   64.750  -1.00 |   36  64.790  63.963    2.70  0.093   0.041  2   12 | SL    -1.00 SL    -1.00
+11  5 14.08 14:45 SHORT next_bar   64.910  -1.00 |   48  65.038  63.954    3.27  0.054   0.123  2   12 | SL    -1.00 SL    -1.00
+12  5 17.08 03:45 SHORT in_bar     65.671  -1.00 |   96  65.752  64.732    3.18  0.120   0.081  2   48 | SL    -1.00 SL    -1.00
+13  5 17.08 07:30 SHORT in_bar     65.769  -1.00 |  111  65.798  64.732    3.50  0.069   0.034  3   15 | SL    -1.00 SL    -1.00
+14  5 17.08 18:45 SHORT next_bar   66.248  +6.71 |  156  66.284  65.546    2.36  0.091   0.039  2   45 | TP1   +2.36 TP2   +8.16
+15  5 18.08 02:15 SHORT next_bar   66.268  +6.60 |  182  66.284  65.749    1.74  0.146   0.030  3   26 | TP1   +1.74 TP2   +8.22
+16  6 18.08 22:00 LONG  in_bar     63.500  -1.00 |   21  63.478  63.796    1.04  0.013   0.023  2 None | SL    -1.00 SL    -1.00
+17  6 19.08 02:00 LONG  in_bar     63.011  -1.00 |   33  62.855  63.804    2.80  0.048   0.157  2   12 | SL    -1.00 SL    -1.00
+18  7 19.08 21:45 SHORT next_bar   66.316  -1.00 |   17  66.341  65.876    1.47  0.076   0.024  2 None | SL    -1.00 SL    -1.00
+19  7 20.08 02:15 SHORT in_bar     66.995  +4.26 |   31  67.258  65.852    3.79  0.030   0.262  2   14 | TP1   +3.79 TP2   +4.41
+20  9 21.08 13:30 SHORT in_bar     69.832  +3.06 |   35  69.868  68.956    2.79  0.127   0.020  3 None | TP1   +2.79 TP2   +3.16
+21  9 21.08 18:45 SHORT in_bar     69.897  +2.67 |   56  69.890  69.439    1.45  0.038   0.014  4   21 | TP1   +1.45 TP2   +3.08
+22  9 24.08 02:15 LONG  in_bar     68.974  -0.36 |   82  68.791  69.461    1.57  0.001   0.185  5 None | TP1   +1.57 SL    -1.00
+23  9 24.08 15:00 SHORT next_bar   69.491  +2.10 |  133  69.786  68.941    1.76  0.113   0.294  6   77 | TP1   +1.76 TP2   +2.22
+24  9 24.08 20:15 LONG  in_bar     68.614  +2.96 |  154  68.602  68.959    1.12  0.220   0.008  9   72 | TP1   +1.12 TP2   +3.57
+25 12 26.08 17:00 LONG  in_bar     67.589  +1.83 |    2  67.510  67.905    1.04  0.016   0.088  2 None | TP1   +1.04 TP2   +2.09
+26 12 27.08 03:15 SHORT in_bar     69.041  -1.00 |   39  69.126  68.004    3.34  0.117   0.087  2 None | SL    -1.00 SL    -1.00
+27 12 27.08 17:45 SHORT in_bar     69.430  +0.86 |   97  69.435  68.041    4.45  0.030   0.010  2   58 | ENDE  +0.86 ENDE  +0.86
+
+LOSER 15 | WINNER 12
+
+--- 15 LOSER: Cluster-Merkmale ---
+  T 3 P 1 10.08 08:45 SHORT next_bar E64.163 R-0.29 Alter  36 CD   27 TEILVERLUST(TP1-erreicht) | FRUEH-ALTER-36
+  T 4 P 2 10.08 18:00 SHORT in_bar   E65.098 R-1.00 Alter   7 CD None VOLL-SL | FRUEH-ALTER-7
+  T 5 P 2 10.08 21:45 SHORT in_bar   E65.722 R-1.00 Alter  22 CD   15 VOLL-SL | FRUEH-ALTER-22 | PEN-MIKRO
+  T 7 P 3 11.08 07:30 LONG  in_bar   E64.702 R-1.00 Alter   2 CD None VOLL-SL | FRUEH-ALTER-2 | PEN-MIKRO
+  T 8 P 3 11.08 12:15 SHORT next_bar E64.968 R-1.00 Alter  21 CD None VOLL-SL | FRUEH-ALTER-21
+  T 9 P 5 14.08 08:45 SHORT next_bar E64.244 R-1.00 Alter  24 CD None VOLL-SL | FRUEH-ALTER-24
+  T10 P 5 14.08 11:45 SHORT next_bar E64.750 R-1.00 Alter  36 CD   12 VOLL-SL | FRUEH-ALTER-36 | CD-EXAKT-MIN
+  T11 P 5 14.08 14:45 SHORT next_bar E64.910 R-1.00 Alter  48 CD   12 VOLL-SL | CD-EXAKT-MIN
+  T12 P 5 17.08 03:45 SHORT in_bar   E65.671 R-1.00 Alter  96 CD   48 VOLL-SL
+  T13 P 5 17.08 07:30 SHORT in_bar   E65.769 R-1.00 Alter 111 CD   15 VOLL-SL
+  T16 P 6 18.08 22:00 LONG  in_bar   E63.500 R-1.00 Alter  21 CD None VOLL-SL | FRUEH-ALTER-21 | PEN-MIKRO
+  T17 P 6 19.08 02:00 LONG  in_bar   E63.011 R-1.00 Alter  33 CD   12 VOLL-SL | FRUEH-ALTER-33 | CD-EXAKT-MIN | PEN-MIKRO
+  T18 P 7 19.08 21:45 SHORT next_bar E66.316 R-1.00 Alter  17 CD None VOLL-SL | FRUEH-ALTER-17
+  T22 P 9 24.08 02:15 LONG  in_bar   E68.974 R-0.36 Alter  82 CD None TEILVERLUST(TP1-erreicht) | PEN-MIKRO
+  T26 P12 27.08 03:15 SHORT in_bar   E69.041 R-1.00 Alter  39 CD None VOLL-SL | FRUEH-ALTER-39
+
+--- 15 LOSER: Detail (r1/r2-Komponenten & Exit) ---
+  T 3 P 1 10.08 08:45 SHORT next_bar E64.163 SL64.452 TP1(POC)63.628 TP263.138 R-0.29 | H1 TP1 63.628 +1.85R | H2 SL 64.452 -1.00R
+  T 4 P 2 10.08 18:00 SHORT in_bar   E65.098 SL65.391 TP1(POC)64.655 TP264.574 R-1.00 | H1 SL 65.391 -1.00R | H2 SL 65.391 -1.00R
+  T 5 P 2 10.08 21:45 SHORT in_bar   E65.722 SL66.018 TP1(POC)65.099 TP264.654 R-1.00 | H1 SL 66.018 -1.00R | H2 SL 66.018 -1.00R
+  T 7 P 3 11.08 07:30 LONG  in_bar   E64.702 SL64.411 TP1(POC)65.032 TP265.163 R-1.00 | H1 SL 64.411 -1.00R | H2 SL 64.411 -1.00R
+  T 8 P 3 11.08 12:15 SHORT next_bar E64.968 SL65.260 TP1(POC)64.485 TP264.413 R-1.00 | H1 SL 65.260 -1.00R | H2 SL 65.260 -1.00R
+  T 9 P 5 14.08 08:45 SHORT next_bar E64.244 SL64.533 TP1(POC)63.942 TP263.822 R-1.00 | H1 SL 64.533 -1.00R | H2 SL 64.533 -1.00R
+  T10 P 5 14.08 11:45 SHORT next_bar E64.750 SL65.041 TP1(POC)63.963 TP263.822 R-1.00 | H1 SL 65.041 -1.00R | H2 SL 65.041 -1.00R
+  T11 P 5 14.08 14:45 SHORT next_bar E64.910 SL65.202 TP1(POC)63.954 TP263.827 R-1.00 | H1 SL 65.202 -1.00R | H2 SL 65.202 -1.00R
+  T12 P 5 17.08 03:45 SHORT in_bar   E65.671 SL65.967 TP1(POC)64.732 TP263.794 R-1.00 | H1 SL 65.967 -1.00R | H2 SL 65.967 -1.00R
+  T13 P 5 17.08 07:30 SHORT in_bar   E65.769 SL66.065 TP1(POC)64.732 TP263.794 R-1.00 | H1 SL 66.065 -1.00R | H2 SL 66.065 -1.00R
+  T16 P 6 18.08 22:00 LONG  in_bar   E63.500 SL63.214 TP1(POC)63.796 TP263.953 R-1.00 | H1 SL 63.214 -1.00R | H2 SL 63.214 -1.00R
+  T17 P 6 19.08 02:00 LONG  in_bar   E63.011 SL62.727 TP1(POC)63.804 TP263.983 R-1.00 | H1 SL 62.727 -1.00R | H2 SL 62.727 -1.00R
+  T18 P 7 19.08 21:45 SHORT next_bar E66.316 SL66.614 TP1(POC)65.876 TP265.605 R-1.00 | H1 SL 66.614 -1.00R | H2 SL 66.614 -1.00R
+  T22 P 9 24.08 02:15 LONG  in_bar   E68.974 SL68.664 TP1(POC)69.461 TP269.706 R-0.36 | H1 TP1 69.461 +1.57R | H2 SL 68.664 -1.00R
+  T26 P12 27.08 03:15 SHORT in_bar   E69.041 SL69.352 TP1(POC)68.004 TP267.833 R-1.00 | H1 SL 69.352 -1.00R | H2 SL 69.352 -1.00R
+
+--- 12 WINNER (Kontrollgruppe) ---
+  T 1 P 1 10.08 02:00 SHORT in_bar   E63.966 R+1.29 Alter   9 CD None Bo 2 Kante 63.971 POC 63.658 FRUEH-ALTER-9
+  T 2 P 1 10.08 03:30 LONG  in_bar   E63.252 R+1.69 Alter  15 CD None Bo 2 Kante 63.019 POC 63.638 FRUEH-ALTER-15
+  T 6 P 2 11.08 04:00 SHORT in_bar   E66.294 R+4.59 Alter  43 CD   21 Bo 2 Kante 66.291 POC 65.771 
+  T14 P 5 17.08 18:45 SHORT next_bar E66.248 R+6.71 Alter 156 CD   45 Bo 2 Kante 66.284 POC 65.546 
+  T15 P 5 18.08 02:15 SHORT next_bar E66.268 R+6.60 Alter 182 CD   26 Bo 3 Kante 66.284 POC 65.749 
+  T19 P 7 20.08 02:15 SHORT in_bar   E66.995 R+4.26 Alter  31 CD   14 Bo 2 Kante 67.258 POC 65.852 FRUEH-ALTER-31
+  T20 P 9 21.08 13:30 SHORT in_bar   E69.832 R+3.06 Alter  35 CD None Bo 3 Kante 69.868 POC 68.956 FRUEH-ALTER-35
+  T21 P 9 21.08 18:45 SHORT in_bar   E69.897 R+2.67 Alter  56 CD   21 Bo 4 Kante 69.890 POC 69.439 
+  T23 P 9 24.08 15:00 SHORT next_bar E69.491 R+2.10 Alter 133 CD   77 Bo 6 Kante 69.786 POC 68.941 
+  T24 P 9 24.08 20:15 LONG  in_bar   E68.614 R+2.96 Alter 154 CD   72 Bo 9 Kante 68.602 POC 68.959 
+  T25 P12 26.08 17:00 LONG  in_bar   E67.589 R+1.83 Alter   2 CD None Bo 2 Kante 67.510 POC 67.905 FRUEH-ALTER-2
+  T27 P12 27.08 17:45 SHORT in_bar   E69.430 R+0.86 Alter  97 CD   58 Bo 2 Kante 69.435 POC 68.041 
+
+--- Aggregat: Alter-Verteilung ---
+  LOSER: n=15 Alter min/med/max = 2/33/111 | <40: 11 | >=40: 4
+  WINNER: n=12 Alter min/med/max = 2/56/182 | <40: 5 | >=40: 7

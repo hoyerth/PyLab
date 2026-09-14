@@ -1,0 +1,40 @@
+====================================================================================================================
+INTERMEDIATE-TIMEFRAME AUDIT AUG 2026 (M30 & M10) - SILVER
+Fenster: 2026-08-10 .. 2026-08-28 (Ende exklusiv) | Zeit-konsistente Skalierung (inkl. Cooldown/Pivot, Lektion §8.25)
+====================================================================================================================
+
+EINZELLAEUFE
+--------------------------------------------------------------------------------------------------------------------
+M30-Set : MIN_CANDLES/MIN_PHASE=23, Cooldown=6(3h), Pivot=1(30m), TOL=0.48, TOUCH/DENS=0.21, SHIFT=0.07
+  M30  bars=  644  Ph= 12(hb 4)  Tr= 23  WR= 26.1%  SumR=  +0.91  PF= 1.06  AvgW=+2.86/AvgL=-0.96  TP1=30% TP2=26%  R/Tr=+0.04  
+M10-Set : MIN_CANDLES/MIN_PHASE=69, Cooldown=18(3h), Pivot=3(30m), TOL=0.28, TOUCH/DENS=0.12, SHIFT=0.04
+  M10  bars= 1932  Ph= 16(hb 3)  Tr= 29  WR= 34.5%  SumR=  +9.01  PF= 1.51  AvgW=+2.66/AvgL=-0.93  TP1=41% TP2=31%  R/Tr=+0.31  
+
+5-STUFEN-GESAMTMATRIX AUG 2026 (M5 zeitaquiv. & H1 aus Reports; M15 = Baseline)
+--------------------------------------------------------------------------------------------------------------------
+Metrik                    M5         M10         M15         M30          H1
+--------------------------------------------------------------------------------------------------------------------
+Bars                    3863        1932        1288         644         322
+Phasen (hb)               21          16          12          12           3
+Trades                    23          29          27          23          10
+Win-Rate %             47.83       34.48       44.40       26.09       40.00
+Summe R               +12.62       +9.01      +24.97       +0.91      +14.70
+Profit-Faktor           2.20        1.51        2.83        1.06        3.85
+Avg Win R              +2.10       +2.66       +3.22       +2.86       +4.96
+Avg Loss R             -0.88       -0.93       -0.91       -0.96       -0.86
+Max Streak                 3           7           -           9           -
+R / Trade              +0.55       +0.31       +0.92       +0.04       +1.47
+--------------------------------------------------------------------------------------------------------------------
+
+SWEET-SPOT-BEWERTUNG (AUG 2026, R/Trade)
+--------------------------------------------------------------------------------------------------------------------
+  H1            : R/Trade +1.470
+  M15           : R/Trade +0.925
+  M5 zeitaquiv. : R/Trade +0.550
+  M10           : R/Trade +0.311
+  M30           : R/Trade +0.040
+
+  Hinweis: AUG-H1 (10 Trades) und ggf. M30 sind kleine Stichproben ->
+  R/Trade-Spannweite als Indiz, nicht als belastbare Rangfolge lesen.
+  Belege: tmp_intermediate_tf_report.txt, tmp_h1_aug_sanity_report.txt,
+          tmp_m5_aug_zeit_aequivalent_report.txt

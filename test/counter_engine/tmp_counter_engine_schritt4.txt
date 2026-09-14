@@ -1,0 +1,57 @@
+================================================================================
+SCHRITT 4 - TYP-INTEGRITAET & DATENVERTRAEGE (CounterConfig/CounterSignal)
+Skript: scripts/counter_engine_profil.py | HEAD: 5f6f28d + Schritt 4 (uncommitted)
+Datum: 2026-09-03 | Freigabe: erteilt (Mentor, Schritt 4)
+Artefakte: test/stats_counter_AUG_befalse.txt | test/stats_counter_AUG_betrue.txt
+================================================================================
+
+A) AENDERUNGEN (Diff CounterConfig + CounterSignal)
+----------------------------------------------------
+  A1  CounterConfig (Trade-Management-Gruppe, 1:1-Spiegel der Modul-Konstanten):
+        + use_be: bool = USE_BE  # F6-Default: False = KEIN BE-Nachzug (Runner)
+  A2  CounterSignal (Abrechnungs-Kennzeichen, nach crv2, VOR phase):
+        + use_be: bool = USE_BE         # F2/F6: Abrechnungsvariante des Trades
+                                        # (True = BE-Nachzug, False = Runner)
+  A3  Beide Signal-Konstruktoren (SHORT/LONG in find_counter_signals) setzen
+      jetzt explizit use_be=use_be (die aus der Funktion/CLI stammende
+      Variante wird am Signal festgeschrieben).
+  A4  Doku docs/counter_engine_experiment.md: §3.1 CounterConfig + §3.5
+      CounterSignal + Tracking-Log (Schritt 3 Commit 5f6f28d + Schritt 4).
+
+B) BEGRUENDUNG CounterSignal.use_be (mentorische Punkt-2-Pruefung)
+-------------------------------------------------------------------
+  - Das Trade-Ergebnis (trade.r_mult, grund2 etc.) HAENGT von der
+    BE-Variante ab (F2/F6-A/B). Ein CounterSignal ohne use_be-Feld waere
+    ohne externen Lookup auf die Lauf-Konfiguration nicht eindeutig
+    auswertbar (DataFrame-Spalte fehlt).
+  - use_be wird am Signal festgeschrieben (nicht am TradeResolution), weil
+    es eine EIGENSCHAFT DER ABRECHNUNG ist: Dasselbe Signal existiert in
+    beiden Armen (A/B-Protokoll), die Aufloesung unterscheidet sich.
+  - Klassenebenen-Default USE_BE wird in der Praxis nie wirksam (beide
+    Konstruktoren setzen explizit) - er haelt die Dataclass dennoch
+    konsistent zum Modul-Default (Selbst-Dokumentation, PineScript-Prinzip).
+
+C) CLI-SYNC (Audit-Befund: konsistent)
+---------------------------------------
+  - --be-nachzug=true|false parst VOR den Funktionsdefinitionen
+    (CLI-Loop Z. ~318-347, def find_counter_signals Z. ~905,
+    def _aufloesen_counter Z. ~1055) -> die Default-Argumente
+    "use_be: bool = USE_BE" binden den CLI-UEBERSCHRIEBENEN Wert korrekt.
+  - Konsolen- und Stats-Header drucken die aktive Variante (A/B-Artefakt-
+    Unterscheidung). Kein weiterer Sync-Punkt offen.
+
+D) VERIFIKATION (verhaltensneutral, bitidentisch zu Schritt 3)
+----------------------------------------------------------------
+  py_compile: OK.
+  A/B-Laeufe nach Schritt 4 reproduzieren exakt die Schritt-3-Ergebnisse:
+    BE=false: 8 Signale | +0,31R | PF 1,06 | TP2 2/8 | BE-Exit 0
+    BE=true : 8 Signale | -0,13R | PF 0,97 | TP2 1/8 | BE-Exit 2
+  => Schritt 4 veraendert KEIN Verhalten (nur Datenvertraege + Tracking).
+
+E) NAECHSTER SCHRITT (Audit-Plaene S1/S2)
+------------------------------------------
+  Gesamtlauf-Vorbereitung: 4 Laeufe je Fenster (S1: 2026-02-05..2026-08-28,
+  S2: 2025-01-01..2025-12-01) x {BE=false (F6-Default), BE=true} mit
+  --stats-txt je Arm; Konsolidierung AUG+S1+S2 je Arm -> F2-Entscheidung
+  (Runner-Philosophie vs. BE-Nachzug) auf ~400+ Signale-Basis.
+================================================================================

@@ -1,0 +1,37 @@
+======================================================================================================================
+ORPHANED-TURN-AUDIT (destruktive Streak-Phasen) | SILVER M15 UTC | READ-ONLY
+======================================================================================================================
+True Orphaned Turn = MFE3d >= 2,5% in Streak-Richtung nach Phasenende
+(MFE in Tages-ATR-Einheiten als regime-bereinigte Nebenskala)
+
+Fen  Ph Streak-DirStreak                  L-R | Phasenende      EndClose |  MFE3d% MAE3d%MFE3d/ATR MFE7d% | Einstufung            
+----------------------------------------------------------------------------------------------------------------------
+S2    1 SHORT T1-T5 02.01-03.01     -4.45 | 06.01.2025 06:30    29.541 |   +0.07  +3.19     0.07  +0.07 | JUSTIFIED_TREND_LOSS
+S2    3 LONG  T27-T31 30.01-03.02   -4.47 | 03.02.2025 16:15    31.310 |   +4.04  +0.42     3.89  +4.36 | TRUE_ORPHANED_TURN
+S2    4 LONG  T37-T41 07.02-11.02   -4.15 | 11.02.2025 14:15    31.310 |   +6.29  +0.18     6.02  +6.29 | TRUE_ORPHANED_TURN
+S2    7 SHORT T75-T84 09.04-11.04  -10.00 | 11.04.2025 12:45    31.267 |   +0.02  +5.92     0.01  +0.02 | JUSTIFIED_TREND_LOSS
+S2   13 LONG  T103-T107 14.07-16.07  -5.00 | 17.07.2025 14:45    37.813 |   +4.23  +0.13     4.54  +5.07 | TRUE_ORPHANED_TURN
+S2   19 LONG  T126-T129 25.08-27.08  -3.42 | 27.08.2025 15:30    38.224 |   +6.82  +0.07     7.73  +8.69 | TRUE_ORPHANED_TURN
+S1  102 LONG  T137-T143 26.06-30.06  -6.01 | 30.06.2026 07:30    57.302 |   +9.59  +0.38     3.45 +10.25 | TRUE_ORPHANED_TURN
+
+======================================================================================================================
+AGGREGAT
+======================================================================================================================
+  TRUE_ORPHANED_TURN : 5 Phasen | Verlust-R -23.05R | Markt drehte >= 2,5% in Streak-Richtung innerhalb 3d nach Phasentod
+  JUSTIFIED_TREND_LOSS: 2 Phasen | Verlust-R -14.45R | kein Rücksetzer >= 2,5% (Fades gegen unerbittlichen Trend)
+  Gesamt: -37.50R
+
+  Einordnung: TRUE_ORPHANED_TURN ist die NOTWENDIGE Bedingung fuer ein
+  Sequenzer-Problem (Bewegung fand statt, wurde aber nicht gehandelt). Ob eine
+  neue Phase + Signal sie tatsaechlich gehandelt haette, ist ein Folge-Schritt.
+
+======================================================================================================================
+ROBUSTHEIT: MFE/MAE je Phase bei 1,5% / 2,0% / 2,5% / 3,0% Schwelle (3d)
+======================================================================================================================
+  S2 Ph  1 (SHORT, MFE3d +0.07%, MFE7d +0.07%): 1.5%:- 2.0%:- 2.5%:- 3.0%:- 
+  S2 Ph  3 (LONG, MFE3d +4.04%, MFE7d +4.36%): 1.5%:X 2.0%:X 2.5%:X 3.0%:X 
+  S2 Ph  4 (LONG, MFE3d +6.29%, MFE7d +6.29%): 1.5%:X 2.0%:X 2.5%:X 3.0%:X 
+  S2 Ph  7 (SHORT, MFE3d +0.02%, MFE7d +0.02%): 1.5%:- 2.0%:- 2.5%:- 3.0%:- 
+  S2 Ph 13 (LONG, MFE3d +4.23%, MFE7d +5.07%): 1.5%:X 2.0%:X 2.5%:X 3.0%:X 
+  S2 Ph 19 (LONG, MFE3d +6.82%, MFE7d +8.69%): 1.5%:X 2.0%:X 2.5%:X 3.0%:X 
+  S1 Ph102 (LONG, MFE3d +9.59%, MFE7d +10.25%): 1.5%:X 2.0%:X 2.5%:X 3.0%:X 

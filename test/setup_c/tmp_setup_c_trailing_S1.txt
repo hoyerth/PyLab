@@ -1,0 +1,172 @@
+========================================================================================================================
+SETUP C - SCHRITT 3: TRAILING A/B SIMULATION (tmp_setup_c_trailing.py)
+Fenster: S1 | Symbol: SILVER M15 | Datum: 2026-09-05 | Baseline: docs/setup_c_experiment.md c48c9c7 (F4-F8) + Baseline v0.4.0-frozen
+F9 Stufe>Entry | F10 max(1.5xATR7,0.15) | F11 Initial intrabar / Trailing close | DV1-DV6
+========================================================================================================================
+df-Bars: 13289 | SIGNAL-Signale: CONFIRMED=138 RAW=110 RETEST=59
+
+========================================================================================================================
+LAUF: VAR_A_FIXED (Default)  |  modus=VAR_A_FIXED | trigger=STUFE_UEBER_ENTRY | exit=CLOSE
+  ARM CONFIRMED  (n=138)
+  ----------------------
+  sum r_f4=   -21.39  mean r_f4=  -0.15  median=  -1.00  WR=38.4%  PF=0.72
+  sum r_ref (0.45%-Basis) = -53.95
+  Exit: INITIAL_SL_INTRABAR=75 | TRAILING_SL_CLOSE=63 | TRAILING_SL_INTRABAR=0 | DATEN_ENDE=0
+  Trailing aktiv: 63 (45.7%)  | Stufen-Nachzuege (nur aktiv, mittel)=2.35  | Pivots geprueft gesamt=603  | mittl. Haltedauer=36 Bars
+  ARM RAW  (n=110)
+  ----------------
+  sum r_f4=    40.16  mean r_f4=   0.37  median=  -1.00  WR=42.7%  PF=1.66
+  sum r_ref (0.45%-Basis) = 72.62
+  Exit: INITIAL_SL_INTRABAR=60 | TRAILING_SL_CLOSE=50 | TRAILING_SL_INTRABAR=0 | DATEN_ENDE=0
+  Trailing aktiv: 50 (45.5%)  | Stufen-Nachzuege (nur aktiv, mittel)=2.68  | Pivots geprueft gesamt=392  | mittl. Haltedauer=30 Bars
+  ARM RETEST  (n=59)
+  ------------------
+  sum r_f4=    -9.82  mean r_f4=  -0.17  median=  -1.00  WR=22.0%  PF=0.78
+  sum r_ref (0.45%-Basis) = -24.53
+  Exit: INITIAL_SL_INTRABAR=45 | TRAILING_SL_CLOSE=14 | TRAILING_SL_INTRABAR=0 | DATEN_ENDE=0
+  Trailing aktiv: 14 (23.7%)  | Stufen-Nachzuege (nur aktiv, mittel)=2.07  | Pivots geprueft gesamt=95  | mittl. Haltedauer=15 Bars
+  GESAMT  (n=307) sum r_f4=8.96 mean=0.03 WR=36.8% PF=1.05
+
+========================================================================================================================
+LAUF: VAR_B_ATR mult=1.5 (Default)  |  modus=VAR_B_ATR | trigger=STUFE_UEBER_ENTRY | exit=CLOSE
+  ARM CONFIRMED  (n=138)
+  ----------------------
+  sum r_f4=   -20.51  mean r_f4=  -0.15  median=  -1.00  WR=35.5%  PF=0.75
+  sum r_ref (0.45%-Basis) = -53.77
+  Exit: INITIAL_SL_INTRABAR=83 | TRAILING_SL_CLOSE=55 | TRAILING_SL_INTRABAR=0 | DATEN_ENDE=0
+  Trailing aktiv: 55 (39.9%)  | Stufen-Nachzuege (nur aktiv, mittel)=3.31  | Pivots geprueft gesamt=821  | mittl. Haltedauer=47 Bars
+  ARM RAW  (n=110)
+  ----------------
+  sum r_f4=    55.02  mean r_f4=   0.50  median=  -1.00  WR=37.3%  PF=1.83
+  sum r_ref (0.45%-Basis) = 78.69
+  Exit: INITIAL_SL_INTRABAR=66 | TRAILING_SL_CLOSE=44 | TRAILING_SL_INTRABAR=0 | DATEN_ENDE=0
+  Trailing aktiv: 44 (40.0%)  | Stufen-Nachzuege (nur aktiv, mittel)=3.86  | Pivots geprueft gesamt=581  | mittl. Haltedauer=43 Bars
+  ARM RETEST  (n=59)
+  ------------------
+  sum r_f4=    -4.37  mean r_f4=  -0.07  median=  -1.00  WR=20.3%  PF=0.91
+  sum r_ref (0.45%-Basis) = -14.86
+  Exit: INITIAL_SL_INTRABAR=47 | TRAILING_SL_CLOSE=12 | TRAILING_SL_INTRABAR=0 | DATEN_ENDE=0
+  Trailing aktiv: 12 (20.3%)  | Stufen-Nachzuege (nur aktiv, mittel)=3.50  | Pivots geprueft gesamt=146  | mittl. Haltedauer=21 Bars
+  GESAMT  (n=307) sum r_f4=30.14 mean=0.10 WR=33.2% PF=1.15
+
+========================================================================================================================
+LAUF: SENS: VAR_A Option-A (Stufe>Initial)  |  modus=VAR_A_FIXED | trigger=STUFE_UEBER_INITIAL | exit=CLOSE
+  ARM CONFIRMED  (n=138)
+  ----------------------
+  sum r_f4=   -14.37  mean r_f4=  -0.10  median=  -0.39  WR=33.3%  PF=0.77
+  sum r_ref (0.45%-Basis) = -27.00
+  Exit: INITIAL_SL_INTRABAR=27 | TRAILING_SL_CLOSE=111 | TRAILING_SL_INTRABAR=0 | DATEN_ENDE=0
+  Trailing aktiv: 111 (80.4%)  | Stufen-Nachzuege (nur aktiv, mittel)=2.71  | Pivots geprueft gesamt=441  | mittl. Haltedauer=26 Bars
+  ARM RAW  (n=110)
+  ----------------
+  sum r_f4=    41.92  mean r_f4=   0.38  median=  -0.39  WR=39.1%  PF=1.77
+  sum r_ref (0.45%-Basis) = 70.74
+  Exit: INITIAL_SL_INTRABAR=41 | TRAILING_SL_CLOSE=69 | TRAILING_SL_INTRABAR=0 | DATEN_ENDE=0
+  Trailing aktiv: 69 (62.7%)  | Stufen-Nachzuege (nur aktiv, mittel)=2.87  | Pivots geprueft gesamt=293  | mittl. Haltedauer=23 Bars
+  ARM RETEST  (n=59)
+  ------------------
+  sum r_f4=    -6.91  mean r_f4=  -0.12  median=  -1.00  WR=23.7%  PF=0.84
+  sum r_ref (0.45%-Basis) = -16.60
+  Exit: INITIAL_SL_INTRABAR=35 | TRAILING_SL_CLOSE=24 | TRAILING_SL_INTRABAR=0 | DATEN_ENDE=0
+  Trailing aktiv: 24 (40.7%)  | Stufen-Nachzuege (nur aktiv, mittel)=2.42  | Pivots geprueft gesamt=102  | mittl. Haltedauer=15 Bars
+  GESAMT  (n=307) sum r_f4=20.65 mean=0.07 WR=33.6% PF=1.13
+
+========================================================================================================================
+LAUF: SENS: VAR_A Trailing intrabar  |  modus=VAR_A_FIXED | trigger=STUFE_UEBER_ENTRY | exit=INTRABAR
+  ARM CONFIRMED  (n=138)
+  ----------------------
+  sum r_f4=   -22.59  mean r_f4=  -0.16  median=  -1.00  WR=45.7%  PF=0.70
+  sum r_ref (0.45%-Basis) = -43.15
+  Exit: INITIAL_SL_INTRABAR=75 | TRAILING_SL_CLOSE=0 | TRAILING_SL_INTRABAR=63 | DATEN_ENDE=0
+  Trailing aktiv: 63 (45.7%)  | Stufen-Nachzuege (nur aktiv, mittel)=2.08  | Pivots geprueft gesamt=558  | mittl. Haltedauer=33 Bars
+  ARM RAW  (n=110)
+  ----------------
+  sum r_f4=    28.47  mean r_f4=   0.26  median=  -1.00  WR=45.5%  PF=1.47
+  sum r_ref (0.45%-Basis) = 72.25
+  Exit: INITIAL_SL_INTRABAR=60 | TRAILING_SL_CLOSE=0 | TRAILING_SL_INTRABAR=50 | DATEN_ENDE=0
+  Trailing aktiv: 50 (45.5%)  | Stufen-Nachzuege (nur aktiv, mittel)=2.38  | Pivots geprueft gesamt=341  | mittl. Haltedauer=27 Bars
+  ARM RETEST  (n=59)
+  ------------------
+  sum r_f4=   -18.65  mean r_f4=  -0.32  median=  -1.00  WR=23.7%  PF=0.59
+  sum r_ref (0.45%-Basis) = -23.79
+  Exit: INITIAL_SL_INTRABAR=45 | TRAILING_SL_CLOSE=0 | TRAILING_SL_INTRABAR=14 | DATEN_ENDE=0
+  Trailing aktiv: 14 (23.7%)  | Stufen-Nachzuege (nur aktiv, mittel)=1.79  | Pivots geprueft gesamt=80  | mittl. Haltedauer=13 Bars
+  GESAMT  (n=307) sum r_f4=-12.77 mean=-0.04 WR=41.4% PF=0.93
+
+========================================================================================================================
+LAUF: SENS: VAR_B ATR mult=1.0  |  modus=VAR_B_ATR | trigger=STUFE_UEBER_ENTRY | exit=CLOSE
+  ARM CONFIRMED  (n=138)
+  ----------------------
+  sum r_f4=   -22.71  mean r_f4=  -0.16  median=  -1.00  WR=37.0%  PF=0.73
+  sum r_ref (0.45%-Basis) = -47.91
+  Exit: INITIAL_SL_INTRABAR=82 | TRAILING_SL_CLOSE=56 | TRAILING_SL_INTRABAR=0 | DATEN_ENDE=0
+  Trailing aktiv: 56 (40.6%)  | Stufen-Nachzuege (nur aktiv, mittel)=2.98  | Pivots geprueft gesamt=722  | mittl. Haltedauer=42 Bars
+  ARM RAW  (n=110)
+  ----------------
+  sum r_f4=    50.68  mean r_f4=   0.46  median=  -1.00  WR=39.1%  PF=1.78
+  sum r_ref (0.45%-Basis) = 86.82
+  Exit: INITIAL_SL_INTRABAR=64 | TRAILING_SL_CLOSE=46 | TRAILING_SL_INTRABAR=0 | DATEN_ENDE=0
+  Trailing aktiv: 46 (41.8%)  | Stufen-Nachzuege (nur aktiv, mittel)=3.30  | Pivots geprueft gesamt=498  | mittl. Haltedauer=38 Bars
+  ARM RETEST  (n=59)
+  ------------------
+  sum r_f4=    -7.34  mean r_f4=  -0.12  median=  -1.00  WR=20.3%  PF=0.84
+  sum r_ref (0.45%-Basis) = -18.92
+  Exit: INITIAL_SL_INTRABAR=46 | TRAILING_SL_CLOSE=13 | TRAILING_SL_INTRABAR=0 | DATEN_ENDE=0
+  Trailing aktiv: 13 (22.0%)  | Stufen-Nachzuege (nur aktiv, mittel)=2.85  | Pivots geprueft gesamt=117  | mittl. Haltedauer=18 Bars
+  GESAMT  (n=307) sum r_f4=20.63 mean=0.07 WR=34.5% PF=1.11
+
+========================================================================================================================
+LAUF: SENS: VAR_B ATR mult=2.0  |  modus=VAR_B_ATR | trigger=STUFE_UEBER_ENTRY | exit=CLOSE
+  ARM CONFIRMED  (n=138)
+  ----------------------
+  sum r_f4=   -21.71  mean r_f4=  -0.16  median=  -1.00  WR=32.6%  PF=0.75
+  sum r_ref (0.45%-Basis) = -55.42
+  Exit: INITIAL_SL_INTRABAR=86 | TRAILING_SL_CLOSE=52 | TRAILING_SL_INTRABAR=0 | DATEN_ENDE=0
+  Trailing aktiv: 52 (37.7%)  | Stufen-Nachzuege (nur aktiv, mittel)=3.54  | Pivots geprueft gesamt=959  | mittl. Haltedauer=53 Bars
+  ARM RAW  (n=110)
+  ----------------
+  sum r_f4=    53.71  mean r_f4=   0.49  median=  -1.00  WR=36.4%  PF=1.80
+  sum r_ref (0.45%-Basis) = 79.34
+  Exit: INITIAL_SL_INTRABAR=67 | TRAILING_SL_CLOSE=43 | TRAILING_SL_INTRABAR=0 | DATEN_ENDE=0
+  Trailing aktiv: 43 (39.1%)  | Stufen-Nachzuege (nur aktiv, mittel)=3.84  | Pivots geprueft gesamt=641  | mittl. Haltedauer=47 Bars
+  ARM RETEST  (n=59)
+  ------------------
+  sum r_f4=    -3.49  mean r_f4=  -0.06  median=  -1.00  WR=20.3%  PF=0.93
+  sum r_ref (0.45%-Basis) = -7.33
+  Exit: INITIAL_SL_INTRABAR=47 | TRAILING_SL_CLOSE=12 | TRAILING_SL_INTRABAR=0 | DATEN_ENDE=0
+  Trailing aktiv: 12 (20.3%)  | Stufen-Nachzuege (nur aktiv, mittel)=3.83  | Pivots geprueft gesamt=177  | mittl. Haltedauer=25 Bars
+  GESAMT  (n=307) sum r_f4=28.52 mean=0.09 WR=31.6% PF=1.14
+
+========================================================================================================================
+LAUF: REF: KEIN_TRAILING (nur F4-Stop)  |  modus=KEIN_TRAILING | trigger=STUFE_UEBER_ENTRY | exit=CLOSE
+  ARM CONFIRMED  (n=138)
+  ----------------------
+  sum r_f4=   -44.30  mean r_f4=  -0.32  median=  -1.00  WR=8.7%  PF=0.65
+  sum r_ref (0.45%-Basis) = -137.01
+  Exit: INITIAL_SL_INTRABAR=126 | TRAILING_SL_CLOSE=0 | TRAILING_SL_INTRABAR=0 | DATEN_ENDE=12
+  Trailing aktiv: 0 (0.0%)  | Stufen-Nachzuege (nur aktiv, mittel)=-  | Pivots geprueft gesamt=0  | mittl. Haltedauer=452 Bars
+  ARM RAW  (n=110)
+  ----------------
+  sum r_f4=    23.89  mean r_f4=   0.22  median=  -1.00  WR=6.4%  PF=1.23
+  sum r_ref (0.45%-Basis) = -51.26
+  Exit: INITIAL_SL_INTRABAR=103 | TRAILING_SL_CLOSE=0 | TRAILING_SL_INTRABAR=0 | DATEN_ENDE=7
+  Trailing aktiv: 0 (0.0%)  | Stufen-Nachzuege (nur aktiv, mittel)=-  | Pivots geprueft gesamt=0  | mittl. Haltedauer=453 Bars
+  ARM RETEST  (n=59)
+  ------------------
+  sum r_f4=   -22.67  mean r_f4=  -0.38  median=  -1.00  WR=3.4%  PF=0.60
+  sum r_ref (0.45%-Basis) = -33.07
+  Exit: INITIAL_SL_INTRABAR=57 | TRAILING_SL_CLOSE=0 | TRAILING_SL_INTRABAR=0 | DATEN_ENDE=2
+  Trailing aktiv: 0 (0.0%)  | Stufen-Nachzuege (nur aktiv, mittel)=-  | Pivots geprueft gesamt=0  | mittl. Haltedauer=118 Bars
+  GESAMT  (n=307) sum r_f4=-43.08 mean=-0.14 WR=6.8% PF=0.85
+
+========================================================================================================================
+VERGLEICH  (sum r_f4 je Arm; F4-R-Basis)
+  Lauf                             CONFIRMED       RAW     RETEST   GESAMT
+  VAR_A_FIXED (Default)                -21.39      40.16      -9.82         8.96
+  VAR_B_ATR mult=1.5 (Default)         -20.51      55.02      -4.37        30.14
+  SENS: VAR_A Option-A (Stufe>Initial)     -14.37      41.92      -6.91        20.65
+  SENS: VAR_A Trailing intrabar        -22.59      28.47     -18.65       -12.77
+  SENS: VAR_B ATR mult=1.0             -22.71      50.68      -7.34        20.63
+  SENS: VAR_B ATR mult=2.0             -21.71      53.71      -3.49        28.52
+  REF: KEIN_TRAILING (nur F4-Stop)     -44.30      23.89     -22.67       -43.08
+========================================================================================================================

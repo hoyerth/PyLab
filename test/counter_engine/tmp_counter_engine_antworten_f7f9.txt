@@ -1,0 +1,68 @@
+================================================================================
+INTERVIEW-ANTWORTEN F7-F9 (Validierungsphase S1/S2) - ARRETIERT
+Datum: 2026-09-03 | HEAD: 5fd2eae | Skript: scripts/counter_engine_profil.py
+================================================================================
+
+F7  ABBRUCH-KRITERIUM SETUP A (Akzeptanz als eigenstaendiges System)
+-------------------------------------------------------------------
+  Grundgesamtheit: S1+S2 (arretierte Invariante: AUG (2026-08-10..08-28)
+  ist TEILMENGE von S1 (2026-02-05..08-28) -> AUG zaehlt als isolierter
+  Checkpoint, wird NICHT zur S1+S2-Summe addiert (keine Doppelzaehlung).
+  Zudem: Die AUG-Signale des S1-Laufs koennen von den AUG-isolierten
+  abweichen (Phasen-Segmentierung haengt an der Vorgeschichte ab).
+
+  Akzeptanz-Schwelle (Headline-Arm = F6-Default BE=false, praeregistriert):
+    - PF  >= 1,5  UEBER S1+S2
+    - Summe R >= +50R  UEBER S1+S2
+    - Robustheits-Check: Summe R > 0 in S1 UND S2 JEWEILS EINZELN
+      (kein reines Ein-Fenster-Ergebnis; verhindert S2-"Zerreibungs"-Luege)
+  Statistische Untergrenze: +50R / ~400 Trades = R-Tr +0,125; bei
+  sigma_R ~ 1 -> t ~ 2,5 (p < 0,02). PF 1,5 ist die oekonomische Huerde.
+
+  F2-Entscheidungskriterium (UNABHAENGIG von der Akzeptanz):
+    Delta = SummeR(BE=false) - SummeR(BE=true) ueber S1+S2.
+    - Delta > 0: F2-Hypothese bestaetigt (Runner > Scheinsicherheit).
+    - Delta <= 0: F2 widerlegt -> Ursache GEOMETRISCH dekonstruieren
+      (z. B. Haeufung voller SL nach TP1-Drehern), KEINE Heuristik-
+      Flickerei (Mentor-Regel).
+  Verfehlt der Headline-Arm die Akzeptanz, wird Setup A nicht als
+  eigenstaendiges System weiterverfolgt (Experiment bleibt dokumentiert;
+  erreicht nur BE=true die Schwelle, ist das ein F2-widerlegendes Ergebnis
+  und wird als solches berichtet, nicht schoengeredet).
+
+F8  ARTEFAKT-NAMENSKONVENTION (4 Laeufe)
+-----------------------------------------
+  JA - strikt nach Muster:
+    test/stats_counter_{FENSTER}_{befalse|betrue}.txt
+    FENSTER in {AUG, S1, S2}; befalse = --be-nachzug=false (Default),
+    betrue = --be-nachzug=true (Kontroll-Arm).
+  Die 4 Laeufe erhalten EXPLIZIT --stats-txt mit diesem Muster, damit der
+  AUG-Default (stats_counter_AUG.txt) nie ueberschrieben wird und beide
+  Arme je Fenster getrennt vorliegen (A/B-Protokoll-Pflicht F6).
+  Zusaetzlich: Konsolen-/Stats-Header drucken die BE-Variante (bereits
+  umgesetzt) -> Artefakt ist ohne Kontext-Lookup eindeutig zuordenbar.
+  (Optional spaeter: Default-Pfadlogik automatisch um _befalse/_betrue
+  erweitern, damit auch ein Lauf OHNE --stats-txt nie den anderen Arm
+  ueberschreibt - NICHT Teil der 4 Laeufe, um Scope klein zu halten.)
+
+F9  BEHANDLUNG UNAUFGELOESTER TRADES AM DATENENDE
+---------------------------------------------------
+  JA - Konvention bleibt: Unaufgeloeste Reste (weder TP noch SL erreicht)
+  schliessen am LETZTEN CLOSE des Fensters (grund = "ENDE", r = _r(cl[-1])).
+  Begruendung: Baseline-konform (Setup B / phasen_volumen_profil.py macht
+  exakt dasselbe), konsistent fuer A/B-Vergleich (beide Arme identisch
+  betroffen), kein Lookahead. Bereits in _aufloesen_counter implementiert
+  (else-Zweige aller Haelfte-2-Pfade + Haelfte 1) - KEINE Code-Aenderung.
+
+NAECHSTER SCHRITT (nach Freigabe)
+----------------------------------
+  4 Laeufe mit --stats-txt je Arm:
+    S1-A: --start=2026-02-05 --ende=2026-08-28 --be-nachzug=false
+          -> test/stats_counter_S1_befalse.txt
+    S1-B: dito --be-nachzug=true -> test/stats_counter_S1_betrue.txt
+    S2-A: --start=2025-01-01 --ende=2025-12-01 --be-nachzug=false
+          -> test/stats_counter_S2_befalse.txt
+    S2-B: dito --be-nachzug=true -> test/stats_counter_S2_betrue.txt
+  Danach Konsolidierung S1+S2 je Arm + AUG separat als Checkpoint-Spalte
+  (nicht additiv) + Pruefbericht (F7-Kriterien + F2-Delta).
+================================================================================

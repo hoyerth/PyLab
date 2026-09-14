@@ -1,0 +1,39 @@
+======================================================================================================================
+STUFE-5-OOS: ONE-SHOT-BLINDTEST ZONE Z2024 (2024-01-01 .. 2024-12-31, ende-exklusiv)
+Siegel-Hash S1: e55b72e614adbd7b...
+Siegel-Hash S2: 948a9c217720bafd...
+Zonen-Hash     : 40d916211750e4bb... (nur Doku, kein Soll)
+Freeze-Schwellen: {'ema_slope_min': 0.07, 'ema_slope_max': -0.03, 'adx_schwelle_min': 25.0, 'tol_band_quote_max': 0.6}
+Klassifikation : TREND 21 | SHAKEOUT 20 | UNKLAR 0 (von 41 Phasen)
+Gated: sum_f4=9.05 sum_ref=11.65 (n_gewertet=22, zensiert=0, init=13, zeit=9, hd=52)
+B48  : sum_f4=-2.05 sum_ref=-12.19
+B96  : sum_f4=-2.62 (Sekundaer-Baseline)
+PRIMAER-DELTA (gated - B48): +11.10R
+======================================================================================================================
+
+ABSCHNITTE (chronologisch, UNKLAR eigenstaendig):
+  Regime         Phasen | sum_f4_gated sum_f4_b48    delta | Befund
+  SHAKEOUT      1-2    |         0.00       0.00    +0.00 | OK
+  TREND         3-6    |         0.04       0.00    +0.04 | OK
+  SHAKEOUT      7-7    |         0.00       0.00    +0.00 | OK
+  TREND         8-10   |        -1.39       0.00    -1.39 | VERLETZT (b): delta <= 0
+  SHAKEOUT     11-11   |         0.00       0.00    +0.00 | OK
+  TREND        12-13   |         8.97      -1.00    +9.97 | OK
+  SHAKEOUT     14-18   |        -1.00      -1.00    +0.00 | OK
+  TREND        19-21   |         1.66       0.00    +1.66 | OK
+  SHAKEOUT     22-22   |         0.00       0.00    +0.00 | OK
+  TREND        23-23   |         0.00       0.00    +0.00 | VERLETZT (b): delta <= 0
+  SHAKEOUT     24-24   |         0.00       0.00    +0.00 | OK
+  TREND        25-26   |         2.70       0.00    +2.70 | OK
+  SHAKEOUT     27-27   |         0.00       0.00    +0.00 | OK
+  TREND        28-29   |        -2.00       0.00    -2.00 | VERLETZT (b): delta <= 0
+  SHAKEOUT     30-32   |        -0.05      -0.05    +0.00 | OK
+  TREND        33-33   |         1.11       0.00    +1.11 | OK
+  SHAKEOUT     34-35   |         0.00       0.00    +0.00 | OK
+  TREND        36-37   |        -2.00       0.00    -2.00 | VERLETZT (b): delta <= 0
+  SHAKEOUT     38-39   |         0.00       0.00    +0.00 | OK
+  TREND        40-40   |         1.02       0.00    +1.02 | OK
+  SHAKEOUT     41-41   |         0.00       0.00    +0.00 | OK
+
+GESAMTURTEIL: a=True b=False c=True -> NICHT BESTANDEN
+======================================================================================================================

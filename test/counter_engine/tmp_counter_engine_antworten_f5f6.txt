@@ -1,0 +1,78 @@
+================================================================================
+SETUP A: INTERVIEW-ANTWORTEN (F5/F6) + SCHRITT-1-F1-CHECKPOINT
+Datum: 2026-09-03 | Skript: scripts/counter_engine_profil.py | arretiert
+================================================================================
+
+F5  PREIS-REFERENZ TP1/TP2 BEI KANTE k-1  =>  BINDUNG AN vz_prev (k-1)
+---------------------------------------------------------------------
+    EINE Zonen-Referenz vz_ref = _laufende_zone(df, p, k-1) fuer:
+      - Touch-Test (hi[k] >= vah_prev / lo[k] <= val_prev)
+      - Ziel-Geometrie: tp1 = POC_prev, tp2 = val_prev*(1+puffer) bzw.
+        vah_prev*(1-puffer)
+      - Gueltigkeit entry > POC_prev (SHORT) / entry < POC_prev (LONG)
+      - strukturelle RR: e_preis > tp2_prev (SHORT) / e_preis < tp2_prev
+    Begruendung:
+      - Deterministische RR-Geometrie: Touch, Gueltigkeit und Ziele stammen
+        aus EINEM Snapshot, der VOR der Signal-Bar stand. Der institutionelle
+        Haendler reagiert auf ein STEHENDES Level.
+      - Mischung (Touch k-1 / Ziele k) waere ein Snapshot-Artefakt: Bar k
+        verschiebt POC/VAH/VAL durch ihr eigenes Volumen -> Bar k wuerde
+        sich selbst guenstigere Ziele "belohnen".
+      - Technisch: eine Zonen-Berechnung je Bar statt zwei.
+    Index-Sicherstellung (Schritt 1):
+      - k-1 >= p.i_start Guard (leerer Praefix i_start..k-1 -> skip)
+      - min_zone_candles auf den vz_prev-Praefix: Zone bis k-1 hat
+        k - i_start Bars -> Bedingung: k - p.i_start >= min_zone_candles
+        (Scan startet damit eine Bar spaeter als im Status quo, Z. 926).
+      - range(p.i_start, p.i_ende) exklusiv -> letzter Scan k = i_ende-1,
+        vz_prev endet bei i_ende-2 -> Snapshot strikt INNERHALB der Phase,
+        kein Grenz-Leak. Einstieg open k+1 unveraendert.
+
+F6  DEFAULT --be-nachzug  =>  FALSE (KEIN BE-NACHZUG) fuer den 1. Gesamtlauf
+----------------------------------------------------------------------------
+    REVISION der frueheren Festlegung "Default true = Status quo" (F2) auf
+    Basis der Mentor-Frage. Begruendung:
+      - §8.20-Evidenz & BE-Fingerabdruck: Status quo eliminiert nach TP1 die
+        Runner (AUG: 5/6 TP1-Hits bei BE gestoppt, nur 1/9 TP2). Der BE-Stop
+        kauft Scheinsicherheit mit dem mathematischen Edge des Laufenlassens.
+      - Baseline-Invariante: Setup B (+297,14R) laesst Runner laufen
+        (Topf-B-Oekonomie, 92 % Alpha bis TP2). Ein fairer Vergleich
+        Setup A vs. Setup B verlangt dieselbe Runner-Philosophie im
+        Setup-A-Headline-Lauf.
+      - Praeregistrierung: Default wird VOR dem ersten Gesamtlauf gewaehlt
+        (kein Cherry-Picking nach Ergebnissen).
+    PROTOKOLL-PFLICHT (unabdingbar):
+      - Jeder Report weist BEIDE Varianten aus: --be-nachzug false (Default)
+        UND --be-nachzug true (Kontrolle/Status quo).
+      - Das Delta (R_false - R_true) = monetarer Preis des BE-Nachzugs.
+      - Stats-Output druckt die aktive Variante.
+      - Umstellung betrifft NUR das neue autarke Modul; die eingefrorene
+        Baseline scripts/phasen_volumen_profil.py bleibt unberuehrt.
+      - Umsetzung in Schritt 3 (use_be: bool, CLI --be-nachzug).
+
+SCHRITT-1-CHECKPOINT (F1 vz_prev umgesetzt, AUG 2026, SILVER M15)
+-----------------------------------------------------------------
+  Implementiert in find_counter_signals (Z. ~929-941): Guards k-1>=i_start,
+  min_zone_candles auf vz_prev-Praefix, vz = _laufende_zone(df, p, k-1).
+  Touch UND Geometrie aus demselben Snapshot (F5). F3/F2 noch NICHT umgesetzt
+  (Schritte 2/3 folgen nach Freigabe).
+  py_compile: OK. Checkpoint-Lauf (Lese-Replay, DuckDB read-only) Exit 0:
+
+    Status quo (Zone inkl. k, BE true):  9 Signale | +4,69R | 6W/3L
+                                         | PF 2,56 | TP1 6/9 | TP2 1/9 | BE 5
+    F1-Zwischenstand (vz_prev, BE true): 8 Signale | -0,13R | 3W/5L
+                                         | PF 0,97 | TP1 3/8 | TP2 1/8 | BE 2
+
+  EINORDNUNG (kein Urteil, Zwischenstand):
+    - n=8 im Einzelfenster AUG ist Rauschen; das Urteil faellt der
+      Gesamtlauf (AUG+S1+S2) NACH Schritt 2+3 mit beiden BE-Varianten.
+    - F1 veraendert das Touch-Regime strukturell: fruehere/andere Touch-
+      Erkennung (stehende Kante), Absorptionszaehler (MAX_TOUCH_COUNT)
+      und CANDLE_REJECTION filtern nun gegen den Stand k-1; Geometrie
+      (POC/TP2) ist eine Bar aelter eingefroren.
+    - Auffaellig (zu pruefen im Gesamtlauf): F1 isoliert dreht AUG von
+      +4,69R auf -0,13R bei 3 statt 6 TP1-Hits. Moegliche Wirkkette:
+      stehende (tiefere) Kante -> mehr/konsistentere Touches -> Absorptions-
+      und Rejection-Filter greifen haerter; aeltere POC-Referenz verschiebt
+      die TP1-Erreichbarkeit. Schritt-2/3-Zerlegung muss das attribuieren.
+================================================================================

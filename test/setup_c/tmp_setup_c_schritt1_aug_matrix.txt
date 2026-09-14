@@ -1,0 +1,38 @@
+SETUP C - TEILSCHRITT 1.1: AUG-BENCHMARK-MATRIX (11 ABBRUECHE)
+=============================================================
+Quelle: docs/makro_swings_experiment.md §4.2 (Z. 141-154), statische
+1:1-Uebertragung - kein Code-Lauf, keine DuckDB.
+Trace-Kontext: test/tmp_makro_swings_trace.py (DuckDB read_only),
+Fenster 2026-08-10 00:00 -> 2026-08-28 (1288 M15-Candles, 344 Pivots).
+Segmentierung: 12 Phasen, 11 Abbrueche; Phase 12 endet am Datenende
+(kein Break -> F3-Ausschluss). Phasen-Ende = letzter Touch der Gegenseite
+(TOL_TOUCH=0.15); Abbruch-Bar j = erste Bar des 2-Close-Bruchs.
+Overshoot = |close - ref| - TOL (positiv = ueber Bruch-Schwelle).
+j ist fensterrelativer Bar-Index (0-basiert ab 10.08 00:00).
+
+| Phase | Start (ts)   | Ende (Touch) | j     | Abbruch-Zeit | Dir  | ref     | close[j] | close[j+1] | OS[j]  | OS[j+1] | R1-Bezug         |
+|-------|--------------|--------------|-------|--------------|------|---------|----------|------------|--------|---------|------------------|
+| 1     | 10.08 00:00  | 10.08 15:45  | 66    | 10.08 16:30  | up   | 64.325  | 64.693   | 64.722     | +0.028 | +0.057  | -- (vor R1)      |
+| 2     | 10.08 16:30  | 11.08 05:30  | 121   | 11.08 07:15  | down | 65.567  | 65.038   | 64.704     | +0.189 | +0.523  | R1-Start ueberdeckt |
+| 3     | 11.08 07:15  | 11.08 21:15  | 218   | 12.08 08:30  | up   | 65.198  | 65.725   | 65.903     | +0.187 | +0.365  | in R1            |
+| 4     | 12.08 08:30  | 12.08 14:30  | 380   | 14.08 03:00  | down | 64.336  | 63.926   | 63.967     | +0.070 | +0.029  | in R1            |
+| 5     | 14.08 03:00  | 18.08 03:15  | 620   | 18.08 17:00  | down | 64.198  | 63.789   | 63.649     | +0.069 | +0.209  | in R1            |
+| 6     | 18.08 17:00  | 19.08 07:15  | 715   | 19.08 17:45  | up   | 65.490  | 65.877   | 65.929     | +0.047 | +0.099  | -- (R1-Ende)     |
+| 7     | 19.08 17:45  | 20.08 14:00  | 802   | 20.08 16:30  | up   | 67.201  | 67.706   | 68.371     | +0.165 | +0.830  | --               |
+| 8     | 20.08 16:30  | 21.08 03:00  | 848   | 21.08 05:00  | up   | 68.320  | 68.846   | 68.711     | +0.186 | +0.051  | --               |
+| 9     | 21.08 05:00  | 25.08 02:00  | 1030  | 25.08 04:30  | down | 68.370  | 67.653   | 67.743     | +0.377 | +0.287  | -- (R3)          |
+| 10    | 25.08 04:30  | 25.08 15:45  | 1082  | 25.08 17:30  | up   | 68.220  | 68.836   | 68.813     | +0.276 | +0.253  | --               |
+| 11    | 25.08 17:30  | 26.08 07:30  | 1171  | 26.08 16:45  | down | 68.495  | 67.877   | 67.598     | +0.278 | +0.557  | --               |
+| 12    | 26.08 16:45  | 27.08 22:45  | --    | --           | kein Break | -- | -- | -- | -- | -- | Datenende (F3-Ausschluss) |
+
+KERNABLEITUNGEN FUER SETUP C (Bruch-Engine-Referenz):
+1. N=11 auswertbare Bruch-Phasen (F3: Phase 12 exkludiert).
+2. Dir-Verteilung: up 6x (P1,P3,P6,P7,P8,P10), down 5x (P2,P4,P5,P9,P11).
+3. Overshoot[j] (erste Bruch-Close): +0.028 .. +0.377 -> Spanne 0.35 USD.
+   Overshoot[j+1] (Bestaetigung): +0.029 .. +0.830 -> Spanne 0.80 USD.
+   Median-Orientierung: j ~ +0.18, j+1 ~ +0.25 (grob, n=11).
+4. ref-Spanne: 64.198 .. 68.495 (lokale Kanten, NICHT Makro-Kante 66.45).
+5. F1/F2-Messanker: open[brk_idx+2] = open[j+2] (strikt kausal nach
+   CONFIRMED-2-Close bei close[j+1]); MFE/MAE-Fenster 12/24/48 ab dort.
+   j-Spalten hier nur Benchmark; Bar-Daten selbst folgen in Teilschritt 1.2/1.3
+   (DuckDB read_only nach Freigabe).

@@ -1,0 +1,278 @@
+========================================================================================================================
+SETUP C - SCHRITT 4a: ZEIT-EXIT-MATRIX (tmp_setup_c_zeitexit.py)
+Fenster: S1 | Symbol: SILVER M15 | Datum: 2026-09-05 | Baseline: docs/setup_c_experiment.md c48c9c7 (F4-F8) + Baseline v0.4.0-frozen
+E1 Horizonte 24/48/96 (Close e+N) | E2 RECHTS_ZENSIERT isoliert | E3 RAW-Cluster A<=1/B>1 | E5 F4 intrabar / VAR_A close / Zeit-Exit close
+========================================================================================================================
+df-Bars: 13289 | SIGNAL-Signale: CONFIRMED=138 RAW=110 (CLUSTER_A=35, CLUSTER_B=75) RETEST=59
+
+========================================================================================================================
+HORIZONT N = 24  (24 M15-Bars; Exit am Close der Bar entry+24)
+
+========================================================================================================================
+  LAUF: modus=KEIN_TRAILING  |  F4 intrabar | ZEIT_EXIT close | kein Trailing
+    CONFIRMED  (n=138, zensiert=0, gewertet=138)
+  ----------------------------------------------
+  sum r_f4=    -9.30  mean r_f4=  -0.07  median=  -0.21  WR=41.3%  PF=0.85
+  sum r_ref (0.45%-Basis) = 24.27
+  Exit: INITIAL_SL_INTRABAR=52 | TRAILING_SL_CLOSE=0 | ZEIT_EXIT_CLOSE=86 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 19 Bars
+    RAW-CLUSTER-A  (n=35, zensiert=0, gewertet=35)
+  ------------------------------------------------
+  sum r_f4=    16.09  mean r_f4=   0.46  median=   0.15  WR=54.3%  PF=2.37
+  sum r_ref (0.45%-Basis) = 52.84
+  Exit: INITIAL_SL_INTRABAR=9 | TRAILING_SL_CLOSE=0 | ZEIT_EXIT_CLOSE=26 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 21 Bars
+    RAW-CLUSTER-B  (n=75, zensiert=0, gewertet=75)
+  ------------------------------------------------
+  sum r_f4=    12.45  mean r_f4=   0.17  median=  -1.00  WR=33.3%  PF=1.27
+  sum r_ref (0.45%-Basis) = 13.65
+  Exit: INITIAL_SL_INTRABAR=43 | TRAILING_SL_CLOSE=0 | ZEIT_EXIT_CLOSE=32 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 13 Bars
+    RAW-GESAMT  (n=110, zensiert=0, gewertet=110)
+  -----------------------------------------------
+  sum r_f4=    28.53  mean r_f4=   0.26  median=  -0.55  WR=40.0%  PF=1.50
+  sum r_ref (0.45%-Basis) = 66.49
+  Exit: INITIAL_SL_INTRABAR=52 | TRAILING_SL_CLOSE=0 | ZEIT_EXIT_CLOSE=58 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 16 Bars
+    RETEST  (n=59, zensiert=0, gewertet=59)
+  -----------------------------------------
+  sum r_f4=   -16.61  mean r_f4=  -0.28  median=  -1.00  WR=23.7%  PF=0.62
+  sum r_ref (0.45%-Basis) = -21.75
+  Exit: INITIAL_SL_INTRABAR=43 | TRAILING_SL_CLOSE=0 | ZEIT_EXIT_CLOSE=16 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 11 Bars
+    GESAMT  (n=307, zensiert=0, gewertet=307)
+  -------------------------------------------
+  sum r_f4=     2.62  mean r_f4=   0.01  median=  -0.55  WR=37.5%  PF=1.02
+  sum r_ref (0.45%-Basis) = 69.01
+  Exit: INITIAL_SL_INTRABAR=147 | TRAILING_SL_CLOSE=0 | ZEIT_EXIT_CLOSE=160 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 16 Bars
+
+========================================================================================================================
+  LAUF: modus=VAR_A_FIXED  |  F4 intrabar | ZEIT_EXIT close | VAR_A close (0.15 USD)
+    CONFIRMED  (n=138, zensiert=0, gewertet=138)
+  ----------------------------------------------
+  sum r_f4=   -10.40  mean r_f4=  -0.08  median=  -0.21  WR=41.3%  PF=0.83
+  sum r_ref (0.45%-Basis) = 19.34
+  Exit: INITIAL_SL_INTRABAR=52 | TRAILING_SL_CLOSE=9 | ZEIT_EXIT_CLOSE=77 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 18 Bars
+    RAW-CLUSTER-A  (n=35, zensiert=0, gewertet=35)
+  ------------------------------------------------
+  sum r_f4=    16.47  mean r_f4=   0.47  median=   0.15  WR=54.3%  PF=2.41
+  sum r_ref (0.45%-Basis) = 52.14
+  Exit: INITIAL_SL_INTRABAR=9 | TRAILING_SL_CLOSE=3 | ZEIT_EXIT_CLOSE=23 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 20 Bars
+    RAW-CLUSTER-B  (n=75, zensiert=0, gewertet=75)
+  ------------------------------------------------
+  sum r_f4=    12.64  mean r_f4=   0.17  median=  -1.00  WR=37.3%  PF=1.29
+  sum r_ref (0.45%-Basis) = 11.67
+  Exit: INITIAL_SL_INTRABAR=42 | TRAILING_SL_CLOSE=8 | ZEIT_EXIT_CLOSE=25 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 13 Bars
+    RAW-GESAMT  (n=110, zensiert=0, gewertet=110)
+  -----------------------------------------------
+  sum r_f4=    29.11  mean r_f4=   0.26  median=  -0.49  WR=42.7%  PF=1.53
+  sum r_ref (0.45%-Basis) = 63.81
+  Exit: INITIAL_SL_INTRABAR=51 | TRAILING_SL_CLOSE=11 | ZEIT_EXIT_CLOSE=48 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 15 Bars
+    RETEST  (n=59, zensiert=0, gewertet=59)
+  -----------------------------------------
+  sum r_f4=   -18.03  mean r_f4=  -0.31  median=  -1.00  WR=23.7%  PF=0.58
+  sum r_ref (0.45%-Basis) = -25.47
+  Exit: INITIAL_SL_INTRABAR=42 | TRAILING_SL_CLOSE=5 | ZEIT_EXIT_CLOSE=12 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 11 Bars
+    GESAMT  (n=307, zensiert=0, gewertet=307)
+  -------------------------------------------
+  sum r_f4=     0.69  mean r_f4=   0.00  median=  -0.50  WR=38.4%  PF=1.00
+  sum r_ref (0.45%-Basis) = 57.68
+  Exit: INITIAL_SL_INTRABAR=145 | TRAILING_SL_CLOSE=25 | ZEIT_EXIT_CLOSE=137 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 16 Bars
+
+========================================================================================================================
+HORIZONT N = 48  (48 M15-Bars; Exit am Close der Bar entry+48)
+
+========================================================================================================================
+  LAUF: modus=KEIN_TRAILING  |  F4 intrabar | ZEIT_EXIT close | kein Trailing
+    CONFIRMED  (n=138, zensiert=0, gewertet=138)
+  ----------------------------------------------
+  sum r_f4=    -8.56  mean r_f4=  -0.06  median=  -1.00  WR=35.5%  PF=0.89
+  sum r_ref (0.45%-Basis) = 0.50
+  Exit: INITIAL_SL_INTRABAR=71 | TRAILING_SL_CLOSE=0 | ZEIT_EXIT_CLOSE=67 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 32 Bars
+    RAW-CLUSTER-A  (n=35, zensiert=0, gewertet=35)
+  ------------------------------------------------
+  sum r_f4=    20.85  mean r_f4=   0.60  median=   0.21  WR=51.4%  PF=2.42
+  sum r_ref (0.45%-Basis) = 72.88
+  Exit: INITIAL_SL_INTRABAR=13 | TRAILING_SL_CLOSE=0 | ZEIT_EXIT_CLOSE=22 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 37 Bars
+    RAW-CLUSTER-B  (n=75, zensiert=0, gewertet=75)
+  ------------------------------------------------
+  sum r_f4=    31.78  mean r_f4=   0.42  median=  -1.00  WR=28.0%  PF=1.62
+  sum r_ref (0.45%-Basis) = 42.10
+  Exit: INITIAL_SL_INTRABAR=50 | TRAILING_SL_CLOSE=0 | ZEIT_EXIT_CLOSE=25 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 23 Bars
+    RAW-GESAMT  (n=110, zensiert=0, gewertet=110)
+  -----------------------------------------------
+  sum r_f4=    52.63  mean r_f4=   0.48  median=  -1.00  WR=35.5%  PF=1.80
+  sum r_ref (0.45%-Basis) = 114.98
+  Exit: INITIAL_SL_INTRABAR=63 | TRAILING_SL_CLOSE=0 | ZEIT_EXIT_CLOSE=47 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 27 Bars
+    RETEST  (n=59, zensiert=0, gewertet=59)
+  -----------------------------------------
+  sum r_f4=     5.18  mean r_f4=   0.09  median=  -1.00  WR=18.6%  PF=1.11
+  sum r_ref (0.45%-Basis) = -2.61
+  Exit: INITIAL_SL_INTRABAR=46 | TRAILING_SL_CLOSE=0 | ZEIT_EXIT_CLOSE=13 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 17 Bars
+    GESAMT  (n=307, zensiert=0, gewertet=307)
+  -------------------------------------------
+  sum r_f4=    49.25  mean r_f4=   0.16  median=  -1.00  WR=32.2%  PF=1.26
+  sum r_ref (0.45%-Basis) = 112.88
+  Exit: INITIAL_SL_INTRABAR=180 | TRAILING_SL_CLOSE=0 | ZEIT_EXIT_CLOSE=127 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 27 Bars
+
+========================================================================================================================
+  LAUF: modus=VAR_A_FIXED  |  F4 intrabar | ZEIT_EXIT close | VAR_A close (0.15 USD)
+    CONFIRMED  (n=138, zensiert=0, gewertet=138)
+  ----------------------------------------------
+  sum r_f4=   -18.20  mean r_f4=  -0.13  median=  -0.38  WR=37.7%  PF=0.74
+  sum r_ref (0.45%-Basis) = -35.95
+  Exit: INITIAL_SL_INTRABAR=65 | TRAILING_SL_CLOSE=37 | ZEIT_EXIT_CLOSE=36 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 28 Bars
+    RAW-CLUSTER-A  (n=35, zensiert=0, gewertet=35)
+  ------------------------------------------------
+  sum r_f4=    18.45  mean r_f4=   0.53  median=   0.41  WR=60.0%  PF=2.46
+  sum r_ref (0.45%-Basis) = 55.77
+  Exit: INITIAL_SL_INTRABAR=12 | TRAILING_SL_CLOSE=12 | ZEIT_EXIT_CLOSE=11 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 30 Bars
+    RAW-CLUSTER-B  (n=75, zensiert=0, gewertet=75)
+  ------------------------------------------------
+  sum r_f4=    26.34  mean r_f4=   0.35  median=  -1.00  WR=33.3%  PF=1.57
+  sum r_ref (0.45%-Basis) = 37.79
+  Exit: INITIAL_SL_INTRABAR=44 | TRAILING_SL_CLOSE=15 | ZEIT_EXIT_CLOSE=16 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 19 Bars
+    RAW-GESAMT  (n=110, zensiert=0, gewertet=110)
+  -----------------------------------------------
+  sum r_f4=    44.79  mean r_f4=   0.41  median=  -1.00  WR=41.8%  PF=1.76
+  sum r_ref (0.45%-Basis) = 93.56
+  Exit: INITIAL_SL_INTRABAR=56 | TRAILING_SL_CLOSE=27 | ZEIT_EXIT_CLOSE=27 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 23 Bars
+    RETEST  (n=59, zensiert=0, gewertet=59)
+  -----------------------------------------
+  sum r_f4=    -4.66  mean r_f4=  -0.08  median=  -1.00  WR=22.0%  PF=0.90
+  sum r_ref (0.45%-Basis) = -19.47
+  Exit: INITIAL_SL_INTRABAR=44 | TRAILING_SL_CLOSE=10 | ZEIT_EXIT_CLOSE=5 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 14 Bars
+    GESAMT  (n=307, zensiert=0, gewertet=307)
+  -------------------------------------------
+  sum r_f4=    21.92  mean r_f4=   0.07  median=  -1.00  WR=36.2%  PF=1.13
+  sum r_ref (0.45%-Basis) = 38.14
+  Exit: INITIAL_SL_INTRABAR=165 | TRAILING_SL_CLOSE=74 | ZEIT_EXIT_CLOSE=68 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 23 Bars
+
+========================================================================================================================
+HORIZONT N = 96  (96 M15-Bars; Exit am Close der Bar entry+96)
+
+========================================================================================================================
+  LAUF: modus=KEIN_TRAILING  |  F4 intrabar | ZEIT_EXIT close | kein Trailing
+    CONFIRMED  (n=138, zensiert=0, gewertet=138)
+  ----------------------------------------------
+  sum r_f4=    -7.32  mean r_f4=  -0.05  median=  -1.00  WR=29.7%  PF=0.92
+  sum r_ref (0.45%-Basis) = -36.47
+  Exit: INITIAL_SL_INTRABAR=91 | TRAILING_SL_CLOSE=0 | ZEIT_EXIT_CLOSE=47 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 52 Bars
+    RAW-CLUSTER-A  (n=35, zensiert=0, gewertet=35)
+  ------------------------------------------------
+  sum r_f4=    18.11  mean r_f4=   0.52  median=  -0.31  WR=40.0%  PF=2.03
+  sum r_ref (0.45%-Basis) = 40.99
+  Exit: INITIAL_SL_INTRABAR=17 | TRAILING_SL_CLOSE=0 | ZEIT_EXIT_CLOSE=18 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 64 Bars
+    RAW-CLUSTER-B  (n=75, zensiert=0, gewertet=75)
+  ------------------------------------------------
+  sum r_f4=    36.02  mean r_f4=   0.48  median=  -1.00  WR=21.3%  PF=1.63
+  sum r_ref (0.45%-Basis) = 34.69
+  Exit: INITIAL_SL_INTRABAR=57 | TRAILING_SL_CLOSE=0 | ZEIT_EXIT_CLOSE=18 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 36 Bars
+    RAW-GESAMT  (n=110, zensiert=0, gewertet=110)
+  -----------------------------------------------
+  sum r_f4=    54.12  mean r_f4=   0.49  median=  -1.00  WR=27.3%  PF=1.72
+  sum r_ref (0.45%-Basis) = 75.68
+  Exit: INITIAL_SL_INTRABAR=74 | TRAILING_SL_CLOSE=0 | ZEIT_EXIT_CLOSE=36 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 44 Bars
+    RETEST  (n=59, zensiert=0, gewertet=59)
+  -----------------------------------------
+  sum r_f4=    -0.47  mean r_f4=  -0.01  median=  -1.00  WR=13.6%  PF=0.99
+  sum r_ref (0.45%-Basis) = 0.35
+  Exit: INITIAL_SL_INTRABAR=51 | TRAILING_SL_CLOSE=0 | ZEIT_EXIT_CLOSE=8 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 25 Bars
+    GESAMT  (n=307, zensiert=0, gewertet=307)
+  -------------------------------------------
+  sum r_f4=    46.33  mean r_f4=   0.15  median=  -1.00  WR=25.7%  PF=1.21
+  sum r_ref (0.45%-Basis) = 39.55
+  Exit: INITIAL_SL_INTRABAR=216 | TRAILING_SL_CLOSE=0 | ZEIT_EXIT_CLOSE=91 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 44 Bars
+
+========================================================================================================================
+  LAUF: modus=VAR_A_FIXED  |  F4 intrabar | ZEIT_EXIT close | VAR_A close (0.15 USD)
+    CONFIRMED  (n=138, zensiert=0, gewertet=138)
+  ----------------------------------------------
+  sum r_f4=   -21.19  mean r_f4=  -0.15  median=  -1.00  WR=38.4%  PF=0.72
+  sum r_ref (0.45%-Basis) = -50.17
+  Exit: INITIAL_SL_INTRABAR=73 | TRAILING_SL_CLOSE=59 | ZEIT_EXIT_CLOSE=6 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 34 Bars
+    RAW-CLUSTER-A  (n=35, zensiert=0, gewertet=35)
+  ------------------------------------------------
+  sum r_f4=    18.11  mean r_f4=   0.52  median=   0.41  WR=60.0%  PF=2.39
+  sum r_ref (0.45%-Basis) = 45.89
+  Exit: INITIAL_SL_INTRABAR=13 | TRAILING_SL_CLOSE=21 | ZEIT_EXIT_CLOSE=1 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 37 Bars
+    RAW-CLUSTER-B  (n=75, zensiert=0, gewertet=75)
+  ------------------------------------------------
+  sum r_f4=    21.25  mean r_f4=   0.28  median=  -1.00  WR=33.3%  PF=1.46
+  sum r_ref (0.45%-Basis) = 19.72
+  Exit: INITIAL_SL_INTRABAR=46 | TRAILING_SL_CLOSE=27 | ZEIT_EXIT_CLOSE=2 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 24 Bars
+    RAW-GESAMT  (n=110, zensiert=0, gewertet=110)
+  -----------------------------------------------
+  sum r_f4=    39.36  mean r_f4=   0.36  median=  -1.00  WR=41.8%  PF=1.66
+  sum r_ref (0.45%-Basis) = 65.62
+  Exit: INITIAL_SL_INTRABAR=59 | TRAILING_SL_CLOSE=48 | ZEIT_EXIT_CLOSE=3 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 28 Bars
+    RETEST  (n=59, zensiert=0, gewertet=59)
+  -----------------------------------------
+  sum r_f4=    -9.82  mean r_f4=  -0.17  median=  -1.00  WR=22.0%  PF=0.78
+  sum r_ref (0.45%-Basis) = -24.53
+  Exit: INITIAL_SL_INTRABAR=45 | TRAILING_SL_CLOSE=14 | ZEIT_EXIT_CLOSE=0 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 15 Bars
+    GESAMT  (n=307, zensiert=0, gewertet=307)
+  -------------------------------------------
+  sum r_f4=     8.35  mean r_f4=   0.03  median=  -1.00  WR=36.5%  PF=1.05
+  sum r_ref (0.45%-Basis) = -9.08
+  Exit: INITIAL_SL_INTRABAR=177 | TRAILING_SL_CLOSE=121 | ZEIT_EXIT_CLOSE=9 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 28 Bars
+
+========================================================================================================================
+VERGLEICH je Horizont  (sum r_f4 je Gruppe; zensiert in Klammern)
+
+  N = 24:
+    Lauf                CONFIRMED        RAW_A        RAW_B       RETEST           GESAMT
+    KEIN_TRAILING       -9.30 (0)       16.09 (0)       12.45 (0)      -16.61 (0)        2.62 (0)
+    VAR_A_FIXED        -10.40 (0)       16.47 (0)       12.64 (0)      -18.03 (0)        0.69 (0)
+
+  N = 48:
+    Lauf                CONFIRMED        RAW_A        RAW_B       RETEST           GESAMT
+    KEIN_TRAILING       -8.56 (0)       20.85 (0)       31.78 (0)        5.18 (0)       49.25 (0)
+    VAR_A_FIXED        -18.20 (0)       18.45 (0)       26.34 (0)       -4.66 (0)       21.92 (0)
+
+  N = 96:
+    Lauf                CONFIRMED        RAW_A        RAW_B       RETEST           GESAMT
+    KEIN_TRAILING       -7.32 (0)       18.11 (0)       36.02 (0)       -0.47 (0)       46.33 (0)
+    VAR_A_FIXED        -21.19 (0)       18.11 (0)       21.25 (0)       -9.82 (0)        8.35 (0)
+========================================================================================================================
+========================================================================================================================
+GESAMT-UEBERSICHT  (sum r_f4; n_zensiert/n_gewertet)
+    N   Lauf                CONFIRMED        RAW_A        RAW_B       RETEST           GESAMT
+    24  KEIN_TRAILING   -9.30 (0/138)    16.09 (0/35)    12.45 (0/75)   -16.61 (0/59)    2.62 (0/307)
+    24  VAR_A_FIXED    -10.40 (0/138)    16.47 (0/35)    12.64 (0/75)   -18.03 (0/59)    0.69 (0/307)
+    48  KEIN_TRAILING   -8.56 (0/138)    20.85 (0/35)    31.78 (0/75)     5.18 (0/59)   49.25 (0/307)
+    48  VAR_A_FIXED    -18.20 (0/138)    18.45 (0/35)    26.34 (0/75)    -4.66 (0/59)   21.92 (0/307)
+    96  KEIN_TRAILING   -7.32 (0/138)    18.11 (0/35)    36.02 (0/75)    -0.47 (0/59)   46.33 (0/307)
+    96  VAR_A_FIXED    -21.19 (0/138)    18.11 (0/35)    21.25 (0/75)    -9.82 (0/59)    8.35 (0/307)
+========================================================================================================================

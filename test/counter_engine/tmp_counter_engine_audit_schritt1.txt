@@ -1,0 +1,97 @@
+================================================================================
+SCHRITT 1 - STATISCHE AUDITIERUNG find_counter_signals (Z. 884-1004)
+Skript: scripts/counter_engine_profil.py | HEAD: 61cd472 | Datum: 2026-09-03
+Art: rein lesende Code-Inspektion (kein Test/Compiler ausgefuehrt)
+================================================================================
+
+A) KAUSALITAET / LOOKAHEAD - BEFUND: SAUBER
+--------------------------------------------
+  A1  Zone kausal: _laufende_zone(df,p,k) -> compute_volume_zone(df.iloc[p.i_start:k+1])
+      (Z. 646, 928-931): nur Phasen-Praefix i_start..k. Die finale Phasen-Huelle
+      (p.vol_zone / p.POC / p.U_zone) wird in der Schleife NIRGENDS gelesen.
+  A2  Einstieg: op[k+1] (Z. 950, 981) = erste handelbare Bar nach Signal-Bar k.
+      Entscheidung nutzt nur high/low/close <= k. Kein Zukunftszugriff.
+  A3  df.iloc positional == idx-Spalte (idx = arange, df wird nie reindiziert)
+      -> iloc-Slicing i_start..k ist positionskonsistent.
+
+B) F1-BEZUG (Kanten-Drift) - MENTOR-KRITIK (3) IM CODE BESTAETIGT
+-----------------------------------------------------------------
+  B1  Z. 928-936: Zone wird INKL. Bar k berechnet (Praefix endet bei k),
+      Touch-Test hi[k] >= vah bzw. lo[k] <= val laeuft gegen eine Kante, die
+      Bar k selbst durch ihr Volumen mitverschoben hat -> "Kante flieht vor
+      eigenem Touch". Entscheid F1=A (Touch gegen Kante der Vor-Bar, vz_prev)
+      ist hier NOCH NICHT umgesetzt -> Implementierungs-Punkt.
+  B2  Zusaetzlich stammen POC/TP1/TP2/entry>poc (Z. 952-955, 982-985) aus
+      derselben inklusiven Zone. Umsetzungs-Empfehlung zu F1=A (ohne neue
+      Auswahlfrage, da arretiert):
+        EINE Zonen-Referenz vz_ref = Zone bis k-1 fuer Touch UND Geometrie
+        (deterministisches Snapshot VOR Bar k; Zaehler und TP-Level gehoeren
+        zu einer stabilen Zone). Mischung "Touch k-1-Kante / TP aus k-Zone"
+        waere inkonsistent und wird nicht empfohlen.
+  B3  Einmal beruehrt = verbraucht: Zaehler inkrementiert pro Bar max. 1x
+      (Z. 938-941) - monoton. Kein Re-Touch in derselben Bar. OK.
+
+C) F3-BEZUG (Outside-Bar) - MENTOR-KRITIK (Doppelzaehlung) IM CODE BESTAETIGT
+-----------------------------------------------------------------------------
+  C1  KEIN continue/Skip bei hi[k]>=vah && lo[k]<=val: SHORT-Block (Z. 944-971)
+      und LONG-Block (Z. 973-1000) feuern UNABHAENGIG. Bei einer Outside-Bar
+      koennen im selben Bar k zwei gegenlaeufige Trades entstehen (beide Entry
+      open k+1) -> Hedge-Artefakt (strukturell einer +, einer -).
+  C2  Dieselbe Bar inkrementiert beide Zaehler (Z. 938-941) -> Doppelzaehlung.
+  C3  Entscheid F3=A (beide verwerfen: if hi[k]>=vah and lo[k]<=val: continue)
+      ist hier NOCH NICHT umgesetzt -> Implementierungs-Punkt.
+
+D) FEINBEFUNDE (Info / kein Eingriff ohne Auftrag)
+--------------------------------------------------
+  D1  Tote Bedingung (Z. 925 + 946/977): range(p.i_start, p.i_ende) ist
+      exklusiv -> k = i_ende wird nie gescannt, damit ist "k+1 <= p.i_ende"
+      IMMER wahr. Verhalten korrekt (letzte moegliche Signal-Bar = i_ende-1,
+      Einstieg open i_ende = letzte Phasen-Bar), Bedingung redundant.
+  D2  min_zone_candles (Z. 926) liegt VOR der Touch-Zaehlung: Touches in den
+      ersten 29 Bars der Phase werden nicht gezaehlt. Ein Bar k (z. B. Nr. 40),
+      der real der 3. Liquiditaets-Kontakt ist, zaehlt als Touch #1 -> der
+      Absorptionsfilter (MAX_TOUCH_COUNT) ist am Phasenanfang blind. Nicht
+      durch F1-F4 abgedeckt; fuer Pruefbericht vorgemerkt.
+  D3  Cooldown je Richtung getrennt (last_bar["SHORT"]/"LONG", Init -1e9,
+      Z. 923-924): SHORT/LONG koennen in direkt aufeinanderfolgenden Bars
+      feuern = Ping-Pong-Design. last_bar wird NUR im Geometrie-Zweig gesetzt
+      (nach entry>poc UND struktureller RR e_preis>tp2 bzw. <tp2) -> bei
+      Geometrie-Ablehnung kein Cooldown-Verbrauch, Retry an naechster Bar.
+      Sauber. F4 (Autarkie): KEIN Zugriff auf Setup-B-State vorhanden,
+      Autarkie ist bereits gegeben.
+  D4  DIRECT_TOUCH (Z. 945/976): "DIRECT_TOUCH or cl[k] < vah" - bei
+      DIRECT_TOUCH signalisiert auch eine Bar mit Schluss OBENHALB VAH
+      (Momentum-Escape) = Mentor-Kritik (1) Retail-Falle; Default
+      CANDLE_REJECTION mildert. KEIN Gap-Filter: Entry open k+1 kann nach
+      Gap ueber VAH liegen (e_preis > poc genuegt; crv ist Info ohne Filter).
+      Kein Eingriff ohne Auftrag - fuer Pruefbericht vorgemerkt.
+  D5  Aufloesung _aufloesen_counter(df, s) (Z. 1007+) sliced ab e_bar ueber das
+      GESAMTE df bis Datenende - NICHT begrenzt auf p.i_ende. Konvention aus
+      dem Baseline-Docstring (unabhaengige Erster-erreicht-Aufloesung).
+      Trades spaeterer Phasen koennen sich zeitlich ueberlappen. Schritt 2
+      prueft die Intrabar-Details.
+  D6  Kein p.handelbar-Gate: find_counter_signals scannt ALLE Phasen, auch
+      nicht-handelbare mit duennen Zonen. Design-Choice; fuer Pruefbericht.
+  D7  Effizienz (Info): _laufende_zone je Bar = Volume-Profil ueber den
+      gesamten Phasen-Praefix -> O(n^2). Kein Funktionsfehler; ggf. spaeter
+      Rolling-Zone (nicht Teil F1-F4).
+
+E) TYP-INTEGRITAET - BEFUND: SAUBER
+------------------------------------
+  E1  touches_vah/touches_val sind lokale int-Zaehler (Z. 922-923), pro
+      Phasen-Aufruf frisch initialisiert -> keine Cross-Phase-Kontamination.
+  E2  Guard "vah/val/poc is None: continue" (Z. 933) vor jeder Nutzung.
+  E3  crv/crv2 NaN-Guards (Z. 957-958, 988-989); risk<=0 auf 1e-9 abgesichert
+      (in _aufloesen_counter). Alle CounterSignal-Felder typkonform gefuellt,
+      trade vor append immer aufgeloest. Keine offenen asserts in der Logik.
+
+F) AUDIT-FAZIT SCHRITT 1
+-------------------------
+  find_counter_signals ist lookahead-frei (A) und typ-sauber (E). Die drei
+  Mentor-Schwachstellen sind im Code nachweisbar:
+    (1) DIRECT_TOUCH optional vorhanden (D4, Default CANDLE_REJECTION),
+    (2) BE-Trugschluss in _aufloesen_counter (Schritt 2, F2),
+    (3) Kanten-Drift beim Touch (B1).
+  Die arretierten Entscheidungen F1 (B1/B2) und F3 (C1/C3) sind NOCH NICHT
+  implementiert -> Implementierung erst NACH Schritt 2-4 und Genehmigung.
+================================================================================

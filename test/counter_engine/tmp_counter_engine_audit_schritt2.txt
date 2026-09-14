@@ -1,0 +1,91 @@
+================================================================================
+SCHRITT 2 - MATHEMATISCHER AUDIT _aufloesen_counter (Z. 1007-1110)
+Skript: scripts/counter_engine_profil.py | HEAD: 61cd472 | Datum: 2026-09-03
+Art: rein lesende Code-Inspektion (kein Test/Compiler ausgefuehrt)
+================================================================================
+
+A) INTRABAR-KONVENTION & LOOKAHEAD - BEFUND: SAUBER
+---------------------------------------------------
+  A1  Serien ab e_bar (Z. 1033-1036): hi/lo/cl der Einstiegs-Bar sind Teil der
+      Aufloesung. Entry = OPEN von e_bar -> high/low/close von e_bar liegen
+      NACH dem Entry -> kein Lookahead. (Baseline-Konvention.)
+  A2  Geometrie-Guards in find_counter_signals sichern die Intrabar-Ordnung:
+      SHORT entry > poc (tp1) UND entry > tp2 (Z. 952-953); LONG entry < poc
+      UND entry < tp2 (Z. 982-983). Damit kann der Entry-Open NIEMALS per Gap
+      bereits jenseits eines Ziels liegen -> kein "Insta-TP" durch Gap.
+  A3  Gleichzeitigkeit (TP/SL in derselben Bar) wird KONSERVATIV aufgeloest:
+      t1 < t_sl0 -> TP1, sonst SL (Z. 1057-1060); analog Haelfte 2
+      (t2 < t_sl0, Z. 1086). Ohne Ticks ist die Reihenfolge unbeweisbar ->
+      Index-Vergleich mit < entscheidet gegen den Trader. Konsistent mit
+      F2=A (Intrabar-Unwissenbarkeit, BE erst ab t1+1).
+
+B) HAELFTE 1 (Z. 1056-1062) - BEFUND: KORREKT
+----------------------------------------------
+  B1  if t1 < t_sl0: TP1-Win mit _r(tp1)  (SHORT: (entry-tp1)/risk > 0, da
+      entry > tp1 garantiert). elif t_sl0 < n_bars: exakt -1.0 (SL).
+      else: ENDE mit _r(cl[-1]) (offene Position bis letzten Close).
+  B2  Risk = |sl_init - entry| = entry * SL_PCT; SL-Pfad setzt r1 = -1.0
+      exakt statt _r(sl_init) -> Rundungs-sicher konsistent.
+
+C) HAELFTE 2 / BE-SEMANTIK (Z. 1064-1091) - BEFUND: WIE ARRETIERT (F2=A)
+-------------------------------------------------------------------------
+  C1  tp1_hit-Zweig: t2 <= t1 -> beide Haelften gewinnen (TP2 in derselben
+      Bar wie TP1, Z. 1066-1068). Sonst BE-Stop ab t1+1:
+      t_be = _first(concat(zeros(t1+1), hi[t1+1:] >= entry)) (Z. 1073-1077)
+      -> BE wirkt EXAKT ab der Bar NACH der TP1-Bar. Status quo = F2=A.
+  C2  if t2 < t_be: TP2-Win; elif t_be < n_bars: BE mit exakt 0.0
+      (Z. 1078-1081); else: ENDE (cl[-1]).
+  C3  WICHTIGE STRUKTUR-EIGENSCHAFT: Im tp1_hit-Zweig ist Haelfte 2 NIE
+      negativ. Denn: ENDE erfordert, dass der Kurs nach t1 die Entry-Linie nie
+      wieder beruehrt (sonst haette BE gegriffen) -> cl[-1] liegt unterhalb
+      entry (SHORT) -> r2 > 0. Moegliche Ausgaenge: TP2 (+), BE (0), ENDE (+).
+      Das ist der schuetzende "BE-Nachzug": Nach TP1 ist der Trade risikofrei.
+  C4  BE-TRUGSCHLUSS-PFAD (Mentor §8.20 / F2): Wenn der Kurs nach TP1
+      oszilliert statt direkt zu TP2 zu laufen, greift t_be < t2 -> Haelfte 2
+      wird bei 0 R gestoppt, obwohl der Runner (Topf B, TP2 bzw. weiter)
+      intakt waere. Ob der Schutz (C3) mehr kostet als er rettet, ist die
+      empirische F2-Frage. Der A/B-Hebel "KEIN BE-Nachzug" (--be-nachzug
+      false: Haelfte 2 behaelt sl_init bzw. laeuft bis TP2/ENDE) ist im Code
+      NOCH NICHT vorhanden -> Implementierungs-Punkt (nach Genehmigung,
+      Parametrisierung notw.: _aufloesen_counter liest bisher nur Modul-
+      Globale SL_PCT/ANTEIL_TP1/TP2_PUFFER_PCT, Z. 1093-1095).
+  C5  else-Zweig (tp1 NIE erreicht): Haelfte 2 behaelt sl_init (Z. 1085-1090).
+      if t2 < t_sl0: TP2-Win (Trade dreht also nach val/vah durch, ohne POC
+      je zu beruehren); elif SL; else ENDE. Korrekt.
+
+D) GEWICHTUNG & RESULTAT (Z. 1093-1101) - BEFUND: KORREKT
+----------------------------------------------------------
+  D1  r_mult = (ANTEIL_TP1/100)*r1 + (1-ANTEIL_TP1/100)*r2 (Z. 1093-1097).
+      ANTEIL_TP1=50 -> 50/50-Split. Sonderfall _w2<=0 (100/0) neutralisiert
+      Haelfte 2 (Z. 1095-1096).
+  D2  resultat: >+1e-9 GEWONNEN / <-1e-9 VERLOREN / sonst NEUTRAL (Z. 1098).
+      BE-Fall (TP1-Win + BE 0) -> r_mult>0 -> GEWONNEN (Haelfte 1 traegt).
+  D3  pnl = r_mult * risk; sl_init im TradeResolution gespeichert (Z. 1102ff).
+      Flags tp1_hit/tp2_hit/sl_hit1/sl_hit2 konsistent zu grund1/grund2.
+      grund2="BE" wird in der Statistik als BE-Exit gezaehlt (_n_be).
+
+E) FEINBEFUNDE (Info / kein Eingriff ohne Auftrag)
+--------------------------------------------------
+  E1  Aufloesung laeuft ueber das GESAMTE df ab e_bar (bis Datenende), nicht
+      bis p.i_ende -> Trades koennen ueber Phasen-Grenzen hinaus offen sein
+      und sich mit Trades spaeterer Phasen zeitlich ueberlappen. Baseline-
+      Konvention (Erster-erreicht ueber Restdaten); dokumentiert in D5 des
+      Schritt-1-Berichts.
+  E2  Randfall: e_bar kann die letzte Bar des Fensters sein (n-1) -> Serie
+      der Laenge 1 -> in der Regel ENDE-Aufloesung mit cl[-1]. Kein
+      Indexfehler (e_bar <= n-1 durch k+1 <= p.i_ende, da k <= i_ende-1).
+  E3  TP2-Groessenordnung: SHORT tp2 = val*(1+puffer) kann bei sehr enger
+      Zone (poc-val < 0.2%*val) UEBER poc liegen. Dann zaehlt im
+      tp1_hit-Zweig t2 <= t1 (Preis passiert tp2 vor poc beim Fall) ->
+      beide Haelften gewinnen; konsistent, kein Fehler.
+
+F) AUDIT-FAZIT SCHRITT 2
+-------------------------
+  _aufloesen_counter ist mathematisch konsistent, lookahead-frei und folgt
+  exakt der arretierten F2=A-Semantik (BE ab t1+1, konservative
+  Gleichzeit-Aufloesung). Haelfte 2 ist nach TP1 strukturell nie negativ
+  (C3) - genau der Mechanismus, den F2 empirisch gegen die
+  "KEIN-BE-Nachzug"-Variante testen will. Einziger Implementierungs-Punkt
+  aus Schritt 2: Parametrisierung der A/B-Variante (C4), erst nach
+  Genehmigung (Schritt 4).
+================================================================================

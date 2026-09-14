@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "bestanden": {
+    "ema_slope_min": true,
+    "ema_slope_max": true,
+    "adx_schwelle_min": true,
+    "tol_band_quote_max": true
+  },
+  "freez_kandidaten": {
+    "ema_slope_min": 0.07,
+    "ema_slope_max": -0.03,
+    "adx_schwelle_min": 25.0,
+    "tol_band_quote_max": 0.6
+  },
+  "grund": {
+    "ema_slope_min": "Plateau OK: Sequenz [0..10] (n=11), Freeze=0.07 (Plateau-Zentrum)",
+    "ema_slope_max": "Plateau OK: Sequenz [0..10] (n=11), Freeze=-0.03 (Plateau-Zentrum)",
+    "adx_schwelle_min": "Plateau OK: Sequenz [0..8] (n=9), Freeze=25.0 (Plateau-Zentrum)",
+    "tol_band_quote_max": "Plateau OK: Sequenz [0..8] (n=9), Freeze=0.6 (Plateau-Zentrum)"
+  }
+}

@@ -1,0 +1,74 @@
+========================================================================================================================
+KAUSALER IMBALANCE- & PERSISTENZ-VERGLEICH: PHASE 46 (T59) vs. PHASE 102 (T137-T143)
+========================================================================================================================
+READ-ONLY | Datenbasis: data/market_data.duckdb (SILVER M15, UTC, read_only)
+Metriken auf den 8 M15-Bars VOR der Signal-Bar (strikt kausal, kein Lookahead)
+Fenster: Phase 46 = 2026-04-10 00:00..2026-04-13 12:00 | Phase 102 = 2026-06-26 00:00..2026-06-30 18:00
+
+------------------------------------------------------------------------------------------------------------------------
+SIGNALE (aus MAKRO-Trade-Log / Monatsberichten):
+  Nr Phase Signal-Zeit (UTC)        R  Phase-Fenster
+------------------------------------------------------------------------------------------------------------------------
+  59   P46 13.04.2026 00:15     +10.69  P46 (10.04 00:00..13.04 11:45)
+ 137  P102 26.06.2026 21:15      -1.00  P102 (26.06 00:00..30.06 17:45)
+ 138  P102 29.06.2026 01:15      -1.00  P102 (26.06 00:00..30.06 17:45)
+ 139  P102 29.06.2026 06:45      -1.00  P102 (26.06 00:00..30.06 17:45)
+ 140  P102 29.06.2026 13:15      -0.01  P102 (26.06 00:00..30.06 17:45)
+ 141  P102 29.06.2026 16:15      -1.00  P102 (26.06 00:00..30.06 17:45)
+ 142  P102 30.06.2026 03:00      -1.00  P102 (26.06 00:00..30.06 17:45)
+ 143  P102 30.06.2026 06:00      -1.00  P102 (26.06 00:00..30.06 17:45)
+
+------------------------------------------------------------------------------------------------------------------------
+METRIKEN (8 Bars vor Signal; KER signed negativ = Abwaerts-Persistenz)
+------------------------------------------------------------------------------------------------------------------------
+  Nr   Ph        R    KER KER signed Abw-Imb Body-Dom  Vol-Down   Vol-Up Vol-Ratio  Netto%
+------------------------------------------------------------------------------------------------------------------------
+  59  P46   +10.69   0.93     -0.930       1     0.39    2325.0   2577.3      0.90  -4.09%
+ 137 P102    -1.00   0.31     -0.308       0     0.51    2379.4   2565.3      0.93  -0.39%
+ 138 P102    -1.00   0.08     +0.079       0     0.50    2167.0   1754.2      1.24  +0.18%
+ 139 P102    -1.00   0.33     -0.334       3     0.55    2084.0   3141.2      0.66  -0.57%
+ 140 P102    -0.01   0.47     -0.474       2     0.48    2537.4   2726.7      0.93  -0.81%
+ 141 P102    -1.00   0.24     -0.240       2     0.68    4443.3   3675.5      1.21  -0.72%
+ 142 P102    -1.00   0.94     -0.942       4     0.59    2332.0   1054.5      2.21  -1.71%
+ 143 P102    -1.00   0.07     -0.073       1     0.40    3326.8   2830.7      1.18  -0.12%
+------------------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------------------------------
+GRUPPENVERGLEICH: T59 (Gewinner +10.69R) vs. T137-T143 (7 Fehl-Longs)
+------------------------------------------------------------------------------------------------------------------------
+  KER (Effizienz)              T59:      0.930  |  T137-143 Mittel:      0.350
+  KER signed (Richtung)        T59:     -0.930  |  T137-143 Mittel:     -0.327
+  Abwaerts-Imbalances (n)      T59:      1.000  |  T137-143 Mittel:      1.714
+  Body-Dominanz                T59:      0.390  |  T137-143 Mittel:      0.532
+  Volumen-Ratio Down/Up        T59:      0.902  |  T137-143 Mittel:      1.193
+  Netto-Bewegung 8 Bars %      T59:     -4.094  |  T137-143 Mittel:     -0.592
+
+TRENNSCHAERFE (liegt T59 ausserhalb der Spanne der 7 Verlierer?):
+  KER (Effizienz)             : KEINE Trennung (T59 0.930 liegt in Spanne 0.073..0.942)
+  KER signed (Richtung)       : KEINE Trennung (T59 -0.930 liegt in Spanne -0.942..0.079)  [negativ = Abwaerts-Drift]
+  Abwaerts-Imbalances (n)     : KEINE Trennung (T59 1.000 liegt in Spanne 0.000..4.000)
+  Body-Dominanz               : trennt (T59 niedriger als alle 7)
+  Volumen-Ratio Down/Up       : KEINE Trennung (T59 0.902 liegt in Spanne 0.663..2.211)
+  Netto-Bewegung 8 Bars %     : trennt (T59 niedriger als alle 7)  [negativ = Abwaerts-Drift]
+
+------------------------------------------------------------------------------------------------------------------------
+BEFUND (deskriptiv, read-only):
+  1) TRENNENDE Metrik = Netto-Bewegung / Impuls-Groesse der 8 Vor-Bars:
+     T59 kam nach -4.09 % in 2 h (Kapitulations-Impuls); die 7 Fehl-Longs
+     hatten nur -0.12 % .. -1.71 % (Mittel -0.59 %). T59 = Panik-Selloff
+     -> Snap-back; T137-T143 = kleine Ruecksetzer in Drift ohne Kapitulation.
+  2) Body-Dominanz sekundaer: T59 0.39 = niedrigster Wert (lange Dochte =
+     Absorption am Tief); Verlierer 0.40..0.68 (koerper-dominiert, echter
+     Verkaufsdruck, kein Fang-Setup).
+  3) NICHT trennend: KER (Verlierer T142 hat 0.94 wie T59), Abwaerts-
+     Imbalances (T139/T140/T142 haben 2-4, mehr als T59), Volumen-Ratio.
+  4) Nuance/Gegenbeleg: T142 (-1.00R, 30.06 03:00) hatte KER 0.94/-1.71 %
+     und lag NAHE am Wendepunkt (Markt erholte sich ab 01.07, T144 +1.55R);
+     die -1R-Stopps kamen, weil der Boden noch nicht bestaetigt war.
+  => Trennung am ehesten ueber die SCHWELLE der Impuls-Groesse (z. B.
+     >= 2.5-3 % in 2 h) - nicht ueber Effizienz/Imbalance allein.
+     Konsistent mit 8.16: Phase 102 ist Regime-Drift, kein Snap-back-Setup.
+
+Hinweis: Strikte Kausalitaet - alle Metriken verwenden ausschliesslich Bars
+vor der Signal-Bar (k-8..k-1), keine Information aus der Signal-Bar oder
+spaeteren Bars (kein Lookahead).

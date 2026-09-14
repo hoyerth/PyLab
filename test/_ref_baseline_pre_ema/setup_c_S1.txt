@@ -1,0 +1,49 @@
+========================================================================================================================
+SETUP C - PHASE-1-PRODUKTIONSKERN (setup_c_profil.py)
+Fenster: S1 | Symbol: SILVER M15 | Segmente: 139 | F3-Brueche: 138
+Kern: RAW-A (Vorlauf<=1) + F4 intrabar (Puffer 0.15) + Zeit-Exit (48, 96) + Suppression=True | r_ref: 0.45%-SL
+========================================================================================================================
+
+L1 PIPELINE-ANKER (Populationen, SIGNAL & sl_usd>0):
+  F3-Brueche      : 138
+  CONFIRMED       : 138
+  RAW gesamt      : 105  (CLUSTER_A=38, CLUSTER_B=67)
+  RETEST          : 59
+
+========================================================================================================================
+L2 RAW-CLUSTER A  |  Horizont N = 48  (Close der Bar entry+48)
+    RAW-CLUSTER-A  (n=38, supprimiert=0, aktiv=38, zensiert=0, gewertet=38)
+  -------------------------------------------------------------------------
+  sum r_f4=    22.81  mean r_f4=   0.60  median=   0.08  WR=50.0%  PF=2.34
+  sum r_ref (0.45%-Basis) = 71.77
+  Exit: INITIAL_SL_INTRABAR=15 | ZEIT_EXIT_CLOSE=23 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 35 Bars
+
+========================================================================================================================
+L2 RAW-CLUSTER A  |  Horizont N = 96  (Close der Bar entry+96)
+    RAW-CLUSTER-A  (n=38, supprimiert=0, aktiv=38, zensiert=0, gewertet=38)
+  -------------------------------------------------------------------------
+  sum r_f4=    27.87  mean r_f4=   0.73  median=  -1.00  WR=39.5%  PF=2.36
+  sum r_ref (0.45%-Basis) = 55.17
+  Exit: INITIAL_SL_INTRABAR=20 | ZEIT_EXIT_CLOSE=18 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 60 Bars
+
+========================================================================================================================
+L2-REFERENZ (suppression_phasenlokal=False = §2.14-Sollwerte):
+    N=48  (n=38, supprimiert=0, aktiv=38, zensiert=0, gewertet=38)
+  ----------------------------------------------------------------
+  sum r_f4=    22.81  mean r_f4=   0.60  median=   0.08  WR=50.0%  PF=2.34
+  sum r_ref (0.45%-Basis) = 71.77
+  Exit: INITIAL_SL_INTRABAR=15 | ZEIT_EXIT_CLOSE=23 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 35 Bars
+    N=96  (n=38, supprimiert=0, aktiv=38, zensiert=0, gewertet=38)
+  ----------------------------------------------------------------
+  sum r_f4=    27.87  mean r_f4=   0.73  median=  -1.00  WR=39.5%  PF=2.36
+  sum r_ref (0.45%-Basis) = 55.17
+  Exit: INITIAL_SL_INTRABAR=20 | ZEIT_EXIT_CLOSE=18 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 60 Bars
+
+========================================================================================================================
+VERIFIKATIONSANKER (erwartet, §2.14 nach Einheiten-Bereinigung D4-Ratchet):
+  L1: AUG 11/11/10(2/8)/3 | S1 138/138/105(38/67)/59 | S2 61/61/76(3/73)/18  ->  aktuelles Fenster S1: 138/138/105(38/67)/59
+========================================================================================================================

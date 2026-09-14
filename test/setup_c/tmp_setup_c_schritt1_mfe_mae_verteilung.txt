@@ -1,0 +1,137 @@
+================================================================================
+SETUP C - TEILSCHRITT 1.2/1.3: AGGREGIERTE MFE/MAE-VERTEILUNG DER AUSBRUECHE
+Datum: 2026-09-03 | Lese-Lauf test/tmp_setup_c_trace_s1s2.py (Freigabe, DuckDB
+read_only, bitgenaue Re-Segmentierung Baseline v0.4.0-frozen).
+Definitionen (F1/F2/F3 arretiert): Messanker entry = open[brk_idx+2]; Fenster
+12/24/48 M15-Bars; R-Risk = entry*0.45%; nur echte 2-Close-Brueche.
+================================================================================
+
+AUG (2026-08-10..08-28): 12 Phasen, 11 Brueche  |  S1 (2026-02-05..08-28):
+139 Phasen, 138 Brueche  |  S2 (2025-01-01..12-01): 62 Phasen, 61 Brueche
+(jeweils 1 terminale Nicht-Bruch-Phase, F3-Ausschluss; S1/S2 = Benchmark-Wahrheit)
+
+
+
+####################################################################################################
+# FENSTER AUG
+####################################################################################################
+AGGREGATE MFE/MAE (nur volle Fenster; R-Basis: risk = entry*0.45%)
+========================================================================================================================
+
+--- Fenster 12 M15-Bars ab open[brk_idx+2] ---
+Gruppe      n  MFE meanR  medianR   p25R   p75R   maxR    >=1R    >=2R    >=3R | MAE medianR   p90R   maxR    >=1R
+up          6       1.66     1.68   1.39   1.91   2.97   83.3%   16.7%    0.0% |        0.90   1.54   1.55   50.0%
+down        5       0.71     0.35   0.31   1.06   1.70   40.0%    0.0%    0.0% |        1.63   1.93   2.02   60.0%
+alle       11       1.23     1.33   0.36   1.75   2.97   63.6%    9.1%    0.0% |        1.06   1.79   2.02   54.5%
+
+Verweildauer (median MFE-R): @12=1.33  @24=1.72  @48=2.84  | Delta 48-12: +1.51 R (Energie laeuft nach)
+Frueh-Kollaps (MAE in ersten 4 Bars >= 1.0R = Initial-SL beruehrt):   36.4%  (n=11)
+
+--- Fenster 24 M15-Bars ab open[brk_idx+2] ---
+Gruppe      n  MFE meanR  medianR   p25R   p75R   maxR    >=1R    >=2R    >=3R | MAE medianR   p90R   maxR    >=1R
+up          6       3.14     3.42   2.20   4.03   4.52  100.0%   66.7%   50.0% |        1.03   1.82   2.11   50.0%
+down        5       1.11     1.68   0.31   1.70   1.72   60.0%    0.0%    0.0% |        2.10   3.13   3.23  100.0%
+alle       11       2.22     1.72   1.56   3.42   4.52   81.8%   36.4%   27.3% |        1.54   2.97   3.23   72.7%
+
+Verweildauer (median MFE-R): @12=1.33  @24=1.72  @48=2.84  | Delta 48-12: +1.51 R (Energie laeuft nach)
+Frueh-Kollaps (MAE in ersten 4 Bars >= 1.0R = Initial-SL beruehrt):   36.4%  (n=11)
+
+--- Fenster 48 M15-Bars ab open[brk_idx+2] ---
+Gruppe      n  MFE meanR  medianR   p25R   p75R   maxR    >=1R    >=2R    >=3R | MAE medianR   p90R   maxR    >=1R
+up          6       3.76     3.57   2.88   4.49   5.94  100.0%  100.0%   50.0% |        1.81   2.47   2.83   66.7%
+down        5       1.66     1.68   1.06   1.70   3.74   80.0%   20.0%   20.0% |        2.97   5.75   6.65  100.0%
+alle       11       2.81     2.84   1.69   3.96   5.94   90.9%   63.6%   36.4% |        2.10   4.40   6.65   81.8%
+
+Verweildauer (median MFE-R): @12=1.33  @24=1.72  @48=2.84  | Delta 48-12: +1.51 R (Energie laeuft nach)
+Frueh-Kollaps (MAE in ersten 4 Bars >= 1.0R = Initial-SL beruehrt):   36.4%  (n=11)
+
+####################################################################################################
+# FENSTER S1
+####################################################################################################
+AGGREGATE MFE/MAE (nur volle Fenster; R-Basis: risk = entry*0.45%)
+========================================================================================================================
+
+--- Fenster 12 M15-Bars ab open[brk_idx+2] ---
+Gruppe      n  MFE meanR  medianR   p25R   p75R   maxR    >=1R    >=2R    >=3R | MAE medianR   p90R   maxR    >=1R
+up         68       2.07     1.50   0.85   2.77   9.58   70.6%   36.8%   23.5% |        1.50   3.01   4.92   64.7%
+down       70       2.64     1.56   0.48   3.14  22.27   68.6%   42.9%   28.6% |        1.83   4.40   6.69   75.7%
+alle      138       2.36     1.54   0.72   3.12  22.27   69.6%   39.9%   26.1% |        1.68   3.85   6.69   70.3%
+
+Verweildauer (median MFE-R): @12=1.54  @24=2.02  @48=2.97  | Delta 48-12: +1.44 R (Energie laeuft nach)
+Frueh-Kollaps (MAE in ersten 4 Bars >= 1.0R = Initial-SL beruehrt):   55.1%  (n=138)
+
+--- Fenster 24 M15-Bars ab open[brk_idx+2] ---
+Gruppe      n  MFE meanR  medianR   p25R   p75R   maxR    >=1R    >=2R    >=3R | MAE medianR   p90R   maxR    >=1R
+up         68       2.76     1.94   1.06   4.14   9.63   76.5%   48.5%   36.8% |        2.08   4.67   8.56   77.9%
+down       70       4.00     2.36   1.17   4.73  22.27   78.6%   55.7%   41.4% |        2.64   6.70  11.90   80.0%
+alle      138       3.39     2.02   1.12   4.29  22.27   77.5%   52.2%   39.1% |        2.29   5.96  11.90   79.0%
+
+Verweildauer (median MFE-R): @12=1.54  @24=2.02  @48=2.97  | Delta 48-12: +1.44 R (Energie laeuft nach)
+Frueh-Kollaps (MAE in ersten 4 Bars >= 1.0R = Initial-SL beruehrt):   55.1%  (n=138)
+
+--- Fenster 48 M15-Bars ab open[brk_idx+2] ---
+Gruppe      n  MFE meanR  medianR   p25R   p75R   maxR    >=1R    >=2R    >=3R | MAE medianR   p90R   maxR    >=1R
+up         68       3.71     2.74   1.34   5.19  13.00   83.8%   63.2%   42.6% |        3.12   9.15  20.32   82.4%
+down       70       5.40     3.81   1.65   6.73  23.17   82.9%   68.6%   55.7% |        3.52  11.30  18.65   84.3%
+alle      138       4.57     2.97   1.38   6.39  23.17   83.3%   65.9%   49.3% |        3.17  10.82  20.32   83.3%
+
+Verweildauer (median MFE-R): @12=1.54  @24=2.02  @48=2.97  | Delta 48-12: +1.44 R (Energie laeuft nach)
+Frueh-Kollaps (MAE in ersten 4 Bars >= 1.0R = Initial-SL beruehrt):   55.1%  (n=138)
+
+####################################################################################################
+# FENSTER S2
+####################################################################################################
+AGGREGATE MFE/MAE (nur volle Fenster; R-Basis: risk = entry*0.45%)
+========================================================================================================================
+
+--- Fenster 12 M15-Bars ab open[brk_idx+2] ---
+Gruppe      n  MFE meanR  medianR   p25R   p75R   maxR    >=1R    >=2R    >=3R | MAE medianR   p90R   maxR    >=1R
+up         47       1.33     0.96   0.52   1.58   6.79   48.9%   14.9%    8.5% |        1.01   2.58   5.23   51.1%
+down       14       2.73     0.92   0.60   3.88  11.41   42.9%   35.7%   28.6% |        1.16   3.01   3.12   64.3%
+alle       61       1.65     0.95   0.54   1.65  11.41   47.5%   19.7%   13.1% |        1.07   2.77   5.23   54.1%
+
+Verweildauer (median MFE-R): @12=0.95  @24=1.43  @48=2.20  | Delta 48-12: +1.24 R (Energie laeuft nach)
+Frueh-Kollaps (MAE in ersten 4 Bars >= 1.0R = Initial-SL beruehrt):   37.7%  (n=61)
+
+--- Fenster 24 M15-Bars ab open[brk_idx+2] ---
+Gruppe      n  MFE meanR  medianR   p25R   p75R   maxR    >=1R    >=2R    >=3R | MAE medianR   p90R   maxR    >=1R
+up         46       1.62     1.33   0.57   2.22   5.36   58.7%   28.3%   15.2% |        1.26   3.76   7.08   60.9%
+down       14       3.56     2.65   1.00   4.41  12.69   71.4%   57.1%   42.9% |        1.44   3.90   6.27   64.3%
+alle       60       2.07     1.43   0.60   2.69  12.69   61.7%   35.0%   21.7% |        1.26   3.85   7.08   61.7%
+
+Verweildauer (median MFE-R): @12=0.95  @24=1.43  @48=2.20  | Delta 48-12: +1.24 R (Energie laeuft nach)
+Frueh-Kollaps (MAE in ersten 4 Bars >= 1.0R = Initial-SL beruehrt):   37.7%  (n=61)
+
+--- Fenster 48 M15-Bars ab open[brk_idx+2] ---
+Gruppe      n  MFE meanR  medianR   p25R   p75R   maxR    >=1R    >=2R    >=3R | MAE medianR   p90R   maxR    >=1R
+up         46       2.35     1.99   0.83   3.17   8.57   71.7%   47.8%   26.1% |        2.06   4.65   8.88   73.9%
+down       14       4.86     3.73   1.21   5.09  19.02   78.6%   64.3%   50.0% |        1.44   4.96   7.37   64.3%
+alle       60       2.94     2.20   0.96   4.00  19.02   73.3%   51.7%   31.7% |        2.01   5.05   8.88   71.7%
+
+Verweildauer (median MFE-R): @12=0.95  @24=1.43  @48=2.20  | Delta 48-12: +1.24 R (Energie laeuft nach)
+Frueh-Kollaps (MAE in ersten 4 Bars >= 1.0R = Initial-SL beruehrt):   37.7%  (n=61)
+
+================================================================================
+KERNBEFUNDE (Schritt 1, Rohbefund fuer Pruefbericht Schritt 4)
+================================================================================
+1. ENERGIE LAEUFT NACH (Stufen-Trailing-Relevanz): median MFE-R steigt in
+   beiden Benchmarks deutlich mit dem Horizont:
+     S1: 1.54 (@12) -> 2.02 (@24) -> 2.97 (@48)   Delta 48-12 = +1.44R
+     S2: 0.95 (@12) -> 1.43 (@24) -> 2.20 (@48)   Delta 48-12 = +1.24R
+   Ein 0.45%-Initial-SL nach bestaetigtem 2-Close-Bruch wird also NICHT durch
+   eine frontgeladene Bewegung belohnt - die Expansion benoetigt Zeit
+   (>=2R in Trendrichtung erst @48: S1 65.9%, S2 51.7%).
+2. HOHER FRUEH-KOLLAPS (Fakeout-Risiko): MAE in den ersten 4 Bars >= 1.0R
+   (= Initial-SL beruehrt): S1 55.1%, S2 37.7%, AUG 36.4%. Der 2-Close-Bruch
+   ist KEIN Ruhe-Signal - die Haelfte aller S1-Brueche testet den SL im
+   ersten Handelsstunden-Fenster. MAE median @12 bereits 1.68R (S1).
+3. S2 (Range-Jahr) zeigt die gleiche Struktur auf niedrigerem Niveau
+   (median MFE @48 2.20R vs. S1 2.97R) - Setup C waere in 2025 schwaecher,
+   aber positiv besetzt (>=2R @48 = 51.7%).
+4. Down-Brueche tragen groessere MFE als up-Brueche (S1 @48 median 3.81 vs
+   2.74; S2 down n=14 klein, 3.73 vs 1.99) - Abwaerts-Expansionen laufen
+   weiter (SILVER-Charakteristik).
+5. FAZIT fuer Schritt 3 (A/B-Trailing): Stufen-/Pivot-Trailing statt festem
+   TP1/TP2 ist durch Befund 1 gerechtfertigt (Energie braucht 24-48 Bars);
+   die SL-Architektur (0.45% initial) muss den Frueh-Kollaps (Befund 2)
+   preislich einpreisen - naechste Detailfrage fuer das Replay (Schritt 2).

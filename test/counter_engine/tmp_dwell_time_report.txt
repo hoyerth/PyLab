@@ -1,0 +1,86 @@
+============================================================================================================
+POSITIV-WENDE: TOPF-A/B-TRENNUNG & VERWEILDAUER-OBDUKTION (SILVER M15 UTC, kausal)
+============================================================================================================
+Topf A = 14 Streak-Phasen (§8.18): S1 {102,132} | S2 {1,2,3,4,5,6,7,10,13,14,19,49}
+
+SCHRITT 1: TOPF-BILANZ (Topf A = Streak-Zyklen | Topf B = Non-Streak)
+Topf    Fen     n    WR%     SumR     PF  LONG  SHORT
+------------------------------------------------------------------------------------------------------------
+Topf A     S1     14   14.3    +2.30   1.21     7      7
+Topf B     S1    187   46.5  +194.96   3.24   107     80
+Topf A     S2    120   24.2   +23.24   1.28    71     49
+Topf B     S2     90   50.0   +76.66   2.79    49     41
+
+SCHRITT 3: VERTEILUNGS-KONTRAST (Median / Q25 / Q75 / Q90) + Sofort-Reclaim-Anteil
+
+Metrik: bars_outside  (Bars ausserhalb (Close))
+Gruppe                              n      Med      Q25      Q75      Q90  =0-Anteil%
+------------------------------------------------------------------------------------------------------------
+G1: S1-SHORT-Winner (Bullen-Alpha)   44     0.00     0.00     0.25     1.00        75.0
+G2: Topf-B-Winner (Non-Streak)    132     0.00     0.00     0.00     1.00        78.8
+G3: 17er+13er-Verlustserien        30     0.00     0.00     1.00     2.10        56.7
+G4: Topf-A-Loser (Streak-Zyklen)  103     0.00     0.00     3.00     6.80        52.4
+
+Metrik: hours_outside  (Stunden ausserhalb)
+Gruppe                              n      Med      Q25      Q75      Q90  =0-Anteil%
+------------------------------------------------------------------------------------------------------------
+G1: S1-SHORT-Winner (Bullen-Alpha)   44     0.00     0.00     0.06     0.25        75.0
+G2: Topf-B-Winner (Non-Streak)    132     0.00     0.00     0.00     0.25        78.8
+G3: 17er+13er-Verlustserien        30     0.00     0.00     0.25     0.53        56.7
+G4: Topf-A-Loser (Streak-Zyklen)  103     0.00     0.00     0.75     1.70        52.4
+
+Metrik: max_excursion_pct  (Max-Ausbruch % ueber Kante)
+Gruppe                              n      Med      Q25      Q75      Q90  =0-Anteil%
+------------------------------------------------------------------------------------------------------------
+G1: S1-SHORT-Winner (Bullen-Alpha)   44     0.09     0.00     0.27     0.88         n/a
+G2: Topf-B-Winner (Non-Streak)    132     0.11     0.00     0.35     0.92         n/a
+G3: 17er+13er-Verlustserien        30     0.10     0.00     0.31     0.72         n/a
+G4: Topf-A-Loser (Streak-Zyklen)  103     0.21     0.03     0.47     0.77         n/a
+
+Metrik: vol_outside  (tick_volume ausserhalb)
+Gruppe                              n      Med      Q25      Q75      Q90  =0-Anteil%
+------------------------------------------------------------------------------------------------------------
+G1: S1-SHORT-Winner (Bullen-Alpha)   44 52901.50 16114.75 77146.50104096.00         n/a
+G2: Topf-B-Winner (Non-Streak)    132 46613.00 24792.00 68663.75100087.80         n/a
+G3: 17er+13er-Verlustserien        30 20989.00  3505.25 31271.25 45827.60         n/a
+G4: Topf-A-Loser (Streak-Zyklen)  103 16923.00  5835.00 31575.50 47539.20         n/a
+
+Zusatz: ever_touch_24h = Preis war in letzten 24 Bars ueberhaupt ausserhalb der Kante (intrabar)
+  G1: S1-SHORT-Winner (Bullen-Alpha)   44  ever_touch_24h:  72.7 %
+  G2: Topf-B-Winner (Non-Streak)    132  ever_touch_24h:  68.9 %
+  G3: 17er+13er-Verlustserien        30  ever_touch_24h:  70.0 %
+  G4: Topf-A-Loser (Streak-Zyklen)  103  ever_touch_24h:  76.7 %
+
+SCHRITT 2 (Auszug): Verweildauer der 44 S1-SHORT-Winner und der Serien-Verluste
+  (nur Q-Split zur Kontrolle: G1 nach R-Quartil)
+  G1 top-Quartil (R>Q75) (n=11)
+    T154  10.07 05:00 SHORT R  +7.82 | out   0B/   0.0h | maxExc  0.00% | vol      19496
+    T6    11.02 13:00 SHORT R  +7.08 | out   0B/   0.0h | maxExc  0.07% | vol      50827
+    T188  17.08 18:45 SHORT R  +6.71 | out   7B/   1.8h | maxExc  0.38% | vol      10141
+    T189  18.08 02:15 SHORT R  +6.60 | out   0B/   0.0h | maxExc  0.00% | vol      18106
+    T35   10.03 16:15 SHORT R  +5.94 | out   0B/   0.0h | maxExc  0.01% | vol      96258
+    T70   23.04 14:45 SHORT R  +5.62 | out   0B/   0.0h | maxExc  0.12% | vol      77427
+    T2    09.02 09:15 SHORT R  +5.29 | out   0B/   0.0h | maxExc  0.36% | vol      69047
+    T73   24.04 19:00 SHORT R  +4.51 | out   0B/   0.0h | maxExc  0.02% | vol     118647
+    T193  20.08 02:15 SHORT R  +4.26 | out   0B/   0.0h | maxExc  0.00% | vol      33711
+    T21   26.02 02:00 SHORT R  +4.23 | out   0B/   0.0h | maxExc  1.77% | vol      86130
+    T180  11.08 04:00 SHORT R  +4.02 | out   1B/   0.2h | maxExc  0.24% | vol       2643
+  G1 bottom-Quartil (R<Q25) (n=11)
+    T159  20.07 13:30 SHORT R  +2.27 | out   0B/   0.0h | maxExc  0.00% | vol      27927
+    T197  24.08 15:00 SHORT R  +2.10 | out   0B/   0.0h | maxExc  0.00% | vol      42290
+    T94   15.05 16:15 SHORT R  +2.06 | out   0B/   0.0h | maxExc  2.61% | vol     109719
+    T61   16.04 17:00 SHORT R  +1.81 | out   0B/   0.0h | maxExc  0.92% | vol      77053
+    T68   22.04 07:30 SHORT R  +1.63 | out   0B/   0.0h | maxExc  0.07% | vol      58874
+    T116  02.06 07:30 SHORT R  +1.60 | out   0B/   0.0h | maxExc  0.00% | vol      55441
+    T175  05.08 16:00 SHORT R  +1.21 | out   0B/   0.0h | maxExc  0.00% | vol      28361
+    T113  29.05 02:00 SHORT R  +1.09 | out   0B/   0.0h | maxExc  0.01% | vol      40745
+    T119  03.06 12:00 SHORT R  +1.09 | out   0B/   0.0h | maxExc  0.78% | vol      53401
+    T201  27.08 17:45 SHORT R  +0.86 | out   0B/   0.0h | maxExc  0.00% | vol      41504
+    T86   06.05 12:45 SHORT R  +0.50 | out   0B/   0.0h | maxExc  0.00% | vol      72956
+
+FAZIT (deskriptiv, keine Schwellen)
+------------------------------------------------------------------------------------------------------------
+Verweildauer (h, Median): G1=0.00 | G2=0.00 | G3=0.00 | G4=0.00
+Max-Ausbruch (%, Median): G1=0.09 | G4=0.21
+Volumen ausserhalb (Med): G1=52902 | G4=16923
+Richtung: KEINE kuerzere Verweildauer der Winner (Fakeout-These NICHT unterstuetzt).

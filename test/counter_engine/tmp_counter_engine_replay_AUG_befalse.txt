@@ -1,0 +1,17 @@
+==> USE_BE (--be-nachzug) ueberschrieben: False
+Pivots (Lookback 2): 344 | Candles: 1288
+
+==============================================================================================================
+SETUP A (COUNTER/PING-PONG) SILVER M15 2026-08-10 - 2026-08-28
+Entry-Mode: CANDLE_REJECTION | MAX_TOUCH_COUNT: 2 | Cooldown: 12 | TP1 50% @ POC | BE-Nachzug: AUS (F6-Default, Runner)
+==============================================================================================================
+Phasen gesamt: 12 | handelbar: 5 | Moves: 12
+Counter-Signale: 8 (4 SHORT / 4 LONG) | Trades aufgeloest: 8
+Win-Rate: 37.5% (3W/5L/0N)
+Summe R: +0.31 | Gesamtgewinn +0.14% (Risiko 0.45%/Trade)
+Profit-Faktor: 1.06 (grossW +5.31 / grossL 5.00)
+TP1-Hit: 3/8 | TP2-Hit: 2/8 | SL1: 5 | SL2: 6 | BE-Exit: 0
+
+Stats geschrieben: test\stats_counter_AUG_befalse.txt
+
+FERTIG

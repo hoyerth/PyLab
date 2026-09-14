@@ -1,0 +1,24 @@
+AUG-Stresstest-Bilanz: Anker-Volumen-Ratio-Filter (spikege15/spikege20)
+Baseline AUG: 27 Trades (12W/15L), +24.97R
+
+[A15] Schwelle 1.5x | geblockte Verlierer 7/15 (+5.65R verhindert) | geblockte Winner 8/12 (-22.62R) | verbleibend 12 (4W/8L) = +8.00R | Delta -16.97R
+  geblockte Verlierer: T3 -0.29R, T5 -1.00R, T7 -1.00R, T12 -1.00R, T13 -1.00R, T22 -0.36R, T26 -1.00R
+  geblockte Winner  : T1 +1.29R, T2 +1.69R, T6 +4.59R, T19 +4.26R, T20 +3.06R, T21 +2.67R, T23 +2.10R, T24 +2.96R
+  verbleibend       : T4 -1.00R, T8 -1.00R, T9 -1.00R, T10 -1.00R, T11 -1.00R, T14 +6.71R, T15 +6.60R, T16 -1.00R, T17 -1.00R, T18 -1.00R, T25 +1.83R, T27 +0.86R
+
+[A20] Schwelle 2.0x | geblockte Verlierer 11/15 (+9.65R verhindert) | geblockte Winner 9/12 (-24.45R) | verbleibend 7 (3W/4L) = +10.17R | Delta -14.80R
+  geblockte Verlierer: T3 -0.29R, T5 -1.00R, T7 -1.00R, T9 -1.00R, T10 -1.00R, T12 -1.00R, T13 -1.00R, T16 -1.00R, T17 -1.00R, T22 -0.36R, T26 -1.00R
+  geblockte Winner  : T1 +1.29R, T2 +1.69R, T6 +4.59R, T19 +4.26R, T20 +3.06R, T21 +2.67R, T23 +2.10R, T24 +2.96R, T25 +1.83R
+  verbleibend       : T4 -1.00R, T8 -1.00R, T11 -1.00R, T14 +6.71R, T15 +6.60R, T18 -1.00R, T27 +0.86R
+
+[B15] Schwelle 1.5x | geblockte Verlierer 12/15 (+10.65R verhindert) | geblockte Winner 9/12 (-23.48R) | verbleibend 6 (3W/3L) = +12.14R | Delta -12.83R
+  geblockte Verlierer: T3 -0.29R, T5 -1.00R, T7 -1.00R, T9 -1.00R, T10 -1.00R, T11 -1.00R, T12 -1.00R, T13 -1.00R, T16 -1.00R, T18 -1.00R, T22 -0.36R, T26 -1.00R
+  geblockte Winner  : T1 +1.29R, T2 +1.69R, T6 +4.59R, T19 +4.26R, T20 +3.06R, T21 +2.67R, T23 +2.10R, T24 +2.96R, T27 +0.86R
+  verbleibend       : T4 -1.00R, T8 -1.00R, T14 +6.71R, T15 +6.60R, T17 -1.00R, T25 +1.83R
+
+[B20] Schwelle 2.0x | geblockte Verlierer 13/15 (+11.65R verhindert) | geblockte Winner 10/12 (-25.31R) | verbleibend 4 (2W/2L) = +11.31R | Delta -13.66R
+  geblockte Verlierer: T3 -0.29R, T5 -1.00R, T7 -1.00R, T9 -1.00R, T10 -1.00R, T11 -1.00R, T12 -1.00R, T13 -1.00R, T16 -1.00R, T17 -1.00R, T18 -1.00R, T22 -0.36R, T26 -1.00R
+  geblockte Winner  : T1 +1.29R, T2 +1.69R, T6 +4.59R, T19 +4.26R, T20 +3.06R, T21 +2.67R, T23 +2.10R, T24 +2.96R, T25 +1.83R, T27 +0.86R
+  verbleibend       : T4 -1.00R, T8 -1.00R, T14 +6.71R, T15 +6.60R
+
+GEGENCHECK Winner (strikt spikege15, naechster Pivot): 9/12 geblockt = T1 +1.29R, T2 +1.69R, T6 +4.59R, T19 +4.26R, T20 +3.06R, T21 +2.67R, T23 +2.10R, T24 +2.96R, T27 +0.86R (-23.48R)

@@ -1,0 +1,9 @@
+REGIME-SCHWELLEN - VERSIEGELT (Freeze, Plateau-Zentrum)
+Datei: regime_schwellen_freezed.json
+sha256_states_s1: e55b72e614adbd7bb3314a6c432c467cf3852819ec90a1daa166cdad6e084b35
+sha256_states_s2: 948a9c217720bafd9588a760c02509010082ad796167f4ffe70f5282d1cd2689
+
+  ema_slope_min              = 0.070000
+  ema_slope_max              = -0.030000
+  adx_schwelle_min           = 25.000000
+  tol_band_quote_max         = 0.600000

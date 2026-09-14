@@ -1,109 +1,53 @@
 """
 VOLUMENPROFIL-SPEICHER (scripts/volume_profile_store.py)
 =========================================================
-Persistenz der gerechneten Volumenprofile in einer DuckDB-Datei. Kein
-Rechenkern, kein Plot - dieses Modul schreibt und liest nur.
+Haltung der gerechneten Volumenprofile ZUR LAUFZEIT. Kein Rechenkern, kein
+Plot, keine Datei - dieses Modul haelt und liefert nur.
 
-Speicherort
------------
-Default ist eine EIGENE Datei ``data/volume_profiles.duckdb``. Damit werden
-die bestehenden Datenbanken (``market_data.duckdb`` = Marktdaten,
-``analytics_data.duckdb`` = Indikator-Runs/Signale, ``backtest_data.duckdb``)
-nicht angefasst. Der Pfad ist als Parameter frei waehlbar.
+Es gibt KEINE Datenbankablage der Profile
+-----------------------------------------
+Profile sind Laufzeitdaten. Ein Profil ist an seinen Parametersatz gebunden
+(Symbol, Timeframe, Fensterart, Bins, Glaettung, Anteile, Filter) und wird bei
+jeder Parameteraenderung sofort ungueltig - eine Dateiablage waere dann
+Altbestand, der stillschweigend weiterverwendet werden koennte. Deshalb:
+
+    ProfilSpeicher          haelt die Zeilen EINES Parametersatzes (RAM)
+    ProfilSpeicherHalter    haelt mehrere Speicher, Schluessel = ``run_id``
+    HALTER                  prozessweiter Standard-Halter fuer den Live-Einsatz
+
+Die frueher hier vorhandene DuckDB-Ablage (``ProfilStore`` mit den Tabellen
+``volume_profiles``/``volume_profile_nests``/``volume_profile_runs``) liegt als
+Referenz in ``scripts/archiv/volume_profile_store_db.py`` und ist nicht mehr
+Teil der Engine.
 
 Zeitbasis (docs/ZEITBASIS_KANON.md)
 -----------------------------------
-Gespeichert werden ausschliesslich BKZ-Zeitstempel (``time AT TIME ZONE
-'UTC'``, tz-naiv) als Spalten vom Typ ``TIMESTAMP`` OHNE Zeitzone. Damit kann
-die DuckDB-Session-Zeitzone (``Europe/Budapest``) die abgelegten Werte nicht
-verschieben (K2/F2). Zusaetzlich ist der Bar-Index der Primaerschluessel jeder
-Zeile (K5).
+Gehalten werden ausschliesslich BKZ-Zeitstempel (``time AT TIME ZONE 'UTC'``,
+tz-naiv) - sie werden unveraendert durchgereicht und nie projiziert (K2).
+Zusaetzlich ist der Bar-Index der Primaerschluessel jeder Zeile (K5).
 
 Idempotenz
 ----------
 ``run_id`` wird deterministisch aus Symbol, Timeframe, Fensterart und den
-Volumenparametern gebildet. Ein erneuter Lauf mit identischen Parametern
-schreibt dieselben Zeilen (``INSERT OR REPLACE``) - es entstehen keine
-Duplikate und keine sich stapelnden Altstaende.
-
-Schema
-------
-volume_profiles   eine Zeile je Fenster (Level der Zonen-Value-Area ab POC)
-volume_profile_nests  eine Zeile je erkanntem Segment (Berg) des Fensters
+Volumenparametern gebildet. ``merke`` ERSETZT den Bestand desselben
+``run_id`` vollstaendig - es entstehen keine Duplikate und keine sich
+stapelnden Altstaende; ein geaenderter Parametersatz trifft einen NEUEN
+Speicher und laesst den alten unberuehrt.
 
 Aufruf (aus einem Orchestrator):
-    from scripts.volume_profile_store import ProfilStore
-    with ProfilStore(db_path) as store:
-        store.schreibe(zeilen, nest_zeilen)
+    from scripts.volume_profile_store import HALTER
+    speicher = HALTER.hole_oder_anlegen(symbol, timeframe, window_kind, params)
+    speicher.merke(zeilen, nest_zeilen)
 """
 from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import asdict, dataclass, field
-from pathlib import Path
+from dataclasses import dataclass
 from typing import Any, Dict, Iterator, List, Optional, Sequence
 
-import duckdb
-
-# Schema-Version der abgelegten Struktur (bei Aenderungen erhoehen)
+# Vertragsversion der Zeilen/``run_id``-Bildung (bei Aenderungen erhoehen)
 SCHEMA_VERSION: str = "1"
-
-_SQL_PROFILES = """
-CREATE TABLE IF NOT EXISTS volume_profiles (
-    schema_version  VARCHAR NOT NULL,
-    run_id          VARCHAR NOT NULL,
-    symbol          VARCHAR NOT NULL,
-    timeframe       VARCHAR NOT NULL,
-    window_kind     VARCHAR NOT NULL,
-    label           VARCHAR NOT NULL,
-    bar_start       BIGINT  NOT NULL,
-    bar_ende        BIGINT  NOT NULL,
-    ts_start        TIMESTAMP NOT NULL,
-    ts_ende         TIMESTAMP NOT NULL,
-    n_bars          BIGINT  NOT NULL,
-    n_bars_gefiltert BIGINT NOT NULL,
-    vol_summe       DOUBLE,
-    atr             DOUBLE,
-    poc             DOUBLE,
-    val             DOUBLE,
-    vah             DOUBLE,
-    va_zone_pct     DOUBLE,
-    va_abdeckung    DOUBLE,
-    val_huelle      DOUBLE,
-    vah_huelle      DOUBLE,
-    n_segmente      BIGINT,
-    lobe2           DOUBLE,
-    poc_streu_atr   DOUBLE,
-    poc_min         DOUBLE,
-    poc_max         DOUBLE,
-    poc_eindeutig   BOOLEAN,
-    params_json     JSON,
-    created_at      TIMESTAMP WITH TIME ZONE DEFAULT now(),
-    PRIMARY KEY (run_id, bar_start, bar_ende)
-);
-"""
-
-_SQL_NESTS = """
-CREATE TABLE IF NOT EXISTS volume_profile_nests (
-    run_id      VARCHAR NOT NULL,
-    symbol      VARCHAR NOT NULL,
-    timeframe   VARCHAR NOT NULL,
-    window_kind VARCHAR NOT NULL,
-    bar_start   BIGINT  NOT NULL,
-    bar_ende    BIGINT  NOT NULL,
-    rank        INTEGER NOT NULL,
-    poc         DOUBLE,
-    val         DOUBLE,
-    vah         DOUBLE,
-    vol         DOUBLE,
-    peak_share_pct DOUBLE,
-    bin_start   BIGINT,
-    bin_gipfel  BIGINT,
-    bin_ende    BIGINT,
-    PRIMARY KEY (run_id, bar_start, bar_ende, rank)
-);
-"""
 
 
 def _run_id(
@@ -200,7 +144,7 @@ class NestZeile:
     Das Segment traegt seine Fenstergrenzen selbst (``bar_start``/``bar_ende``),
     damit die Zuordnung zum Profil ohne Positionsannahme eindeutig ist. Symbol,
     Timeframe und Fensterart stammen aus dem Speicher-Kontext
-    (``ProfilStore``), nicht aus der Zeile.
+    (``ProfilSpeicher``), nicht aus der Zeile.
 
     Attributes:
         bar_start: Erster Bar-Index des zugehoerigen Fensters.
@@ -229,235 +173,23 @@ class NestZeile:
     bin_ende: int = -1
 
 
-class ProfilStore:
-    """DuckDB-Speicher fuer Volumenprofile (Kontextmanager).
-
-    Attributes:
-        db_path: Pfad der DuckDB-Datei.
-        run_id: Deterministische Kennung des aktuellen Parametersatzes.
-    """
-
-    def __init__(
-        self,
-        db_path: Path,
-        symbol: str,
-        timeframe: str,
-        window_kind: str,
-        params: Dict[str, Any],
-    ) -> None:
-        """Oeffnet den Speicher und legt das Schema an, falls noetig.
-
-        Args:
-            db_path: Pfad der DuckDB-Datei (wird bei Bedarf erzeugt).
-            symbol: Symbol des Laufs.
-            timeframe: Timeframe des Laufs.
-            window_kind: Fensterart des Laufs.
-            params: Volumenparameter (gehen in die ``run_id`` ein).
-        """
-        self.db_path = Path(db_path)
-        self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        self.symbol = str(symbol)
-        self.timeframe = str(timeframe)
-        self.window_kind = str(window_kind)
-        self.params = dict(params)
-        self.run_id = _run_id(symbol, timeframe, window_kind, params)
-        self._con = duckdb.connect(str(self.db_path))
-        self._con.execute(_SQL_PROFILES)
-        self._con.execute(_SQL_NESTS)
-
-    def __enter__(self) -> "ProfilStore":
-        """Kontextmanager-Eintritt.
-
-        Returns:
-            Dieser Speicher.
-        """
-        return self
-
-    def __exit__(self, *exc: object) -> None:
-        """Schliesst die Verbindung.
-
-        Args:
-            *exc: Ausnahmeinformationen (werden nicht unterdrueckt).
-        """
-        self.close()
-
-    def schreibe(self, profile: Sequence[ProfilZeile], nests: Sequence[NestZeile]) -> int:
-        """Schreibt Profile und ihre Segmente idempotent.
-
-        Symbol, Timeframe und Fensterart stammen aus dem Speicher-Kontext
-        (``run_id``-konsistent); die Zeilen liefern Label, Grenzen und Level.
-
-        Args:
-            profile: Profilzeilen der Fenster.
-            nests: Zu den Profilen gehoerende Segmentzeilen. Die Zuordnung
-                erfolgt ueber ``bar_start``/``bar_ende`` der Segmentzeile.
-
-        Returns:
-            Anzahl geschriebener Profilzeilen.
-        """
-        if not profile:
-            return 0
-        self._con.executemany(
-            """
-            INSERT OR REPLACE INTO volume_profiles (
-                schema_version, run_id, symbol, timeframe, window_kind, label,
-                bar_start, bar_ende, ts_start, ts_ende, n_bars, n_bars_gefiltert,
-                vol_summe, atr, poc, val, vah, va_zone_pct, va_abdeckung,
-                val_huelle, vah_huelle, n_segmente, lobe2, poc_streu_atr,
-                poc_min, poc_max, poc_eindeutig, params_json
-            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-            """,
-            [
-                (
-                    SCHEMA_VERSION, self.run_id, self.symbol, self.timeframe,
-                    self.window_kind, z.label, int(z.bar_start), int(z.bar_ende),
-                    z.ts_start, z.ts_ende, int(z.n_bars), int(z.n_bars_gefiltert),
-                    float(z.vol_summe), float(z.atr), float(z.poc), float(z.val),
-                    float(z.vah), float(z.va_zone_pct), float(z.va_abdeckung),
-                    float(z.val_huelle), float(z.vah_huelle), int(z.n_segmente),
-                    float(z.lobe2), float(z.poc_streu_atr), float(z.poc_min),
-                    float(z.poc_max), bool(z.poc_eindeutig),
-                    json.dumps(
-                        dict(self.params),
-                        sort_keys=True,
-                        default=str,
-                    ),
-                )
-                for z in profile
-            ],
-        )
-        if nests:
-            self._con.executemany(
-                """
-                INSERT OR REPLACE INTO volume_profile_nests (
-                    run_id, symbol, timeframe, window_kind, bar_start, bar_ende,
-                    rank, poc, val, vah, vol, peak_share_pct,
-                    bin_start, bin_gipfel, bin_ende
-                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-                """,
-                [
-                    (
-                        self.run_id, self.symbol, self.timeframe,
-                        self.window_kind,
-                        int(z.bar_start), int(z.bar_ende), int(z.rank),
-                        float(z.poc), float(z.val), float(z.vah), float(z.vol),
-                        float(z.peak_share_pct), int(z.bin_start),
-                        int(z.bin_gipfel), int(z.bin_ende),
-                    )
-                    for z in nests
-                ],
-            )
-        return len(profile)
-
-    def schreibe_run_meta(self, symbol: str, timeframe: str, params: Dict[str, Any],
-                          kommentar: str = "") -> None:
-        """Schreibt eine Metazeile des Laufs (Nachvollziehbarkeit).
-
-        Args:
-            symbol: Symbol.
-            timeframe: Timeframe.
-            params: Volumenparameter.
-            kommentar: Freitext (z. B. Grund des Laufs).
-        """
-        self._con.execute(
-            """
-            CREATE TABLE IF NOT EXISTS volume_profile_runs (
-                run_id VARCHAR PRIMARY KEY,
-                schema_version VARCHAR,
-                symbol VARCHAR, timeframe VARCHAR, window_kind VARCHAR,
-                params_json JSON, kommentar VARCHAR,
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
-            )
-            """
-        )
-        self._con.execute(
-            """
-            INSERT OR REPLACE INTO volume_profile_runs
-            (run_id, schema_version, symbol, timeframe, window_kind,
-             params_json, kommentar)
-            VALUES (?,?,?,?,?,?,?)
-            """,
-            [
-                self.run_id, SCHEMA_VERSION, symbol, timeframe,
-                self.window_kind,
-                json.dumps(params, sort_keys=True, default=str), kommentar,
-            ],
-        )
-
-    def lies_profile(
-        self, window_kind: Optional[str] = None, nur_diesen_run: bool = True
-    ) -> List[Dict[str, Any]]:
-        """Liest Profilzeilen als Liste von Dictionaries.
-
-        Args:
-            window_kind: Optionaler Filter auf die Fensterart.
-            nur_diesen_run: True = nur Zeilen der eigenen ``run_id``.
-
-        Returns:
-            Liste von Zeilen-Dictionaries.
-        """
-        wo: List[str] = []
-        par: List[Any] = []
-        if nur_diesen_run:
-            wo.append("run_id = ?")
-            par.append(self.run_id)
-        if window_kind:
-            wo.append("window_kind = ?")
-            par.append(window_kind)
-        sql = "SELECT * FROM volume_profiles"
-        if wo:
-            sql += " WHERE " + " AND ".join(wo)
-        sql += " ORDER BY bar_start"
-        cur = self._con.execute(sql, par)
-        spalten = [d[0] for d in cur.description]
-        return [dict(zip(spalten, r)) for r in cur.fetchall()]
-
-    def zaehle(self) -> Dict[str, int]:
-        """Zaehlt die Zeilen beider Tabellen.
-
-        Returns:
-            Dict mit ``profiles``, ``nests``, ``runs`` (runs = 0, wenn die
-            Metatabelle noch nicht existiert).
-        """
-        n_prof = int(self._con.execute("SELECT COUNT(*) FROM volume_profiles").fetchone()[0])
-        n_nest = int(
-            self._con.execute("SELECT COUNT(*) FROM volume_profile_nests").fetchone()[0]
-        )
-        try:
-            n_runs = int(
-                self._con.execute("SELECT COUNT(*) FROM volume_profile_runs").fetchone()[0]
-            )
-        except duckdb.CatalogException:
-            n_runs = 0
-        return {"profiles": n_prof, "nests": n_nest, "runs": n_runs}
-
-    def close(self) -> None:
-        """Schliesst die DuckDB-Verbindung (fehlertolerant)."""
-        try:
-            self._con.close()
-        except Exception:
-            pass
-
-
 # =============================================================================
 # LAUFZEIT-SPEICHER (RAM)
 # =============================================================================
 
 
 class ProfilSpeicher:
-    """Laufzeit-Speicher fuer Volumenprofile (RAM, ohne DuckDB).
+    """Laufzeit-Speicher fuer Volumenprofile (RAM, ohne Datei).
 
     Die Profile werden NUR im Arbeitsspeicher gehalten. Das ist der Regelweg:
     ein Profil ist an seinen Parametersatz gebunden und wird bei jeder
     Parameteraenderung sofort ungueltig - eine Ablegung in einer Datei waere
     dann Altbestand, der stillschweigend weiterverwendet werden koennte.
-    ``ProfilStore`` (DuckDB) bleibt fuer ausdrueckliche Archivlaeufe daneben
-    bestehen.
 
-    Der Speicher haelt Zeilen im selben Vertrag wie ``ProfilStore``
-    (``ProfilZeile``/``NestZeile``) und ist nach ``run_id`` gruppiert -
-    identische Parameter treffen dieselbe Gruppe, ein erneutes ``merke``
-    ERSETZT sie (gleiche Idempotenz wie die DB).
+    Der Speicher haelt die Zeilenvertraege ``ProfilZeile``/``NestZeile`` und
+    ist nach ``run_id`` gruppiert - identische Parameter treffen dieselbe
+    Gruppe, ein erneutes ``merke`` ERSETZT sie (keine sich stapelnden
+    Altstaende).
 
     Attributes:
         symbol: Symbol des Laufs.

@@ -8,7 +8,7 @@ KEINE Zeichenroutine - es steuert nur die vier Bausteine:
     scripts.market_segmentation        Bars laden (BKZ-Garantie)
     scripts.volume_profile_windows     Fenster schneiden (day/week/h12/h4/h1/m30)
     scripts.volume_profile_core        POC/VAL/VAH + Segmente + POC-Streuung
-    scripts.volume_profile_store       Laufzeit-Speicher (RAM) oder DuckDB
+    scripts.volume_profile_store       Laufzeit-Speicher (RAM) je Parametersatz
     scripts.volume_profile_chart       PNG-Ausgaben
 
 Zwei Ebenen je Fenster
@@ -33,11 +33,10 @@ gespeichert und gezeichnet wird:
 
 Speicher
 --------
-Regelweg ist der LAUFZEIT-Speicher im RAM (``ProfilSpeicher``): ein Profil ist
-an seinen Parametersatz gebunden und wird bei Parameteraenderung sofort
-ungueltig - eine Dateiablage waere dann Altbestand. Die DuckDB-Ablage
-(``ProfilStore``) bleibt als ausdruecklicher Archivlauf per
-``--speicher=db`` erhalten.
+Es gibt KEINE Datenbankablage der Profile. Die Profile werden zur Laufzeit
+gehalten (``ProfilSpeicher``): ein Profil ist an seinen Parametersatz gebunden
+und wird bei Parameteraenderung sofort ungueltig - eine Dateiablage waere dann
+Altbestand, der stillschweigend weiterverwendet werden koennte.
 
 Vergeben wird der Laufzeitspeicher vom prozessweiten Halter
 (``volume_profile_store.HALTER``): ``hole_oder_anlegen`` liefert bei gleichem
@@ -55,7 +54,7 @@ untersucht (M15/day -> 48 Bars, H1/day -> 12 Bars, M15/h4 -> 8 Bars).
 Zeitbasis (docs/ZEITBASIS_KANON.md)
 -----------------------------------
 Zeit kommt ausschliesslich als BKZ aus ``load_data`` (``time AT TIME ZONE
-'UTC'``, tz-naiv) und wird als solche gespeichert und beschriftet. Die
+'UTC'``, tz-naiv) und wird als solche gehalten und beschriftet. Die
 Fenstergrenzen werden dynamisch per ``searchsorted`` gebildet (K6); es gibt
 keine Zeitzonen-Projektion (K2) und kein nacktes ``SELECT time`` (K4).
 
@@ -64,7 +63,7 @@ Aufruf (Projekt-Wurzel):
     python -m scripts.volume_profile_run --window=week --symbol=SILVER ^
         --timeframe=M15 --start=2026-06-01 --ende=2026-09-01
     python -m scripts.volume_profile_run --window=h4 --vol_quantil=0.05
-    python -m scripts.volume_profile_run --speicher=db   (Archivlauf in DuckDB)
+    python -m scripts.volume_profile_run --window=day --modus=balance
 """
 from __future__ import annotations
 
@@ -101,7 +100,6 @@ from scripts.volume_profile_core import (  # noqa: E402
 from scripts.volume_profile_store import (  # noqa: E402
     HALTER,
     NestZeile,
-    ProfilStore,
     ProfilZeile,
 )
 from scripts.volume_profile_windows import (  # noqa: E402
@@ -157,12 +155,6 @@ class VolumeProfilConfig:
         konsens_bins: Bin-Anzahlen der POC-Streuungsmessung (leer = aus).
         konsens_smooth: Glaettungsfenster der POC-Streuungsmessung.
         streu_toleranz_atr: Toleranz fuer ``poc_eindeutig`` in ATR.
-        store_path: DuckDB-Datei der Profile (eigene Datei, nicht die
-            Marktdaten-DB); nur bei ``speicher="db"`` benutzt.
-        speicher: Ablage der Profile: ``"ram"`` (Default, Laufzeitspeicher -
-            Profile werden bei Parameteraenderung sofort ungueltig),
-            ``"db"`` (ausdruecklicher Archivlauf in ``store_path``) oder
-            ``"keine"`` (nur rechnen und zeichnen).
         out_dir: Zielordner fuer PNG/TXT/TSV.
         dpi: Aufloesung der PNG-Ausgabe.
         grid_max_profile: Obergrenze der Fenster im Profil-Grid. 0 (Default) =
@@ -202,9 +194,7 @@ class VolumeProfilConfig:
     konsens_smooth: Tuple[int, ...] = (1, 3, 5, 9)
     streu_toleranz_atr: float = 1.0
 
-    # --- Speicher und Ausgabe ----------------------------------------------
-    store_path: Path = _ROOT / "data" / "volume_profiles.duckdb"
-    speicher: str = "ram"
+    # --- Ausgabe ------------------------------------------------------------
     out_dir: Path = _ROOT / "test" / "VolumeZone" / "reports"
     dpi: int = 300
     grid_max_profile: int = 0
@@ -350,7 +340,7 @@ def _speicher_zeilen(
         config: Laufkonfiguration.
 
     Returns:
-        ``(profilzeilen, nestzeilen)`` fuer ``ProfilStore.schreibe``.
+        ``(profilzeilen, nestzeilen)`` fuer ``ProfilSpeicher.merke``.
     """
     zeilen: List[ProfilZeile] = []
     nests: List[NestZeile] = []
@@ -599,7 +589,7 @@ def _parse_cli(
         key = key.strip().replace("-", "_")
         val = val.strip()
         if key in ("symbol", "timeframe", "start", "ende", "window", "window_kind",
-                   "speicher", "modus"):
+                   "modus"):
             felder["window_kind" if key.startswith("window") else key] = val
         elif key in ("num_bins", "smooth_win", "min_bars", "dpi",
                      "grid_max_profile", "grid_seiten_max"):
@@ -612,7 +602,7 @@ def _parse_cli(
             felder[key] = tuple(
                 int(t) for t in val.replace(";", ",").split(",") if t.strip()
             )
-        elif key in ("db_path", "store_path", "out_dir"):
+        elif key in ("db_path", "out_dir"):
             felder[key] = Path(val)
         else:
             raise SystemExit(f"Unbekanntes Argument: --{key}")
@@ -641,11 +631,6 @@ def _validiere(config: VolumeProfilConfig) -> None:
         raise SystemExit("min_bars muss >= 1 sein (oder None = ableiten).")
     if not 0.0 < config.min_abdeckung <= 1.0:
         raise SystemExit("min_abdeckung muss im Intervall (0, 1] liegen.")
-    if config.speicher not in ("ram", "db", "keine"):
-        raise SystemExit(
-            f"Unbekannte Speicherart {config.speicher!r}. Erlaubt: "
-            "ram, db, keine."
-        )
     if config.modus not in MODI:
         raise SystemExit(
             f"Unbekannter Modus {config.modus!r}. Erlaubt: {list(MODI)}."
@@ -667,10 +652,10 @@ def _validiere(config: VolumeProfilConfig) -> None:
 def _store_parameter(config: VolumeProfilConfig) -> Dict[str, object]:
     """Bildet die Parameter, die in die ``run_id`` des Speichers eingehen.
 
-    ``modus`` gehoert bewusst NICHT dazu: gespeichert werden immer BEIDE
-    Baender (``val``/``vah`` = Zonen-VA, ``val_huelle``/``vah_huelle`` =
+    ``modus`` gehoert bewusst NICHT dazu: gehalten werden immer BEIDE Baender
+    (``val``/``vah`` = Zonen-VA, ``val_huelle``/``vah_huelle`` =
     Balance-Huelle). Der Modus ist reine Auswahl bei Meldung und Zeichnung und
-    darf deshalb keinen zweiten Archivlauf mit identischen Zahlen erzeugen.
+    darf deshalb keinen zweiten Speicher mit identischen Zahlen anlegen.
 
     Args:
         config: Laufkonfiguration.
@@ -695,11 +680,11 @@ def main(
     argv: Optional[Sequence[str]] = None,
     config: Optional[VolumeProfilConfig] = None,
 ) -> int:
-    """CLI-Einstieg: rechnet Fensterprofile, haelt sie im RAM und zeichnet.
+    """CLI-Einstieg: rechnet Fensterprofile, haelt sie und zeichnet.
 
-    Der Laufzeitspeicher (``speicher="ram"``, Default) wird gefuellt und nach
-    dem Zeichnen wieder verworfen - die Profile gelten nur fuer DIESEN
-    Parametersatz. Bei ``speicher="db"`` wird zusaetzlich in DuckDB archiviert.
+    Der Laufzeitspeicher wird ueber den prozessweiten Halter besorgt und mit
+    den Zeilen dieses Laufs gefuellt - die Profile gelten nur fuer DIESEN
+    Parametersatz und werden nirgends abgelegt (es gibt keine DB-Ablage).
 
     Args:
         argv: Argumentliste (Default: ``sys.argv[1:]``).
@@ -731,41 +716,23 @@ def main(
             f"Intraday-Timeframe waehlen."
         )
 
-    # --- Speicher: Regelweg RAM, DuckDB nur als Archivlauf ------------------
+    # --- Laufzeit-Speicher (kein Ablegen; Zuordnung ueber run_id) -----------
     store_params = _store_parameter(config)
     zeilen, nests = _speicher_zeilen(profile, config)
-    speicher_zeile = ""
-    if config.speicher == "ram":
-        speicher = HALTER.hole_oder_anlegen(
-            config.symbol, config.timeframe, config.window_kind, store_params
-        )
-        n_gehalten = speicher.merke(zeilen, nests)
-        stand = speicher.zaehle()
-        halter_stand = HALTER.zaehle()
-        speicher_zeile = (
-            f"Laufzeitspeicher (RAM): run_id={speicher.run_id}, "
-            f"{n_gehalten} Profile, {stand['nests']} Segmente gehalten, "
-            f"{speicher.speicher_mb():.2f} MB | Halter: "
-            f"{len(HALTER)} Parametersatz/Parametersaetze, "
-            f"{halter_stand['profiles']} Profile gesamt, "
-            f"{HALTER.speicher_mb():.2f} MB"
-        )
-    elif config.speicher == "db":
-        with ProfilStore(
-            config.store_path, config.symbol, config.timeframe,
-            config.window_kind, store_params,
-        ) as store:
-            n_geschrieben = store.schreibe(zeilen, nests)
-            store.schreibe_run_meta(
-                config.symbol, config.timeframe, store_params,
-                kommentar=f"{config.start}..{config.ende} "
-                          f"({len(zeilen)} Fenster)",
-            )
-            stand = store.zaehle()
-        speicher_zeile = (
-            f"Archivlauf (DuckDB {config.store_path.name}): "
-            f"{n_geschrieben} Profile geschrieben | DB-Bestand: {stand}"
-        )
+    speicher = HALTER.hole_oder_anlegen(
+        config.symbol, config.timeframe, config.window_kind, store_params
+    )
+    n_gehalten = speicher.merke(zeilen, nests)
+    stand = speicher.zaehle()
+    halter_stand = HALTER.zaehle()
+    speicher_zeile = (
+        f"Laufzeitspeicher: run_id={speicher.run_id}, "
+        f"{n_gehalten} Profile, {stand['nests']} Segmente gehalten, "
+        f"{speicher.speicher_mb():.2f} MB | Halter: "
+        f"{len(HALTER)} Parametersatz/Parametersaetze, "
+        f"{halter_stand['profiles']} Profile gesamt, "
+        f"{HALTER.speicher_mb():.2f} MB"
+    )
 
     # --- Ausgabe -----------------------------------------------------------
     config.out_dir.mkdir(parents=True, exist_ok=True)

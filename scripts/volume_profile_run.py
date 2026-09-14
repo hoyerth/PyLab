@@ -8,7 +8,7 @@ KEINE Zeichenroutine - es steuert nur die vier Bausteine:
     scripts.market_segmentation        Bars laden (BKZ-Garantie)
     scripts.volume_profile_windows     Fenster schneiden (day/week/h12/h4/h1/m30)
     scripts.volume_profile_core        POC/VAL/VAH + Segmente + POC-Streuung
-    scripts.volume_profile_store       DuckDB-Speicherung (idempotent)
+    scripts.volume_profile_store       Laufzeit-Speicher (RAM) oder DuckDB
     scripts.volume_profile_chart       PNG-Ausgaben
 
 Zwei Ebenen je Fenster
@@ -17,6 +17,21 @@ Zwei Ebenen je Fenster
                Segment-Erkennung, bleibt unveraendert erhalten.
     ZONEN-VA   symmetrische Value Area ab dem globalen POC, die ``va_zone_pct``
                (Default 0,94) des Gesamtvolumens erfasst.
+
+Speicher
+--------
+Regelweg ist der LAUFZEIT-Speicher im RAM (``ProfilSpeicher``): ein Profil ist
+an seinen Parametersatz gebunden und wird bei Parameteraenderung sofort
+ungueltig - eine Dateiablage waere dann Altbestand. Die DuckDB-Ablage
+(``ProfilStore``) bleibt als ausdruecklicher Archivlauf per
+``--speicher=db`` erhalten.
+
+Mindest-Bars
+------------
+``min_bars`` wird standardmaessig AUS Fensterart und Timeframe ABGELEITET
+(``min_bars_fuer``): gefordert ist ein Anteil ``min_abdeckung`` (Default 0,5)
+der nominalen Fensterdauer. Damit wird auf jedem Timeframe dieselbe Groesse
+untersucht (M15/day -> 48 Bars, H1/day -> 12 Bars, M15/h4 -> 8 Bars).
 
 Zeitbasis (docs/ZEITBASIS_KANON.md)
 -----------------------------------
@@ -30,6 +45,7 @@ Aufruf (Projekt-Wurzel):
     python -m scripts.volume_profile_run --window=week --symbol=SILVER ^
         --timeframe=M15 --start=2026-06-01 --ende=2026-09-01
     python -m scripts.volume_profile_run --window=h4 --vol_quantil=0.05
+    python -m scripts.volume_profile_run --speicher=db   (Archivlauf in DuckDB)
 """
 from __future__ import annotations
 
@@ -62,6 +78,7 @@ from scripts.volume_profile_core import (  # noqa: E402
 )
 from scripts.volume_profile_store import (  # noqa: E402
     NestZeile,
+    ProfilSpeicher,
     ProfilStore,
     ProfilZeile,
 )
@@ -69,6 +86,7 @@ from scripts.volume_profile_windows import (  # noqa: E402
     FENSTER_ARTEN,
     FensterSpec,
     baue_fenster,
+    min_bars_fuer,
 )
 
 _ROOT: Path = Path(__file__).resolve().parent.parent
@@ -95,7 +113,11 @@ class VolumeProfilConfig:
         ende: Fenster-Ende als ISO-Datum, exklusiv (BKZ).
         db_path: Marktdaten-DuckDB (Default = zentrale Produktions-DB).
         window_kind: Fensterart (``day``/``week``/``h12``/``h4``/``h1``/``m30``).
-        min_bars: Mindestzahl Bars je Fenster, damit es ausgewertet wird.
+        min_bars: Mindestzahl Bars je Fenster. ``None`` (Default) = ABLEITEN
+            aus Fensterart und Timeframe (siehe ``min_abdeckung``) - damit
+            wird auf jedem Timeframe dieselbe Groesse untersucht.
+        min_abdeckung: Anteil der nominalen Fensterdauer, der mindestens durch
+            Bars belegt sein muss (Default 0,5 = halbes Fenster).
         num_bins: Anzahl Preis-Bins des Profils (Baseline ``NUM_BINS``).
         smooth_win: Glaettungsfenster des Volumens (Baseline ``SMOOTH_WIN``).
         va_pct: Value-Area-Anteil des Berg-Volumens (Baseline ``VA_PCT``).
@@ -110,11 +132,20 @@ class VolumeProfilConfig:
         konsens_smooth: Glaettungsfenster der POC-Streuungsmessung.
         streu_toleranz_atr: Toleranz fuer ``poc_eindeutig`` in ATR.
         store_path: DuckDB-Datei der Profile (eigene Datei, nicht die
-            Marktdaten-DB).
-        schreibe_db: False = nur rechnen und zeichnen, nicht speichern.
+            Marktdaten-DB); nur bei ``speicher="db"`` benutzt.
+        speicher: Ablage der Profile: ``"ram"`` (Default, Laufzeitspeicher -
+            Profile werden bei Parameteraenderung sofort ungueltig),
+            ``"db"`` (ausdruecklicher Archivlauf in ``store_path``) oder
+            ``"keine"`` (nur rechnen und zeichnen).
         out_dir: Zielordner fuer PNG/TXT/TSV.
         dpi: Aufloesung der PNG-Ausgabe.
-        grid_max_profile: Obergrenze der Fenster im Profil-Grid (0 = alle).
+        grid_max_profile: Obergrenze der Fenster im Profil-Grid. 0 (Default) =
+            ALLE Fenster des Testzeitraums zeigen (es gibt keinen eigenen
+            4h-/Intraday-Grafikmodus; eine Kuerzung nur per Ansage/CLI).
+        grid_seiten_max: Hoechstzahl Panels je PNG-Seite. Da immer der ganze
+            Testzeitraum gezeigt wird, wird bei mehr Fenstern seitenweise
+            ausgegeben (``..._s1.png``, ``..._s2.png``, ...) - nichts wird
+            weggelassen, nur aufgeteilt.
     """
 
     # --- Datenzugriff -------------------------------------------------------
@@ -126,7 +157,8 @@ class VolumeProfilConfig:
 
     # --- Fenster ------------------------------------------------------------
     window_kind: str = "day"
-    min_bars: int = 40
+    min_bars: Optional[int] = None
+    min_abdeckung: float = 0.5
 
     # --- Volumenprofil (Baseline-Defaults + Zonen-VA) -----------------------
     num_bins: int = 60
@@ -145,10 +177,11 @@ class VolumeProfilConfig:
 
     # --- Speicher und Ausgabe ----------------------------------------------
     store_path: Path = _ROOT / "data" / "volume_profiles.duckdb"
-    schreibe_db: bool = True
+    speicher: str = "ram"
     out_dir: Path = _ROOT / "test" / "VolumeZone" / "reports"
     dpi: int = 300
-    grid_max_profile: int = 96
+    grid_max_profile: int = 0
+    grid_seiten_max: int = 96
 
 
 # =============================================================================
@@ -195,13 +228,34 @@ def _konsens_parameter(config: VolumeProfilConfig) -> Optional[KonsensParameter]
     )
 
 
+def effektive_min_bars(config: VolumeProfilConfig) -> int:
+    """Liefert die wirksame Mindest-Bars-Zahl eines Laufs.
+
+    Ist ``config.min_bars`` gesetzt, gilt dieser Wert. Sonst wird er aus
+    Fensterart und Timeframe abgeleitet (``min_bars_fuer``): gefordert ist der
+    Anteil ``min_abdeckung`` der NOMINALEN Fensterdauer, damit auf jedem
+    Timeframe dieselbe Groesse untersucht wird.
+
+    Args:
+        config: Laufkonfiguration.
+
+    Returns:
+        Mindestzahl Bars je Fenster.
+    """
+    if config.min_bars is not None:
+        return int(config.min_bars)
+    return min_bars_fuer(config.window_kind, config.timeframe, config.min_abdeckung)
+
+
 def rechne_fensterprofile(
     df: pd.DataFrame, config: VolumeProfilConfig
 ) -> Tuple[List[FensterProfil], int]:
     """Rechnet je Zeitfenster ein Volumenprofil.
 
-    Fenster unter ``min_bars`` werden uebersprungen (kurze/randstaendige
-    Bloecke, z. B. Freitag-Nachmittag im H4-Raster).
+    Fenster unter der wirksamen Mindest-Bars-Zahl werden uebersprungen (kurze/
+    randstaendige Bloecke, z. B. Freitag-Nachmittag im H4-Raster). Die Zahl
+    wird aus Fensterart und Timeframe abgeleitet, sofern ``min_bars`` nicht
+    ausdruecklich gesetzt ist (``effektive_min_bars``).
 
     Args:
         df: Bars des Gesamtfensters (BKZ).
@@ -213,13 +267,14 @@ def rechne_fensterprofile(
     """
     par = _profil_parameter(config)
     kons = _konsens_parameter(config)
-    spec = FensterSpec(art=config.window_kind, min_bars=config.min_bars)
+    min_bars = effektive_min_bars(config)
+    spec = FensterSpec(art=config.window_kind, min_bars=min_bars)
     fenster = baue_fenster(df, spec)
 
     profile: List[FensterProfil] = []
     n_verworfen = 0
     for f in fenster:
-        if f.n_bars < config.min_bars:
+        if f.n_bars < min_bars:
             n_verworfen += 1
             continue
         sub = df.iloc[f.bar_start : f.bar_ende + 1]
@@ -313,8 +368,9 @@ def report_text(
         "VOLUMENPROFILE - FENSTERWEISE (POC / ZONEN-VA 94 % / SEGMENTE)",
         f"Instrument: {config.symbol} {config.timeframe} | Zeitraum: "
         f"{config.start} .. {config.ende} (ende-exklusiv, BKZ)",
-        f"Fensterart: {config.window_kind} | min_bars={config.min_bars} | "
-        f"Fenster gesamt {len(profile) + n_verworfen} | ausgewertet "
+        f"Fensterart: {config.window_kind} | min_bars={effektive_min_bars(config)}"
+        f"{'' if config.min_bars is not None else f' (abgeleitet, min_abdeckung={config.min_abdeckung})'}"
+        f" | Fenster gesamt {len(profile) + n_verworfen} | ausgewertet "
         f"{len(profile)} | verworfen {n_verworfen}",
         f"Profil: bins={config.num_bins} smooth={config.smooth_win} "
         f"va_pct={config.va_pct} (Berg-VA) va_zone_pct={config.va_zone_pct} "
@@ -401,7 +457,8 @@ def tsv_levels(config: VolumeProfilConfig, profile: Sequence[FensterProfil]) -> 
     kopf: List[str] = [
         f"# volume_profile Level - {config.symbol} {config.timeframe} | "
         f"{config.start} .. {config.ende} (ende-exklusiv, BKZ)",
-        f"# Fensterart={config.window_kind} bins={config.num_bins} "
+        f"# Fensterart={config.window_kind} min_bars={effektive_min_bars(config)} "
+        f"bins={config.num_bins} "
         f"smooth={config.smooth_win} va_pct={config.va_pct} "
         f"va_zone_pct={config.va_zone_pct}",
         "# rolle: ZONE = Zonen-Value-Area ab POC | SEGMENT = einzelner Volumen-Berg",
@@ -483,20 +540,20 @@ def _parse_cli(
         key, val = a[2:].split("=", 1)
         key = key.strip().replace("-", "_")
         val = val.strip()
-        if key in ("symbol", "timeframe", "start", "ende", "window", "window_kind"):
+        if key in ("symbol", "timeframe", "start", "ende", "window", "window_kind",
+                   "speicher"):
             felder["window_kind" if key.startswith("window") else key] = val
         elif key in ("num_bins", "smooth_win", "min_bars", "dpi",
-                     "grid_max_profile"):
+                     "grid_max_profile", "grid_seiten_max"):
             felder[key] = int(val)
         elif key in ("va_pct", "valley_rel", "min_mountain_pct", "va_zone_pct",
-                     "vol_min", "vol_quantil", "streu_toleranz_atr"):
+                     "vol_min", "vol_quantil", "streu_toleranz_atr",
+                     "min_abdeckung"):
             felder[key] = float(val)
         elif key in ("konsens_bins", "konsens_smooth"):
             felder[key] = tuple(
                 int(t) for t in val.replace(";", ",").split(",") if t.strip()
             )
-        elif key == "schreibe_db":
-            felder[key] = val.strip().lower() in ("1", "true", "ja", "yes")
         elif key in ("db_path", "store_path", "out_dir"):
             felder[key] = Path(val)
         else:
@@ -522,8 +579,15 @@ def _validiere(config: VolumeProfilConfig) -> None:
         raise SystemExit("num_bins muss >= 3 sein.")
     if config.smooth_win < 1:
         raise SystemExit("smooth_win muss >= 1 sein.")
-    if config.min_bars < 1:
-        raise SystemExit("min_bars muss >= 1 sein.")
+    if config.min_bars is not None and config.min_bars < 1:
+        raise SystemExit("min_bars muss >= 1 sein (oder None = ableiten).")
+    if not 0.0 < config.min_abdeckung <= 1.0:
+        raise SystemExit("min_abdeckung muss im Intervall (0, 1] liegen.")
+    if config.speicher not in ("ram", "db", "keine"):
+        raise SystemExit(
+            f"Unbekannte Speicherart {config.speicher!r}. Erlaubt: "
+            "ram, db, keine."
+        )
     if not 0.0 < config.va_pct < 1.0:
         raise SystemExit("va_pct muss im offenen Intervall (0, 1) liegen.")
     if not 0.0 < config.va_zone_pct <= 1.0:
@@ -538,17 +602,48 @@ def _validiere(config: VolumeProfilConfig) -> None:
         )
 
 
-def main(argv: Optional[Sequence[str]] = None) -> int:
-    """CLI-Einstieg: rechnet Fensterprofile, speichert sie und zeichnet Charts.
+def _store_parameter(config: VolumeProfilConfig) -> Dict[str, object]:
+    """Bildet die Parameter, die in die ``run_id`` des Speichers eingehen.
+
+    Args:
+        config: Laufkonfiguration.
+
+    Returns:
+        Parameterdict (Volumenparameter + Fensterart + Konsens + Zeitraum).
+    """
+    return {
+        **asdict(_profil_parameter(config)),
+        "window_kind": config.window_kind,
+        "min_bars": effektive_min_bars(config),
+        "konsens_bins": list(config.konsens_bins),
+        "konsens_smooth": list(config.konsens_smooth),
+        "streu_toleranz_atr": config.streu_toleranz_atr,
+        "timeframe": config.timeframe,
+        "start": config.start,
+        "ende": config.ende,
+    }
+
+
+def main(
+    argv: Optional[Sequence[str]] = None,
+    config: Optional[VolumeProfilConfig] = None,
+) -> int:
+    """CLI-Einstieg: rechnet Fensterprofile, haelt sie im RAM und zeichnet.
+
+    Der Laufzeitspeicher (``speicher="ram"``, Default) wird gefuellt und nach
+    dem Zeichnen wieder verworfen - die Profile gelten nur fuer DIESEN
+    Parametersatz. Bei ``speicher="db"`` wird zusaetzlich in DuckDB archiviert.
 
     Args:
         argv: Argumentliste (Default: ``sys.argv[1:]``).
+        config: Fertige Konfiguration; None = aus ``argv`` bilden.
 
     Returns:
         Exit-Code 0 bei Erfolg.
     """
-    args = list(sys.argv[1:] if argv is None else argv)
-    config = _parse_cli(args, VolumeProfilConfig())
+    if config is None:
+        args = list(sys.argv[1:] if argv is None else argv)
+        config = _parse_cli(args, VolumeProfilConfig())
     _validiere(config)
 
     df: pd.DataFrame = load_data(
@@ -563,25 +658,28 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     profile, n_verworfen = rechne_fensterprofile(df, config)
     if not any(p.gueltig for p in profile):
         raise SystemExit(
-            "Kein Fenster ergab ein Profil. min_bars senken, Zeitraum "
-            "vergroessern oder einen Intraday-Timeframe waehlen."
+            f"Kein Fenster ergab ein Profil. min_bars senken "
+            f"(derzeit {effektive_min_bars(config)}, min_abdeckung="
+            f"{config.min_abdeckung}), Zeitraum vergroessern oder einen "
+            f"Intraday-Timeframe waehlen."
         )
 
-    # --- Speicher ----------------------------------------------------------
-    n_geschrieben = 0
-    if config.schreibe_db:
-        par = _profil_parameter(config)
-        store_params = {
-            **asdict(par),
-            "window_kind": config.window_kind,
-            "konsens_bins": list(config.konsens_bins),
-            "konsens_smooth": list(config.konsens_smooth),
-            "streu_toleranz_atr": config.streu_toleranz_atr,
-            "timeframe": config.timeframe,
-            "start": config.start,
-            "ende": config.ende,
-        }
-        zeilen, nests = _speicher_zeilen(profile, config)
+    # --- Speicher: Regelweg RAM, DuckDB nur als Archivlauf ------------------
+    store_params = _store_parameter(config)
+    zeilen, nests = _speicher_zeilen(profile, config)
+    speicher_zeile = ""
+    if config.speicher == "ram":
+        speicher = ProfilSpeicher(
+            config.symbol, config.timeframe, config.window_kind, store_params
+        )
+        n_gehalten = speicher.merke(zeilen, nests)
+        stand = speicher.zaehle()
+        speicher_zeile = (
+            f"Laufzeitspeicher (RAM): run_id={speicher.run_id}, "
+            f"{n_gehalten} Profile, {stand['nests']} Segmente gehalten, "
+            f"{speicher.speicher_mb():.2f} MB"
+        )
+    elif config.speicher == "db":
         with ProfilStore(
             config.store_path, config.symbol, config.timeframe,
             config.window_kind, store_params,
@@ -592,7 +690,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 kommentar=f"{config.start}..{config.ende} "
                           f"({len(zeilen)} Fenster)",
             )
-            zaehl = store.zaehle()
+            stand = store.zaehle()
+        speicher_zeile = (
+            f"Archivlauf (DuckDB {config.store_path.name}): "
+            f"{n_geschrieben} Profile geschrieben | DB-Bestand: {stand}"
+        )
 
     # --- Ausgabe -----------------------------------------------------------
     config.out_dir.mkdir(parents=True, exist_ok=True)
@@ -609,8 +711,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         titel_timeframe=config.timeframe,
         zeitraum=f"{config.start} .. {config.ende} (ende-exkl., BKZ)",
         max_profile=config.grid_max_profile,
+        seiten_max=config.grid_seiten_max,
     )
-    p_zone, p_grid = zeichne_alles(
+    p_zone, p_grids = zeichne_alles(
         df, profile, stil, config.out_dir / stamm
     )
 
@@ -618,20 +721,17 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     n_unsicher = sum(1 for p in gueltig if not p.konsens.eindeutig)
     print(
         f"Fensterart {config.window_kind}: {len(gueltig)} Profile aus "
-        f"{len(profile)} ausgewerteten Fenstern ({n_verworfen} verworfen) | "
-        f"POC unsicher: {n_unsicher}"
+        f"{len(profile)} ausgewerteten Fenstern ({n_verworfen} verworfen, "
+        f"min_bars={effektive_min_bars(config)}) | POC unsicher: {n_unsicher}"
     )
-    if config.schreibe_db:
-        print(
-            f"Speicher {config.store_path.name}: run_id={config.window_kind}, "
-            f"{n_geschrieben} Profile geschrieben | DB-Bestand: {zaehl}"
-        )
+    if speicher_zeile:
+        print(speicher_zeile)
     print(f"Ausgabe: {config.out_dir / (stamm + '.txt')}")
     print(f"         {config.out_dir / (stamm + '_levels.tsv')}")
     if p_zone:
         print(f"         {p_zone}")
-    if p_grid:
-        print(f"         {p_grid}")
+    for g in p_grids:
+        print(f"         {g}")
     return 0
 
 

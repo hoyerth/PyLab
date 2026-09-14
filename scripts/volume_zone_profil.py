@@ -102,6 +102,22 @@ if __package__ in (None, ""):
         sys.path.insert(0, str(_projekt_root))
 
 from scripts.market_segmentation import load_data  # noqa: E402
+from scripts.volume_profile_core import (  # noqa: E402
+    MountainPeak,
+    ProfilParameter,
+    VolumeProfileData,
+    build_volume_profile,
+    compute_segmentierung,
+    find_mountains,
+    smooth_vol,
+    va_for_mountain,
+    zweitgipfel,
+)
+from scripts.volume_profile_windows import (  # noqa: E402
+    FensterSpec,
+    baue_fenster,
+    min_bars_fuer,
+)
 
 
 # =============================================================================
@@ -135,7 +151,11 @@ class VolumeZoneConfig:
             Berg in Prozent (Baseline ``MIN_MOUNTAIN_PCT``).
         min_bars_pro_tag: Mindestzahl Bars, damit ein Kalendertag als
             auswertbare Balance gilt (kurze/randstaendige Tage werden
-            verworfen, nicht interpoliert).
+            verworfen, nicht interpoliert). ``None`` (Default) = ABLEITEN aus
+            Fensterart (``day``) und Timeframe ueber
+            ``volume_profile_windows.min_bars_fuer`` - damit wird auf jedem
+            Timeframe dieselbe Groesse untersucht (M15 -> 48 Bars,
+            H1 -> 12 Bars) statt einer festen Bar-Anzahl.
         lobe_fenster: Bins links/rechts des Gipfels, die bei der Suche nach
             dem Zweitgipfel ausgeblendet werden (Zwei-Lappen-Diagnose).
         lobe2_schwelle: Ab dieser Zweitgipfel-Ratio (Zweitgipfel/Gipfel) gilt
@@ -177,7 +197,7 @@ class VolumeZoneConfig:
     min_mountain_pct: float = 4.0
 
     # --- Tages-Segmentierung ------------------------------------------------
-    min_bars_pro_tag: int = 40
+    min_bars_pro_tag: Optional[int] = None
 
     # --- POC-Eindeutigkeit (Zusatz-Kennzahl; die Baseline-Algorithmik der
     #     Volumenfunktionen bleibt unveraendert, hier wird nur gemessen) -----
@@ -199,28 +219,6 @@ class VolumeZoneConfig:
 # =============================================================================
 # 2) DATENVERTRAEGE (aus der Baseline herueberkopiert)
 # =============================================================================
-
-
-@dataclass(slots=True)
-class VolumeProfileData:
-    """Rohes Volumenprofil eines Zeitraums (Baseline-Datenvertrag)."""
-
-    centers: np.ndarray
-    edges: np.ndarray
-    vol: np.ndarray
-    pmin: float
-    pmax: float
-
-
-@dataclass(slots=True)
-class MountainPeak:
-    """Ein Volumen-Berg ("Nest") mit eigener Value Area (Baseline-Vertrag)."""
-
-    poc: float
-    val: float
-    vah: float
-    vol: float
-    peak_share_pct: float
 
 
 @dataclass(slots=True)
@@ -286,184 +284,60 @@ class TagesBalance:
 
 
 # =============================================================================
-# 3) VOLUMEN-LOGIK (aus scripts/phasen_volumen_profil.py herueberkopiert,
-#    Baseline-Zeilen 478-608; nur die Schwellen sind parametrisiert worden,
-#    die Algorithmik ist unveraendert)
+# 3) VOLUMEN-LOGIK (gemeinsamer Rechenkern scripts/volume_profile_core.py)
 # =============================================================================
+# Die Volumenfunktionen sind NICHT mehr in dieser Datei dupliziert: sie liegen
+# einmalig im Rechenkern und werden oben importiert
+# (``build_volume_profile`` / ``smooth_vol`` / ``find_mountains`` /
+# ``va_for_mountain`` / ``zweitgipfel``; verbatim aus der eingefrorenen
+# Baseline ``scripts/phasen_volumen_profil.py`` Z. 478-608). Die frueheren
+# Kopien hier waren bitgleich - es gibt jetzt nur EINE Volumenlogik im Projekt.
+#
+# Hier bleibt ausschliesslich der Zonen-Vertrag DIESER Datei: die Balance-Zone
+# ist die HUELLE der Segment-Value-Areas (``L_zone`` = min der Berg-VALs,
+# ``U_zone`` = max der Berg-VAHs) und damit NICHT die 94 %-Zonen-VA ab POC des
+# Rechenkerns. Dieser Modus (Tages-Balancen) bleibt unveraendert erhalten.
 
 
-def build_volume_profile(
-    sub: pd.DataFrame, num_bins: int = 60
-) -> Optional[VolumeProfileData]:
-    """Baut das Volumenprofil eines Zeitraums (Baseline Z. 478-507).
-
-    Das ``tick_volume`` jeder Kerze wird anteilig auf die von ihrer Spanne
-    ``[low, high]`` ueberdeckten Bins verteilt (Ueberdeckungsgewichtung, keine
-    Gleichverteilung).
-
-    Args:
-        sub: OHLCV-Bars (Spalten ``low/high/tick_volume``).
-        num_bins: Anzahl der Preis-Bins.
-
-    Returns:
-        ``VolumeProfileData`` oder ``None`` bei leerer/eindimensionaler Spanne.
-    """
-    if sub.empty:
-        return None
-    pmin = float(sub["low"].min())
-    pmax = float(sub["high"].max())
-    if pmax <= pmin:
-        return None
-    edges = np.linspace(pmin, pmax, num_bins + 1)
-    centers = (edges[:-1] + edges[1:]) / 2
-    vol = np.zeros(num_bins)
-
-    lows = sub["low"].values.astype(float)
-    highs = sub["high"].values.astype(float)
-    vols = sub["tick_volume"].values.astype(float)
-    for lo, hi, v in zip(lows, highs, vols):
-        if hi <= lo or v <= 0:
-            continue
-        lo_b = int(
-            np.clip(np.searchsorted(edges, lo, side="right") - 1, 0, num_bins - 1)
-        )
-        hi_b = int(
-            np.clip(np.searchsorted(edges, hi, side="left") - 1, 0, num_bins - 1)
-        )
-        if lo_b == hi_b:
-            vol[lo_b] += v
-        else:
-            ov = np.array(
-                [
-                    max(0.0, min(hi, edges[b + 1]) - max(lo, edges[b]))
-                    for b in range(lo_b, hi_b + 1)
-                ]
-            )
-            tot = ov.sum()
-            if tot > 0:
-                vol[lo_b : hi_b + 1] += v * ov / tot
-    return VolumeProfileData(
-        centers=centers, edges=edges, vol=vol, pmin=pmin, pmax=pmax
-    )
+# ``smooth_vol`` / ``find_mountains`` / ``va_for_mountain`` / ``zweitgipfel``
+# stammen unveraendert aus dem Rechenkern (oben importiert) - die frueheren
+# Kopien hier waren bitgleich und sind entfallen.
 
 
-def smooth_vol(vol: np.ndarray, win: int = 3) -> np.ndarray:
-    """Glaettet die Volumenreihe mit einem gleitenden Mittel (Baseline Z. 510-513).
+def _profil_parameter(config: VolumeZoneConfig) -> ProfilParameter:
+    """Bildet die Kernparameter aus der Volume-Zone-Konfiguration.
+
+    Der Volumenfilter des Rechenkerns bleibt AUS (``vol_min``/``vol_quantil``
+    = 0), weil die Tages-Balancen der Baseline ungefiltert rechnen - so bleibt
+    das Ergebnis bitgleich zum bisherigen Ablauf.
 
     Args:
-        vol: Rohe Volumenreihe.
-        win: Fensterbreite (<= 1 oder zu kurz = unveraendert).
+        config: Volume-Zone-Konfiguration.
 
     Returns:
-        Geglaettete Reihe als float64-Array.
+        ``ProfilParameter`` fuer den Rechenkern.
     """
-    if win <= 1 or len(vol) < win:
-        return vol.astype(float)
-    return np.convolve(vol, np.ones(win) / win, mode="same")
-
-
-def find_mountains(
-    vol_s: np.ndarray,
-    min_pct: float = 4.0,
-    valley_rel: float = 0.15,
-) -> List[Tuple[int, int, int]]:
-    """Zerlegt das geglaettete Profil in Volumen-Berge (Baseline Z. 516-545).
-
-    Ein Berg ist ein zusammenhaengender Abschnitt zwischen zwei Taelern; als
-    Talschwelle dient ``valley_rel`` relativ zum kleineren der beiden
-    angrenzenden Gipfel. Berge unter ``min_pct`` des groessten Berges werden
-    verworfen. Rueckgabe absteigend nach Gipfel-Volumen.
-
-    Args:
-        vol_s: Geglaettete Volumenreihe.
-        min_pct: Mindestanteil am groessten Berg (Prozent).
-        valley_rel: Relativer Tal-Schwellwert.
-
-    Returns:
-        Liste ``(start_bin, gipfel_bin, ende_bin)``, absteigend nach Volumen.
-    """
-    n = len(vol_s)
-    if n < 3:
-        return []
-    mountains: List[Tuple[int, int, int]] = []
-    start = 0
-    for i in range(1, n - 1):
-        if vol_s[i] <= vol_s[i - 1] and vol_s[i] < vol_s[i + 1]:
-            left_peak = float(np.max(vol_s[start : i + 1]))
-            right_peak = float(np.max(vol_s[i:n]))
-            threshold = min(left_peak, right_peak) * valley_rel
-            if vol_s[i] < threshold:
-                p_idx = start + int(np.argmax(vol_s[start : i + 1]))
-                if vol_s[start : i + 1].max() > 0:
-                    mountains.append((start, p_idx, i))
-                start = i
-    p_idx = start + int(np.argmax(vol_s[start:n]))
-    if vol_s[start:n].max() > 0:
-        mountains.append((start, p_idx, n - 1))
-
-    if not mountains:
-        return []
-    max_vol = max(vol_s[p] for _, p, _ in mountains)
-    mountains = [m for m in mountains if vol_s[m[1]] >= max_vol * min_pct / 100.0]
-    mountains.sort(key=lambda m: -vol_s[m[1]])
-    return mountains
-
-
-def va_for_mountain(
-    vol_s: np.ndarray,
-    edges: np.ndarray,
-    mountain: Tuple[int, int, int],
-    dominant_peak: Optional[int],
-    va_pct: float = 0.93,
-) -> MountainPeak:
-    """Value Area eines Berges (Baseline Z. 548-581).
-
-    Vom Gipfel nach aussen wird jeweils die groessere Nachbarseite
-    aufgenommen, bis ``va_pct`` des Berg-Volumens erreicht ist.
-
-    Args:
-        vol_s: Geglaettete Volumenreihe.
-        edges: Bin-Kanten des Profils.
-        mountain: ``(start_bin, gipfel_bin, ende_bin)``.
-        dominant_peak: Gipfel-Bin des groessten Berges (fuer ``peak_share_pct``).
-        va_pct: Value-Area-Anteil.
-
-    Returns:
-        ``MountainPeak`` mit POC/VAL/VAH in Preis-Einheiten.
-    """
-    s, p, e = mountain
-    poc = float((edges[p] + edges[p + 1]) / 2)
-    total = float(vol_s[s : e + 1].sum())
-    target = total * va_pct
-    lo, hi = p, p
-    acc = float(vol_s[p])
-    while acc < target and (lo > s or hi < e):
-        down = float(vol_s[lo - 1]) if lo > s else -1.0
-        up = float(vol_s[hi + 1]) if hi < e else -1.0
-        if down >= up and down >= 0:
-            lo -= 1
-            acc += down
-        elif up >= 0:
-            hi += 1
-            acc += up
-        else:
-            break
-    share = 100.0
-    if dominant_peak is not None and vol_s[dominant_peak] > 0:
-        share = float(vol_s[p] / vol_s[dominant_peak] * 100.0)
-    return MountainPeak(
-        poc=poc,
-        val=float(edges[lo]),
-        vah=float(edges[hi + 1]),
-        vol=total,
-        peak_share_pct=share,
+    return ProfilParameter(
+        num_bins=config.num_bins,
+        smooth_win=config.smooth_win,
+        va_pct=config.va_pct,
+        valley_rel=config.valley_rel,
+        min_mountain_pct=config.min_mountain_pct,
+        vol_min=0.0,
+        vol_quantil=0.0,
     )
 
 
 def compute_volume_zone(
     sub: pd.DataFrame, config: VolumeZoneConfig
 ) -> Optional[VolumeZone]:
-    """Volumen-Zone eines Zeitraums (Baseline Z. 584-608).
+    """Volumen-Zone eines Zeitraums (Baseline Z. 584-608) ueber den Rechenkern.
+
+    Die Level kommen unveraendert aus ``compute_segmentierung``:
+    ``POC`` = Gipfel des groessten Berges, ``L_zone``/``U_zone`` = HUELLE der
+    Berg-Value-Areas (min VAL / max VAH, identisch zu ``val_huelle`` /
+    ``vah_huelle``). Das ist der Tages-Balancen-Modus - NICHT die 94 %-Zonen-VA
+    ab POC (die liefert ``Segmentierung.zone``).
 
     Args:
         sub: OHLCV-Bars des Zeitraums.
@@ -472,68 +346,24 @@ def compute_volume_zone(
     Returns:
         ``VolumeZone`` oder ``None``, wenn kein Profil/Berg gefunden wurde.
     """
-    prof = build_volume_profile(sub, config.num_bins)
-    if prof is None:
+    seg = compute_segmentierung(sub, _profil_parameter(config))
+    if seg is None:
         return None
-    vol_s = smooth_vol(prof.vol, config.smooth_win)
-    mountains = find_mountains(vol_s, config.min_mountain_pct, config.valley_rel)
-    if not mountains:
-        return None
-    dominant_peak = mountains[0][1]
-    peaks: List[MountainPeak] = []
-    for m in mountains:
-        peaks.append(va_for_mountain(vol_s, prof.edges, m, dominant_peak, config.va_pct))
     return VolumeZone(
-        profile=prof,
-        mountains=mountains,
-        peaks=peaks,
-        U_zone=max(p.vah for p in peaks),
-        L_zone=min(p.val for p in peaks),
-        POC=peaks[0].poc,
-        n_mountains=len(peaks),
+        profile=seg.profile,
+        mountains=seg.mountains,
+        peaks=seg.nester,
+        U_zone=seg.vah_huelle,
+        L_zone=seg.val_huelle,
+        POC=seg.poc,
+        n_mountains=seg.n_segmente,
     )
 
 
 # =============================================================================
 # 3b) ZUSATZ-KENNZAHL (nicht Teil der Baseline): Zwei-Lappen-Diagnose
 # =============================================================================
-
-
-def zweitgipfel(vol_s: np.ndarray, fenster: int) -> Tuple[float, int]:
-    """Sucht den zweitgroessten Gipfel ausserhalb eines Fensters um den Gipfel.
-
-    Die Tagesprofile sind empirisch zweilappig (Median Zweitgipfel/Gipfel =
-    0,814 ueber 174 Tag/Symbol/Monat-Zellen, M15). Liegen beide Lappen
-    praktisch gleichauf, ist der POC nur noch ein Muenzwurf der Aufloesung:
-    bei Ratio >= 0,95 kippt er an 77,8 % der Tage, bei < 0,85 nur an 4,8 %.
-
-    Reine Messung auf der bereits geglaetteten Reihe - die Baseline-Funktionen
-    ``find_mountains``/``va_for_mountain`` bleiben unberuehrt.
-
-    Args:
-        vol_s: Geglaettete Volumenreihe des Tagesprofils.
-        fenster: Anzahl Bins links/rechts des Gipfels, die ausgeblendet werden
-            (verhindert, dass die Schulter des eigenen Gipfels als
-            Zweitgipfel zaehlt).
-
-    Returns:
-        ``(ratio, bin_index)`` mit ``ratio = Zweitgipfel/Gipfel``; bei zu
-        kurzer Reihe oder Gipfelvolumen 0 ``(nan, -1)``.
-    """
-    n: int = int(vol_s.size)
-    if n < 3 * max(1, fenster):
-        return float("nan"), -1
-    p: int = int(np.argmax(vol_s))
-    gipfel: float = float(vol_s[p])
-    if gipfel <= 0.0:
-        return float("nan"), -1
-    maske = np.ones(n, dtype=bool)
-    maske[max(0, p - fenster) : p + fenster + 1] = False
-    if not maske.any():
-        return float("nan"), -1
-    indizes = np.flatnonzero(maske)
-    b: int = int(indizes[np.argmax(vol_s[maske])])
-    return float(vol_s[b] / gipfel), b
+# ``zweitgipfel`` stammt unveraendert aus dem Rechenkern (oben importiert).
 
 
 # =============================================================================
@@ -541,12 +371,37 @@ def zweitgipfel(vol_s: np.ndarray, fenster: int) -> Tuple[float, int]:
 # =============================================================================
 
 
+def effektive_min_bars(config: VolumeZoneConfig) -> int:
+    """Liefert die wirksame Mindest-Bars-Zahl je Kalendertag.
+
+    Ist ``config.min_bars_pro_tag`` gesetzt, gilt dieser Wert. Sonst wird er
+    aus Fensterart (``day``) und Timeframe abgeleitet (``min_bars_fuer``):
+    gefordert ist ein Anteil der nominalen Fensterdauer, damit auf jedem
+    Timeframe dieselbe Groesse untersucht wird.
+
+    Args:
+        config: Volume-Zone-Konfiguration.
+
+    Returns:
+        Mindestzahl Bars je Kalendertag.
+    """
+    if config.min_bars_pro_tag is not None:
+        return int(config.min_bars_pro_tag)
+    return min_bars_fuer("day", config.timeframe)
+
+
 def _kalendertage(df: pd.DataFrame, config: VolumeZoneConfig) -> List[Tuple[pd.Timestamp, int, int]]:
     """Zerlegt das Fenster in BKZ-Kalendertage ``(tag, erster_bar, letzter_bar)``.
 
-    Die Grenzen werden dynamisch per ``searchsorted`` auf der BKZ-Achse
-    abgeleitet (Kanon K6) - keine Bar-Konstante, keine Zeitzonen-Projektion.
-    Tage ohne Bars (z. B. Wochenende) entfallen.
+    Nutzt die Fensterbildung des gemeinsamen Moduls
+    ``scripts.volume_profile_windows`` (``FensterSpec(art="day")``): die Grenzen
+    werden dort dynamisch per ``searchsorted`` auf der BKZ-Achse abgeleitet
+    (Kanon K6) - keine Bar-Konstante, keine Zeitzonen-Projektion. Tage ohne
+    Bars (z. B. Wochenende) entfallen.
+
+    ``min_bars`` wird hier auf 1 gesetzt, damit ALLE Kalendertage geliefert
+    werden: die Verwerfung nach ``min_bars_pro_tag`` erfolgt bewusst erst in
+    ``berechne_tages_balancen``, damit der Report sie transparent ausweist.
 
     Args:
         df: Fenster-Bars mit ``ts`` (BKZ, tz-naiv, aufsteigend).
@@ -555,21 +410,10 @@ def _kalendertage(df: pd.DataFrame, config: VolumeZoneConfig) -> List[Tuple[pd.T
     Returns:
         Liste ``(tag, bar_start, bar_ende)`` mit ``bar_ende`` inklusiv.
     """
-    ts_ns: np.ndarray = df["ts"].values.astype("datetime64[ns]")
-    tage = pd.date_range(
-        pd.Timestamp(config.start), pd.Timestamp(config.ende), freq="D", inclusive="left"
-    )
-    out: List[Tuple[pd.Timestamp, int, int]] = []
-    for tag in tage:
-        i0 = int(np.searchsorted(ts_ns, np.datetime64(tag), side="left"))
-        i1 = int(
-            np.searchsorted(
-                ts_ns, np.datetime64(tag + pd.Timedelta(days=1)), side="left"
-            )
-        ) - 1
-        if i1 >= i0:
-            out.append((tag, i0, i1))
-    return out
+    fenster = baue_fenster(df, FensterSpec(art="day", min_bars=1))
+    return [
+        (f.ts_start.normalize(), f.bar_start, f.bar_ende) for f in fenster
+    ]
 
 
 def _poc_je_tag(
@@ -595,8 +439,9 @@ def _poc_je_tag(
     """
     cfg: VolumeZoneConfig = replace(config, **overrides) if overrides else config
     out = np.full(len(tage), np.nan, dtype=float)
+    min_bars = effektive_min_bars(cfg)
     for i, (_tag, i0, i1) in enumerate(tage):
-        if i1 - i0 + 1 < cfg.min_bars_pro_tag:
+        if i1 - i0 + 1 < min_bars:
             continue
         zone = compute_volume_zone(df.iloc[i0 : i1 + 1], cfg)
         if zone is not None:
@@ -669,13 +514,14 @@ def berechne_tages_balancen(
     low: np.ndarray = df["low"].to_numpy(dtype=float)
     tage = _kalendertage(df, config)
     poc_min_a, poc_max_a = _poc_konsens(df, tage, config)
+    min_bars = effektive_min_bars(config)
 
     out: List[TagesBalance] = []
     for i, (tag, i0, i1) in enumerate(tage):
         n_bars = i1 - i0 + 1
         atr = float(np.mean(high[i0 : i1 + 1] - low[i0 : i1 + 1]))
         zone: Optional[VolumeZone] = None
-        if n_bars >= config.min_bars_pro_tag:
+        if n_bars >= min_bars:
             zone = compute_volume_zone(df.iloc[i0 : i1 + 1], config)
         if zone is None:
             out.append(
@@ -776,7 +622,8 @@ def report_text(config: VolumeZoneConfig, balancen: Sequence[TagesBalance]) -> s
         f"Profil: bins={config.num_bins} smooth={config.smooth_win} "
         f"va_pct={config.va_pct} valley_rel={config.valley_rel} "
         f"min_mountain_pct={config.min_mountain_pct} "
-        f"min_bars/tag={config.min_bars_pro_tag}",
+        f"min_bars/tag={effektive_min_bars(config)}"
+        f"{'' if config.min_bars_pro_tag is not None else ' (abgeleitet aus Timeframe)'}",
         f"POC-Eindeutigkeit: Toleranz={config.streu_toleranz_atr} ATR ueber "
         f"Konsens-Saetze bins={list(config.konsens_bins)} x "
         f"smooth={list(config.konsens_smooth)} "
@@ -1279,15 +1126,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     balancen = berechne_tages_balancen(df, config)
 
-    # Stolperfalle sichtbar machen: auf H1/H4/D1 liegen weniger Bars je
-    # Kalendertag vor als min_bars_pro_tag verlangt -> alles wird verworfen.
+    # Stolperfalle sichtbar machen: liegen auf dem gewaehlten Timeframe
+    # weniger Bars je Kalendertag vor als min_bars verlangt, wird alles
+    # verworfen.
     if balancen and not any(b.gueltig for b in balancen):
         bars_je_tag = sorted({b.n_bars for b in balancen})
         print(
             f"WARNUNG: kein auswertbarer Kalendertag. Beobachtete Bars/Tag: "
-            f"{bars_je_tag} - alle unter min_bars_pro_tag="
-            f"{config.min_bars_pro_tag}. Zeitfenster verkleinern "
-            f"(--min_bars_pro_tag=<...>) oder einen Intraday-Timeframe waehlen.\n"
+            f"{bars_je_tag} - alle unter min_bars/tag="
+            f"{effektive_min_bars(config)}. Zeitfenster verkleinern "
+            f"(--min_bars_pro_tag=<...>) oder einen feineren Timeframe waehlen.\n"
         )
 
     config.report_dir.mkdir(parents=True, exist_ok=True)

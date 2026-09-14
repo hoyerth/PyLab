@@ -47,6 +47,25 @@ FENSTER_ARTEN: Dict[str, float] = {
     "m30": 0.5,
 }
 
+# Nominale Dauer je Fensterart in Stunden (Basis der Mindest-Bars-Ableitung).
+# ``week`` = 7 Tage, ``day`` = 24 h; die Intraday-Arten sind ihre Blocklaenge.
+FENSTER_STUNDEN: Dict[str, float] = {
+    "day": 24.0,
+    "week": 168.0,
+    "h12": 12.0,
+    "h4": 4.0,
+    "h1": 1.0,
+    "m30": 0.5,
+}
+
+# Dauer je Timeframe-Einheit in Stunden (fuer ``min_bars_fuer``).
+_TF_EINHEIT_STUNDEN: Dict[str, float] = {
+    "M": 1.0 / 60.0,  # Minute
+    "H": 1.0,         # Stunde
+    "D": 24.0,        # Tag
+    "W": 168.0,       # Woche
+}
+
 # Wochentag-Abstand zum Wochenanfang (Montag) im ISO-Kalender
 _WOCHEN_TAG_OFFSET: Dict[str, int] = {
     "Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3,
@@ -203,3 +222,75 @@ def fenster_arten() -> Tuple[str, ...]:
         Alphabetisch sortierte Namen der Fensterarten.
     """
     return tuple(sorted(FENSTER_ARTEN))
+
+
+def timeframe_stunden(timeframe: str) -> float:
+    """Rechnet einen Timeframe-Namen in seine Dauer in Stunden um.
+
+    Erwartet die Schreibweise ``<Einheit><Zahl>`` oder ``<Zahl><Einheit>`` mit
+    Einheit ``M`` (Minute), ``H`` (Stunde), ``D`` (Tag) oder ``W`` (Woche),
+    z. B. ``M15`` = 0,25 h, ``H4`` = 4 h, ``D1`` = 24 h.
+
+    Args:
+        timeframe: Timeframe-Name (z. B. ``M15``).
+
+    Returns:
+        Dauer in Stunden.
+
+    Raises:
+        ValueError: Bei unbekanntem Timeframe.
+    """
+    tf = str(timeframe).strip().upper()
+    if not tf:
+        raise ValueError("timeframe darf nicht leer sein.")
+    einheit = tf[0]
+    zahl_txt = tf[1:] if einheit in _TF_EINHEIT_STUNDEN else tf[:-1]
+    einheit = einheit if einheit in _TF_EINHEIT_STUNDEN else tf[-1]
+    try:
+        zahl = float(zahl_txt)
+    except ValueError as exc:
+        raise ValueError(f"Timeframe nicht lesbar: {timeframe!r}") from exc
+    if zahl <= 0:
+        raise ValueError(f"Timeframe-Zahl muss > 0 sein: {timeframe!r}")
+    return zahl * _TF_EINHEIT_STUNDEN[einheit]
+
+
+def min_bars_fuer(
+    art: str,
+    timeframe: str,
+    min_abdeckung: float = 0.5,
+    minimum: int = 3,
+) -> int:
+    """Leitet die Mindest-Bars eines Fensters aus Fensterart und Timeframe ab.
+
+    Damit wird ueber alle Timeframes hinweg IMMER dieselbe Groesse untersucht:
+    gefordert ist ein Anteil ``min_abdeckung`` der NOMINALEN Dauer des Fensters
+    (day = 24 h, week = 168 h, h4 = 4 h, ...), nicht eine feste Bar-Anzahl.
+
+        M15, day  -> 24 h * 0,5 / 0,25 h = 48 Bars
+        H1,  day  -> 24 h * 0,5 / 1 h    = 12 Bars
+        M15, h4   ->  4 h * 0,5 / 0,25 h =  8 Bars
+
+    Args:
+        art: Fensterart aus ``FENSTER_ARTEN``.
+        timeframe: Timeframe-Name (z. B. ``M15``).
+        min_abdeckung: Geforderter Anteil der nominalen Fensterdauer (0..1).
+        minimum: Absolute Untergrenze (ein Profil braucht >= 3 Bins).
+
+    Returns:
+        Mindestzahl Bars.
+
+    Raises:
+        ValueError: Bei unbekannter Fensterart oder unzulaessigem Anteil.
+    """
+    if art not in FENSTER_STUNDEN:
+        raise ValueError(
+            f"Unbekannte Fensterart {art!r}. Erlaubt: {sorted(FENSTER_STUNDEN)}"
+        )
+    if not 0.0 < min_abdeckung <= 1.0:
+        raise ValueError(
+            f"min_abdeckung muss im Intervall (0, 1] liegen: {min_abdeckung!r}"
+        )
+    dauer_fenster = FENSTER_STUNDEN[art]
+    dauer_bar = timeframe_stunden(timeframe)
+    return max(int(minimum), int(np.ceil(dauer_fenster * min_abdeckung / dauer_bar)))

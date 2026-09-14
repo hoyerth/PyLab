@@ -437,3 +437,156 @@ class ProfilStore:
             self._con.close()
         except Exception:
             pass
+
+
+# =============================================================================
+# LAUFZEIT-SPEICHER (RAM)
+# =============================================================================
+
+
+class ProfilSpeicher:
+    """Laufzeit-Speicher fuer Volumenprofile (RAM, ohne DuckDB).
+
+    Die Profile werden NUR im Arbeitsspeicher gehalten. Das ist der Regelweg:
+    ein Profil ist an seinen Parametersatz gebunden und wird bei jeder
+    Parameteraenderung sofort ungueltig - eine Ablegung in einer Datei waere
+    dann Altbestand, der stillschweigend weiterverwendet werden koennte.
+    ``ProfilStore`` (DuckDB) bleibt fuer ausdrueckliche Archivlaeufe daneben
+    bestehen.
+
+    Der Speicher haelt Zeilen im selben Vertrag wie ``ProfilStore``
+    (``ProfilZeile``/``NestZeile``) und ist nach ``run_id`` gruppiert -
+    identische Parameter treffen dieselbe Gruppe, ein erneutes ``merke``
+    ERSETZT sie (gleiche Idempotenz wie die DB).
+
+    Attributes:
+        symbol: Symbol des Laufs.
+        timeframe: Timeframe des Laufs.
+        window_kind: Fensterart des Laufs.
+    """
+
+    def __init__(
+        self,
+        symbol: str,
+        timeframe: str,
+        window_kind: str,
+        params: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """Legt den Laufzeitspeicher an.
+
+        Args:
+            symbol: Symbol des Laufs.
+            timeframe: Timeframe des Laufs.
+            window_kind: Fensterart des Laufs.
+            params: Volumenparameter (gehen in die ``run_id`` ein).
+        """
+        self.symbol = str(symbol)
+        self.timeframe = str(timeframe)
+        self.window_kind = str(window_kind)
+        self.params: Dict[str, Any] = dict(params or {})
+        self.run_id = _run_id(symbol, timeframe, window_kind, self.params)
+        self._profile: List[ProfilZeile] = []
+        self._nester: List[NestZeile] = []
+
+    def __enter__(self) -> "ProfilSpeicher":
+        """Kontextmanager-Eintritt.
+
+        Returns:
+            Dieser Speicher.
+        """
+        return self
+
+    def __exit__(self, *exc: object) -> None:
+        """Kontextmanager-Austritt (RAM braucht nichts zu schliessen).
+
+        Args:
+            *exc: Ausnahmeinformationen (werden nicht unterdrueckt).
+        """
+        return None
+
+    def merke(
+        self, profile: Sequence[ProfilZeile], nests: Sequence[NestZeile]
+    ) -> int:
+        """Uebernimmt die Profilzeilen des Laufs in den Arbeitsspeicher.
+
+        Ein erneuter Aufruf ersetzt den Bestand dieses ``run_id`` vollstaendig -
+        damit kann kein vermischter Stand aus zwei Parameterlaeufen entstehen.
+
+        Args:
+            profile: Profilzeilen der Fenster.
+            nests: Zu den Profilen gehoerende Segmentzeilen.
+
+        Returns:
+            Anzahl uebernommener Profilzeilen.
+        """
+        self._profile = list(profile)
+        self._nester = list(nests)
+        return len(self._profile)
+
+    def hole(self, window_kind: Optional[str] = None) -> List[ProfilZeile]:
+        """Liefert die Profilzeilen (optional auf eine Fensterart gefiltert).
+
+        Args:
+            window_kind: Fensterart-Filter; None = alle.
+
+        Returns:
+            Liste der Profilzeilen in Einfuegereihenfolge.
+        """
+        if window_kind is None:
+            return list(self._profile)
+        return [z for z in self._profile if z.window_kind == window_kind]
+
+    def hole_nester(
+        self,
+        window_kind: Optional[str] = None,
+        bar_start: Optional[int] = None,
+        bar_ende: Optional[int] = None,
+    ) -> List[NestZeile]:
+        """Liefert die Segmentzeilen mit optionalen Filtern.
+
+        Args:
+            window_kind: Fensterart-Filter; None = alle.
+            bar_start: Nur Segmente dieses Fensters (None = alle).
+            bar_ende: Nur Segmente dieses Fensters (None = alle).
+
+        Returns:
+            Gefilterte Liste der Segmentzeilen.
+        """
+        out = list(self._nester)
+        if window_kind is not None:
+            out = [z for z in out if z.window_kind == window_kind]
+        if bar_start is not None:
+            out = [z for z in out if z.bar_start == bar_start]
+        if bar_ende is not None:
+            out = [z for z in out if z.bar_ende == bar_ende]
+        return out
+
+    def zaehle(self) -> Dict[str, int]:
+        """Zaehlt die gehaltenen Zeilen.
+
+        Returns:
+            Dict mit ``profiles``, ``nests`` und ``runs`` (1, wenn Zeilen
+            vorliegen).
+        """
+        return {
+            "profiles": len(self._profile),
+            "nests": len(self._nester),
+            "runs": 1 if self._profile else 0,
+        }
+
+    def leeren(self) -> None:
+        """Verwirft alle gehaltenen Zeilen (Parameterwechsel)."""
+        self._profile = []
+        self._nester = []
+
+    def speicher_mb(self) -> float:
+        """ Schaetzt den Speicherbedarf der gehaltenen Zeilen in MByte.
+
+        Returns:
+            Grobe Obergrenze in MByte (nur die Zeilenobjekte, ohne Overhead).
+        """
+        import sys
+
+        gesamt = sum(sys.getsizeof(z) for z in self._profile)
+        gesamt += sum(sys.getsizeof(z) for z in self._nester)
+        return float(gesamt) / (1024.0 * 1024.0)

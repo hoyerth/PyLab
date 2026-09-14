@@ -68,8 +68,13 @@ class ChartStil:
         titel_symbol: Symbol fuer Titel/Achsenbeschriftung.
         titel_timeframe: Timeframe fuer den Titel.
         zeitraum: Zeitraumtext (z. B. ``2026-08-01 .. 2026-09-01``).
-        max_profile: Obergrenze der im Profil-Grid gezeigten Fenster
-            (0 = alle; es werden die letzten N gezeigt).
+        max_profile: Obergrenze der im Profil-Grid gezeigten Fenster. 0
+            (Default) = ALLE Fenster des Testzeitraums zeigen; es gibt keinen
+            eigenen 4h-/Intraday-Grafikmodus.
+        seiten_max: Hoechstzahl Panels je PNG-Seite (0 = keine Teilung). Da
+            immer der GANZE Testzeitraum gezeigt wird, wird bei mehr Fenstern
+            seitenweise ausgegeben (``..._profile_s1.png``, ``..._s2.png``,
+            ...) - nichts wird weggelassen, nur aufgeteilt.
         ncols_grid: Spalten des Profil-Grids.
         max_label_zeichen: Auf diese Laenge werden Fensterlabels im
             Zonen-Chart gekuerzt (verhindert Ueberlappung).
@@ -79,7 +84,8 @@ class ChartStil:
     titel_symbol: str = ""
     titel_timeframe: str = ""
     zeitraum: str = ""
-    max_profile: int = 96
+    max_profile: int = 0
+    seiten_max: int = 96
     ncols_grid: int = 4
     max_label_zeichen: int = 24
 
@@ -260,29 +266,26 @@ def zeichne_zonen_chart(
 # =============================================================================
 
 
-def zeichne_profil_grid(
-    profile: Sequence[FensterProfil],
+def _zeichne_grid_seite(
+    zeigen: Sequence[FensterProfil],
     stil: ChartStil,
     out_png: Path,
+    seite: int = 1,
+    n_seiten: int = 1,
+    gesamt: Optional[int] = None,
 ) -> None:
-    """Zeichnet je Fenster das Volumenprofil als eigenes Panel.
-
-    Das relative Volumen (Maximum = 1) wird horizontal aufgetragen; die Bins
-    sind nach Segmentzugehoerigkeit eingefaerbt. Damit ist direkt pruefbar, ob
-    die Berg-Zerlegung plausibel ist. Zonen-VA-Band, POC (gestrichelt bei
-    Unsicherheit), POC-Band und Zweitgipfel-Niveau werden ueberlagert.
+    """Zeichnet EINE Seite des Profil-Grids in eine PNG-Datei.
 
     Args:
-        profile: Fensterprofile (nur gueltige werden gezeichnet).
+        zeigen: Fensterprofile dieser Seite (nur gueltige).
         stil: Darstellungsparameter.
-        out_png: Zielpfad der PNG-Datei.
+        out_png: Zielpfad der PNG-Datei dieser Seite.
+        seite: Laufende Seitennummer (1-basiert, nur fuer den Titel).
+        n_seiten: Gesamtzahl der Seiten (nur fuer den Titel).
+        gesamt: Gesamtzahl gezeichneter Fenster (nur fuer den Titel).
     """
-    zeigen: List[FensterProfil] = [p for p in profile if p.gueltig]
-    if stil.max_profile > 0:
-        zeigen = zeigen[-stil.max_profile :]
     if not zeigen:
         return
-
     n: int = len(zeigen)
     ncols: int = max(1, min(stil.ncols_grid, n))
     nrows: int = int(np.ceil(n / ncols))
@@ -348,10 +351,12 @@ def zeichne_profil_grid(
         axes[k // ncols][k % ncols].axis("off")
 
     n_unsicher = sum(1 for p in zeigen if not p.konsens.eindeutig)
+    seiten_txt = "" if n_seiten <= 1 else f" | Seite {seite}/{n_seiten}"
+    gesamt_txt = "" if gesamt is None or n_seiten <= 1 else f" (gesamt {gesamt})"
     fig.suptitle(
         f"FENSTERPROFILE (rel. Volumen, Maximum = 1) | {_stamm(stil)} | "
-        f"Fensterart={zeigen[0].window_kind} | Fenster {n} | "
-        f"POC unsicher {n_unsicher}",
+        f"Fensterart={zeigen[0].window_kind} | Fenster {n}{gesamt_txt}"
+        f"{seiten_txt} | POC unsicher {n_unsicher}",
         fontsize=9.5, y=0.999,
     )
     fig.legend(
@@ -377,12 +382,64 @@ def zeichne_profil_grid(
     plt.close(fig)
 
 
+def zeichne_profil_grid(
+    profile: Sequence[FensterProfil],
+    stil: ChartStil,
+    out_png: Path,
+) -> List[Path]:
+    """Zeichnet je Fenster das Volumenprofil als eigenes Panel.
+
+    Das relative Volumen (Maximum = 1) wird horizontal aufgetragen; die Bins
+    sind nach Segmentzugehoerigkeit eingefaerbt. Damit ist direkt pruefbar, ob
+    die Berg-Zerlegung plausibel ist. Zonen-VA-Band, POC (gestrichelt bei
+    Unsicherheit), POC-Band und Zweitgipfel-Niveau werden ueberlagert.
+
+    Gezeigt wird der GANZE Testzeitraum (``max_profile=0``). Ergibt das mehr
+    Panels als ``stil.seiten_max``, wird seitenweise ausgegeben
+    (``<stamm>_s1.png``, ``<stamm>_s2.png``, ...) - es wird nichts weggelassen.
+
+    Args:
+        profile: Fensterprofile (nur gueltige werden gezeichnet).
+        stil: Darstellungsparameter.
+        out_png: Zielpfad der PNG-Datei (bei mehreren Seiten Namensstamm).
+
+    Returns:
+        Liste der tatsaechlich geschriebenen PNG-Pfade (leer, wenn nichts zu
+        zeichnen war).
+    """
+    zeigen: List[FensterProfil] = [p for p in profile if p.gueltig]
+    if stil.max_profile > 0:
+        zeigen = zeigen[-stil.max_profile :]
+    if not zeigen:
+        return []
+
+    bloecke: List[List[FensterProfil]]
+    if stil.seiten_max > 0 and len(zeigen) > stil.seiten_max:
+        bloecke = [
+            list(zeigen[i : i + stil.seiten_max])
+            for i in range(0, len(zeigen), stil.seiten_max)
+        ]
+    else:
+        bloecke = [list(zeigen)]
+
+    pfade: List[Path] = []
+    if len(bloecke) == 1:
+        _zeichne_grid_seite(bloecke[0], stil, out_png)
+        return [out_png]
+    for i, block in enumerate(bloecke, start=1):
+        p = out_png.with_name(f"{out_png.stem}_s{i}{out_png.suffix}")
+        _zeichne_grid_seite(block, stil, p, seite=i, n_seiten=len(bloecke),
+                            gesamt=len(zeigen))
+        pfade.append(p)
+    return pfade
+
+
 def zeichne_alles(
     df: pd.DataFrame,
     profile: Sequence[FensterProfil],
     stil: ChartStil,
     out_stamm: Path,
-) -> Tuple[Optional[Path], Optional[Path]]:
+) -> Tuple[Optional[Path], List[Path]]:
     """Zeichnet beide Ausgaben und liefert die tatsaechlich erzeugten Pfade.
 
     Args:
@@ -390,19 +447,17 @@ def zeichne_alles(
         profile: Fensterprofile.
         stil: Darstellungsparameter.
         out_stamm: Zielpfad-Stamm; es entstehen ``<stamm>_zonen.png`` und
-            ``<stamm>_profile.png``.
+            ``<stamm>_profile.png`` (bzw. ``_s1``, ``_s2``, ... bei mehreren
+            Seiten, siehe ``ChartStil.seiten_max``).
 
     Returns:
-        ``(zonen_png, profile_png)``; ein Pfad ist ``None``, wenn nichts
-        gezeichnet werden konnte.
+        ``(zonen_png, profil_pngs)``; ``zonen_png`` ist ``None`` und die Liste
+        leer, wenn nichts gezeichnet werden konnte.
     """
     out_stamm.parent.mkdir(parents=True, exist_ok=True)
     p_zone = out_stamm.with_name(out_stamm.name + "_zonen.png")
     p_grid = out_stamm.with_name(out_stamm.name + "_profile.png")
-    zon = grid = None
-    if any(p.gueltig for p in profile):
-        zeichne_zonen_chart(df, profile, stil, p_zone)
-        zon = p_zone
-        zeichne_profil_grid(profile, stil, p_grid)
-        grid = p_grid
-    return zon, grid
+    if not any(p.gueltig for p in profile):
+        return None, []
+    zeichne_zonen_chart(df, profile, stil, p_zone)
+    return p_zone, zeichne_profil_grid(profile, stil, p_grid)

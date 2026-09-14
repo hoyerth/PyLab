@@ -4,22 +4,24 @@
 nicht nutzbar (Entscheid des Anwenders nach Sichtprüfung der Live-Charts).
 Dieses Verzeichnis konserviert den vollständigen Bestand revisionssicher in Git.
 
-## Zwei Wurzeln des Begriffs „Reclaim"
+## Drei Stränge unter einem Namen
 
 | Strang | Was | Fundstelle |
 |---|---|---|
+| **Setup A — Counter-Engine (Ping-Pong)** | Antizipative Gegenposition am Kontakt mit VAH/VAL in Mean-Reversion-Richtung. Implementierung `scripts/counter_engine_profil.py`; Abgrenzung zu Setup B im Kopf von `docs/counter_engine_experiment.md`. | `tests/setup_a/` |
 | **Setup B — Reclaim/Fakeout** (Patrick Nill, P1) | Der Monolith `scripts/phasen_volumen_profil.py` ist **zu 100 % Setup B** (`SETUP B: RECLAIM/FAKEOUT-SIGNALE`, Funktionen `find_reclaim_signals`, Konstanten `MIN_RECLAIM_*`). Kein Setup-A-/Setup-C-Anteil. | `tests/setup_b/` |
 | **Kanten-Engine (SE-Harness v0.4 … v022)** | Aufsatz auf die Baseline `aug_p11`; Replays, Sichtprüfungen, Spez, Signal-Loop-Design. | `tests/`, `docs/`, `artefakte/` |
 
-Beide Stränge sind verworfene Strategie und liegen hier gemeinsam.
+Alle drei Stränge sind verworfene Strategie und liegen hier gemeinsam.
 
 ## Inhalt
 
 | Unterordner | Dateien | Inhalt |
 |---|---|---|
 | `docs/` | 12 | Spez, Roadmap, Historie, Signal-Loop- und Makro-Persistenz-Design, Live-Lateriz-Befund, Snapshot-Spez, 3 Session-Checkpoints, v0.4-Mentor-Vorlage, `RECLAIM.md` |
-| `scripts/` | 2 | `reclaim_live_kernel.py` (Produktivkern), `_tmp_archiviere_reclaim.py` (Archivierungswerkzeug Phase 1) |
+| `scripts/` | 10 | `reclaim_live_kernel.py` (Produktivkern) und die Archivierungswerkzeuge |
 | `tests/` | 1096 | Replays, Audit-/Sonden-/Diagnoseskripte, Outputs, Sichtprüfungs-PNGs |
+| `tests/setup_a/` | 55 | Counter-Engine-Ausgaben: Replays AUG/S1/S2, Prüfberichte, Schritte 1–4, F1–F9-Antworten, `stats_counter_*.txt` (lagen irrtümlich in `test/setup_c/`) |
 | `tests/v019_aug_staging/` | 39 | Kanten-Engine-v019-Staging inkl. Altstände `phasen_regime_adapter.py`, `SESSION_HANDOFF.md` |
 | `tests/setup_b/` | 25 | Setup-B-Diagnostik auf dem Monolithen: Segmentierung (`*_3eck_*`, `*_box_*`), Kanten-SL (`tmp_diag_sl_kante*`), Struktur-Regel, Parameter-Sweeps, Initialphasen-/Anker-Audits. Die neun Generator-Skripte (S1/S2-Monats- und Wirtschaftsauswertung, CSV-Export) wurden am 2026-09-14 nach Weisung entfernt — sie sind in Minuten neu geschrieben. |
 | `artefakte/` | 4 | Beweisstücke der Baseline `aug_p11` (v40r): Engine-Snapshot, Renderer-Snapshot, Trade-Chart, `MANIFEST.md` |
@@ -32,6 +34,7 @@ Beide Stränge sind verworfene Strategie und liegen hier gemeinsam.
 | `test/archiv/reclaim_*.py` | `tests/` | 21 |
 | `test/archiv/v019_aug_staging/` | `tests/v019_aug_staging/` | 37 (+2 Altstände aus Phase 3) |
 | `test/archiv/` (Setup-B-Diagnostik) | `tests/setup_b/` | 33 |
+| `test/counter_engine/` + `test/setup_c/stats_counter_*.txt` | `tests/setup_a/` | 46 (+7) |
 | `docs/Archiv/reclaim/` + `docs/Archiv/RECLAIM.md` + `docs/Archiv/reclaim_*.md` | `docs/` | 12 |
 | `scripts/reclaim_live_kernel.py` | `scripts/` | 1 |
 | `test/_tmp_archiviere_reclaim.py` | `scripts/` | 1 |
@@ -41,7 +44,8 @@ Beide Stränge sind verworfene Strategie und liegen hier gemeinsam.
 
 * `test/archiv/H2_PHASENREGIME_ADAPTER_SPEZ.md` — **Dublette**, hash-identisch mit
   `reports/h2_phasenregime/H2_PHASENREGIME_ADAPTER_SPEZ.md` (Thema H2-Phasenregime).
-* `test/archiv/test.py` bleibt als Altstand der zentralen Testdatei liegen.
+* `test/archiv/test.py` — Altstand der zentralen Testdatei, am 2026-09-14 gelöscht;
+  `test/archiv/` ist damit aufgelöst.
 
 ## Nachgelagerte Aufräumung (2026-09-14, Weisung des Anwenders)
 

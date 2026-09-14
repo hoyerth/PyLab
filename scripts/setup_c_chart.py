@@ -41,6 +41,17 @@ Aufruf (Projekt-Root, Namespace-Package):
               als orange Stufenlinie, Exit-Typen TR/CRASH farblich getrennt.
               Ausgabe ``setup_c_chart_{FENSTER}_EMATRAIL.png`` (+ TXT).
 
+Beliebiger Zeitraum (deckungsgleich mit ``scripts.setup_c_profil``, damit
+Chart und Profil-Lauf immer denselben Zeitraum zeigen):
+    python scripts/setup_c_chart.py --start=2026-09-01 --ende=2026-09-11
+    python scripts/setup_c_chart.py --start=2026-09-01 --ende=2026-09-11 ^
+        --bezeichnung=SEP26 --n=48
+    --start=/--ende=  ISO-Daten (start inklusive, ende exklusiv); beide
+              gemeinsam, ueberschreiben das Alias-Fenster.
+    --bezeichnung=    Report-Namensraum (Default: ``YYYYMMDD_YYYYMMDD``);
+              wird 1:1 als ``{FENSTER}``-Platzhalter in den Dateinamen
+              verwendet, z. B. ``setup_c_chart_SEP26_N48.png``.
+
 Ausgabe (unversioniert, deterministisch reproduzierbar):
     reports/setup_c/setup_c_chart_{FENSTER}_N{N}.png
     reports/setup_c/setup_c_chart_{FENSTER}.txt        (Voll-Lauf 48+96)
@@ -72,6 +83,8 @@ from scripts.setup_c_profil import (
     TrendConfig,
     _erfasse_signale,
     _kern_lauefe,
+    fenster_spanne,
+    loese_zeitraeume,
 )
 
 # ---------------------------------------------------------------------------
@@ -629,11 +642,13 @@ def _lauf_fenster(
     horizonte: Sequence[int] = (48, 96),
     ema_periode: int = _EMA_DEFAULT_PERIODE,
     ema_trailing: bool = False,
+    cfg: Optional[TrendConfig] = None,
 ) -> None:
     """Chart-/TXT-Lauf fuer ein Fenster (AUG|S1|S2) und Horizont-Selektion.
 
     Args:
-        fenster: Fenster-Kennung (AUG|S1|S2).
+        fenster: Fenster-Kennung: Alias (AUG|S1|S2) ODER freie Bezeichnung
+            eines beliebigen Zeitraums (dann ``cfg.start``/``cfg.ende``).
         dpi: Aufloesung der PNG-Ausgabe.
         horizonte: Zu simulierende Zeit-Horizonte (48/96). Teil-Laeufe
             schreiben einen separaten TXT ``..._N{H}.txt``; nur der
@@ -643,9 +658,14 @@ def _lauf_fenster(
             genau EIN Lauf mit Crash-Sicherung (N=notfall), Dateinamen
             ``setup_c_chart_{fenster}_EMATRAIL.png`` (+ TXT). Der
             Baseline-Pfad bleibt unveraendert.
+        cfg: Optionale TrendConfig (traegt einen freien Zeitraum via
+            ``start``/``ende``). ``None`` = Alias-Aufloesung ueber
+            ``FENSTER_DEFS`` und Default-Konfiguration (bisheriges Verhalten).
     """
-    start, ende = FENSTER_DEFS[fenster]
-    cfg: TrendConfig = TrendConfig()
+    if cfg is None:
+        cfg = TrendConfig()
+    # Alias (FENSTER_DEFS) oder freier Zeitraum (cfg.start/cfg.ende)
+    start, ende = fenster_spanne(fenster, cfg)
     seg_cfg = replace(cfg.segment, db_path=cfg.db_path, start=start, ende=ende)
     df: pd.DataFrame = load_data(seg_cfg.db_path, seg_cfg.start, seg_cfg.ende)
     sr: SegmentResult = segmentiere_markt(df, seg_cfg)
@@ -655,8 +675,8 @@ def _lauf_fenster(
 
     # --- EMA-Slope-Trailing (A/B, §5.2): genau EIN Lauf (Crash-N) ----------
     if ema_trailing:
-        cfg_t: TrendConfig = TrendConfig(
-            ema_trailing=EMASlopeTrailingConfig(aktiviert=True)
+        cfg_t: TrendConfig = replace(
+            cfg, ema_trailing=EMASlopeTrailingConfig(aktiviert=True)
         )
         tc: EMASlopeTrailingConfig = cfg_t.ema_trailing
         notfall: int = tc.notfall_horizont_bars
@@ -709,6 +729,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     Optionen (siehe Modul-Docstring):
         --fenster=AUG|S1|S2|ALLE   (Default ALLE)
+        --start=YYYY-MM-DD         Freier Zeitraum-Start (inklusive);
+                                   nur gemeinsam mit --ende.
+        --ende=YYYY-MM-DD          Freies Zeitraum-Ende (exklusiv);
+                                   --start/--ende ueberschreiben das Alias.
+        --bezeichnung=LABEL        Report-Namensraum (Default bei freiem
+                                   Zeitraum: YYYYMMDD_YYYYMMDD).
         --n=48|96|48,96            Horizont-Selektion (Default 48,96)
         --ema=20                   Periode der Close-EMA-Overlay-Linie
         --dpi=300                  PNG-Aufloesung
@@ -716,13 +742,22 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     """
     args: List[str] = list(sys.argv[1:] if argv is None else argv)
     fenster_arg: str = "ALLE"
+    start: Optional[str] = None
+    ende: Optional[str] = None
+    bezeichnung: Optional[str] = None
     dpi: int = 300
     horizont_arg: str = "48,96"
     ema_periode: int = _EMA_DEFAULT_PERIODE
     ema_trailing: bool = False
     for a in args:
         if a.startswith("--fenster="):
-            fenster_arg = a.split("=", 1)[1].upper()
+            fenster_arg = a.split("=", 1)[1].strip().upper()
+        elif a.startswith("--start="):
+            start = a.split("=", 1)[1].strip()
+        elif a.startswith("--ende="):
+            ende = a.split("=", 1)[1].strip()
+        elif a.startswith("--bezeichnung="):
+            bezeichnung = a.split("=", 1)[1].strip()
         elif a.startswith("--dpi="):
             dpi = int(a.split("=", 1)[1])
         elif a.startswith("--n="):
@@ -733,20 +768,24 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             ema_trailing = True
     if ema_periode <= 0:
         raise SystemExit(f"Ungueltige EMA-Periode: {ema_periode} (> 0 noetig)")
-    if fenster_arg == "ALLE":
-        fenster_list: List[str] = ["AUG", "S1", "S2"]
-    elif fenster_arg in ("AUG", "S1", "S2"):
-        fenster_list = [fenster_arg]
-    else:
-        raise SystemExit(
-            f"Unbekanntes Fenster: {fenster_arg} (AUG|S1|S2|ALLE)"
-        )
+
+    # --- Zeitraum-Aufloesung: freier Zeitraum (--start/--ende) gewinnt -------
+    # Identische Logik wie scripts/setup_c_profil.main (gemeinsame Quelle),
+    # damit Chart und Profil-Lauf bitgenau denselben Zeitraum abbilden.
+    fenster_list: List[str] = loese_zeitraeume(
+        fenster_arg if fenster_arg else "ALLE", start, ende, bezeichnung
+    )
+    cfg: TrendConfig = TrendConfig(
+        fenster=fenster_list[0], start=start, ende=ende
+    )
 
     if ema_trailing:
         # Trailing-Chart: genau ein Lauf je Fenster (--n wird ignoriert).
         for f in fenster_list:
             print(f"=== Fenster {f} | EMA-Slope-Trailing (Variante B) ===")
-            _lauf_fenster(f, dpi, ema_trailing=True, ema_periode=ema_periode)
+            _lauf_fenster(
+                f, dpi, ema_trailing=True, ema_periode=ema_periode, cfg=cfg
+            )
         print(f"\nFertig. Ausgabeordner: {_REPORT_DIR}")
         return 0
 
@@ -768,7 +807,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     for f in fenster_list:
         print(f"=== Fenster {f} | Horizonte {horizonte} | EMA({ema_periode}) ===")
-        _lauf_fenster(f, dpi, horizonte, ema_periode)
+        _lauf_fenster(f, dpi, horizonte, ema_periode, cfg=cfg)
     print(f"\nFertig. Ausgabeordner: {_REPORT_DIR}")
     return 0
 

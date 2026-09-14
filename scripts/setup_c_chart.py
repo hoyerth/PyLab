@@ -1,7 +1,7 @@
 """
 SETUP C - CHART-REPORT (scripts/setup_c_chart.py)
 ==================================================
-Erzeugt fuer den Phase-1-Baseline-Kern (RAW-Cluster A, F4 intrabar +
+Erzeugt fuer den Phase-1-Baseline-Kern (RAW live-kausal, F4 intrabar +
 terminaler Zeit-Exit 48/96, suppression_phasenlokal=True) je Fenster und
 Zeit-Horizont eine PNG-Datei (300 dpi) mit:
 
@@ -262,7 +262,7 @@ def _stat_zeilen(
         horizont: Zeit-Horizont N (Basis: 48/96; Trailing: Crash-N).
         trades: Aktivierte KernelTrades eines Laufs.
         kennung: Optionale erste Zeile (z. B. EMA-Slope-Trailing). ``None``
-            = Baseline-Standard (RAW-A).
+            = Baseline-Standard (RAW live-kausal).
     """
     s: Dict[str, object] = _statistik(trades)
     n_gew: int = int(s["n_gewertet"])
@@ -277,7 +277,7 @@ def _stat_zeilen(
         return f"{v:{f}}"
 
     if kennung is None:
-        zeile0: str = f"SETUP C RAW-A BASELINE | Fenster {fenster} | N={horizont}"
+        zeile0: str = f"SETUP C RAW live-kausal | Fenster {fenster} | N={horizont}"
     else:
         zeile0 = f"{kennung} | Fenster {fenster} | N={horizont}"
 
@@ -514,7 +514,7 @@ def _zeichne_fenster_horizont(
         stat_kennung: Optional[str] = "SETUP C EMA-SLOPE-TRAILING (Variante B)"
     else:
         ax1.set_title(
-            f"SETUP C | {fenster} | RAW-Cluster A Baseline | Horizont N={horizont} "
+            f"SETUP C | {fenster} | RAW live-kausal | Horizont N={horizont} "
             f"| {start} .. {ende} (ende-exkl.) | F4 intrabar + Zeit-Exit"
         )
         stat_kennung = None
@@ -544,9 +544,9 @@ def _zeichne_fenster_horizont(
         Line2D([0], [0], color=_COL_EMA, lw=1.6,
                label=f"EMA({ema_periode}) (Close)"),
         Line2D([0], [0], marker="^", color="w", markerfacecolor=_COL_UP, ms=8,
-               label="Entry LONG (RAW-A)"),
+               label="Entry LONG (RAW)"),
         Line2D([0], [0], marker="v", color="w", markerfacecolor=_COL_DOWN, ms=8,
-               label="Entry SHORT (RAW-A)"),
+               label="Entry SHORT (RAW)"),
         Line2D([0], [0], marker="x", color=_COL_SL, ms=7, ls="",
                label="Exit F4-Stop intrabar"),
         Line2D([0], [0], marker="x", color=_COL_ZEIT, ms=7, ls="",
@@ -714,7 +714,7 @@ def _lauf_fenster(
         trades, n_supp = _kern_lauefe(df, signale, cfg, horizont)
         if n_supp != 0:
             raise RuntimeError(
-                f"{fenster}: RAW-A-Suppression nicht No-op ({n_supp})."
+                f"{fenster}: RAW-Suppression nicht No-op ({n_supp})."
             )
         laeufe[horizont] = trades
         out_png: Path = _REPORT_DIR / f"setup_c_chart_{fenster}_N{horizont}.png"
@@ -735,7 +735,7 @@ def _lauf_fenster(
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
-    """CLI: erzeugt Charts + TXT fuer AUG/S1/S2 (Baseline RAW-A, 48/96).
+    """CLI: erzeugt Charts + TXT fuer AUG/S1/S2 (Baseline RAW live-kausal, 48/96).
 
     Optionen (siehe Modul-Docstring):
         --fenster=AUG|S1|S2|ALLE   (Default ALLE)

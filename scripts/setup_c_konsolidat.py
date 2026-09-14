@@ -314,8 +314,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         "{:>8} {:>6}"
     )
     print("=" * 112)
-    print("SETUP C RAW-CLUSTER A | KONSOLIDAT (BASE = F4 intrabar + Zeit-Exit, "
-          "TR = EMA-Slope-Trailing Variante B)")
+    print("SETUP C RAW (live-kausal) | KONSOLIDAT (BASE = F4 intrabar + "
+          "Zeit-Exit, TR = EMA-Slope-Trailing Variante B)")
     print("=" * 112)
     print(kopf.format("Modus", "Label", "Zeitraum (BKZ)", "N", "n", "gew", "zens",
                       "sum R", f"dN{horizont_ref}", "WR", "PF", "MDD", "HD"))

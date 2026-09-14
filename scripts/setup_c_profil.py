@@ -6,24 +6,49 @@ Implementiert den arretierten Phase-1-Kern aus §2.13/§2.14 des Lastenhefts
 ``scripts/market_segmentation.py`` (KEIN ``exec()``-Slice, KEINE
 Produktions-Baseline-Veränderung):
 
-    RAW-Cluster A (Vorlauf <= 1) + F4-Stop intrabar (Puffer 0,15 USD)
-    + terminaler Zeit-Exit 48/96 + phasenlokale Open-Position-Suppression
-    (Pflicht-Schutzschicht, §2.13-C/§2.13-1.4).
+    RAW (jeder kausale Volumen-Durchstoss an der Kante)
+    + F4-Stop intrabar (Puffer 0,15 USD) + terminaler Zeit-Exit 48/96
+    + phasenlokale Open-Position-Suppression (Pflicht-Schutzschicht,
+    §2.13-C/§2.13-1.4).
 
 0,45 %-SL bleibt ausschliesslich r_ref-Messung, nie Produktions-Stop.
 
-Verifikation (§2.14/§2.15, zweistufiges Gate; re-arretiert nach
-Einheiten-Bereinigung D4-Ratchet, 05.09.2026)
----------------------------------------
+LIVE-KAUSALITAET (Hausregel, bindend - "erlaubt ist nur was live passiert")
+---------------------------------------------------------------------------
+Der Handelspfad enthaelt KEINEN Lookahead. Verbindlich:
+
+  1) Der RAW-Trigger wird am Bar-Close entschieden: erster Bar mit
+     ``high >= kante(b)`` (bzw. ``low <= kante``) UND F5-Volumen, Kante
+     strikt kausal aus ``U_hist``/``L_hist``. Einstieg am Open der Folge-Bar.
+  2) Die Scan-Obergrenze ist die LIVE bekannte Phasengrenze: bei
+     bestehendem 2-Close-Bruch ``brk_idx`` (der Bruch ist bei
+     ``close[brk_idx+1]`` bekannt, alle Scan-Bars liegen davor), sonst das
+     Datenende. Eine noch offene Phase wird NICHT zensiert.
+  3) ENTfernt (vormals Lookahead): der Auswahlfilter
+     ``vorlauf_bars <= cluster_a_max_vorlauf`` ("RAW-Cluster A"). Er setzte
+     ``brk_idx`` voraus und wurde in der Einstiegs-Bar entschieden, BEVOR
+     ``close[j]``/``close[j+1]`` bekannt waren. Messung (Attribution ueber
+     MAI26..AUG26, 2026): 10 von 23 Cluster-A-Trades mit ``vorlauf == 1``
+     trugen ~100 % der Cluster-A-Summe; die uebrigen 13 mit ``vorlauf == 0``
+     ergaben +0,14R (N48) bzw. -1,38R (N96). ``vorlauf_bars`` bleibt daher
+     ausschliesslich DIAGNOSEFELD und ist an keiner Auswahl beteiligt.
+  4) ``cluster_a_max_vorlauf`` existiert nur noch fuer die historische
+     §2.16-Gate-Reproduktion (``nur_cluster_a=True``); der Gate-Report ist
+     ein eingefrorener OOS-Vergleich und KEIN Handelspfad.
+
+Historische Verifikation (§2.14/§2.15, Stand vor der Kausalitaets-Bereinigung)
+------------------------------------------------------------------------------
 L1  Pipeline-Anker (Populationen): CONFIRMED / RAW gesamt (A/B) / RETEST je
     Fenster AUG/S1/S2. F3/CONFIRMED/RETEST sind bitgenau invariant; der
     RAW-Split folgt der Ratchet-Korrektur (AUG 10 (2/8), S1 105 (38/67),
-    S2 76 (3/73)).
-L2  RAW-Cluster A unter Zeit-Exit N=48/N=96: Summen r_f4/r_ref, Exit-
-    Verteilung, Haltedauer, Rechts-Zensierung (E2) - bitgenau gegen die am
-    05.09.2026 neu arretierten Soll-Werte (§2.14-A; Referenz = Report
-    ``KEIN_TRAILING``). Anlass: µs/ns-Einheiten-Bug in ``_kanten_reihe``
+    S2 76 (3/73)). Die A/B-Zerlegung ist seit der Kausalitaets-Bereinigung
+    nur noch diagnostisch und NICHT mehr handelbar.
+L2  (vormals "RAW-Cluster A") unter Zeit-Exit N=48/N=96: Summen r_f4/r_ref,
+    Exit-Verteilung, Haltedauer, Rechts-Zensierung (E2). Anlass der
+    urspruenglichen Arretierung: µs/ns-Einheiten-Bug in ``_kanten_reihe``
     (statische Kante statt D4-Ratchet-Stufenfunktion), Fix dort dokumentiert.
+    Die damaligen Soll-Werte gelten fuer den Cluster-A-Pfad und sind mit dem
+    live-kausalen Pfad NICHT mehr vergleichbar.
 
 Der L2-Referenzlauf der Explorationsphase war suppression-frei (Reports
 ``tmp_setup_c_zeitexit_*.txt``, Schritt 4a). Die Produktion schaltet die
@@ -401,8 +426,11 @@ class TrendConfig:
         suppression_phasenlokal: Phasenlokale Open-Position-Suppression
             (Produktion Pflicht; Key = (phase, dir), F3). ``False`` =
             L2-Referenzmodus fuer das §2.14-Gate.
-        cluster_a_max_vorlauf: RAW-Cluster-A-Schwelle (Vorlauf <= 1 Bar vor
-            dem 2-Close-Bruch), E3.
+        cluster_a_max_vorlauf: HISTORISCH (nicht handelbar). Vorlauf-Schwelle
+            des eingefrorenen "RAW-Cluster A" (Vorlauf <= 1 Bar vor dem
+            2-Close-Bruch). Wird im Handelspfad NICHT mehr angewandt (siehe
+            LIVE-KAUSALITAET im Modul-Docstring); nur noch fuer die
+            §2.16-Gate-Reproduktion (``_kern_lauefe(nur_cluster_a=True)``).
         zeit_horizonte: Terminale Zeit-Exit-Horizonte (Close e+N), E1;
             Phase-1-Betrieb 48/96.
         stop_puffer: F4-Puffer unter Struktur/Kante (USD), F4.
@@ -476,15 +504,18 @@ class TrendConfig:
 class SetupCSignal:
     """Erfasstes Signal eines Arms (F4-F8, D4) - Zwischenstand vor Simulation.
 
-    Populationen (L1) zaehlen SIGNAL mit gueltigem SL; RAW-Signale tragen
-    ``vorlauf_bars`` fuer die Cluster-A/B-Trennung (E3).
+    Populationen (L1) zaehlen SIGNAL mit gueltigem SL. ``vorlauf_bars`` ist
+    seit der Kausalitaets-Bereinigung ein reines DIAGNOSE-Feld (Abstand
+    Trigger-Bar zum 2-Close-Bruch) und an keiner Auswahl beteiligt;
+    ``brk_idx`` ist ``None``, wenn die Phase bis zum Datenende nicht
+    gebrochen ist (live: Phase noch offen).
     """
 
     arm: ArmName
     phase: int
     dir: DirName
     kante: float
-    brk_idx: int
+    brk_idx: Optional[int]
     trigger_idx: int
     entry_idx: int
     entry_ts: Optional[pd.Timestamp]
@@ -716,10 +747,20 @@ def _erfasse_raw(
     vol_bed: np.ndarray,
     min_phase_candles: int,
 ) -> List[SetupCSignal]:
-    """Arm 1: BREAKOUT_RAW - Volumen-Durchstoss VOR dem 2-Close-Bruch (F5/F4).
+    """Arm 1: BREAKOUT_RAW - Volumen-Durchstoss an der kausalen Kante (F5/F4).
 
-    Scannt [Phasenstart+MIN_PHASE_CANDLES, brk_idx] nach dem ersten
-    Kanten-Durchstoss (high >= obere / low <= untere Kante) mit F5-Volumen.
+    LIVE-KAUSAL (Pflicht): Scannt [Phasenstart + MIN_PHASE_CANDLES, scan_hi]
+    nach dem ersten Kanten-Durchstoss (high >= obere / low <= untere Kante)
+    mit F5-Volumen. ``scan_hi`` ist die LIVE bekannte Phasengrenze:
+
+      * Phase mit 2-Close-Bruch: ``scan_hi = brk_idx``. Der Bruch ist bei
+        ``close[brk_idx+1]`` bekannt, alle Scan-Bars liegen davor -> jeder
+        Trigger ist am jeweiligen Bar-Close entscheidbar.
+      * Phase ohne Bruch (Phase laeuft bis zum Datenende): ``scan_hi = n-1``.
+        Die Phase ist live erkennbar noch offen und wird NICHT verworfen
+        (frueherer Stand: nur Bruch-Phasen wurden gescannt = Lookahead).
+
+    KEIN Vorlauf-Filter: ``vorlauf_bars`` ist ein reines Diagnosefeld.
     Beide Richtungen unabhaengig (D4: Kante strikt kausal aus U_hist/L_hist;
     Scan erst ab dem ersten hist-Eintrag der Richtung; leere hist =
     KEINE_KANTE, kein Kreuz-Fallback). Status-Kategorien inkl. Diagnose
@@ -728,7 +769,7 @@ def _erfasse_raw(
 
     Args:
         df: OHLCV-DataFrame.
-        p: PhaseData-Objekt.
+        p: PhaseData-Objekt (mit oder ohne 2-Close-Bruch).
         nr: Phasennummer (1-basiert).
         cfg: TrendConfig.
         vol_bed: bool-Array F5-Bedingung ueber ganz df.
@@ -737,26 +778,27 @@ def _erfasse_raw(
     Returns:
         Liste mit 0..2 SetupCSignal-Objekten.
     """
-    assert p.brk_idx is not None and p.break_dir is not None
     n: int = len(df)
-    b: int = int(p.brk_idx)
+    b_opt: Optional[int] = None if p.brk_idx is None else int(p.brk_idx)
+    scan_hi: int = b_opt if b_opt is not None else n - 1
     start_idx: int = _phase_start_idx(df, p.start)
     scan_lo: int = start_idx + min_phase_candles
-    scan_hi: int = b  # inklusive Bruchbar
     ergebnis: List[SetupCSignal] = []
 
     def _leer(status: SignalStatus, dir: DirName, kante: float) -> SetupCSignal:
         return SetupCSignal(
             arm="RAW", phase=nr, dir=dir, kante=kante,
-            brk_idx=b, trigger_idx=-1, entry_idx=-1,
+            brk_idx=b_opt, trigger_idx=-1, entry_idx=-1,
             entry_ts=None, entry_preis=float("nan"),
             stop_level=float("nan"), sl_usd=float("nan"),
             vorlauf_bars=None, vol_bestaetigt=None, status=status,
         )
 
     if scan_lo > scan_hi:
-        # Phase zu kurz fuer einen Scan -> ein Signal in Bruchrichtung
-        return [_leer("KEIN_DURCHSTOSS", p.break_dir, float(p.brk_kante))]
+        # Phase zu kurz fuer einen Scan -> in Bruchrichtung ein Diagnosesignal
+        if p.break_dir is not None and p.brk_kante is not None:
+            return [_leer("KEIN_DURCHSTOSS", p.break_dir, float(p.brk_kante))]
+        return []
 
     for dir in ("up", "down"):
         hist: Sequence[Tuple[pd.Timestamp, float]] = (
@@ -792,7 +834,7 @@ def _erfasse_raw(
             kante=float(kante_r[erste - scan_lo_dir])
             if erste is not None
             else float(hist[0][1]),
-            brk_idx=b, trigger_idx=erste if erste is not None else -1,
+            brk_idx=b_opt, trigger_idx=erste if erste is not None else -1,
             entry_idx=-1, entry_ts=None, entry_preis=float("nan"),
             stop_level=float("nan"), sl_usd=float("nan"),
             vorlauf_bars=None, vol_bestaetigt=None, status="SIGNAL",
@@ -808,7 +850,8 @@ def _erfasse_raw(
             ergebnis.append(s)
             continue
         s.entry_ts = df["ts"].iloc[s.entry_idx]
-        s.vorlauf_bars = b - erste
+        # Diagnose only - NICHT Auswahlkriterium (Cluster-A-Filter entfernt).
+        s.vorlauf_bars = (b_opt - erste) if b_opt is not None else None
         s.vol_bestaetigt = True
         s.stop_level = _stop_f4(
             df, erste, erste, float(kante_r[erste - scan_lo_dir]), dir, cfg
@@ -902,24 +945,39 @@ def _erfasse_signale(
 ) -> List[SetupCSignal]:
     """Erfasst alle Signale eines Fensters ueber die drei Arme (L1).
 
+    LIVE-KAUSAL: Es werden ALLE Phasen verarbeitet - auch die bis zum
+    Datenende ungebrochene (letzte) Phase. Ein frueherer Stand zensierte sie
+    (``nur echte Bruch-Phasen``), was der Live-Sicht widerspricht: eine noch
+    offene, etablierte Phase ist handelbar, sobald die Kante kausal
+    durchstossen wird. CONFIRMED/RETEST brauchen die Bruchkante und werden
+    daher weiterhin nur fuer gebrochene Phasen erzeugt.
+
+    Die Phasennummerierung bleibt gegenueber der Gate-/Harness-Konvention
+    stabil: gebrochene Phasen erhalten 1..k in Reihenfolge; die offene
+    Schlussphase (hoechstens eine) erhaelt k+1.
+
     Args:
         sr: SegmentResult aus market_segmentation.segmentiere_markt.
         cfg: TrendConfig.
 
     Returns:
-        Alle SetupCSignal-Objekte je echter 2-Close-Bruch-Phase.
+        Alle SetupCSignal-Objekte je Phase.
     """
     df: pd.DataFrame = sr.df
     vol_bed, _ = _volumen_bestaetigt(df, cfg)
     min_phase_candles: int = cfg.segment.min_phase_candles
-    echte: List[PhaseData] = [
-        p for p in sr.phases if p.break_dir is not None and p.brk_idx is not None
-    ]
     alle: List[SetupCSignal] = []
-    for nr, p in enumerate(echte, start=1):
-        alle.append(_erfasse_confirmed(df, p, nr, cfg))
-        alle.extend(_erfasse_raw(df, p, nr, cfg, vol_bed, min_phase_candles))
-        alle.append(_erfasse_retest(df, p, nr, cfg))
+    nr: int = 0
+    for p in sr.phases:
+        nr += 1
+        if p.break_dir is not None and p.brk_idx is not None:
+            alle.append(_erfasse_confirmed(df, p, nr, cfg))
+            alle.extend(_erfasse_raw(df, p, nr, cfg, vol_bed, min_phase_candles))
+            alle.append(_erfasse_retest(df, p, nr, cfg))
+        else:
+            # Offene Phase (kein 2-Close-Bruch bis Datenende): nur der
+            # live-kausale RAW-Trigger ist definiert.
+            alle.extend(_erfasse_raw(df, p, nr, cfg, vol_bed, min_phase_candles))
     return alle
 
 
@@ -1177,27 +1235,36 @@ def _kern_lauefe(
     signale: Sequence[SetupCSignal],
     cfg: TrendConfig,
     horizont: int,
+    nur_cluster_a: bool = False,
 ) -> Tuple[List[KernelTrade], int]:
-    """RAW-A-Produktionslauf (E3 + F3-Suppression, Key = (phase, dir)).
+    """Produktionslauf der RAW-Signale (live-kausal + F3-Suppression).
 
-    Kandidaten = RAW-Signale mit vorlauf <= ``cluster_a_max_vorlauf``
-    (Cluster A). Suppression (F3, §2.12/§2.13-C: "aktiver Trade in DERSELBEN
-    Richtung derselben Phase"): Ein Kandidat wird nur dann verworfen, wenn in
-    derselben (phase, dir) eine fruehere RAW-A-Position noch offen ist
+    HANDELSPFAD (Default, ``nur_cluster_a=False``): ALLE gueltigen
+    RAW-Signale werden gehandelt - jedes ist am Bar-Close entschieden
+    (Kanten-Durchstoss + F5-Volumen, Einstieg Open der Folge-Bar). Es gibt
+    KEINEN Vorlauf-Filter; ``vorlauf_bars`` ist reine Diagnose. Damit ist der
+    Pfad lookahead-frei (Hausregel).
+
+    ``nur_cluster_a=True``: reproduziert den historischen "RAW-Cluster A"
+    (``vorlauf <= cfg.cluster_a_max_vorlauf``) AUSSCHLIESSLICH fuer die
+    eingefrorene §2.16-Gate-Gegenprobe. Dieser Pfad ist NICHT handelbar
+    (er setzt das Bruchwissen voraus) und darf nie als Ergebnis
+    praesentiert werden.
+
+    Suppression (F3, §2.12/§2.13-C: "aktiver Trade in DERSELBEN Richtung
+    derselben Phase"): Ein Kandidat wird nur dann verworfen, wenn in
+    derselben (phase, dir) eine fruehere Position noch offen ist
     (entry_idx <= exit_idx). Da ``_erfasse_raw`` je (Phase, Richtung) maximal
-    EIN Signal liefert, ist die Suppression fuer RAW-A ein No-op
-    (n_supprimiert = 0) und die Produktion reproduziert die arretierte
-    L2-Referenz bitgenau. Kein Cross-Richtungs-Eingriff (up/down derselben
-    Phase sind unabhaengige, gleichzeitig handelbare Setups).
+    EIN Signal liefert, ist die Suppression ein No-op (n_supprimiert = 0).
+    Kein Cross-Richtungs-Eingriff (up/down derselben Phase sind unabhaengige,
+    gleichzeitig handelbare Setups).
 
     EMA-Slope-Trailing (optional): Ist ``cfg.ema_trailing.aktiviert``, wird
     jeder Kandidat mit ``_simuliere_kern_ema_trailing`` simuliert (Variante B,
     §5.2). Die kausalen EMA-/Slope-Vektoren werden genau einmal je Lauf
     berechnet. Das ``horizont``-Argument ist im Trailing-Modus bedeutungslos:
     die Laufzeitgrenze bestimmt ausschliesslich
-    ``cfg.ema_trailing.notfall_horizont_bars`` (Crash-Sicherung). Die
-    F3-No-op-Garantie bleibt unveraendert (hoehere Haltedauer aendert nichts
-    an der Ein-Signal-pro-(phase, dir)-Struktur).
+    ``cfg.ema_trailing.notfall_horizont_bars`` (Crash-Sicherung).
 
     Args:
         df: OHLCV-DataFrame.
@@ -1205,6 +1272,7 @@ def _kern_lauefe(
         cfg: TrendConfig.
         horizont: Zeit-Horizont N in Bars (nur Baseline; im Trailing-Modus
             ohne Bedeutung).
+        nur_cluster_a: Historischer Gate-Vergleichspfad (NICHT handelbar).
 
     Returns:
         (aktivierte KernelTrades, n_supprimiert).
@@ -1235,8 +1303,13 @@ def _kern_lauefe(
         for s in signale
         if s.arm == "RAW" and s.status == "SIGNAL" and s.entry_idx >= 0
         and np.isfinite(s.sl_usd) and s.sl_usd > 0.0
-        and s.vorlauf_bars is not None
-        and s.vorlauf_bars <= cfg.cluster_a_max_vorlauf
+        and (
+            not nur_cluster_a
+            or (
+                s.vorlauf_bars is not None
+                and s.vorlauf_bars <= cfg.cluster_a_max_vorlauf
+            )
+        )
     ]
     kandidaten.sort(key=lambda s: (s.phase, s.dir, s.entry_idx))
 
@@ -1306,9 +1379,12 @@ def _gate_portfolio_laeufe(
             "(Join-Schluessel phase_nr inkonsistent)."
         )
 
-    # RAW-A-Basen (beide Horizonte); F3-Suppression muss No-op sein
-    a48, ns48 = _kern_lauefe(df, signale, cfg, 48)
-    a96, ns96 = _kern_lauefe(df, signale, cfg, 96)
+    # RAW-A-Basen (beide Horizonte); F3-Suppression muss No-op sein.
+    # WICHTIG: nur_cluster_a=True reproduziert den EINGEFRORENEN historischen
+    # Cluster-A-Pfad (Lookahead) fuer den §2.16-OOS-Vergleich. Der Gate-Report
+    # ist KEIN Handelspfad.
+    a48, ns48 = _kern_lauefe(df, signale, cfg, 48, nur_cluster_a=True)
+    a96, ns96 = _kern_lauefe(df, signale, cfg, 96, nur_cluster_a=True)
     if ns48 != 0 or ns96 != 0:
         raise RuntimeError(
             f"Gate: RAW-A-Suppression nicht No-op (n48={ns48}, n96={ns96})."
@@ -1505,13 +1581,14 @@ def _trade_block_tsv(
     mode_kopf: str = (
         "EMA-Slope-Trailing (Variante B)"
         if cfg.ema_trailing.aktiviert
-        else "RAW-A + F4 intrabar + Zeit-Exit"
+        else "RAW live-kausal + F4 intrabar + Zeit-Exit"
     )
     kopf: List[str] = [
         f"# setup_c Phase-1-Kern ({mode_kopf}) - Fenster: {fenster}",
-        f"# suppression_phasenlokal: {cfg.suppression_phasenlokal} | "
-        f"cluster_a_max_vorlauf: {cfg.cluster_a_max_vorlauf} | "
+        f"# HANDELSPFAD: alle kausalen RAW-Trigger (KEIN Vorlauf-Filter) | "
+        f"suppression_phasenlokal: {cfg.suppression_phasenlokal} | "
         f"stop_puffer: {cfg.stop_puffer} | sl_pct_ref: {cfg.sl_pct_ref}",
+        "# vorlauf_bars ist Diagnose (nicht Auswahl); brk_idx leer = offene Phase",
         "# RECHTS_ZENSIERT: r_f4/r_ref = NaN (E2, strikt isoliert)",
     ]
     header: str = (
@@ -1597,6 +1674,10 @@ def _bericht_gate(
     txt: List[str] = [
         linie,
         "SETUP C - GATE-MODUS (Gated-Portfolio, --mit-regime-gate)",
+        "!! KEIN HANDELSPFAD - EINGEFRORENER HISTORISCHER OOS-VERGLEICH !!",
+        "   Das Portfolio selektiert 'RAW-Cluster A' (vorlauf <= 1) und setzt",
+        "   damit Bruchwissen voraus, das zum Einstiegszeitpunkt nicht existiert.",
+        "   Nicht als Ergebnis/Edge praesentieren (Hausregel Live-Kausalitaet).",
         f"Fenster: {fenster} | Symbol: {cfg.symbol} {cfg.timeframe} | "
         f"Segmente: {len(sr.phases)} | F3-Brueche: {len(states)}",
         "Portfolio (§2.16-F.1, OOS-abgenommen): TREND -> RAW-A@96 + RAW-B@96 "
@@ -1666,7 +1747,7 @@ def _bericht_ab_trailing(
     cfg_b: TrendConfig = replace(cfg, ema_trailing=EMASlopeTrailingConfig())
     tc: EMASlopeTrailingConfig = cfg.ema_trailing
 
-    # --- L1: Pipeline-Anker (Populationen) ----------------------------------
+    # --- L1: Pipeline-Anker (Populationen; A/B nur noch DIAGNOSE) -----------
     n_f3: int = sum(
         1 for p in sr.phases if p.break_dir is not None and p.brk_idx is not None
     )
@@ -1678,7 +1759,8 @@ def _bericht_ab_trailing(
         if s.vorlauf_bars is not None
         and s.vorlauf_bars <= cfg_b.cluster_a_max_vorlauf
     )
-    pop_b: int = len(pop_raw) - pop_a
+    pop_b: int = sum(1 for s in pop_raw if s.vorlauf_bars is not None) - pop_a
+    pop_offen: int = sum(1 for s in pop_raw if s.vorlauf_bars is None)
     pop_retest: int = len(_population(signale, "RETEST"))
 
     # --- Baseline (Trailing deaktiviert, bitgenau Phase-1-Semantik) ---------
@@ -1710,7 +1792,10 @@ def _bericht_ab_trailing(
         "L1 PIPELINE-ANKER (Populationen, SIGNAL & sl_usd>0):",
         f"  F3-Brueche      : {n_f3}",
         f"  CONFIRMED       : {pop_conf}",
-        f"  RAW gesamt      : {len(pop_raw)}  (CLUSTER_A={pop_a}, CLUSTER_B={pop_b})",
+        f"  RAW gesamt      : {len(pop_raw)}",
+        f"    davon offene Phase (brk_idx leer, live gehandelt): {pop_offen}",
+        f"    Diagnose Vorlauf: A(<=1)={pop_a}, B(>1)={pop_b} "
+        f"(NICHT Auswahl - der Handelspfad nutzt ALLE RAW)",
         f"  RETEST          : {pop_retest}",
         "",
     ]
@@ -1720,10 +1805,10 @@ def _bericht_ab_trailing(
         agg = _agg_block(trades, n_supp)
         txt.append(linie)
         txt.append(
-            f"BASELINE RAW-CLUSTER A  |  Horizont N = {horizont}  "
+            f"BASELINE RAW (live-kausal, alle Trigger)  |  Horizont N = {horizont}  "
             f"(Close der Bar entry+{horizont})"
         )
-        txt.extend(_block_text("    RAW-CLUSTER-A", agg))
+        txt.extend(_block_text("    RAW (live)", agg))
         txt.append("")
 
     txt.append(linie)
@@ -1808,7 +1893,7 @@ def bericht_fenster(
             )
         return _bericht_ab_trailing(fenster, cfg, df, sr, signale)
 
-    # --- L1: Pipeline-Anker (Populationen) ----------------------------------
+    # --- L1: Pipeline-Anker (Populationen; A/B nur noch DIAGNOSE) -----------
     n_f3: int = sum(
         1 for p in sr.phases if p.break_dir is not None and p.brk_idx is not None
     )
@@ -1819,10 +1904,11 @@ def bericht_fenster(
         for s in pop_raw
         if s.vorlauf_bars is not None and s.vorlauf_bars <= cfg.cluster_a_max_vorlauf
     )
-    pop_b: int = len(pop_raw) - pop_a
+    pop_b: int = sum(1 for s in pop_raw if s.vorlauf_bars is not None) - pop_a
+    pop_offen: int = sum(1 for s in pop_raw if s.vorlauf_bars is None)
     pop_retest: int = len(_population(signale, "RETEST"))
 
-    # --- L2: RAW-A-Kern je Horizont ------------------------------------------
+    # --- L2: live-kausaler RAW-Kern je Horizont ------------------------------
     laeufe: Dict[int, Tuple[List[KernelTrade], int]] = {}
     for horizont in cfg.zeit_horizonte:
         laeufe[horizont] = _kern_lauefe(df, signale, cfg, horizont)
@@ -1833,15 +1919,21 @@ def bericht_fenster(
         "SETUP C - PHASE-1-PRODUKTIONSKERN (setup_c_profil.py)",
         f"Fenster: {fenster} | Symbol: {cfg.symbol} {cfg.timeframe} | "
         f"Segmente: {len(sr.phases)} | F3-Brueche: {n_f3}",
-        f"Kern: RAW-A (Vorlauf<={cfg.cluster_a_max_vorlauf}) + F4 intrabar "
-        f"(Puffer {cfg.stop_puffer}) + Zeit-Exit {cfg.zeit_horizonte} + "
-        f"Suppression={cfg.suppression_phasenlokal} | r_ref: 0.45%-SL",
+        "HANDELSPFAD: LIVE-KAUSAL - jeder Volumen-Durchstoss an der kausalen",
+        "  Kante (F5-Volumen, Einstieg Open der Folge-Bar). KEIN Vorlauf-Filter;",
+        "  offene Phasen werden NICHT zensiert (kein Lookahead).",
+        f"Kern: F4 intrabar (Puffer {cfg.stop_puffer}) + Zeit-Exit "
+        f"{cfg.zeit_horizonte} + Suppression={cfg.suppression_phasenlokal} "
+        f"| r_ref: 0.45%-SL",
         linie,
         "",
         "L1 PIPELINE-ANKER (Populationen, SIGNAL & sl_usd>0):",
         f"  F3-Brueche      : {n_f3}",
         f"  CONFIRMED       : {pop_conf}",
-        f"  RAW gesamt      : {len(pop_raw)}  (CLUSTER_A={pop_a}, CLUSTER_B={pop_b})",
+        f"  RAW gesamt      : {len(pop_raw)}",
+        f"    davon offene Phase (brk_idx leer, live gehandelt): {pop_offen}",
+        f"    Diagnose Vorlauf: A(<=1)={pop_a}, B(>1)={pop_b} "
+        f"(NICHT Auswahl - der Handelspfad nutzt ALLE RAW)",
         f"  RETEST          : {pop_retest}",
         "",
     ]
@@ -1851,17 +1943,17 @@ def bericht_fenster(
         agg = _agg_block(trades, n_supp)
         txt.append(linie)
         txt.append(
-            f"L2 RAW-CLUSTER A  |  Horizont N = {horizont}  "
+            f"L2 RAW (live-kausal, alle Trigger)  |  Horizont N = {horizont}  "
             f"(Close der Bar entry+{horizont})"
         )
-        txt.extend(_block_text("    RAW-CLUSTER-A", agg))
+        txt.extend(_block_text("    RAW (live)", agg))
         txt.append("")
 
-    # Referenzzeile (Suppression aus = §2.14-L2-Sollwerte)
+    # Referenzzeile (Suppression aus): reine Schutzschicht-Diagnose
     if cfg.suppression_phasenlokal:
         cfg_ref: TrendConfig = replace(cfg, suppression_phasenlokal=False)
         txt.append(linie)
-        txt.append("L2-REFERENZ (suppression_phasenlokal=False = §2.14-Sollwerte):")
+        txt.append("L2-REFERENZ (suppression_phasenlokal=False - Schutzschicht aus):")
         for horizont in cfg_ref.zeit_horizonte:
             trades_ref, n_supp_ref = _kern_lauefe(df, signale, cfg_ref, horizont)
             agg_ref = _agg_block(trades_ref, n_supp_ref)
@@ -1869,11 +1961,21 @@ def bericht_fenster(
         txt.append("")
 
     txt.append(linie)
-    txt.append("VERIFIKATIONSANKER (erwartet, §2.14 nach Einheiten-Bereinigung D4-Ratchet):")
     txt.append(
-        f"  L1: AUG 11/11/10(2/8)/3 | S1 138/138/105(38/67)/59 | "
-        f"S2 61/61/76(3/73)/18  ->  aktuelles Fenster {fenster}: "
-        f"{n_f3}/{pop_conf}/{len(pop_raw)}({pop_a}/{pop_b})/{pop_retest}"
+        "HISTORISCHER ANKER (§2.14, Stand VOR der Kausalitaets-Bereinigung - "
+        "NICHT mehr gueltig):"
+    )
+    txt.append(
+        "  L1 damals: AUG 11/11/10(2/8)/3 | S1 138/138/105(38/67)/59 | "
+        "S2 61/61/76(3/73)/18"
+    )
+    txt.append(
+        f"  aktuelles Fenster {fenster}: {n_f3}/{pop_conf}/{len(pop_raw)}"
+        f"(offen {pop_offen})/{pop_retest} - der RAW-Bestand ist seit der"
+    )
+    txt.append(
+        "  Bereinigung groesser (offene Phasen zaehlen mit) und daher nicht"
+        " vergleichbar."
     )
     txt.append(linie)
 

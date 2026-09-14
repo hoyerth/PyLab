@@ -13420,3 +13420,307 @@ F13. Commit-Schnitt (F7): H20.52 in EINEM Commit mit dem Renderer-Schritt 3,
      oder H20.52 zuerst? Die Entscheidung lautet "zuerst H20.52"; die Frage
      ist nur, ob die drei Baseline-PNGs in denselben Commit gehen oder in
      einen eigenen (Bilder als Artefakte vs. Code als Gegenstand).
+## H20.52b - Nachtrag zu H20.52: Errata K1-K3, ATR-Zeitebenen-Sonde, Step-3-Messergebnisse
+
+Anlass: H20.52 Paragraph 11 hat den Datenvertrag der Ziel-Diagnostik
+praezisiert; Paragraph 12 hat dazu die Fragen F8-F13 gestellt. Dieser
+Nachtrag protokolliert (a) die Ausfuehrung von Schritt 3 (ATR-Sonde +
+Monats-Renderer auf dem Baseline-Stand), (b) die dabei gefundenen Errata und
+(c) alle Messwerte. Der Nachtrag ist gebuendelt (Beschluss F15/F23) -- kein
+Mini-Append.
+
+### 0. Status
+
+| Gegenstand | Stand |
+|---|---|
+| Motoren/Adapter/Descriptor | byte-identisch arretiert (4 Anker, Paragraph 8) |
+| Extremum-Zielwahl (tp2) | unveraendert handelswirksam (H20.52 Paragraph 1) |
+| Ziel-Diagnostik | KORRIGIERT -- Erratum K3, keine Handelswirkung |
+| Schritt 3 (ATR-Sonde, Monats-PNGs) | ausgefuehrt, alle Asserts gruen |
+| V022 | nicht begonnen; Paragraph 11 ist die Vormerkung |
+
+### 1. Erratum K1 - Referenz-Bar der Gegenkanten-Diagnostik
+
+Die Gegenkante wird im Trade-Loop am SIGNAL-Bar gewaehlt, nicht am
+Entry-Bar. Beleg: `tmp_kanten_engine_replay.py` Zeile 2672 ruft
+`_gegenkante(richtung, k)` mit `k` = Signal-Bar; der Entry liegt erst
+`entry_bar = k + stufe_n` (Zeile 2643). `tp2 = gegen_basis` ist damit
+`gegen.basis_bei(k)` -- statisch fuer den gesamten Trade.
+
+Konsequenz fuer den Datenvertrag: `naechste_kante_preis` ist
+`gegen.basis_bei(t.bar)`, NIE `basis_bei(t.entry_bar)`. Die statische
+Provenienz `gegen.basis` ist in keinem Fall zu verwenden (sie weicht von
+`basis_bei(k)` ab, siehe Spalte `basis_feld` in
+`test/_chk_mai_juli_gegenkante_out.txt`).
+
+Verifikation: `Identitaet EXTREMUM: 35/35, 28/28, 21/21 Trades mit
+basis_bei(t.bar) == tp2 (Toleranz 1e-9)  OK` -- die Nachrechnung der
+EXTREMUM-Auswahl trifft den arretierten `tp2` bit-identisch, fuer alle 84
+Trades. Die Bremse ist jetzt in `_render_mai_jun_jul.py` verdrahtet
+(portiert aus `_chk_mai_juli_gegenkante.main()`).
+
+### 2. Erratum K2 - Flaechenname des Ordnungsflags
+
+Das Ordnungsflag heisst `ordnung_naechste_poc_erfuellt` (nicht
+`ordnung_poc_erfuellt`). Die Praezisierung ist notwendig, weil seit
+Erratum K3 ZWEI Ziele existieren: das Extremum (tp2, handelswirksam) und die
+naechste zulaessige Gegenkante (Diagnostik). Gegen das Extremum ist die
+Ordnung `sl < entry < poc < tp2` per Konstruktion IMMER erfuellt (der Motor
+verwirft sonst als `kein_raum`, Zeile 2704-2707) -- das Flag traegt dort
+keine Information. Nur gegen die naechste Kante ist es aussagekraeftig.
+
+### 3. Erratum K3 (Befund D) - Zulaessigkeits-Halbraum der Gegenkante
+
+BEFUND. Die erste Fassung von `_naechste_kante_extern` war ein reiner
+Spiegel der EXTREMUM-Auswahl (OBEN: `min` statt `max`; UNTEN: `max` statt
+`min`) -- ohne jede Zulassungspruefung. Sie lieferte andere Werte als F3
+(`_chk_u3_spec_beleg.py`):
+
+| Fenster | ordN (Spiegel, ALT) | ordN (F3-Soll) | crvNae med ALT | crvNae med F3 |
+|---|---|---|---|---|
+| MAI | 6/35 | **8/35** | 2.09 | **1.36** |
+| JUN | 4/28 | **4/28** | 3.27 | **2.50** |
+| JUL | **0/21** | **9/21** | 1.90 | **1.80** |
+
+URSACHE. Der Motor laesst einen Trade nur zu, wenn die Gegenkante auf der
+ABGEWANDTEN Seite der getradeten Kante liegt (Zeilen 2677-2692):
+
+    SHORT   gegen_basis < basis      (Ziel unter der getradeten Oberkante)
+    LONG    gegen_basis > basis      (Ziel ueber der getradeten Unterkante)
+
+Andernfalls zaehlt der Motor `kein_raum` und verwirft das Setup. F3 filtert
+genau diesen Halbraum (`kand = [e for e in pool if basis_bei(k) > basis]`
+bzw. `< basis`). Der reine Spiegel filtert NICHT und waehlt mitunter eine
+Kante diesseits der getradeten Basis -- ein Niveau, das der Vertrag als Ziel
+niemals zulaesst. Im Monat JUL war das fuer ALLE 21 Trades der Fall: die
+globale `min` des OBEN-Pools lag unter dem Entry, die Ordnung
+`entry < poc < naechste` scheiterte damit 21/21 -- daher das irrefuehrende
+0/21.
+
+UNABHAENGIGE GEGENPROBE IM EIGENEN HANDOFF. H20.52 Paragraph 2 fuehrt die
+Zeile "NAECHSTE + Ordnung" mit 8 / 4 / 9 Trades fuer MAI / JUN / JUL. Das
+sind exakt die F3-Ordnungsquoten 8/35, 4/28, 9/21. Der Nachtrag musste den
+Paragraph 2 also NICHT korrigieren -- die F3-Zahlen waren von Anfang an
+richtig; falsch war allein die erste Diagnostik-Implementierung. Der
+Widerspruch (0/21 gegen die im selben Dokument stehenden 9) ist der
+Ausloeser des Befunds.
+
+BEHEBUNG. Neu: `_halbkanten_pool(alle, kk, richtung, basis)` in
+`test/_chk_mai_juli_gegenkante.py` -- setzt ausschliesslich den
+Zulaessigkeits-Halbraum auf `_gegenkanten_pool` auf (F16 bleibt gewahrt:
+EINE Quelle der Poolbildung). `_naechste_kante_extern` nimmt dafuer den
+vierten Parameter `basis` (= `t.basis`) und waehlt nur noch INNERHALB des
+Halbraums. `_gegenkante_extern` und `_gegenkanten_pool` sind byte-funktional
+unberuehrt.
+
+AUSWIRKUNG. 22 der 84 Diagnosezeilen aendern sich -- und zwar
+ausschliesslich solche, in denen der Spiegel eine falsche Seite getroffen
+hatte. Beispiele (crvNae ALT -> NEU):
+
+    MAI #29 K40   10.42 ->  3.62  (ordN nein -> JA)
+    MAI #31 K40    5.27 ->  0.61  (ordN nein -> JA)
+    JUL #20 K77   15.04 ->  1.80  (ordN nein -> JA)
+    JUL #21 K77    7.11 ->  0.43  (ordN nein -> JA)
+    JUN #16 K72    6.97 ->  0.45  (ordN nein -> nein)
+
+NACHHER reproduziert die Diagnostik F3 zeichengleich:
+
+    MAI  ordN 8/35  crvNae min 0.08 med 1.36 max 7.75  <1.0: 14  <1.5: 19
+    JUN  ordN 4/28  crvNae min 0.07 med 2.35 max 17.83 <1.0: 10  <1.5: 12
+    JUL  ordN 9/21  crvNae min 0.12 med 1.80 max 10.11 <1.0:  9  <1.5: 10
+
+Alle drei Zeilen sind mit F3 deckungsgleich mit EINER Ausnahme: dem
+JUN-Median (2.35 gegen 2.50), siehe Paragraph 6.
+
+Das Fehlverhalten ist damit nicht "Geschmack", sondern ein Verstoss gegen
+die Zulassungsregel des Motors: die Diagnostik berichtete Erreichbarkeiten
+fuer Ziele, die der Vertrag nie zugelassen haette. Als Regressionsbremse
+prueft der Renderer jetzt zusaetzlich, dass `tp2` fuer JEDEN Trade im
+Halbraum liegt (84/84).
+
+### 4. Korrektur zu H20.52 Paragraph 6 (ATR-Befund) - Stop-Distanz-Median
+
+H20.52 Paragraph 6 nennt als Vergleichsgroesse "1.5 * Risiko med 0.4830"
+(MAI) und leitet daraus ab, dass `1.5 * |entry - sl|` die Klammer
+`0.50 * ATR` immer bindet. Die Schlussfolgerung ist RICHTIG, die
+Bezugsgroesse war falsch:
+
+- 0.4830 ist NICHT der Median von `1.5 * |entry - sl|`, sondern
+  `1.5 * 0.3220` = 1.5 x (Median-Stop MAI) -- eine zulaessige, aber
+  undokumentierte Umformung.
+- Der Median der REALEN Stop-Distanz `|sl - entry|` betraegt je Fenster:
+  MAI 0.3220, JUN 0.2965, JUL 0.2760 -- ueber alle 84 Trades 0.2815.
+- `0.50 * ATR(M15)` hat den Median 0.1579. Die Klammer bindet damit nur
+  12/84 Trades (Paragraph 5); sie ist fuer M15 praktisch inert. Die Aussage
+  "1.5 * |entry - sl| bindet immer" bleibt korrekt, denn
+  1.5 x 0.2815 = 0.4223 > 0.1579.
+
+Klarstellung, weil Paragraph 6 in V022 als Begruendung dient: die
+Entscheidung gegen M15 haengt an Paragraph 5 (Zeitebene), nicht an 0.4830.
+
+### 5. ATR-Zeitebenen-Sonde (F9) - Messergebnis
+
+Sonde: `test/_chk_atr_zeitebene.py` (read-only, kein Motoreingriff,
+`Fehler=False`). Protokoll: `test/_chk_atr_zeitebene_out.txt`.
+Konstruktion: index-basiertes Bucketing (Reaggregation M15 -> H1 -> H4),
+kausal, nur der LETZTE ABGESCHLOSSENE Bucket geht ein -- keine
+Zeitzonen-Projektion (Kanon K1/K4). Wilder-RMA, Seed `mean(TR[1..14])`.
+
+KREUZPROBE gegen F2 (Konvention). `_atr_zeitebene(faktor=1)` ist
+bit-identisch zu `_wilder_rma(_true_range(...))`
+(`np.array_equal(..., equal_nan=True) == True`). Der Median ueber ALLE
+gueltigen Bars reproduziert die F2-Sollwerte 0.3521 / 0.3054 / 0.2210
+exakt -> `OK (Konvention bit-identisch)`. Die abweichenden Werte der ersten
+Sondenfassung (0.3554 / 0.3105 / 0.2333) entstanden durch die Wahl der
+TRADE-Bars als Population -- beide Populationen stehen jetzt getrennt im
+Protokoll.
+
+Varianten: (a) fensterlokal (Warmup, erste `periode` Buckets `nan`),
+(b) Ueberhang (Vorlauf aus dem Vormonat). `k*ATR > Stop` zaehlt Trades, bei
+denen die Klammer ueberhaupt eingriffe ("KANN", nicht "SOLL"):
+
+| Aufl | Var | ATR@bar med | nan@bar | bindet 0.50 | bindet 1.00 |
+|---|---|---|---|---|---|
+| M15 | a | 0.3554 / 0.3105 / 0.2333 | 0 | 5/35, 5/28, 2/21 | 21/35, 15/28, 11/21 |
+| H1  | a | 0.7433 / 0.6250 / 0.4824 | 1/0/1 | 20/35, 15/28, 11/21 | 32/35, 25/28, 18/21 |
+| H1  | b | 0.7416 / 0.6562 / 0.4782 | 0 | 20/35, 15/28, 11/21 | 32/35, 26/28, 19/21 |
+| H4  | a | 1.5479 / 1.3685 / 0.9872 | 3/2/1 | 30/35, 25/28, 20/21 | 32/35, 26/28, 20/21 |
+| H4  | b | 1.4797 / 1.3715 / 1.0188 | 0 | **32/35, 27/28, 21/21** | **35/35, 28/28, 21/21** |
+
+GESAMTLAGE (84 Trades, Median ueber alle Trades):
+
+    Aufl Var   ATR med  Stop med  0.50*ATR med  1.00*ATR med  bindet 0.50  bindet 1.00
+     M15   a    0.3159    0.2815        0.1579        0.3159     12/84        47/84
+     M15   b    0.3163    0.2815        0.1581        0.3163     12/84        47/84
+      H1   a    0.6332    0.2810        0.3166        0.6332     46/82        75/82
+      H1   b    0.6475    0.2815        0.3238        0.6475     46/84        77/84
+      H4   a    1.3472    0.2800        0.6736        1.3472     75/78        78/78
+      H4   b    1.3534    0.2815        0.6767        1.3534     80/84        84/84
+
+WARMUP-BIAS (a) -> (b), Median-ATR@bar: MAI M15 +0.00 %, H1 -0.24 %,
+H4 -4.41 %; JUN M15 +0.00 %, H1 +4.99 %, H4 +0.22 %; JUL M15 +0.44 %,
+H1 -0.89 %, H4 +3.21 %. Die (a)-Variante ist durch Warmup verzerrt, die
+Varianz ist aber klein (max. 5 %) -- beide Lesarten fuehren zur selben
+Auflagenentscheidung.
+
+BEFUND. M15 ist als Klammergrundlage untauglich (12/84). H1 bindet in
+46/84 Faellen -- eine echte, aber nicht dominante Intervention. H4 bindet in
+80/84 Faellen und `1.00 * ATR(H4)` deckt 84/84 -- die Klammer wuerde dort
+zum de-facto Stop und der strukturelle Stop (`cluster_ext +- sl_buffer_usd`)
+verloere seine Rolle. Bestaetigt damit die Anwenderentscheidung F4:
+H1-ATR(14) fuer V022, M15 untauglich. Die Sonde beantwortet "KANN", nicht
+"SOLL" -- kein Sondenwert darf in die Engine.
+
+### 6. Median-Konvention (Aufloesung des Restdeltas JUN)
+
+F3 berechnet den Median als `sorted_crv[len // 2]` (oberer Median), die
+Diagnostik des Renderers als `numpy.median` (Mittel der beiden mittleren
+Werte). Bei ungeradem n sind beide identisch; bei geradem n divergieren sie.
+JUN hat n = 28: F3 = 2.50 (15. Wert), `np.median` = 2.35
+(Mittel aus 2.20 und 2.50). Das ist die EINZIGE verbleibende Abweichung
+zwischen Diagnostik und F3 und liegt in der Definition, nicht in der
+Kantenauswahl.
+
+Beschluss: `np.median` bleibt (Standarddefinition, konsistent mit der
+Risiko-Spalte und mit allen anderen Medians des Renderers). Die Konvention
+ist hier dokumentiert, damit die 2.35 nicht erneut als Diskrepanz gelesen
+wird.
+
+### 7. F8 - Vorbehalt Runner / Teilgewinn-Skalierung
+
+Die Falsifikationsklausel in H20.52 Paragraph 1 lautet:
+
+    "Innerhalb der getesteten Zielklasse {naechste Kante, gedeckeltes
+     Extremum} existiert kein Eingriff, der den Bestand schlaegt."
+
+Ergaenzung (Beschluss F8), damit V022 den Befund nicht als "bereits
+widerlegt" fehldeutet: Die Klausel deckt AUSSCHLIESSLICH die Wahl des
+ZIELPREISES ab. Nicht getestet und nicht widerlegt sind die
+Positions-Skalierung (Teilgewinn/Runner), also jede Form des
+Aufteilens EINES Trades auf mehrere Ausstiege. Die gemessene Schwanzlast
+(H20.52 Paragraph 3) zeigt gerade, dass das Ergebnis der Monate an EINEM
+weiten Treffer haengt; eine Skalierung greift genau diesen Hebel an und ist
+daher ein eigener, offener Gegenstand -- nicht Teil der Falsifikation.
+
+### 8. Artefakte und SHAs
+
+Arretierte Anker (SHA-Guard im Renderer, unveraendert):
+
+| Datei | SHA256 (16) | Bytes |
+|---|---|---|
+| test/tmp_kanten_engine_replay.py | 53f28e1b6971a64d | 200433 |
+| test/tmp_kanten_engine_v020_replay.py | e79c5c29482398d8 | 40567 |
+| test/tmp_kanten_engine_v021_replay.py | cda9e5b189ed4137 | 23494 |
+| backtest_lab/phasen_regime_adapter.py | 770eda2c75aaa135 | 43279 |
+
+Schritt 3, neu bzw. geaendert:
+
+| Datei | SHA256 (16) | Bytes |
+|---|---|---|
+| test/_chk_atr_zeitebene.py | 6215d58695d6beea | 15984 |
+| test/_chk_atr_zeitebene_out.txt | 17814ad6adc3aeba | 6011 |
+| test/render_mai_baseline.png | a0bdf9b9733ac148 | 1253774 |
+| test/render_jun_baseline.png | 87fe0fe0d55aa242 | 1086805 |
+| test/render_jul_baseline.png | 70a689584612491d | 1020135 |
+| test/render_mai_jun_jul_baseline_out.txt | da2265bc7c19e0f8 | 14415 |
+
+Geaendert durch Erratum K3:
+
+| Datei | SHA256 (16) | Bytes |
+|---|---|---|
+| test/_chk_mai_juli_gegenkante.py | a3b95a1f75225219 | 13529 |
+| test/_render_mai_jun_jul.py | 70b3830aa6210602 | 26678 |
+
+Forensik (Stand VOR Erratum K3, nur als Beleg des Fehlverhaltens):
+
+| Datei | SHA256 (16) | Bytes |
+|---|---|---|
+| test/_chk_naechste_spiegel_alt_out.txt | 957ed2c66e9e13fd | 13845 |
+
+### 9. Monatsbilder (Step 3, Stand BASELINE) - Kennzahlen
+
+Alle drei Laeufe `Fehler=False`; Sollwerte fail-loud reproduziert
+(35/+38.318126, 28/-11.421155, 21/-4.325355).
+
+| Kennzahl | MAI | JUN | JUL |
+|---|---|---|---|
+| Bars | 0..1921 | 0..2008 | 0..2099 |
+| Trades / SumR | 35 / +38.318126 | 28 / -11.421155 | 21 / -4.325355 |
+| Win-Rate | 17.14 % (6/29) | 14.29 % (4/24) | 14.29 % (3/18) |
+| Profit-Faktor | 2.6115 | 0.5131 | 0.7174 |
+| Stop min/med/max USD | 0.1130/0.3220/1.2190 | 0.0770/0.2965/0.8510 | 0.0890/0.2760/0.4960 |
+| TP2 distinct | 4 | 1 | 2 |
+| crvExt min/med/max | 2.07/29.63/119.31 | 3.69/37.80/118.93 | 2.47/18.98/64.99 |
+| crvNae min/med/max | 0.08/1.36/7.75 | 0.07/2.35/17.83 | 0.12/1.80/10.11 |
+| ordN erfuellt | 8/35 | 4/28 | 9/21 |
+| crvNae < 1.0 / < 1.5 | 14 / 19 | 10 / 12 | 9 / 10 |
+| Traeger (F20) | K103@842 +51.668268 | K170@1755 +10.014019 | K38@277 +10.155643 |
+| Traeger-Anteil am SumR | +134.8 % | -87.7 % | -234.8 % |
+| SumR ohne Traeger | -13.350142 | -21.435173 | -14.480998 |
+| ENDE-Glattstellungen | 2 | 2 | 1 |
+
+Zum Vergleich die Gegenkanten-Kids je Monat (Traeger von tp2):
+MAI K6, K14, K29, K108; JUN K14; JUL K3, K35.
+
+### 10. Offene Entscheidungsfragen
+
+F14. Median-Konvention (Paragraph 6): bleibt `np.median` die verbindliche
+     Definition fuer `crv_*`-Medians im Datenvertrag, oder soll V022 die
+     F3-Konvention `sorted[n // 2]` uebernehmen, damit Altdokumente
+     zeichengleich zitierfaehig bleiben?
+
+F15. Halbraum als Vertragspunkt (Befund D): Soll der Zulaessigkeits-Halbraum
+     (`kein_raum`) ausdruecklich in den V022-Datenvertrag als Vorbedingung
+     jeder Ziel-Diagnostik aufgenommen werden? Er ist heute Motorregel, aber
+     nicht Vertragstext der Diagnostik.
+
+F16. Stale-Artifact `test/_chk_naechste_spiegel_alt_out.txt`: behalten (Beleg
+     des Fehlverhaltens, Paragraph 8) oder loeschen? Er ist der einzige
+     Datentraeger, der die 22 geaenderten Zeilen im Vorzustand zeigt.
+
+F17. Fortsetzung: Soll als naechster Schritt die V022-Vormerkung aus
+     H20.52 Paragraph 11 als Vertragsentwurf ausgearbeitet werden
+     (Datenvertrag Paragraph 11 + Erratum K1/K2/K3 + Halbraum F15), oder
+     zuerst die inerte Schnittstelle (H20.52 Paragraph 7, F11) bereinigt
+     werden?
+

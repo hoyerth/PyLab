@@ -1,6 +1,33 @@
 """
-VOLUME ZONE - TAGES-BALANCEN (scripts/volume_zone_profil.py)
-==============================================================
+ARCHIV - VOLUME ZONE TAGES-BALANCEN (scripts/archiv/volume_zone_profil.py)
+==========================================================================
+ARCHIVIERT am 2026-09-14. Es gibt nur noch EINE Engine:
+``scripts.volume_profile_run`` mit den Bausteinen ``volume_profile_core`` /
+``_windows`` / ``_store`` / ``_chart``.
+
+Der hier gerechnete TAGES-BALANCEN-Modus ist dort als MODUS enthalten:
+
+    python -m scripts.volume_profile_run --window=day --modus=balance ^
+        --min_bars=40
+
+``modus=balance`` liefert je Fenster die Huelle der Segment-Value-Areas
+(VAL = kleinste Berg-VAL, VAH = groesste Berg-VAH) - ueber Kalendertage genau
+die Balance dieses Moduls. ``modus=zone`` (Default) liefert stattdessen die
+Zonen-Value-Area ab POC. Beide Baender werden immer mitgerechnet.
+
+Diese Datei bleibt als REFERENZ erhalten und ist weiterhin lauffaehig:
+sie traegt die Bitgleichheits-Diagnose
+(``test/VolumeZone/diag_module.py``, Block [2]) und den Zahlenvergleich gegen
+die gesicherten Ausgaben in ``test/VolumeZone/_baseline/``. Sie wird NICHT
+weiterentwickelt; Aenderungen gehoeren in die Module unter ``scripts/``.
+
+Aufruf:
+    python -m scripts.archiv.volume_zone_profil
+
+--- Originalkopf (unveraendert) ---------------------------------------------
+
+VOLUME ZONE - TAGES-BALANCEN
+=============================
 Findet und zeigt Volumen-Balancen ("Nester") auf Tagesbasis: je
 Broker-Kerzen-Zeit-Kalendertag wird ein Volumenprofil gerechnet und daraus
 Point of Control (POC), Value Area High (VAH) und Value Area Low (VAL)
@@ -92,12 +119,13 @@ import matplotlib.pyplot as plt  # noqa: E402
 from matplotlib.lines import Line2D  # noqa: E402
 from matplotlib.patches import Rectangle  # noqa: E402
 
-# Direktaufruf (``python scripts/volume_zone_profil.py``) legt nur ``scripts/``
-# auf den Modulpfad -> der Namespace-Import ``scripts.*`` scheitert. Der Guard
-# stellt die Projekt-Wurzel voran und macht BEIDE Aufrufarten gueltig; beim
-# ``-m``-Aufruf ist ``__package__`` gesetzt und der Guard ist inaktiv.
+# Direktaufruf (``python scripts/archiv/volume_zone_profil.py``) legt nur
+# ``scripts/archiv/`` auf den Modulpfad -> der Namespace-Import ``scripts.*``
+# scheitert. Der Guard stellt die Projekt-Wurzel voran und macht BEIDE
+# Aufrufarten gueltig; beim ``-m``-Aufruf ist ``__package__`` gesetzt und der
+# Guard ist inaktiv.
 if __package__ in (None, ""):
-    _projekt_root: Path = Path(__file__).resolve().parent.parent
+    _projekt_root: Path = Path(__file__).resolve().parent.parent.parent
     if str(_projekt_root) not in sys.path:
         sys.path.insert(0, str(_projekt_root))
 
@@ -186,7 +214,7 @@ class VolumeZoneConfig:
     start: str = "2026-08-01"
     ende: str = "2026-09-01"
     db_path: Path = (
-        Path(__file__).resolve().parent.parent / "data" / "market_data.duckdb"
+        Path(__file__).resolve().parent.parent.parent / "data" / "market_data.duckdb"
     )
 
     # --- Volumenprofil (Baseline-Defaults, unveraendert) --------------------
@@ -212,7 +240,8 @@ class VolumeZoneConfig:
     chart_limit_tage: int = 0
     grid_max_tage: int = 24
     report_dir: Path = (
-        Path(__file__).resolve().parent.parent / "test" / "VolumeZone" / "reports"
+        Path(__file__).resolve().parent.parent.parent
+        / "test" / "VolumeZone" / "reports"
     )
 
 

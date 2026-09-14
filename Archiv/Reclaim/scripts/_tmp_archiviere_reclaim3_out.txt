@@ -1,0 +1,10 @@
+SCHARF
+Quelle: test/archiv
+Setup B -> Reclaim          33 Dateien -> Archiv/Reclaim/tests/setup_b
+Altstand -> v019_staging     2 Dateien -> Archiv/Reclaim/tests/v019_aug_staging
+Themeninsel Silver          12 Dateien -> test/silver_regime
+Infrastruktur -> test/       2 Dateien -> test
+DUBLETTE GELOESCHT         test/archiv/H2_PHASENREGIME_ADAPTER_SPEZ.md  (hash-identisch mit reports/h2_phasenregime/)
+Rest in test/archiv/: 1 - test.py
+Manifest Setup B: 33 Eintraege -> Archiv/Reclaim/tests/setup_b/MANIFEST.sha256
+bewegt: 49   geloescht: 1   Fehler: 0

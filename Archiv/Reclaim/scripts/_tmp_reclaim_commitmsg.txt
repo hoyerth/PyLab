@@ -1,0 +1,48 @@
+Reclaim (verworfene Strategie) nach Archiv/Reclaim konsolidiert
+
+Die Reclaim-Idee ist als Trading-Strategie nicht nutzbar (Entscheid des
+Anwenders am 2026-09-14 nach Sichtpruefung der Live-Charts). Alle
+zugehoerigen Artefakte werden in einem Archivordner zusammengefuehrt und
+erstmals vollstaendig versioniert.
+
+Zielstruktur:
+  Archiv/Reclaim/docs/       12 Dokumente
+  Archiv/Reclaim/scripts/     2 Skripte (reclaim_live_kernel.py + Archivierungswerkzeug)
+  Archiv/Reclaim/tests/    1096 Testartefakte (1:1-Herkunftsstruktur, inkl. v019_aug_staging/)
+  Archiv/Reclaim/artefakte/   4 Beweisstuecke der Baseline aug_p11 (v40r)
+
+  Gesamt: 1116 Dateien, 37.185.413 B (35,46 MB).
+
+Nachweise:
+  MANIFEST.sha256           SHA256, Groesse, neuer Pfad und Ursprungspfad je Datei
+  MANIFEST_ENTFERNT.sha256  337 entfernte Dateien (80 aeltere Sichtpruefungs-PNGs nach
+                            der Weisung "nur der jeweils letzte Lauf zu Aug und
+                            Mai-Juli"; 257 Dateien aus test/trash/)
+
+Herkunft der Uebernahmen:
+  test/archiv/reclaim/                  -> tests/                     (1118)
+  test/archiv/reclaim_*.py              -> tests/                       (21)
+  test/archiv/v019_aug_staging/         -> tests/v019_aug_staging/      (37)
+  docs/Archiv/{RECLAIM.md,reclaim_*.md},
+  docs/Archiv/reclaim/, docs/reclaim_*, docs/session_checkpoint_kanten_engine_v3_*
+                                        -> docs/                       (12)
+  scripts/reclaim_live_kernel.py        -> scripts/                      (1)
+  test/_tmp_archiviere_reclaim.py       -> scripts/                      (1)
+  docs/artefakte/aug_p11/               -> artefakte/                    (4)
+
+Nicht uebernommen (Thema H2-Phasenregime bzw. Handoff), verbleibt in test/archiv/:
+  H2_PHASENREGIME_ADAPTER_SPEZ.md, phasen_regime_adapter.py, SESSION_HANDOFF.md
+
+Attribut-Migration:
+  .gitattributes: docs/artefakte/aug_p11/** -text -> Archiv/Reclaim/artefakte/** -text
+  Alle vier Beweisstuecke behalten ihren Blob bit-identisch (Index == HEAD):
+  583007b7 (kanten_engine_replay_v40r.py.snapshot), e72cbd1f (harness_AUG_v40r.txt.snapshot),
+  42291091 (trades_AUG_mC_v40r.png), c464d556 (MANIFEST.md).
+
+.gitignore:
+  Eintrag docs/Archiv/reclaim_v04_mentor_vorlage.md entfaellt; die Datei liegt jetzt
+  unter Archiv/Reclaim/docs/ und wird bewusst versioniert.
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

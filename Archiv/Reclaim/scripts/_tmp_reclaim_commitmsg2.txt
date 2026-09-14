@@ -1,0 +1,47 @@
+test/ aufgeraeumt: Setup-B-Restbestand archiviert, Themeninseln versioniert
+
+Fortsetzung zu 9030e51. Der Monolith scripts/phasen_volumen_profil.py ist zu
+100 % Setup B (SETUP B: RECLAIM/FAKEOUT-SIGNALE, find_reclaim_signals,
+MIN_RECLAIM_*; kein Setup-A-/Setup-C-Anteil). Damit ist die Zuordnung des
+Restbestands in test/archiv/ eindeutig.
+
+Bewegt (49 Dateien):
+  test/archiv/ -> Archiv/Reclaim/tests/setup_b/            33  Setup-B-Diagnostik
+  test/archiv/ -> Archiv/Reclaim/tests/v019_aug_staging/    2  Altstaende
+                  (phasen_regime_adapter.py, SESSION_HANDOFF.md)
+  test/archiv/ -> test/silver_regime/                      12  9 Regime-/Phasen-
+                  analysen der S1/S2-Verlustserien + 3 silver_m15_ohlc_*.csv
+  test/archiv/ -> test/                                     2  tmp_db_inspektion.py,
+                  tmp_obd_sonde.py (DuckDB-Zeitbasis-Sonden)
+
+Geloescht (1 Datei):
+  test/archiv/H2_PHASENREGIME_ADAPTER_SPEZ.md - Dublette, hash-identisch
+  (d16950e8...) mit reports/h2_phasenregime/H2_PHASENREGIME_ADAPTER_SPEZ.md
+
+Abgrenzungsregel gegenueber Setup C: Setup B = Referenz auf den Monolithen
+phasen_volumen_profil bzw. reclaim_signals/MIN_RECLAIM/find_reclaim. Dateien
+ohne diese Referenz (Regime-/Phasenanalysen der S1/S2-Monatslaeufe) bleiben
+als eigenstaendige Themeninsel erhalten.
+
+In test/archiv/ verbleibt test.py (Altstand der zentralen Testdatei).
+
+.gitignore:
+  test/ -> test/*, damit Inhalte grundsaetzlich ignoriert bleiben, und
+  Negationen fuer die versionierten Themeninseln:
+    !test/archiv/  !test/silver_regime/  !test/setup_c/
+    !test/counter_engine/  !test/_ref_baseline_pre_ema/
+  Abgeleitete Grafiken bleiben ueber test/**/*.png ausgenommen (28 PNGs,
+  29.794.896 B in test/silver_regime/); die 4 *.log-Ausgaben der Monatslaeufe
+  bleiben ueber die Standardregel *.log ausgenommen.
+
+Versioniert: 187 Dateien (4.274.245 B), davon 36 in Archiv/Reclaim (33 Setup-B
++ MANIFEST + 2 v019-Altstaende).
+
+Manifeste:
+  Archiv/Reclaim/MANIFEST.sha256            jetzt 1151 Eintraege
+  Archiv/Reclaim/MANIFEST_ENTFERNT.sha256   jetzt 338 Eintraege
+  Archiv/Reclaim/tests/setup_b/MANIFEST.sha256  neu, 33 Eintraege
+
+Generated with [Continue](https://continue.dev)
+
+Co-Authored-By: Continue <noreply@continue.dev>

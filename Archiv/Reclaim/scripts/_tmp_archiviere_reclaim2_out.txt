@@ -1,0 +1,58 @@
+
+=== P0 Zielstruktur ===
+Ziel: Archiv/Reclaim  existiert=ja
+
+=== P1 test/archiv/reclaim -> Archiv/Reclaim/tests ===
+Dateien bewegt: 1118
+
+=== P2 test/archiv/reclaim_*.py -> Archiv/Reclaim/tests ===
+Dateien bewegt: 0
+
+=== P3 test/archiv/v019_aug_staging -> Archiv/Reclaim/tests/v019_aug_staging ===
+Reclaim-Anteil bewegt: 37 Dateien
+Fremdbeigaben zurueck nach test/archiv/: 3 (H2_PHASENREGIME_ADAPTER_SPEZ.md, phasen_regime_adapter.py, SESSION_HANDOFF.md)
+
+=== P4 Dokumente -> Archiv/Reclaim/docs ===
+Dateien bewegt: 0
+
+=== P5 scripts/reclaim_live_kernel.py -> Archiv/Reclaim/scripts ===
+Dateien bewegt: 1
+
+=== P6 docs/artefakte/aug_p11 -> Archiv/Reclaim/artefakte ===
+Dateien bewegt: 4
+
+=== P7 test/_tmp_archiviere_reclaim.py -> Archiv/Reclaim/scripts ===
+Dateien bewegt: 1
+
+=== P8 PNG-Aufraeumung (Regel: letzter Lauf AUG=v019, Mai-Juli=sichttest) ===
+PNG gesamt         : 96
+PNG behalten       : 16
+PNG entfernen      : 80
+  BEHALTEN    556,793 B  2758dd6212687423  Archiv/Reclaim/artefakte/trades_AUG_mC_v40r.png
+  BEHALTEN  2,159,332 B  0f8ac94b07cb1019  Archiv/Reclaim/tests/aug_sichttest_v019_01_gesamt.png
+  BEHALTEN    896,312 B  7189fa55f0c94085  Archiv/Reclaim/tests/aug_sichttest_v019_02_h1_box.png
+  BEHALTEN  1,797,691 B  881230f2cde0e92e  Archiv/Reclaim/tests/aug_sichttest_v019_03_h2_phasen.png
+  BEHALTEN  1,196,384 B  c0fb552afac5e032  Archiv/Reclaim/tests/aug_sichttest_v019_04_p9_regime.png
+  BEHALTEN  2,152,873 B  743f06cb88a72f7a  Archiv/Reclaim/tests/aug_sichttest_v019_05_kantenkarte.png
+  BEHALTEN    285,043 B  aa330c1e1d0c560d  Archiv/Reclaim/tests/ext_sichttest_v2_anker_A.png
+  BEHALTEN    294,098 B  0ee588d519ad9278  Archiv/Reclaim/tests/ext_sichttest_v2_anker_B.png
+  BEHALTEN    242,656 B  f1301da36f2005d4  Archiv/Reclaim/tests/ext_sichttest_v2_anker_C.png
+  BEHALTEN    291,182 B  9eae4f06c0de44f5  Archiv/Reclaim/tests/ext_sichttest_v2_anker_D.png
+  BEHALTEN    249,270 B  c0179fa918c5802f  Archiv/Reclaim/tests/ext_sichttest_v2_anker_E.png
+  BEHALTEN  1,536,212 B  f23a8c45d83c1fae  Archiv/Reclaim/tests/ext_sichttest_v2_kantenkarte.png
+  BEHALTEN  2,434,802 B  fec6ffb075e15754  Archiv/Reclaim/tests/ext_sichttest_v2_uebersicht.png
+  BEHALTEN  1,523,147 B  644a63c2c06c2873  Archiv/Reclaim/tests/render_jul_sichttest.png
+  BEHALTEN  1,282,766 B  244dbe6c7cf4a29a  Archiv/Reclaim/tests/render_jun_sichttest.png
+  BEHALTEN  1,394,697 B  2c132f8189c3b2e8  Archiv/Reclaim/tests/render_mai_sichttest.png
+
+=== P9 test/trash loeschen ===
+Dateien entfernt: 257 (7,454,374 B)
+
+=== P10 Manifeste ===
+MANIFEST.sha256          : 1114 Eintraege
+MANIFEST_ENTFERNT.sha256 : 337 Eintraege
+
+=== Bilanz ===
+bewegte Dateien  : 1197
+entfernte Dateien: 337
+Fehler           : 0

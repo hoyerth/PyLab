@@ -247,14 +247,14 @@ __marimo__/
 .marimo.toml
 
 # ==============================================================================
-# Versionierte Testinseln (2026-09-14)
+# Testverzeichnis (aktualisiert 2026-09-14)
 # ==============================================================================
-# Das Testverzeichnis ist grundsaetzlich ignoriert (siehe "test/*" oben). Die
-# thematisch geschlossenen Inseln werden als Arbeitsstand dauerhaft
-# nachvollziehbar gemacht. Abgeleitete Grafiken (*.png) bleiben bewusst
-# ausgenommen - sie sind aus den versionierten Skripten reproduzierbar.
-!test/setup_c/
-!test/_ref_baseline_pre_ema/
+# Das Testverzeichnis ist grundsaetzlich ignoriert (siehe "test/*" oben).
+# Die vormals hier ausgenommenen Setup-C-Inseln (test/setup_c/ und
+# test/_ref_baseline_pre_ema/) sind mit der Stilllegung von Setup C nach
+# "Archiv/Setup C/tests/" verschoben und dort versioniert. Abgeleitete
+# Grafiken (*.png) bleiben bewusst ausgenommen - sie sind aus den
+# versionierten Skripten reproduzierbar.
 test/**/*.png
 
 # Unversioniertes Archiv (Weisung 2026-09-14): lose Zeitbasis-/Zeitkanon- und

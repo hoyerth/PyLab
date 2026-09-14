@@ -1,0 +1,46 @@
+========================================================================================================================
+SETUP C - A/B: BASELINE vs. EMA-SLOPE-TRAILING (Variante B, §5.2)
+Fenster: AUG26_BRENT | Symbol: Brent M15 | Segmente: 9 | F3-Brueche: 8
+Trailing: EMA(20)-Slope | Modus STOP_AUF_EXTREMUM | mindest_gewinn_r=0.0 | Crash-Sicherung N=300 | Suppression=True
+========================================================================================================================
+
+L1 PIPELINE-ANKER (Populationen, SIGNAL & sl_usd>0):
+  F3-Brueche      : 8
+  CONFIRMED       : 8
+  RAW gesamt      : 9
+    davon offene Phase (brk_idx leer, live gehandelt): 1
+    Diagnose Vorlauf: A(<=1)=0, B(>1)=8 (NICHT Auswahl - der Handelspfad nutzt ALLE RAW)
+  RETEST          : 4
+
+========================================================================================================================
+BASELINE RAW (live-kausal, alle Trigger)  |  Horizont N = 48  (Close der Bar entry+48)
+    RAW (live)  (n=9, supprimiert=0, aktiv=9, zensiert=0, gewertet=9)
+  -------------------------------------------------------------------
+  sum r_f4=    -0.77  mean r_f4=  -0.09  median=  -1.00  WR=22.2%  PF=0.89
+  sum r_ref (0.45%-Basis) = 3.91
+  Exit: INITIAL_SL_INTRABAR=7 | ZEIT_EXIT_CLOSE=2 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 14 Bars
+
+========================================================================================================================
+BASELINE RAW (live-kausal, alle Trigger)  |  Horizont N = 96  (Close der Bar entry+96)
+    RAW (live)  (n=9, supprimiert=0, aktiv=9, zensiert=0, gewertet=9)
+  -------------------------------------------------------------------
+  sum r_f4=     3.18  mean r_f4=   0.35  median=  -1.00  WR=22.2%  PF=1.45
+  sum r_ref (0.45%-Basis) = 10.89
+  Exit: INITIAL_SL_INTRABAR=7 | ZEIT_EXIT_CLOSE=2 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 25 Bars
+
+========================================================================================================================
+EMA-SLOPE-TRAILING (Variante B) | Zeit-Exit entkoppelt (§5.1) | Crash-Sicherung N=300
+    TRAILING  (n=9, supprimiert=0, aktiv=9, zensiert=0, gewertet=9)
+  -----------------------------------------------------------------
+  sum r_f4=     5.00  mean r_f4=   0.56  median=  -1.00  WR=33.3%  PF=1.91
+  sum r_ref (0.45%-Basis) = 10.41
+  Exit: INITIAL_SL_INTRABAR=5 | ZEIT_EXIT_CLOSE=0 | TRAILING_SL_INTRABAR=4 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 17 Bars
+
+========================================================================================================================
+A/B-DELTA (r_f4, Trailing minus Baseline):
+  vs N=48:     +5.77R   (Trailing    +5.00R | Baseline    -0.77R)
+  vs N=96:     +1.82R   (Trailing    +5.00R | Baseline    +3.18R)
+========================================================================================================================

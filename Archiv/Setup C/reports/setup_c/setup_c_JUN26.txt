@@ -1,0 +1,56 @@
+========================================================================================================================
+SETUP C - PHASE-1-PRODUKTIONSKERN (setup_c_profil.py)
+Fenster: JUN26 | Symbol: SILVER M15 | Segmente: 23 | F3-Brueche: 22
+HANDELSPFAD: LIVE-KAUSAL - jeder Volumen-Durchstoss an der kausalen
+  Kante (F5-Volumen, Einstieg Open der Folge-Bar). KEIN Vorlauf-Filter;
+  offene Phasen werden NICHT zensiert (kein Lookahead).
+Kern: F4 intrabar (Puffer 0.15) + Zeit-Exit (48, 96) + Suppression=True | r_ref: 0.45%-SL
+========================================================================================================================
+
+L1 PIPELINE-ANKER (Populationen, SIGNAL & sl_usd>0):
+  F3-Brueche      : 22
+  CONFIRMED       : 22
+  RAW gesamt      : 17
+    davon offene Phase (brk_idx leer, live gehandelt): 0
+    Diagnose Vorlauf: A(<=1)=8, B(>1)=9 (NICHT Auswahl - der Handelspfad nutzt ALLE RAW)
+  RETEST          : 10
+
+========================================================================================================================
+L2 RAW (live-kausal, alle Trigger)  |  Horizont N = 48  (Close der Bar entry+48)
+    RAW (live)  (n=17, supprimiert=0, aktiv=17, zensiert=0, gewertet=17)
+  ----------------------------------------------------------------------
+  sum r_f4=     1.66  mean r_f4=   0.10  median=  -1.00  WR=29.4%  PF=1.14
+  sum r_ref (0.45%-Basis) = 7.62
+  Exit: INITIAL_SL_INTRABAR=12 | ZEIT_EXIT_CLOSE=5 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 21 Bars
+
+========================================================================================================================
+L2 RAW (live-kausal, alle Trigger)  |  Horizont N = 96  (Close der Bar entry+96)
+    RAW (live)  (n=17, supprimiert=0, aktiv=17, zensiert=0, gewertet=17)
+  ----------------------------------------------------------------------
+  sum r_f4=     8.00  mean r_f4=   0.47  median=  -1.00  WR=23.5%  PF=1.62
+  sum r_ref (0.45%-Basis) = 13.65
+  Exit: INITIAL_SL_INTRABAR=13 | ZEIT_EXIT_CLOSE=4 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 34 Bars
+
+========================================================================================================================
+L2-REFERENZ (suppression_phasenlokal=False - Schutzschicht aus):
+    N=48  (n=17, supprimiert=0, aktiv=17, zensiert=0, gewertet=17)
+  ----------------------------------------------------------------
+  sum r_f4=     1.66  mean r_f4=   0.10  median=  -1.00  WR=29.4%  PF=1.14
+  sum r_ref (0.45%-Basis) = 7.62
+  Exit: INITIAL_SL_INTRABAR=12 | ZEIT_EXIT_CLOSE=5 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 21 Bars
+    N=96  (n=17, supprimiert=0, aktiv=17, zensiert=0, gewertet=17)
+  ----------------------------------------------------------------
+  sum r_f4=     8.00  mean r_f4=   0.47  median=  -1.00  WR=23.5%  PF=1.62
+  sum r_ref (0.45%-Basis) = 13.65
+  Exit: INITIAL_SL_INTRABAR=13 | ZEIT_EXIT_CLOSE=4 | RECHTS_ZENSIERT=0
+  mittl. Haltedauer (gewertet) = 34 Bars
+
+========================================================================================================================
+HISTORISCHER ANKER (§2.14, Stand VOR der Kausalitaets-Bereinigung - NICHT mehr gueltig):
+  L1 damals: AUG 11/11/10(2/8)/3 | S1 138/138/105(38/67)/59 | S2 61/61/76(3/73)/18
+  aktuelles Fenster JUN26: 22/22/17(offen 0)/10 - der RAW-Bestand ist seit der
+  Bereinigung groesser (offene Phasen zaehlen mit) und daher nicht vergleichbar.
+========================================================================================================================

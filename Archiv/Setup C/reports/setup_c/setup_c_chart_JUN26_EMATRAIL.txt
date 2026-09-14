@@ -1,0 +1,36 @@
+============================================================================================================
+SETUP C EMA-SLOPE-TRAILING (Variante B) | Fenster JUN26 | N=300
+Zeitraum: 2026-06-01 .. 2026-07-01  (ende-exklusiv)
+Trades: n=17  gewertet=17  zensiert=0
+Summe R (r_f4): +1.91R   Summe r_ref: +8.30R
+Mean R: 0.11   Median R: -0.65
+Winrate: 29.4%  (5W/12L)
+Profit Faktor: 1.22
+Bester Trade: +5.25R   Schlechtester: -1.00R
+Max Gewinnserie: 2 (Summe +2.18R)
+Max Verlustserie: 5 (Summe -3.61R)
+Max Drawdown (R-Kurve): -3.61R
+Exit: INITIAL_SL_INTRABAR=5 | ZEIT_EXIT_CLOSE=0 | TRAILING_SL_INTRABAR=12
+mittl. Haltedauer: 16 Bars
+============================================================================================================
+
+ALLE TRADES (chronologisch je Horizont, inkl. Zeitstempel):
+  N | Phase | Dir  | Entry-TS          |   Entry | Exit-TS           |    Exit | Exit-Grund        |   HD |   r_f4 |  r_ref
+------------------------------------------------------------------------------------------------------------
+300 | P1   | down | 2026-06-01 14:30 |   75.523 | 2026-06-01 14:45 |   75.725 | TRAILING_SL_INTRABAR   |    1 |   -0.76 |   -0.59
+300 | P2   | down | 2026-06-02 04:00 |   74.814 | 2026-06-02 04:30 |   75.273 | TRAILING_SL_INTRABAR   |    2 |   -0.65 |   -1.36
+300 | P2   | up   | 2026-06-02 04:00 |   74.814 | 2026-06-02 04:45 |   74.980 | TRAILING_SL_INTRABAR   |    3 |   +0.34 |   +0.49
+300 | P7   | down | 2026-06-05 02:30 |   73.528 | 2026-06-05 10:15 |   72.670 | TRAILING_SL_INTRABAR   |   31 |   +1.85 |   +2.59
+300 | P8   | down | 2026-06-05 14:45 |   72.600 | 2026-06-08 02:00 |   68.213 | TRAILING_SL_INTRABAR   |   41 |   +5.25 |  +13.43
+300 | P8   | up   | 2026-06-05 14:45 |   72.600 | 2026-06-05 14:45 |   72.252 | INITIAL_SL_INTRABAR    |    0 |   -1.00 |   -1.07
+300 | P9   | down | 2026-06-08 07:45 |   66.391 | 2026-06-08 13:00 |   67.415 | TRAILING_SL_INTRABAR   |   21 |   -0.77 |   -3.43
+300 | P10  | up   | 2026-06-09 16:00 |   67.988 | 2026-06-09 16:00 |   67.741 | INITIAL_SL_INTRABAR    |    0 |   -1.00 |   -0.81
+300 | P10  | down | 2026-06-09 16:45 |   65.443 | 2026-06-10 07:45 |   64.327 | TRAILING_SL_INTRABAR   |   56 |   +0.64 |   +3.79
+300 | P13  | down | 2026-06-11 14:30 |   62.934 | 2026-06-11 15:45 |   63.846 | TRAILING_SL_INTRABAR   |    5 |   -0.86 |   -3.22
+300 | P15  | up   | 2026-06-15 14:30 |   70.808 | 2026-06-15 16:45 |   70.745 | TRAILING_SL_INTRABAR   |    9 |   -0.18 |   -0.20
+300 | P15  | down | 2026-06-18 16:45 |   66.213 | 2026-06-19 09:00 |   64.432 | TRAILING_SL_INTRABAR   |   61 |   +2.68 |   +5.98
+300 | P19  | down | 2026-06-23 15:15 |   62.014 | 2026-06-23 15:30 |   62.348 | INITIAL_SL_INTRABAR    |    1 |   -1.00 |   -1.20
+300 | P20  | down | 2026-06-26 04:45 |   56.049 | 2026-06-26 08:15 |   56.941 | INITIAL_SL_INTRABAR    |   14 |   -1.00 |   -3.54
+300 | P21  | up   | 2026-06-26 16:15 |   59.210 | 2026-06-26 20:00 |   58.966 | TRAILING_SL_INTRABAR   |   15 |   -0.28 |   -0.92
+300 | P22  | down | 2026-06-29 16:30 |   58.074 | 2026-06-29 18:45 |   58.164 | TRAILING_SL_INTRABAR   |    9 |   -0.33 |   -0.34
+300 | P22  | up   | 2026-06-30 08:45 |   58.955 | 2026-06-30 10:15 |   58.608 | INITIAL_SL_INTRABAR    |    6 |   -1.00 |   -1.31

@@ -14,13 +14,33 @@ Zwei Ausgaben
                  POC-Linie gestrichelt in der Warnfarbe gezeichnet.
                  Zusaetzlich werden die POCs der uebrigen Segmente gestrichelt
                  dargestellt - die Segment-Erkennung bleibt damit sichtbar.
+                 Der Hauptband-Rechteckrahmen ist dabei nur noch KONTUR: die
+                 Aussage tragen die getrennten Bereiche je Segment (siehe
+                 unten), sonst wuerde eine durchgehende Flaeche die Trennung
+                 wieder zudecken.
 2) PROFIL-GRID   je Fenster ein horizontales Volumenprofil, farblich nach
-                 Segment (Berg) getrennt, mit Hauptband, POC, POC-Band und
-                 Zweitgipfel-Niveau. Das ist die Sichtpruefung der Erkennung.
+                 Segment (Berg) getrennt, mit Hauptband, dem eigenen Bereich je
+                 Segment, POC, POC-Band und Zweitgipfel-Niveau. Das ist die
+                 Sichtpruefung der Erkennung.
 
-Das HAUPTBAND waehlt ``ChartStil.modus`` (``zone`` = Zonen-Value-Area ab POC,
-``balance`` = Huelle der Segment-Value-Areas = Tages-Balancen). Beide Baender
-werden vom Kern immer mitgerechnet - hier wird nur ausgewaehlt und beschriftet.
+Bereiche statt eines Bandes
+---------------------------
+Ein durchgehendes Band (die Huelle ueber ALLE Segmente) ist meist
+breiter als der Move, den es beschreiben soll, und verdeckt die Trennung der
+Volumen-Nester. Deshalb zeichnet ``ChartStil.bereiche_zeichnen`` (Default) je
+Segment dessen EIGENEN Bereich ``[VAL .. VAH]`` als eigene Flaeche in der
+Segmentfarbe und vermasst jede Luecke zwischen zwei benachbarten Bereichen mit
+ihrer Breite in ATR (``L <ATR>``). Die Luecke bleibt dabei LEER - dort laufen
+die schnellen Moves, und das ist die Aussage.
+
+Das HAUPTBAND ist die Zonen-Value-Area ab POC (``ChartStil.modus`` = ``zone``,
+dem einzigen Modus); die Huelle der Segment-Value-Areas wird im Kern nur noch
+als Kennzahl gefuehrt (``huellen_abdeckung``) und nicht mehr gezeichnet.
+
+Wie weit ein Bereich reicht, entscheidet ``va_pct`` im Kern (Anteil des
+BERGVOLUMENS). Das Chart rechnet das nicht nach; es traegt die Zahl ueber
+``ChartStil.bereich_va_pct`` in Titel, Statistikblock und Legende, damit eine
+Ausgabe ohne Blick in den Report lesbar bleibt (Default 0,7 = 70 %).
 
 Zeitbasis (docs/ZEITBASIS_KANON.md)
 -----------------------------------
@@ -53,23 +73,26 @@ from scripts.volume_profile_core import (  # noqa: E402
     Band,
     FensterProfil,
     band_von,
+    zerlege_bereiche,
 )
+from scripts.volume_profile_nests import NestInstanz  # noqa: E402
 
-# Kurzname und Ueberschrift je Auswertungsmodus (es gibt nur eine Engine; der
-# Modus waehlt nur das Hauptband - siehe volume_profile_core.MODI).
+# Kurzname und Ueberschrift des Hauptbandes (es gibt nur eine Engine und nur
+# EIN Hauptband - die Zonen-Value-Area; siehe volume_profile_core.MODI).
 _KURZ_MODUS: Dict[str, str] = {
     "zone": "Zonen-Value-Area (94 %)",
-    "balance": "Balance-Band (Huelle der Segment-VAs, nicht zusammenhaengend)",
 }
-_TITEL_MODUS: Dict[str, str] = {"zone": "ZONEN", "balance": "BALANCE"}
+_TITEL_MODUS: Dict[str, str] = {"zone": "ZONEN"}
 
 # Farben (bewusst identisch zur archivierten Referenz
 # ``scripts/archiv/volume_zone_profil.py`` gehalten, damit Sichtpruefungen der
 # Tages-Balancen und der Zonen-VA dieselbe Farbsprache sprechen)
-_COL_ZONE: str = "#1565c0"    # Hauptband (Zonen-VA bzw. Balance)
+_COL_ZONE: str = "#1565c0"    # Hauptband (Zonen-VA)
 _COL_POC: str = "#0d47a1"     # POC eindeutig
 _COL_POC_U: str = "#c62828"   # POC uneindeutig (+ Konsensband)
 _COL_NEST: str = "#e65100"    # POC weiterer Segmente
+_COL_NEST_OBJ: str = "#00695c"  # NEST ueber Fenstergrenzen (eigenes Objekt)
+_COL_NEST_RAND: str = "#8e24aa"  # Nest endet am Zeitraumrand (angeschnitten)
 _COL_PREIS: str = "#bbbbbb"   # Preis (high/low)
 _COL_LOB2: str = "#2e7d32"    # Zweitgipfel-Niveau
 _COL_OHNE_NEST: str = "#dcdcdc"
@@ -104,8 +127,25 @@ class ChartStil:
             die Beschriftung ausgeduennt, nie der Bezug zum Tageswechsel
             aufgegeben. Alle Tagesgrenzen erhalten zusaetzlich eine duenne
             Hilfslinie, damit der Tageswechsel im Preisverlauf sichtbar ist.
-        modus: Hauptband der Zeichnung (``zone`` oder ``balance``). Beide
-            Baender liegen im Vertrag; hier wird nur ausgewaehlt.
+        bereiche_zeichnen: True (Default) = jedes Segment bekommt seinen
+            EIGENEN Bereich ``[VAL .. VAH]`` als eigene Flaeche in der
+            Segmentfarbe; das Hauptband wird dann nur noch als Kontur gefuehrt
+            und die Luecken zwischen zwei Bereichen werden mit ihrer Breite in
+            ATR beschriftet. Damit ist sichtbar, was sonst im durchgehenden
+            Band verschwindet: getrennte Volumen-Nester und die schnellen Moves
+            dazwischen. False = alte Ansicht (Hauptband als Flaeche, je
+            Segment nur die POC-Linien).
+        parameter_txt: Zusatz fuer Titel/Achsenkopf. Traegt die vom Default
+            abweichenden profilbildenden Parameter (z. B. ``va_pct=0.93``),
+            damit eine Ausgabe ohne Blick in die Datei zuordenbar ist.
+        bereich_va_pct: Value-Area-Anteil des Bergvolumens, der die Weite der
+            Bereiche je Segment bestimmt (Informationswert fuer die Legende -
+            im Chart wird nichts gerechnet, die Bereiche kommen aus dem Kern).
+            Damit ist auch ohne Parameterzusatz lesbar, wie breit ein Bereich
+            angelegt ist (Default 0,7 = 70 % des Bergvolumens).
+        modus: Hauptband der Zeichnung (``zone``, einziges Hauptband). Der
+            Namen wird gegen den Kern geprueft; ein unbekannter Wert scheitert
+            dort fail-loud.
     """
 
     dpi: int = 300
@@ -117,7 +157,19 @@ class ChartStil:
     ncols_grid: int = 4
     max_label_zeichen: int = 24
     max_xticks: int = 14
+    bereiche_zeichnen: bool = True
+    bereich_va_pct: float = 0.7
+    parameter_txt: str = ""
     modus: str = "zone"
+
+    @property
+    def bereich_va_txt(self) -> str:
+        """Kurztext der Bereichsweite fuer Legende und Titel (z. B. ``VA 70 %``).
+
+        Returns:
+            Text mit dem Value-Area-Anteil in Prozent.
+        """
+        return f"VA {self.bereich_va_pct * 100:.0f} %"
 
 
 def _band(p: FensterProfil, stil: ChartStil) -> Band:
@@ -155,13 +207,27 @@ def _stamm(stil: ChartStil) -> str:
         stil: Darstellungsparameter.
 
     Returns:
-        Titeltext aus Symbol, Timeframe und Zeitraum.
+        Titeltext aus Symbol, Timeframe, Zeitraum und Parameterzusatz.
     """
     teile = [t for t in (stil.titel_symbol, stil.titel_timeframe) if t]
     kopf = " ".join(teile)
     if stil.zeitraum:
         kopf = f"{kopf} | {stil.zeitraum}" if kopf else stil.zeitraum
+    if stil.parameter_txt:
+        kopf = f"{kopf} | {stil.parameter_txt}" if kopf else stil.parameter_txt
     return kopf
+
+
+def _bereich_farben(n: int) -> List[str]:
+    """Liefert je Bereich (Rang) eine feste Farbe aus der Segment-Palette.
+
+    Args:
+        n: Anzahl der Bereiche.
+
+    Returns:
+        Farbliste in Rangfolge (0 = groesstes Segment).
+    """
+    return [_PALETTE_NEST[i % len(_PALETTE_NEST)] for i in range(max(0, n))]
 
 
 def _tagesgrenzen_indizes(df: pd.DataFrame, max_ticks: int = 14) -> np.ndarray:
@@ -230,8 +296,9 @@ def zeichne_zonen_chart(
     stil: ChartStil,
     out_png: Path,
     nur_gueltige: bool = True,
+    nester: Optional[Sequence[NestInstanz]] = None,
 ) -> None:
-    """Zeichnet Preis und die Zonen-Value-Area je Fenster.
+    """Zeichnet Preis, die getrennten Bereiche je Segment und das Hauptband.
 
     Je Fenster wird das Rechteck ``[VAL .. VAH]`` der 94 %-Zonen-Klammer und die
     POC-Linie gezeichnet; die POCs der uebrigen Segmente gestrichelt. Bei
@@ -239,12 +306,28 @@ def zeichne_zonen_chart(
     Konsens-Parametersaetze schraffiert - die Unsicherheit ist sichtbar statt
     verborgen.
 
+    Mit ``stil.bereiche_zeichnen`` (Default) bekommt JEDES Segment seinen
+    EIGENEN Bereich ``[VAL .. VAH]`` als eigene Flaeche in der Segmentfarbe,
+    das Hauptband wird nur noch als Kontur gefuehrt und jede Luecke zwischen
+    zwei benachbarten Bereichen wird mit ihrer Breite in ATR beschriftet. Damit
+    ist die Trennung der Volumen-Nester sichtbar - und der schnelle Move
+    dazwischen bleibt als leerer Streifen stehen, statt im durchgehenden Band
+    unterzugehen.
+
+    Ueber die Fenster gelegt werden die NESTER (``nester``): sie sind die
+    zusammenhaengenden Laeufe eines Knotens ueber die Fenstergrenze hinweg und
+    tragen deshalb ein durchgehendes Band ``[VAL .. VAH]`` mit ihrer eigenen
+    POC-Linie. Ein Nest am Zeitraumrand (``angeschnitten``) wird mit einem
+    violetten Randmarker gekennzeichnet - es kann weiterlaufen.
+
     Args:
         df: Bars des Gesamtfensters (Spalten ``idx/high/low/ts``).
         profile: Fensterprofile (Vertrag ``FensterProfil``).
         stil: Darstellungsparameter.
         out_png: Zielpfad der PNG-Datei.
         nur_gueltige: True = nur Fenster mit Profil zeichnen.
+        nester: Nester ueber Fenstergrenzen (nur zaehlende werden gezeichnet);
+            None = ohne Nest-Ebene.
     """
     zeigen: List[FensterProfil] = [
         p for p in profile if (p.gueltig or not nur_gueltige)
@@ -261,28 +344,40 @@ def zeichne_zonen_chart(
 
     n_nest: int = 0
     n_unsicher: int = 0
+    n_bereiche: int = 0
+    n_luecken: int = 0
+    n_nestobjekte: int = 0
+    n_nest_rand: int = 0
+    nest_breiten_atr: List[float] = []
     breiten_atr: List[float] = []
+    bereich_breiten_atr: List[float] = []
+    anteile_aussen: List[float] = []
     for p in zeigen:
         seg = p.segmentierung
         band = _band(p, stil)
         if seg is None or not (np.isfinite(band.val) and np.isfinite(band.vah)):
             continue
         x0, x1 = int(p.bar_start), int(p.bar_ende)
-        ax.add_patch(
-            Rectangle(
-                (x0, band.val), max(1, x1 - x0), max(band.vah - band.val, 1e-9),
-                facecolor=_COL_ZONE, edgecolor=_COL_ZONE,
-                alpha=0.12, lw=0.8, zorder=2,
+        if stil.bereiche_zeichnen:
+            # Hauptband nur als KONTUR: die Aussage tragen die Bereiche. Die
+            # Kontur zeigt weiter, wo die Zonen-Klammer bzw. die Segment-Huelle
+            # liegt - als Flaeche wuerde sie die Trennung wieder zudecken.
+            ax.add_patch(
+                Rectangle(
+                    (x0, band.val), max(1, x1 - x0),
+                    max(band.vah - band.val, 1e-9),
+                    facecolor="none", edgecolor=_COL_ZONE, ls=(0, (5, 3)),
+                    alpha=0.85, lw=0.9, zorder=2,
+                )
             )
-        )
-        # Kleintext an der Bandkante: im Modus balance ist die Abdeckung eine
-        # Huellen-Abdeckung aus dem Rohprofil (NICHT zusammenhaengend - die
-        # Luecken zwischen den Berg-Value-Areas tragen kein Volumen).
-        if band.abdeckung_ist_huelle and np.isfinite(band.abdeckung):
-            ax.annotate(
-                f"Huelle {band.abdeckung:.3f}*",
-                (x1, band.vah), xytext=(3, 2), textcoords="offset points",
-                fontsize=4.5, color=_COL_ZONE, va="bottom", ha="left", zorder=7,
+        else:
+            ax.add_patch(
+                Rectangle(
+                    (x0, band.val), max(1, x1 - x0),
+                    max(band.vah - band.val, 1e-9),
+                    facecolor=_COL_ZONE, edgecolor=_COL_ZONE,
+                    alpha=0.12, lw=0.8, zorder=2,
+                )
             )
         if np.isfinite(p.atr) and p.atr > 0:
             breiten_atr.append(band.breite / p.atr)
@@ -318,6 +413,93 @@ def zeichne_zonen_chart(
                     ls=(0, (4, 3)), zorder=4)
             n_nest += 1
 
+        # --- getrennte Bereiche je Segment + Luecken dazwischen -------------
+        if stil.bereiche_zeichnen:
+            sep = zerlege_bereiche(seg, p.atr)
+            farben = _bereich_farben(sep.n_bereiche)
+            for b in sep.bereiche:
+                farbe = farben[b.rank]
+                # Zwei Patches je Bereich: erst die Fuellung (leicht), dann die
+                # Kante in voller Deckkraft - die Trennung soll scharf lesbar
+                # sein, nicht in der Fuellung untergehen.
+                ax.add_patch(
+                    Rectangle(
+                        (x0, b.val), max(1, x1 - x0), max(b.breite, 1e-9),
+                        facecolor=farbe, edgecolor="none", alpha=0.20, zorder=3,
+                    )
+                )
+                ax.add_patch(
+                    Rectangle(
+                        (x0, b.val), max(1, x1 - x0), max(b.breite, 1e-9),
+                        facecolor="none", edgecolor=farbe, lw=1.0, zorder=4,
+                    )
+                )
+            n_bereiche += sep.n_bereiche
+            n_luecken += sep.n_luecken
+            bereich_breiten_atr.extend(
+                b.breite_atr for b in sep.bereiche if np.isfinite(b.breite_atr)
+            )
+            if np.isfinite(sep.anteil_ausserhalb):
+                anteile_aussen.append(sep.anteil_ausserhalb)
+            # Die Luecke bleibt LEER (kein Volumen) und wird nur vermasst: sie
+            # ist der schnelle Move zwischen zwei Nestern.
+            for luecke in sep.luecken:
+                if luecke.breite <= 0.0 or not np.isfinite(luecke.breite_atr):
+                    continue
+                xm = x0 + 0.35 * max(1, x1 - x0)
+                ax.plot(
+                    [xm, xm], [luecke.unten, luecke.oben], color="#616161",
+                    lw=0.6, ls=(0, (1, 2)), zorder=5,
+                )
+                ax.annotate(
+                    f"L {luecke.breite_atr:.2f}", (xm, (luecke.unten + luecke.oben) / 2),
+                    xytext=(-1.5, 0), textcoords="offset points", fontsize=4.0,
+                    color="#616161", rotation=90, va="center", ha="right",
+                    zorder=6,
+                )
+
+    # --- Nester ueber Fenstergrenzen (die eigentlichen Knoten) --------------
+    # Sie liegen UEBER den Fenstern: EIN Band VAL..VAH mit EINER POC-Linie ueber
+    # die ganze Lebensdauer des Laufs - genau das, was die Fenster-Ebene an der
+    # Grenze zerschneidet. Nur zaehlende Nester (nicht flimmern/angeschnitten)
+    # werden gezeichnet; ein Randnest bekommt nur seinen Marker.
+    nest_gezeichnet: List[NestInstanz] = []
+    for i in (nester or ()):
+        if not np.isfinite(i.poc) or not np.isfinite(i.val) or not np.isfinite(i.vah):
+            continue
+        a, b = int(i.bar_start), int(i.bar_ende)
+        if i.angeschnitten:
+            n_nest_rand += 1
+            ax.plot(
+                [a, a], [i.val, i.vah], color=_COL_NEST_RAND, lw=1.0,
+                ls=(0, (1, 1)), zorder=8,
+            )
+            ax.annotate(
+                f"N{i.id} Rand", (a, i.vah), xytext=(2, 3),
+                textcoords="offset points", fontsize=4.5,
+                color=_COL_NEST_RAND, va="bottom", ha="left", zorder=9,
+            )
+        if not i.gueltig:
+            continue
+        nest_gezeichnet.append(i)
+        n_nestobjekte += 1
+        if np.isfinite(i.breite_atr):
+            nest_breiten_atr.append(float(i.breite_atr))
+        ax.add_patch(
+            Rectangle(
+                (a, i.val), max(1, b - a), max(i.vah - i.val, 1e-9),
+                facecolor=_COL_NEST_OBJ, edgecolor=_COL_NEST_OBJ,
+                alpha=0.10, lw=0.9, zorder=3,
+            )
+        )
+        ax.plot([a, b], [i.poc, i.poc], color=_COL_NEST_OBJ, lw=1.8, zorder=7)
+        ax.annotate(
+            f"N{i.id} POC {i.poc:.3f}"
+            f"{'' if i.n_fenster < 2 else f' ({i.n_fenster} Fenster)'}",
+            (a, i.poc), xytext=(2, -6), textcoords="offset points",
+            fontsize=5.0, color=_COL_NEST_OBJ, va="top", ha="left", zorder=9,
+        )
+
     # X-Achse: Ticks GENAU auf den BKZ-Tagesgrenzen (00:00 je Tag), dynamisch
     # aus der Zeitachse abgeleitet. ALLE Tagesgrenzen bekommen eine duenne
     # Hilfslinie (der Tageswechsel ist damit im Preisverlauf sichtbar), die
@@ -336,10 +518,18 @@ def zeichne_zonen_chart(
     ax.set_ylabel(f"Preis ({stil.titel_symbol or 'Preis'})")
     ax.grid(alpha=0.3)
     art = zeigen[0].window_kind
+    # Die Bereichsweite steht im Titel, nicht nur in der Legende: eine Ausgabe
+    # ohne Parameterzusatz (Default-Lauf) muss trotzdem erkennen lassen, wie
+    # breit die Bereiche angelegt sind (va_pct der eigenen Segment-VA).
+    bereich_txt = f" | Bereiche: je Segment eigene {stil.bereich_va_txt}" if stil.bereiche_zeichnen else ""
+    nest_txt = (
+        f" | Nester: {n_nestobjekte}" if nest_gezeichnet else ""
+    )
     ax.set_title(
         f"VOLUMENPROFILE - {_TITEL_MODUS.get(stil.modus, stil.modus.upper())} | "
         f"{_stamm(stil)} | Fensterart={art} | "
         f"Bars {int(zeigen[0].bar_start)}..{int(zeigen[-1].bar_ende)}"
+        f"{bereich_txt}{nest_txt}"
     )
     stat: List[str] = [
         f"Fenster: {len(zeigen)} | mit Profil {sum(1 for p in zeigen if p.gueltig)}",
@@ -351,14 +541,29 @@ def zeichne_zonen_chart(
         stat.append(
             f"Bandbreite ({stil.modus}): median {np.median(breiten_atr):.2f} ATR"
         )
+    if stil.bereiche_zeichnen and bereich_breiten_atr:
+        stat.append(
+            f"Bereiche ({stil.bereich_va_txt} je Segment): {n_bereiche} "
+            f"(median {np.median(bereich_breiten_atr):.2f} ATR breit) | "
+            f"Luecken: {n_luecken}"
+        )
+        if anteile_aussen:
+            stat.append(
+                f"Volumen ausserhalb der Bereiche: median "
+                f"{np.median(anteile_aussen):.3f} (Luecken + Bergflanken)"
+            )
     st = [p.konsens.streu_atr for p in zeigen if np.isfinite(p.konsens.streu_atr)]
     if st:
         stat.append(f"POC-Streuung: median {np.median(st):.2f} ATR")
-    if stil.modus == "balance":
+    if nest_gezeichnet:
         stat.append(
-            "Abdeckung: Huellen-Abdeckung (Rohprofil, nicht zusammenhaengend) - "
-            "Kleintext *"
+            f"Nester (ueber Fenstergrenzen): {n_nestobjekte} gezeichnet | "
+            f"Breite median {np.median(nest_breiten_atr):.2f} ATR"
+            if nest_breiten_atr
+            else f"Nester (ueber Fenstergrenzen): {n_nestobjekte} gezeichnet"
         )
+    if n_nest_rand:
+        stat.append(f"davon am Zeitraumrand (angeschnitten): {n_nest_rand}")
     ax.text(
         0.5, 0.99, "\n".join(stat), transform=ax.transAxes, fontsize=7.5,
         va="top", ha="center", family="monospace",
@@ -367,8 +572,12 @@ def zeichne_zonen_chart(
         zorder=20,
     )
     handles: List[Line2D] = [
-        Line2D([0], [0], color=_COL_ZONE, lw=6, alpha=0.3,
-               label=f"{_KURZ_MODUS[stil.modus]} (VAL..VAH)"),
+        Line2D(
+            [0], [0], color=_COL_ZONE, lw=6,
+            alpha=(0.0 if stil.bereiche_zeichnen else 0.3),
+            label=f"{_KURZ_MODUS[stil.modus]} "
+                  f"({'Kontur' if stil.bereiche_zeichnen else 'VAL..VAH'})",
+        ),
         Line2D([0], [0], color=_COL_POC, lw=1.4, label="POC (groesstes Segment)"),
         Line2D([0], [0], color=_COL_POC_U, lw=1.2, ls=(0, (2, 2)),
                label="POC unsicher + Band der Konsens-Parametersaetze"),
@@ -376,11 +585,29 @@ def zeichne_zonen_chart(
                label="POC weiterer Segmente"),
         Line2D([0], [0], color=_COL_PREIS, lw=1.0, label="Preis (high/low)"),
     ]
-    if stil.modus == "balance":
+    if stil.bereiche_zeichnen:
+        for rang, farbe in enumerate(_bereich_farben(3)):
+            handles.insert(
+                1 + rang,
+                Line2D([0], [0], color=farbe, lw=6, alpha=0.45,
+                       label=f"Bereich Segment {rang} "
+                             f"(eigene {stil.bereich_va_txt}, VAL..VAH)"),
+            )
         handles.append(
-            Line2D([0], [0], color=_COL_ZONE, lw=0.0,
-                   label="* Abdeckung je Fenster aus dem Rohprofil "
-                         "(Luecken zwischen den Berg-VAs = kein Volumen)")
+            Line2D([0], [0], color="#616161", lw=0.6, ls=(0, (1, 2)),
+                   label="Luecke 'L <ATR>' = schneller Move zwischen zwei "
+                         "Bereichen (kein Volumen)")
+        )
+    if nest_gezeichnet:
+        handles.append(
+            Line2D([0], [0], color=_COL_NEST_OBJ, lw=1.8,
+                   label="Nest (zusammenhaengender Lauf ueber die "
+                         "Fenstergrenze: EIN POC, EIN VAL..VAH)")
+        )
+    if n_nest_rand:
+        handles.append(
+            Line2D([0], [0], color=_COL_NEST_RAND, lw=1.0, ls=(0, (1, 1)),
+                   label="Nest am Zeitraumrand 'Nm Rand' (angeschnitten)")
         )
     ax.legend(handles=handles, loc="upper left", fontsize=7.5, framealpha=0.9)
     fig.tight_layout()
@@ -400,6 +627,7 @@ def _zeichne_grid_seite(
     seite: int = 1,
     n_seiten: int = 1,
     gesamt: Optional[int] = None,
+    nester: Optional[Sequence[NestInstanz]] = None,
 ) -> None:
     """Zeichnet EINE Seite des Profil-Grids in eine PNG-Datei.
 
@@ -410,6 +638,8 @@ def _zeichne_grid_seite(
         seite: Laufende Seitennummer (1-basiert, nur fuer den Titel).
         n_seiten: Gesamtzahl der Seiten (nur fuer den Titel).
         gesamt: Gesamtzahl gezeichneter Fenster (nur fuer den Titel).
+        nester: Nester ueber Fenstergrenzen; je Panel werden die Level der
+            Nester ueberlagert, die dieses Fenster beruehren (None = ohne).
     """
     if not zeigen:
         return
@@ -439,6 +669,16 @@ def _zeichne_grid_seite(
         ax.barh(centers, vol / vmax, height=bw * 0.86, color=list(farben), lw=0.0)
 
         ax.axhspan(band.val, band.vah, color=_COL_ZONE, alpha=0.10, zorder=0)
+        # Getrennter Bereich je Segment: die Value Area des jeweiligen Berges
+        # als eigene Flaeche. So ist im Panel sichtbar, wie eng der Bereich um
+        # den Gipfel liegt und wo die Luecke zum Nachbarn beginnt.
+        if stil.bereiche_zeichnen:
+            for i, nest in enumerate(seg.nester):
+                ax.axhspan(
+                    nest.val, nest.vah,
+                    color=_PALETTE_NEST[i % len(_PALETTE_NEST)],
+                    alpha=0.16, zorder=0,
+                )
         if (
             np.isfinite(p.konsens.poc_min)
             and np.isfinite(p.konsens.poc_max)
@@ -452,6 +692,26 @@ def _zeichne_grid_seite(
         )
         for nest in seg.nester[1:]:
             ax.axhline(nest.poc, color=_COL_NEST, lw=0.7, ls=(0, (4, 3)), zorder=4)
+        # Nester ueber Fenstergrenzen: die Level des Laufs, der DIESES Fenster
+        # beruehrt - sie liegen ueber dem Fensterprofil und zeigen, dass der
+        # Knoten nicht am Tageswechsel endet.
+        beruehrte: List[NestInstanz] = [
+            i for i in (nester or ())
+            if i.gueltig and i.bar_ende >= int(p.bar_start)
+            and i.bar_start <= int(p.bar_ende)
+        ]
+        for i in beruehrte:
+            ax.axhspan(i.val, i.vah, color=_COL_NEST_OBJ, alpha=0.12, zorder=0)
+            ax.axhline(i.poc, color=_COL_NEST_OBJ, lw=1.0, zorder=6)
+        if beruehrte:
+            ax.annotate(
+                "Nest " + ", ".join(
+                    f"N{i.id} {i.poc:.3f}" for i in beruehrte[:3]
+                )
+                + ("" if len(beruehrte) <= 3 else f" +{len(beruehrte) - 3}"),
+                (0.02, 0.02), xycoords="axes fraction", fontsize=4.5,
+                color=_COL_NEST_OBJ, va="bottom", ha="left", zorder=9,
+            )
         if seg.lobe2_bin >= 0:
             lvl = float(
                 (prof.edges[seg.lobe2_bin] + prof.edges[seg.lobe2_bin + 1]) / 2
@@ -463,15 +723,19 @@ def _zeichne_grid_seite(
         ax.tick_params(labelsize=6.0)
         ax.grid(alpha=0.25, axis="x")
         band_atr = band.breite / p.atr if p.atr > 0 else float("nan")
-        # Kleintext am Panel: im Modus balance ist die Abdeckung eine
-        # Huellen-Abdeckung aus dem Rohprofil (nicht zusammenhaengend).
         band_txt = f"Band ({stil.modus})"
-        if band.abdeckung_ist_huelle and np.isfinite(band.abdeckung):
-            band_txt = f"Band ({stil.modus}*) Huelle {band.abdeckung:.3f}"
+        # Anteil des Profilvolumens ausserhalb aller Bereiche: die Strecke
+        # zwischen den Nestern (schnelle Moves) samt Bergflanken.
+        sep_txt = ""
+        if stil.bereiche_zeichnen:
+            sep = zerlege_bereiche(seg, p.atr)
+            if np.isfinite(sep.anteil_ausserhalb):
+                sep_txt = f"ausserh. {sep.anteil_ausserhalb:.2f} | "
         ax.set_title(
             f"{p.label} | POC {band.poc:.3f}"
             f"{'' if p.konsens.eindeutig else '  SPANNE ' + _fmt(p.konsens.streu_atr, '.2f') + ' ATR'}\n"
             f"lobe2 {_fmt(seg.lobe2_ratio, '.2f')} | Segmente {seg.n_segmente} | "
+            f"{sep_txt}"
             f"{band_txt} "
             f"{'-' if not np.isfinite(band_atr) else f'{band_atr:.1f}'} ATR | "
             f"Bars {p.bar_start}..{p.bar_ende}",
@@ -486,16 +750,10 @@ def _zeichne_grid_seite(
     n_unsicher = sum(1 for p in zeigen if not p.konsens.eindeutig)
     seiten_txt = "" if n_seiten <= 1 else f" | Seite {seite}/{n_seiten}"
     gesamt_txt = "" if gesamt is None or n_seiten <= 1 else f" (gesamt {gesamt})"
-    huelle_txt = (
-        " | * Abdeckung = Huellen-Abdeckung aus dem Rohprofil "
-        "(nicht zusammenhaengend)"
-        if stil.modus == "balance"
-        else ""
-    )
     fig.suptitle(
         f"FENSTERPROFILE (rel. Volumen, Maximum = 1) | {_stamm(stil)} | "
         f"Fensterart={zeigen[0].window_kind} | Fenster {n}{gesamt_txt}"
-        f"{seiten_txt} | POC unsicher {n_unsicher}{huelle_txt}",
+        f"{seiten_txt} | POC unsicher {n_unsicher}",
         fontsize=9.5, y=0.999,
     )
     fig.legend(
@@ -504,6 +762,8 @@ def _zeichne_grid_seite(
             Line2D([0], [0], color=_PALETTE_NEST[1], lw=6, label="Segment 1"),
             Line2D([0], [0], color=_PALETTE_NEST[2], lw=6, label="Segment 2"),
             Line2D([0], [0], color=_COL_OHNE_NEST, lw=6, label="keinem Segment zugeordnet"),
+            Line2D([0], [0], color=_PALETTE_NEST[0], lw=6, alpha=0.16,
+                   label=f"Bereich je Segment (eigene {stil.bereich_va_txt}, VAL..VAH)"),
             Line2D([0], [0], color=_COL_ZONE, lw=6, alpha=0.3,
                    label=f"{_KURZ_MODUS[stil.modus]} (Hauptband)"),
             Line2D([0], [0], color=_COL_POC, lw=1.3, label="POC"),
@@ -513,8 +773,11 @@ def _zeichne_grid_seite(
                    label="POC-Band (Konsens-Parametersaetze)"),
             Line2D([0], [0], color=_COL_LOB2, lw=0.8, ls=(0, (1, 2)),
                    label="Zweitgipfel-Niveau"),
+            Line2D([0], [0], color=_COL_NEST_OBJ, lw=1.0,
+                   label="Nest ueber Fenstergrenzen (POC, VAL..VAH dieses "
+                         "Fensters)"),
         ],
-        loc="lower center", ncol=9, fontsize=7.0, framealpha=0.9,
+        loc="lower center", ncol=11, fontsize=7.0, framealpha=0.9,
     )
     fig.tight_layout(rect=(0.0, 0.02, 1.0, 0.985))
     fig.savefig(out_png, dpi=stil.dpi)
@@ -525,6 +788,7 @@ def zeichne_profil_grid(
     profile: Sequence[FensterProfil],
     stil: ChartStil,
     out_png: Path,
+    nester: Optional[Sequence[NestInstanz]] = None,
 ) -> List[Path]:
     """Zeichnet je Fenster das Volumenprofil als eigenes Panel.
 
@@ -541,6 +805,8 @@ def zeichne_profil_grid(
         profile: Fensterprofile (nur gueltige werden gezeichnet).
         stil: Darstellungsparameter.
         out_png: Zielpfad der PNG-Datei (bei mehreren Seiten Namensstamm).
+        nester: Nester ueber Fenstergrenzen; die Level der Nester, die ein
+            Panel beruehren, werden dort ueberlagert (None = ohne).
 
     Returns:
         Liste der tatsaechlich geschriebenen PNG-Pfade (leer, wenn nichts zu
@@ -563,12 +829,12 @@ def zeichne_profil_grid(
 
     pfade: List[Path] = []
     if len(bloecke) == 1:
-        _zeichne_grid_seite(bloecke[0], stil, out_png)
+        _zeichne_grid_seite(bloecke[0], stil, out_png, nester=nester)
         return [out_png]
     for i, block in enumerate(bloecke, start=1):
         p = out_png.with_name(f"{out_png.stem}_s{i}{out_png.suffix}")
         _zeichne_grid_seite(block, stil, p, seite=i, n_seiten=len(bloecke),
-                            gesamt=len(zeigen))
+                            gesamt=len(zeigen), nester=nester)
         pfade.append(p)
     return pfade
 
@@ -578,6 +844,7 @@ def zeichne_alles(
     profile: Sequence[FensterProfil],
     stil: ChartStil,
     out_stamm: Path,
+    nester: Optional[Sequence[NestInstanz]] = None,
 ) -> Tuple[Optional[Path], List[Path]]:
     """Zeichnet beide Ausgaben und liefert die tatsaechlich erzeugten Pfade.
 
@@ -588,6 +855,9 @@ def zeichne_alles(
         out_stamm: Zielpfad-Stamm; es entstehen ``<stamm>_zonen.png`` und
             ``<stamm>_profile.png`` (bzw. ``_s1``, ``_s2``, ... bei mehreren
             Seiten, siehe ``ChartStil.seiten_max``).
+        nester: Nester ueber Fenstergrenzen (die eigentlichen Knoten); sie
+            werden im Zonen-Chart als durchgehendes Band mit eigener POC-Linie
+            gezeichnet und im Grid je Panel ueberlagert (None = ohne).
 
     Returns:
         ``(zonen_png, profil_pngs)``; ``zonen_png`` ist ``None`` und die Liste
@@ -598,5 +868,5 @@ def zeichne_alles(
     p_grid = out_stamm.with_name(out_stamm.name + "_profile.png")
     if not any(p.gueltig for p in profile):
         return None, []
-    zeichne_zonen_chart(df, profile, stil, p_zone)
-    return p_zone, zeichne_profil_grid(profile, stil, p_grid)
+    zeichne_zonen_chart(df, profile, stil, p_zone, nester=nester)
+    return p_zone, zeichne_profil_grid(profile, stil, p_grid, nester=nester)

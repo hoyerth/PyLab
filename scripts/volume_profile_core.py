@@ -20,10 +20,25 @@ Zwei Ebenen werden getrennt berechnet und BEIDE ausgegeben:
 
 Wichtig - Semantik der beiden Schwellen:
   ``va_pct``       Anteil des BERGVOLUMENS fuer die Value Area EINES Berges
-                   (Baseline-Wert 0,93, unveraendert).
+                   (Baseline-Wert 0,93, unveraendert). Fuer die Separation ist
+                   das der wirksame Hebel: ein kleinerer Wert (z. B. 0,70)
+                   schneidet enger um den Gipfel und trennt benachbarte Nester
+                   deutlicher, weil Bergraender nicht mehr in die Nachbarzone
+                   reichen.
   ``va_zone_pct``  Anteil des GESAMTVOLUMENS fuer die Zonen-Value-Area ab dem
                    globalen POC (Default 0,94).
 Beide werden getrennt gefuehrt; kein Wert wird stillschweigend wiederverwendet.
+
+Separation (getrennte Bereiche statt eines Bandes)
+--------------------------------------------------
+Das Hauptband ist EIN zusammenhaengender Preisbereich und damit meist breiter
+als der Move, den es beschreiben soll - genau deshalb ist der fruehere
+Huell-Modus ``balance`` entfernt. Die Separation zerlegt das Ergebnis
+zusaetzlich in den EIGENEN Bereich je Segment (``Bereich`` = dessen
+``[VAL .. VAH]``) und in die ``Luecke`` zwischen zwei benachbarten Bereichen -
+dort laufen die schnellen Moves. Es wird dabei nichts neu gerechnet
+(``zerlege_bereiche`` nutzt die Value Areas der bereits erkannten Segmente);
+``Separierung.anteil_ausserhalb`` ist das Mass der Isolation.
 
 Abgrenzung zur eingefrorenen Baseline
 -------------------------------------
@@ -42,12 +57,18 @@ Der Filter greift VOR dem Profilbau auf die Bars des jeweiligen Fensters:
                    Fensters (relativ, gegen Ausreisser-arme Illiquiditaet)
 Gefilterte Bars gehen nicht ins Profil ein; die Anzahl wird mitberichtet.
 
-Modus (zone / balance)
-----------------------
-Beide Baender stecken im Ergebnis: ``Segmentierung.zone`` (Zonen-VA ab POC) und
-``Segmentierung.val_huelle``/``vah_huelle`` (Huelle der Segment-Value-Areas).
-``band_von(seg, modus)`` waehlt daraus das Hauptband - es wird nichts neu
-gerechnet. ``modus="balance"`` ueber Kalendertage ist der Tages-Balancen-Modus.
+Hauptband (nur noch ``zone``)
+-----------------------------
+Es gibt genau EIN Hauptband: ``Segmentierung.zone`` (Zonen-VA ab POC, Anteil am
+Gesamtvolumen). Der fruehere Modus ``balance`` (Huelle der Segment-Value-Areas)
+ist aus der Auswertung ENTFERNT: die Huelle deckte die Luecken zwischen den
+Nestern zu und war genau das, was die Separation aufloest.
+
+Die Huellkanten werden im Kern weitergefuehrt
+(``Segmentierung.val_huelle``/``vah_huelle`` = min/max der Berg-VAL/VAH) und
+ihre Deckung als Kennzahl berechnet (``huellen_abdeckung``) - damit bleibt die
+Bitgleichheit zum archivierten Tages-Balancen-Lauf pruefbar, ohne dass daraus
+ein Auswertungsmodus wird.
 
 Aufruf (aus einem Orchestrator, kein CLI in diesem Modul):
     from scripts.volume_profile_core import ProfilParameter, compute_segmentierung
@@ -295,14 +316,15 @@ class FensterProfil:
         return self.segmentierung is not None
 
 
-# --- Darstellungs-/Auswertungsmodus -----------------------------------------
-# Es gibt nur EINE Engine. Beide Bänder werden IMMER mitgerechnet; ``modus``
-# waehlt nur, welches Band als Hauptband gemeldet/gezeichnet wird.
-MODI: Tuple[str, str] = ("balance", "zone")
+# --- Hauptband --------------------------------------------------------------
+# Es gibt nur EIN Hauptband (``zone``). Der fruehere Modus ``balance`` ist
+# entfernt; seine Kennzahl (Deckung der Berg-Huelle) liefert
+# ``huellen_abdeckung``. ``MODI`` bleibt als Tupel bestehen, damit ``band_von``
+# weiterhin fail-loud gegen unbekannte Namen prueft.
+MODI: Tuple[str, ...] = ("zone",)
 
 _MODUS_NAME: Dict[str, str] = {
     "zone": "Zonen-VA (Anteil am Gesamtvolumen)",
-    "balance": "Balance-Band (Huelle der Segment-VAs)",
 }
 
 
@@ -310,24 +332,18 @@ _MODUS_NAME: Dict[str, str] = {
 class Band:
     """Das Hauptband eines Fensters (POC + untere/obere Kante + Abdeckung).
 
-    Beide Bänder desselben Profils sind damit vergleichbar:
-    ``zone``    symmetrischer Wertbereich ab dem globalen POC, der
-                ``va_zone_pct`` (Default 0,94) des Gesamtvolumens erfasst.
-    ``balance`` Huelle der Segment-Value-Areas: ``val`` = kleinste Berg-VAL,
-                ``vah`` = groesste Berg-VAH. Das ist der Modus, in dem die
-                Tages-Balancen gezeichnet wurden (nicht zusammenhaengend, weil
-                jeder Berg seinen eigenen 93 %-Anteil beisteuert).
+    ``zone`` ist der symmetrische Wertbereich ab dem globalen POC, der
+    ``va_zone_pct`` (Default 0,94) des Gesamtvolumens erfasst. Er ist breiter
+    als eine uebliche 70 %-Value-Area und trifft damit mehr Wendepunkte; die
+    Nester selbst traegt die Separation (``Bereich`` je Segment).
 
     Attributes:
         poc: Point of Control des Fensters (Gipfel des groessten Segmentes).
         val: Untere Kante des Bandes.
         vah: Obere Kante des Bandes.
         abdeckung: Anteil des GESAMTVOLUMENS, der zwischen ``val`` und ``vah``
-            liegt (0..1; nan, wenn nicht bestimmbar). Bei ``zone`` die direkt
-            erreichte Abdeckung, bei ``balance`` aus dem rohen Profil gerechnet
-            und damit NICHT zusammenhaengend (siehe
-            ``abdeckung_ist_huelle``/``abdeckung_name``).
-        modus: ``zone`` oder ``balance``.
+            liegt (0..1; nan, wenn nicht bestimmbar).
+        modus: ``zone`` (einziges Hauptband).
         name: Lesbarer Name des Modus.
     """
 
@@ -346,43 +362,58 @@ class Band:
         return float(self.vah - self.val)
 
     @property
-    def abdeckung_ist_huelle(self) -> bool:
-        """True, wenn ``abdeckung`` eine Huellen-Abdeckung ist (``balance``).
-
-        Im Modus ``balance`` ist das Band die HUELLE der Segment-Value-Areas
-        (``val`` = kleinste Berg-VAL, ``vah`` = groesste Berg-VAH). Die
-        Abdeckung wird deshalb aus dem ROHPROFIL zwischen den beiden Kanten
-        gerechnet - die Luecken zwischen den einzelnen Berg-Value-Areas liegen
-        mit im Bereich und tragen kein Volumen dieses Bandes. Die Abdeckung ist
-        daher NICHT zusammenhaengend (typisch ~0,93-0,99) und NICHT
-        vergleichbar mit der aufgesammelten Value Area des Modus ``zone``.
-
-        Returns:
-            True im Modus ``balance``, sonst False.
-        """
-        return self.modus == "balance"
-
-    @property
     def abdeckung_name(self) -> str:
-        """Benennung der Abdeckung passend zum Modus (Report/Chart/Titel).
+        """Benennung der Abdeckung (Report/Chart/Titel).
 
         Returns:
-            ``"Huellen-Abdeckung (Rohprofil, nicht zusammenhaengend)"`` im
-            Modus ``balance``, sonst
             ``"Band-Abdeckung (Anteil am Gesamtvolumen)"``.
         """
-        if self.abdeckung_ist_huelle:
-            return "Huellen-Abdeckung (Rohprofil, nicht zusammenhaengend)"
         return "Band-Abdeckung (Anteil am Gesamtvolumen)"
 
 
+def huellen_abdeckung(seg: Optional[Segmentierung]) -> float:
+    """Deckung der Berg-HUELLE im Rohprofil (Kern-Kennzahl, kein Modus).
+
+    Die Huelle ist ``[min der Berg-VAL .. max der Berg-VAH]``. Zwischen den
+    einzelnen Berg-Value-Areas liegen Luecken, die zu keinem Berg gehoeren und
+    kein Volumen dieses Bandes tragen - die Deckung ist deshalb NICHT
+    zusammenhaengend (typisch ~0,93-0,99) und NICHT vergleichbar mit der
+    aufgesammelten Value Area des Hauptbandes.
+
+    Die Kennzahl bleibt im Kern, weil sie die Bitgleichheit zum archivierten
+    Tages-Balancen-Lauf traegt (``val_huelle``/``vah_huelle`` waren dessen
+    Band). Sie ist ausdruecklich KEINE Auswertungsgroesse mehr.
+
+    Args:
+        seg: Profilergebnis; None = kein Profil.
+
+    Returns:
+        Anteil des Profilvolumens zwischen den Huellkanten (nan, wenn nicht
+        bestimmbar).
+    """
+    if seg is None:
+        return float("nan")
+    val, vah = float(seg.val_huelle), float(seg.vah_huelle)
+    prof = seg.profile
+    if not (np.isfinite(val) and np.isfinite(vah)):
+        return float("nan")
+    gesamt = float(prof.vol.sum())
+    if gesamt <= 0.0:
+        return float("nan")
+    drin = (prof.centers >= val) & (prof.centers <= vah)
+    return float(prof.vol[drin].sum() / gesamt)
+
+
 def band_von(seg: Optional[Segmentierung], modus: str = "zone") -> Band:
-    """Liefert das Hauptband einer Segmentierung fuer den gewaehlten Modus.
+    """Liefert das Hauptband einer Segmentierung.
+
+    Es gibt nur ein Hauptband (``zone``): die Zonen-Value-Area ab dem globalen
+    POC. Der ``modus``-Parameter bleibt, damit ein unbekannter Name fail-loud
+    scheitert (statt still ein falsches Band zu liefern).
 
     Args:
         seg: Profilergebnis; None = kein Profil (Rueckgabe bleibt nan).
-        modus: ``zone`` (Zonen-VA ab POC) oder ``balance`` (Huelle der
-            Segment-Value-Areas).
+        modus: ``zone`` (einziges Hauptband).
 
     Returns:
         ``Band`` mit POC/Kanten/Abdeckung; bei fehlendem Profil alle Kanten
@@ -396,26 +427,12 @@ def band_von(seg: Optional[Segmentierung], modus: str = "zone") -> Band:
     nan = float("nan")
     if seg is None:
         return Band(nan, nan, nan, nan, modus, _MODUS_NAME[modus])
-    if modus == "zone":
-        z = seg.zone
-        if z is None:
-            return Band(seg.poc, nan, nan, nan, modus, _MODUS_NAME[modus])
-        return Band(
-            poc=float(z.poc), val=float(z.val), vah=float(z.vah),
-            abdeckung=float(z.abdeckung), modus=modus, name=_MODUS_NAME[modus],
-        )
-    # balance: Huelle der Segment-VAs; Abdeckung aus dem ROHEN Profil
-    val, vah = float(seg.val_huelle), float(seg.vah_huelle)
-    deckung = nan
-    prof = seg.profile
-    if np.isfinite(val) and np.isfinite(vah):
-        gesamt = float(prof.vol.sum())
-        if gesamt > 0.0:
-            drin = (prof.centers >= val) & (prof.centers <= vah)
-            deckung = float(prof.vol[drin].sum() / gesamt)
+    z = seg.zone
+    if z is None:
+        return Band(seg.poc, nan, nan, nan, modus, _MODUS_NAME[modus])
     return Band(
-        poc=float(seg.poc), val=val, vah=vah, abdeckung=deckung,
-        modus=modus, name=_MODUS_NAME[modus],
+        poc=float(z.poc), val=float(z.val), vah=float(z.vah),
+        abdeckung=float(z.abdeckung), modus=modus, name=_MODUS_NAME[modus],
     )
 
 
@@ -731,7 +748,228 @@ def zweitgipfel(vol_s: np.ndarray, fenster: int) -> Tuple[float, int]:
 
 
 # =============================================================================
-# 6) ZUSAMMENFASSUNG: EIN PROFIL -> ALLE LEVEL
+# 6) SEPARATION: EIGENER BEREICH JE SEGMENT + LUECKE DAZWISCHEN
+# =============================================================================
+#
+# Das Hauptband (``zone``) ist EIN zusammenhaengender Preisbereich. Damit
+# verschwindet die Trennung zwischen den Volumen-Nestern: der Bereich ist meist
+# breiter als der Move, den er beschreiben soll.
+#
+# Deshalb wird hier zusaetzlich ZERLEGT (nichts wird neu gerechnet): jedes
+# Segment traegt seinen EIGENEN Bereich ``[VAL .. VAH]``, und was zwischen zwei
+# Bereichen liegt, gehoert zu keinem Segment (``Luecke``) - dort laufen die
+# schnellen Moves. Die Luecken sind damit nicht mehr "im Band versteckt",
+# sondern ausgewiesen.
+
+
+@dataclass(frozen=True, slots=True)
+class Bereich:
+    """Der eigene Preisbereich EINES Segmentes (seine Value Area).
+
+    Attributes:
+        rank: Rang des Segmentes im Fenster (0 = groesstes).
+        poc: Point of Control des Segmentes.
+        val: Untere Kante des Bereiches.
+        vah: Obere Kante des Bereiches.
+        vol: Volumen des Segmentabschnitts (Bins des Berges).
+        breite: Breite ``vah - val`` in Preiseinheiten.
+        breite_atr: Breite in ATR (nan, wenn keine ATR vorliegt).
+    """
+
+    rank: int
+    poc: float
+    val: float
+    vah: float
+    vol: float
+    breite: float
+    breite_atr: float
+
+
+@dataclass(frozen=True, slots=True)
+class Luecke:
+    """Preisbereich zwischen ZWEI benachbarten Bereichen (der schnelle Move).
+
+    Die Luecke traegt kein Volumen EINES Segmentes - sie ist die Distanz, die
+    der Preis zwischen zwei Nestern zuruecklegt. ``unten``/``oben`` sind die
+    zugewandten Kanten der beiden Bereiche.
+
+    Attributes:
+        rank_unten: Rang des unteren Bereiches.
+        rank_oben: Rang des oberen Bereiches.
+        unten: Obere Kante des unteren Bereiches (dessen VAH).
+        oben: Untere Kante des oberen Bereiches (dessen VAL).
+        breite: ``oben - unten`` in Preiseinheiten (<= 0 = Bereiche beruehren
+            sich oder ueberlappen sich um den gemeinsamen Rand-Bin).
+        breite_atr: Breite in ATR (nan, wenn keine ATR vorliegt).
+    """
+
+    rank_unten: int
+    rank_oben: int
+    unten: float
+    oben: float
+    breite: float
+    breite_atr: float
+
+    @property
+    def ueberlappung(self) -> bool:
+        """True, wenn sich die beiden Bereiche beruehren/ueberlappen (breite<=0).
+
+        Returns:
+            True bei ``breite <= 0``.
+        """
+        return self.breite <= 0.0
+
+
+@dataclass(frozen=True, slots=True)
+class Separierung:
+    """Zerlegung eines Fensters in getrennte Bereiche samt Luecken.
+
+    ``anteil_ausserhalb`` ist das direkte Mass der Isolation: der Anteil des
+    PROFILVOLUMENS, der ausserhalb ALLER Segment-Value-Areas liegt. Das umfasst
+    BEIDES - die Zwischenraeume zwischen zwei Bereichen (dort laufen die
+    schnellen Moves) UND die Flanken der Berge, die die Value Area nicht mehr
+    erfasst (``1 - va_pct`` je Berg). Ein hoher Wert heisst: das Fenster besteht
+    ueberwiegend aus Strecke zwischen den Bereichen; ein Wert nahe 0 heisst:
+    die Bereiche decken das Profil praktisch lueckenlos ab.
+
+    Attributes:
+        bereiche: Bereiche in Rangfolge (0 = groesstes); die Luecken werden
+            ueber die nach Preis sortierte Kopie gebildet.
+        luecken: Luecken zwischen je zwei benachbarten Bereichen (n-1 Stueck).
+        atr: Bar-Spanne des Fensters, auf die sich alle ATR-Werte beziehen.
+        vol_gesamt: Gesamtvolumen des Rohlprofils (Bezugsgroesse der Anteile).
+        vol_in_bereichen: Volumen der Bins, die in MINDESTENS einem Bereich
+            liegen (Schnittmenge wird nicht doppelt gezaehlt).
+    """
+
+    bereiche: Tuple[Bereich, ...] = ()
+    luecken: Tuple[Luecke, ...] = ()
+    atr: float = float("nan")
+    vol_gesamt: float = float("nan")
+    vol_in_bereichen: float = float("nan")
+
+    @property
+    def n_bereiche(self) -> int:
+        """Anzahl getrennter Bereiche (Segmente)."""
+        return len(self.bereiche)
+
+    @property
+    def n_luecken(self) -> int:
+        """Anzahl Luecken (Bereiche - 1, mindestens 0)."""
+        return len(self.luecken)
+
+    @property
+    def anteil_bereiche(self) -> float:
+        """Anteil des Profilvolumens, der in den Bereichen liegt (0..1)."""
+        if not np.isfinite(self.vol_gesamt) or self.vol_gesamt <= 0.0:
+            return float("nan")
+        return float(self.vol_in_bereichen / self.vol_gesamt)
+
+    @property
+    def anteil_ausserhalb(self) -> float:
+        """Anteil des Profilvolumens ausserhalb ALLER Bereiche (0..1).
+
+        Enthaelt die Zwischenraeume (schnelle Moves zwischen den Nestern) UND
+        die Bergflanken ausserhalb der jeweiligen Value Area.
+        """
+        a = self.anteil_bereiche
+        if not np.isfinite(a):
+            return float("nan")
+        return float(max(0.0, 1.0 - a))
+
+    @property
+    def breite_bereiche_atr(self) -> float:
+        """Summe der Bereichsbreiten in ATR (nan, wenn keine ATR vorliegt)."""
+        if not np.isfinite(self.atr) or self.atr <= 0.0:
+            return float("nan")
+        return float(sum(b.breite for b in self.bereiche) / self.atr)
+
+    @property
+    def breite_luecken_atr(self) -> float:
+        """Summe der Lueckenbreiten in ATR (nan, wenn keine ATR vorliegt).
+
+        Ueberlappende Bereiche (breite <= 0) gehen mit 0 ein - die Summe ist
+        damit die tatsaechlich freie Strecke zwischen den Bereichen.
+        """
+        if not np.isfinite(self.atr) or self.atr <= 0.0:
+            return float("nan")
+        return float(sum(max(0.0, l.breite) for l in self.luecken) / self.atr)
+
+
+def zerlege_bereiche(
+    seg: Optional[Segmentierung], atr: float = float("nan")
+) -> Separierung:
+    """Zerlegt eine Segmentierung in getrennte Bereiche und Luecken.
+
+    Es wird NICHTS neu gerechnet: die Bereiche sind die Value Areas der bereits
+    erkannten Segmente (``nester``), die Luecken deren Zwischenraeume. Die
+    Sortierung erfolgt nach Preis (aufsteigend), damit die Zwischenraeume
+    benachbarter Bereiche eindeutig sind - der Rang des Segmentes bleibt im
+    Bereich erhalten.
+
+    Args:
+        seg: Profilergebnis; None = kein Profil (Rueckgabe bleibt leer).
+        atr: Bar-Spanne des Fensters; nan = keine ATR-Bezugsgroesse.
+
+    Returns:
+        ``Separierung`` mit Bereichen, Luecken und Volumenanteilen.
+    """
+    if seg is None or not seg.nester:
+        return Separierung()
+    prof = seg.profile
+    vol_gesamt = float(prof.vol.sum())
+    a = float(atr) if atr is not None else float("nan")
+    fa = a if (np.isfinite(a) and a > 0.0) else float("nan")
+
+    bereiche: List[Bereich] = [
+        Bereich(
+            rank=i,
+            poc=float(nest.poc),
+            val=float(nest.val),
+            vah=float(nest.vah),
+            vol=float(nest.vol),
+            breite=float(nest.vah - nest.val),
+            breite_atr=float((nest.vah - nest.val) / fa)
+            if np.isfinite(fa) else float("nan"),
+        )
+        for i, nest in enumerate(seg.nester)
+    ]
+    nach_preis: List[Bereich] = sorted(
+        bereiche, key=lambda b: (b.val, b.vah, b.rank)
+    )
+
+    luecken: List[Luecke] = []
+    for unten_b, oben_b in zip(nach_preis[:-1], nach_preis[1:]):
+        breite = float(oben_b.val - unten_b.vah)
+        luecken.append(
+            Luecke(
+                rank_unten=int(unten_b.rank),
+                rank_oben=int(oben_b.rank),
+                unten=float(unten_b.vah),
+                oben=float(oben_b.val),
+                breite=breite,
+                breite_atr=float(breite / fa) if np.isfinite(fa) else float("nan"),
+            )
+        )
+
+    # Volumen in den Bereichen: Bins, die in mindestens EINEM Bereich liegen
+    # (Schnittmengen zaehlen nur einmal - der Anteil bleibt damit ehrlich).
+    drin = np.zeros(prof.centers.size, dtype=bool)
+    for b in bereiche:
+        drin |= (prof.centers >= b.val) & (prof.centers <= b.vah)
+    vol_drin = float(prof.vol[drin].sum()) if prof.vol.size else 0.0
+
+    return Separierung(
+        bereiche=tuple(bereiche),
+        luecken=tuple(luecken),
+        atr=a,
+        vol_gesamt=vol_gesamt,
+        vol_in_bereichen=vol_drin,
+    )
+
+
+# =============================================================================
+# 7) ZUSAMMENFASSUNG: EIN PROFIL -> ALLE LEVEL
 # =============================================================================
 
 
@@ -804,7 +1042,7 @@ def mit_parameter(par: ProfilParameter, **overrides: object) -> ProfilParameter:
 
 
 # =============================================================================
-# 7) POC-UNSICHERHEIT (Konsens ueber Parametersaetze) UND FENSTER-KENNZAHLEN
+# 8) POC-UNSICHERHEIT (Konsens ueber Parametersaetze) UND FENSTER-KENNZAHLEN
 # =============================================================================
 
 

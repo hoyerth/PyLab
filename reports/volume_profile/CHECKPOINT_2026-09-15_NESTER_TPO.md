@@ -1,13 +1,17 @@
 # CHECKPOINT 2026-09-15 -- VolumeProfile/Nester: Level-Schranke (ARRETIERT) + TPO-Fragestellung (OFFEN)
 
 Status: **Zwei Teile.**
-1. **Arretiert und gepusht:** Level-Schranke beim Nest-Linking, "1 Territorium = 1 Lauf",
-   Chart-Fenster-Ebene aus, Randnester mit Band+POC. Code-Stand = Commit `5a69aa6`
-   (`origin/master`), siehe Abschnitt 1.
-2. **Offen, nur theoretisch bewertet:** Aufenthalt/TPO als zweite Dimension
-   (Market Profile), Farbe als reiner Indikator, b)-Hypothese als Ereignisstudie,
-   Fernziel Live-Betrieb. **Es wurde nichts gerechnet und nichts geprueft** -- dieser
-   Teil ist ein Fragenkatalog (Abschnitt 6), keine Umsetzung.
+- **Arretiert und gepusht:** Level-Schranke beim Nest-Linking, "1 Territorium = 1 Lauf",
+  Chart-Fenster-Ebene aus, Randnester mit Band+POC. Code-Stand = Commit `5a69aa6`
+  (`origin/master`), siehe Abschnitt 1.
+- **Offen, nur theoretisch bewertet:** Aufenthalt/TPO als zweite Dimension
+  (Market Profile), Farbe als reiner Indikator, b)-Hypothese als Ereignisstudie.
+  **Es wurde nichts gerechnet und nichts geprueft** -- dieser Teil ist ein
+  Fragenkatalog (Abschnitt 6), keine Umsetzung.
+
+**Zielsetzung (bindend):** Korrekte **Analyse von Nestern in der HISTORIE**.
+Es gibt **keinen Live-Modus** dieser Engine und er ist **nicht** Ziel -- alle
+Live-/Onset-/Latenz-Ueberlegungen sind aus diesem Checkpoint **entfernt**.
 
 ## 0. Anker (Stand, verifiziert)
 
@@ -24,7 +28,7 @@ Status: **Zwei Teile.**
 | `test/vp_sichtprobe.py` | Pixelkontrolle der PNG-Garantiefarben | unveraendert, tracked |
 | `test/VolumeZone/reports/volume_profile_SILVER_M15_day_zone_2026-09-01_2026-10-01.*` | Lauf-Ausgaben | neu erzeugt |
 
-Git: `git rev-parse HEAD` = `git rev-parse origin/master` = `5a69aa6`.
+Git: `git rev-parse HEAD` = `git rev-parse origin/master` = `5a69aa6` (Checkpoint-Commit `7a6346b`).
 Untracked und bewusst NICHT angefasst: `data/backtest_ui_state.json` (thematisch fremd).
 
 ## 1. Was arretiert wurde (mit Belegen)
@@ -104,39 +108,39 @@ Diese fuenf Beobachtungen sind der Anlass der ganzen Fragestellung. Sie sind
 
 ## 3. Anwender-Vorgaben fuer die naechste Runde (bindend)
 
-1. **Farbe/Dicke des POC ist ein REIN VISUELLER Indikator.** Die Daten selbst muessen
-   **objektiv** als Grundlage vorhanden sein, damit Statistik darauf moeglich ist.
-2. **Hypothese b) als Ereignisstudie:** Nach einem schnellen Move bildet sich ein kleines
-   TPO-Nest mit relativ wenig Volumen -- wie hoch ist die Wahrscheinlichkeit, dass es weiter
-   in die **initiale Richtung** geht?
-3. **TPO-Zaehlung wird fuer noetig gehalten**, um kleine Akkumulationen oder Pullbacks von
-   "echten" Volumen-Nestern zu unterscheiden.
-4. **Offene Frage d):** Ob dafuer eine Zaehlung der Bars + Range-Filter + eigener Volumenzaehler
-   ausreicht, ist zu untersuchen.
-5. **Komplexitaets-Sorge:** Eine echte, **parallele** TPO-Logik macht die Engine "superkomplex".
-6. **Fernziel Live-System:** Relevant ist, wie **schnell und sicher der BEGINN eines Nestes**
-   gefunden wird. Es gibt Aehnlichkeiten zur **verworfenen Reclaim-Engine** -- diese wird
-   **NICHT nachgebaut** (kein Code, keine Logik-Uebernahme, kein Nachschlagen als Vorlage).
+- **Farbe/Dicke des POC ist ein REIN VISUELLER Indikator.** Die Daten selbst muessen
+  **objektiv** als Grundlage vorhanden sein, damit Statistik darauf moeglich ist.
+- **Hypothese b) als Ereignisstudie:** Nach einem schnellen Move bildet sich ein kleines
+  TPO-Nest mit relativ wenig Volumen -- wie hoch ist die Wahrscheinlichkeit, dass es weiter
+  in die **initiale Richtung** geht?
+- **TPO-Zaehlung wird fuer noetig gehalten**, um kleine Akkumulationen oder Pullbacks von
+  "echten" Volumen-Nestern zu unterscheiden.
+- **Offene Frage d):** Ob dafuer eine Zaehlung der Bars + Range-Filter + eigener Volumenzaehler
+  ausreicht, ist zu untersuchen.
+- **Komplexitaets-Sorge:** Eine echte, **parallele** TPO-Logik macht die Engine "superkomplex".
+- **Zielsetzung: Analyse in der HISTORIE.** Es gibt **keinen Live-Modus** dieser Engine und er
+  ist **nicht** Ziel. Massgeblich ist die korrekte, nachvollziehbare Beschreibung der Nester
+  im geladenen Zeitraum.
 
 ## 4. Theoretische Vorab-Bewertung (gilt unveraendert)
 
-1. **Die Nest-Schicht kann konstruktionsbedingt nicht INNERHALB eines Fensters trennen**
-   ("Innerhalb EINES Fensters wird nie gepaart"). Alles, was innerhalb eines Tages liegt, ist
-   fuer sie unerreichbar -- per Parameter oder sonstwie.
-2. **Die Kriterien der Berg-Erkennung sind:** `valley_rel` (Tal relativ zum Gipfel),
-   `smooth_win` (glaettet Ein-Bin-Taeler weg), `num_bins` (Aufloesung), `min_mountain_pct`
-   (**relativ** zum groessten Berg DESSELBEN Fensters).
-3. **Zeit existiert im Modell bisher nur als Bar-Anzahl** (Zuteilung ueber Close), **nicht als
-   Kriterium**. `build_volume_profile` kennt nur Volumen je Preis-Bin.
-4. **Trend- und Balance-Tage sind nicht gleich behandelt:** Ein Balance-Niveau hat wenig
-   Volumen pro Bin, aber viel ZEIT; ein Trend-Bar hat grosses `high-low` und wird dem
-   ZIEL-Niveau zugeschrieben. Ein Parametersatz, der b)/d)/e) sichtbar macht, zersplittert
-   gleichzeitig alle anderen Tage (Flimmer-Nester).
-5. **Die Farbe darf NICHT das Gesamtvolumen kodieren:** Bei `Laenge ∝ T`, `Farbe ∝ V` und
-   `V ≈ T · I` korreliert die Farbe konstruktiv mit der Laenge -- das Bild sagt dann immer
-   "lang ist auch viel Volumen". Sauber ist **Farbe/Dicke = Intensitaet `I = V / Bars`**
-   (Laenge = Zeit, Farbe = Intensitaet, Produkt = Gesamtvolumen).
-6. **Drei Ausbaustufen von "TPO"** (Unterschied nur: was gezaehlt wird):
+- **Die Nest-Schicht kann konstruktionsbedingt nicht INNERHALB eines Fensters trennen**
+  ("Innerhalb EINES Fensters wird nie gepaart"). Alles, was innerhalb eines Tages liegt, ist
+  fuer sie unerreichbar -- per Parameter oder sonstwie.
+- **Die Kriterien der Berg-Erkennung sind:** `valley_rel` (Tal relativ zum Gipfel),
+  `smooth_win` (glaettet Ein-Bin-Taeler weg), `num_bins` (Aufloesung), `min_mountain_pct`
+  (**relativ** zum groessten Berg DESSELBEN Fensters).
+- **Zeit existiert im Modell bisher nur als Bar-Anzahl** (Zuteilung ueber Close), **nicht als
+  Kriterium**. `build_volume_profile` kennt nur Volumen je Preis-Bin.
+- **Trend- und Balance-Tage sind nicht gleich behandelt:** Ein Balance-Niveau hat wenig
+  Volumen pro Bin, aber viel ZEIT; ein Trend-Bar hat grosses `high-low` und wird dem
+  ZIEL-Niveau zugeschrieben. Ein Parametersatz, der b)/d)/e) sichtbar macht, zersplittert
+  gleichzeitig alle anderen Tage (Flimmer-Nester).
+- **Die Farbe darf NICHT das Gesamtvolumen kodieren:** Bei `Laenge ∝ T`, `Farbe ∝ V` und
+  `V ≈ T · I` korreliert die Farbe konstruktiv mit der Laenge -- das Bild sagt dann immer
+  "lang ist auch viel Volumen". Sauber ist **Farbe/Dicke = Intensitaet `I = V / Bars`**
+  (Laenge = Zeit, Farbe = Intensitaet, Produkt = Gesamtvolumen).
+- **Drei Ausbaustufen von "TPO"** (Unterschied nur: was gezaehlt wird):
 
    | Stufe | Zaehlung | Kann | Kann nicht | Eingriff |
    |---|---|---|---|---|
@@ -144,20 +148,20 @@ Diese fuenf Beobachtungen sind der Anlass der ganzen Fragestellung. Sie sind
    | 1 | Bars je BERG ueber enger Spanne (Range-Filter + eigener Zaehler) | kleine Akkumulation/Pullback INNERHALB eines erkannten Berges | Level, die kein Berg sind | additiv |
    | 2 | Bar-Belegung je PREIS-BIN auf dem Raster | eigene Level/Taeler aus der Zeit | -- (aber: zweite Wahrheit) | zweites Profil je Fenster/Lauf |
 
-7. **Das Raster existiert schon:** `schritt_atr * atr_bezug` ist bereits die gemeinsame
-   Preisaufloesung aller Nester (`raster_bins`, `raster_schritt`) -- Stufe 2 braucht kein
-   neues Raster.
-8. **Der Komplexitaetstreiber ist NICHT das Zaehlen, sondern die zweite Urteilsinstanz:**
-   zwei Berg-Mengen brauchen eine Regel, wann ein Nest entsteht (ODER/UND), ohne die
-   Invariante "jeder Bar in genau EINEM Berg" zu verletzen.
-9. **Die POC-Kodierung ist ein Beweismittel, kein Detektor:** Ein Level, das die Erkennung
-   nicht als Nest liefert, hat keinen POC und kann nicht eingefaerbt werden -- fuer b), d), e)
-   zeigt die Kodierung allenfalls, dass die bestehenden Nester ueberwiegend Zeit-Charakter
-   haben.
-10. **b) ist ohne Basisrate nicht falschbar:** "58 % Fortsetzung" ist inhaltsleer, wenn es
-    ohne Vorbedingung 55 % sind. Zur Ereignisstudie gehoeren Ereignisdefinition, Erfolgsmass,
-    Basisrate, Gegenfaelle (Umkehr als eigenes Ergebnis), Stichprobenumfang und
-    Mehrfachtest-Absicherung.
+- **Das Raster existiert schon:** `schritt_atr * atr_bezug` ist bereits die gemeinsame
+  Preisaufloesung aller Nester (`raster_bins`, `raster_schritt`) -- Stufe 2 braucht kein
+  neues Raster.
+- **Der Komplexitaetstreiber ist NICHT das Zaehlen, sondern die zweite Urteilsinstanz:**
+  zwei Berg-Mengen brauchen eine Regel, wann ein Nest entsteht (ODER/UND), ohne die
+  Invariante "jeder Bar in genau EINEM Berg" zu verletzen.
+- **Die POC-Kodierung ist ein Beweismittel, kein Detektor:** Ein Level, das die Erkennung
+  nicht als Nest liefert, hat keinen POC und kann nicht eingefaerbt werden -- fuer b), d), e)
+  zeigt die Kodierung allenfalls, dass die bestehenden Nester ueberwiegend Zeit-Charakter
+  haben.
+- **b) ist ohne Basisrate nicht falschbar:** "58 % Fortsetzung" ist inhaltsleer, wenn es
+  ohne Vorbedingung 55 % sind. Zur Ereignisstudie gehoeren Ereignisdefinition, Erfolgsmass,
+  Basisrate, Gegenfaelle (Umkehr als eigenes Ergebnis), Stichprobenumfang und
+  Mehrfachtest-Absicherung.
 
 ## 5. Randbedingungen (unveraendert bindend)
 
@@ -167,16 +171,15 @@ Diese fuenf Beobachtungen sind der Anlass der ganzen Fragestellung. Sie sind
 - **Zeitbasis-Kanon (`docs/ZEITBASIS_KANON.md`):** BKZ ist die einzige Rechenbasis; Bar-Index ist
   Primaerschluessel; Kalendergrenzen dynamisch via `searchsorted`; keine Zeitzonen-Projektion;
   das Wort "Wanduhr" ist projektweit verboten.
-- **Vektorisierung:** keine Loops in Strategie-/Rechenlogik. **Klaerungsbedarf:** Live-Inkrement
-  je Bar ist ein anderer Modus als der vektorisierte Offline-Lauf -- diese Spannung ist
-  ausdruecklich zu adressieren (Frage 69).
+- **Vektorisierung:** keine Loops in Strategie-/Rechenlogik.
 - **Der Begriff "balance" ist verbraucht** (der `balance`-Modus wurde entfernt) -- fuer das neue
   Konzept braucht es einen eigenen, eindeutigen Namen.
 - **Die eingefrorene Volumenlogik (`build_volume_profile`) bleibt unberuehrt** -- Vergleichbarkeit
   zum archivierten Lauf.
-- **Reclaim-Engine:** nur Aehnlichkeitsmarke, **kein Nachbau** (Anwender-Vorgabe).
+- **Die verworfene Reclaim-Engine bleibt verworfen:** hier wird nichts davon nachgebaut und
+  nichts daraus als Vorlage uebernommen (stehende Projektgrenze).
 
-## 6. FRAGENKATALOG (vollstaendig)
+## 6. FRAGENKATALOG (vollstaendig, bereinigt)
 
 ### A. Datenvertrag und Statistik-Basis
 
@@ -243,143 +246,100 @@ Diese fuenf Beobachtungen sind der Anlass der ganzen Fragestellung. Sie sind
     ATR-Regime), damit der Befund nicht von einem Stoerfaktor getragen wird?
 29. Ist die Frage "Fortsetzung" ueberhaupt auf der Nest-Ebene zu stellen, oder gehoert sie auf
     die Bar-Ebene (Nest als Zustand, Ausgang als Bar-Ereignis)?
+30. **Look-ahead-Freiheit der Studienbedingung:** Wird die Bedingung ("schneller Move", "kleines
+    TPO-Nest") ausschliesslich aus Bars **bis zum Referenzpunkt** bestimmt -- ohne Wissen aus
+    Fenstergrenzen, Polster, Glaettung, Median-ATR oder dem finalen Nestumfang? Ohne diese
+    Trennung waehlt die Stichprobe sich selbst (Survivorship) und die historische Aussage ist
+    unbrauchbar.
 
 ### D. Darstellung (Farbe/Dicke = reiner Indikator)
 
-30. Kodiert die Farbe das Gesamtvolumen, die Intensitaet `V/Bars` oder ein TPO-Mass? (Farbe auf
+31. Kodiert die Farbe das Gesamtvolumen, die Intensitaet `V/Bars` oder ein TPO-Mass? (Farbe auf
     `V` macht sie zur Laengenkopie -- dann sagt das Bild nichts Neues.)
-31. Falls zwei Kanaele: welche Groesse auf Farbe, welche auf Dicke?
-32. Skala: linear ueber min..max, Rang/Perzentil oder Klassenstufen?
-33. Skala fest je Lauf oder relativ je Bildausschnitt -- und ueber welche Menge (nur gueltige
+32. Falls zwei Kanaele: welche Groesse auf Farbe, welche auf Dicke?
+33. Skala: linear ueber min..max, Rang/Perzentil oder Klassenstufen?
+34. Skala fest je Lauf oder relativ je Bildausschnitt -- und ueber welche Menge (nur gueltige
     Nester)?
-34. Wird die benutzte Skala als Text ausgewiesen (Legende oben links, Statistik mittig,
+35. Wird die benutzte Skala als Text ausgewiesen (Legende oben links, Statistik mittig,
     Titel-/Dateinamen-Zusatz)?
-35. Farbraum innerhalb der Nest-Familie mit `#00695c` als einem Endpunkt, oder eigene Sequenz --
+36. Farbraum innerhalb der Nest-Familie mit `#00695c` als einem Endpunkt, oder eigene Sequenz --
     und wie wird `vp_sichtprobe.py` nachgefuehrt (die 11 Garantiefarben sind exakt, Toleranz 12)?
-36. Randnester (violett `#8e24aa`, gestrichelt): Kodierung dort ueber Muster/Dicke, oder bleiben
+37. Randnester (violett `#8e24aa`, gestrichelt): Kodierung dort ueber Muster/Dicke, oder bleiben
     sie ausgenommen?
-37. Wird zusaetzlich das **TPO-Nest** gezeichnet (eigene Objektmenge) oder nur der POC des
+38. Wird zusaetzlich das **TPO-Nest** gezeichnet (eigene Objektmenge) oder nur der POC des
     Volumennests eingefaerbt? Ohne eigene Menge ist der 07.09.-Fall (kein Volumenberg) im Bild
     nicht sichtbar.
-38. Falls beide Mengen gezeichnet werden: wie werden sie unterscheidbar gehalten (Flaeche =
+39. Falls beide Mengen gezeichnet werden: wie werden sie unterscheidbar gehalten (Flaeche =
     Volumennest, Klammer/Punktlinie = TPO-Nest), ohne mit bestehenden Konventionen zu kollidieren?
-39. Bleibt die Fenster-Ebene (`fenster_ebene_zeichnen`) aus, auch mit Kodierung?
+40. Bleibt die Fenster-Ebene (`fenster_ebene_zeichnen`) aus, auch mit Kodierung?
 
 ### E. Struktur: innerhalb eines Fensters
 
-40. Sind mehrere Nester **innerhalb eines Tages** (11.09./14.09.) Zielgroesse -- oder gilt weiter
+41. Sind mehrere Nester **innerhalb eines Tages** (11.09./14.09.) Zielgroesse -- oder gilt weiter
     "ein Tag = ein Fensterprofil, innen wird nicht geteilt"?
-41. Falls Split: wirkt die Zeit-Ebene **im** eingefrorenen Kern (`find_mountains`) oder als
+42. Falls Split: wirkt die Zeit-Ebene **im** eingefrorenen Kern (`find_mountains`) oder als
     **zweite, getrennte Berg-Menge**, die erst die Nest-Schicht verbindet? (Empfehlung: zweite
     Menge -- Kern unberuehrt.)
-42. Ist der 08.09.-Fall ("zwei Level") eine reine Kalibrierungsfrage
+43. Ist der 08.09.-Fall ("zwei Level") eine reine Kalibrierungsfrage
     (Aufloesung/Tal/Absolutschwelle) oder ebenfalls ein Zeit-Fall?
-43. Alternative fuer innerhalb des Tages: feinere Fensterart (h1/h4) -- ehrlicher oder nur
+44. Alternative fuer innerhalb des Tages: feinere Fensterart (h1/h4) -- ehrlicher oder nur
     Problemverschiebung?
-44. Wird `min_mountain_pct` (relativ zum Tagesgipfel) durch eine **absolute** Huerde (Bars oder
+45. Wird `min_mountain_pct` (relativ zum Tagesgipfel) durch eine **absolute** Huerde (Bars oder
     Dwell-Anteil) ergaenzt oder ersetzt -- das ist der eigentliche Hebel fuer 07.09./10.09.?
-45. Bleibt die Zuteilung der Bars bei Close -> Zuteilungsband (Invariante "jeder Bar in genau
+46. Bleibt die Zuteilung der Bars bei Close -> Zuteilungsband (Invariante "jeder Bar in genau
     EINEM Berg")? TPO darf die Zuteilung **nicht** uebernehmen.
 
 ### F. Benennung, Invarianten, Kanon
 
-46. "balance" ist verbraucht, "Wanduhr" verboten -- welcher Begriff gilt fuer Aufenthalt/TPO
+47. "balance" ist verbraucht, "Wanduhr" verboten -- welcher Begriff gilt fuer Aufenthalt/TPO
     (Diskussionsvorschlag: "Belegung" oder "Aufenthalt", mit je einem eindeutigen Feldpraefix)?
-47. Gehen die neuen Parameter (TPO-Schwellen, Dwell-Tal, absolute Mindestgroesse) in
+48. Gehen die neuen Parameter (TPO-Schwellen, Dwell-Tal, absolute Mindestgroesse) in
     `_store_parameter`/`run_id` und in den Dateinamen-Zusatz (wie `nstep`/`nlink`/`nlev`)?
-48. Zeitbasis: Aufenthalt ausschliesslich ueber Bar-Index/BKZ, Horizonte in Bars -- bestaetigt
+49. Zeitbasis: Aufenthalt ausschliesslich ueber Bar-Index/BKZ, Horizonte in Bars -- bestaetigt
     (keine Stunden- oder Berlin-Projektion)?
-49. Bleiben `rang` (immer 0) und "Territorien mit mehr als einem Nest" (strukturell 0) als
+50. Bleiben `rang` (immer 0) und "Territorien mit mehr als einem Nest" (strukturell 0) als
     Kontrollfelder oder raus aus Report/TSV?
-50. Muss der Bericht die Klassifikationsregel **aussprechen** (Zitat der Regel im Report), damit
+51. Muss der Bericht die Klassifikationsregel **aussprechen** (Zitat der Regel im Report), damit
     eine Ausgabe ohne Dateiblick zuordenbar ist?
 
 ### G. Komplexitaet und Prozess
 
-51. Wo ist die Komplexitaetsgrenze: Stufe 1 als gedeckelter Ausbau (Kennzahl + Surrogat) oder
+52. Wo ist die Komplexitaetsgrenze: Stufe 1 als gedeckelter Ausbau (Kennzahl + Surrogat) oder
     Stufe 2 mit zweiter Urteilsinstanz?
-52. Falls Stufe 2: ODER- oder UND-Verknuepfung der beiden Berg-Mengen (Grundsatzentscheidung,
+53. Falls Stufe 2: ODER- oder UND-Verknuepfung der beiden Berg-Mengen (Grundsatzentscheidung,
     keine Kalibrierung)?
-53. Ist TPO als **Kennzahl-Spalte** ausgegeben genug, um die ganze Diskussion zu fuehren -- oder
+54. Ist TPO als **Kennzahl-Spalte** ausgegeben genug, um die ganze Diskussion zu fuehren -- oder
     brauchst du die zweite Menge, um Entscheidungen zu treffen?
-54. Soll der **Nachweis** gerechnet werden, dass ein **einziger** globaler Parametersatz
+55. Soll der **Nachweis** gerechnet werden, dass ein **einziger** globaler Parametersatz
     (`valley_rel`/`smooth_win`/`num_bins`/`min_mountain_pct`) die fuenf Tage (a--e) nicht
     gleichzeitig sauber liest? Kern unangetastet, keine UI, keine Ablage -- erst dieser Nachweis
     begruendet den Zeit-Zuschnitt.
-55. Ausgabeform des Nachweises: Tabelle "Tag x Parametersatz => Nest-Zahl" mit ausgewiesener
+56. Ausgabeform des Nachweises: Tabelle "Tag x Parametersatz => Nest-Zahl" mit ausgewiesener
     Flimmerquote (ohne Flimmerquote ist eine hoehere Nest-Zahl wertlos)?
-56. Sollen (a)--(e) als feste **Sichtpruefungs-Sollwerte** (Tag + erwartete Nest-Zahl + Charakter)
+57. Sollen (a)--(e) als feste **Sichtpruefungs-Sollwerte** (Tag + erwartete Nest-Zahl + Charakter)
     festgehalten werden, damit spaetere Aenderungen daran messbar sind?
-57. Reihenfolge: erst Kodierung/TPO-Kennzahl (billig, rein Sicht und Statistik) oder erst
+58. Reihenfolge: erst Kodierung/TPO-Kennzahl (billig, rein Sicht und Statistik) oder erst
     Erkennungskriterium (teuer, Eingriff)?
-58. Wird der b)-Hypothese ein eigener Ort gegeben (Statistik-Block/Reportabschnitt), damit sie
+59. Wird der b)-Hypothese ein eigener Ort gegeben (Statistik-Block/Reportabschnitt), damit sie
     nicht als Nebenprodukt der Darstellung entsteht?
-
-### H. LIVE-BETRIEB (Fernziel): Beginn-Erkennung -- schnell UND sicher
-
-*Randbedingung: Aehnlichkeiten zur verworfenen Reclaim-Engine werden nur BENANNT, nichts wird
-dort nachgebaut oder als Vorlage herangezogen.*
-
-59. Wann genau gilt ein Nest als **begonnen**? Formale Definition des Onset-Zeitpunkts (erster
-    Bar, an dem welche Kriterien halten) -- nicht als Gefuehl.
-60. Wird ein Onset **sofort** gemeldet (kleine Latenz, Fehlstarts moeglich) oder erst nach
-    **Bestaetigung** (n Bars / weitere Kriterien)? Das ist der Kern-Trade-off zwischen "schnell"
-    und "sicher" -- er ist zu BENENNEN, nicht als Menue zu waehlen.
-61. Nach welchem Kriterium wird bestaetigt: n Bars im Band, x ATR Ruecklauf, Volumenbestaetigung,
-    TPO-Belegung, oder eine Kombination?
-62. Zwei Zeitpunkte je Nest strikt trennen: `onset` (erstmalig feststellbar, kausal) und `final`
-    (nach Abschluss, retrospektiv). Werden beide im Datenvertrag gefuehrt, und weist jede
-    Statistik aus, welchen sie benutzt?
-63. **Kausalitaet/No-Lookahead:** Welche Felder sind kausal (nur Bars <= t) und welche
-    retrospektiv (Fenstergrenzen, Polster, Glaettung, Median-ATR, finaler POC)? Ohne diese
-    Trennung ist die b)-Studie ein Survivorship-Artefakt.
-64. Latenz-Budget in **BARS** (K5) ausdruecken; Millisekunden nur als Betriebsgroesse
-    (maschinenabhaengig) -- in welcher Einheit wird das Budget festgelegt?
-65. Wie viel Historie braucht die Erkennung (Warm-up: ATR, Median der Fenster-ATR, Fensterlaenge,
-    Glaettungsfenster)?
-66. Wie oft aendert sich die Aussage "Nest existiert" **rueckwirkend** (Revisionen je Nest)? Ein
-    Stabilitaetsmass ist Pflicht, sonst ist die Live-Aussage nicht vertrauenswuerdig.
-67. Flattern: Wie wird verhindert, dass ein Nest bei jedem Bar erscheint/verschwindet
-    (Hysterese/Deadband)? Wird die Hysterese als Parameter extern gefuehrt?
-68. Wird der Onset auf **demselben Rechenpfad** gefunden wie die Offline-Erkennung (ein Pfad, zwei
-    Modi) oder als zweite, parallele Erkennung (doppelte Wahrheit)?
-69. Inkrementelle Rechnung: Ist die TPO-Belegung je Bin inkrementell (O(1) je Bar) berechenbar,
-    oder wird je Bar alles neu gerechnet? **Klaerung des Widerspruchs** Vektorisierungsgebot vs.
-    Live-Inkrement.
-70. Wenn ein Nest nachtraeglich verschmilzt oder geteilt wird: Was passiert mit einer bereits
-    gemeldeten Live-Aussage (Korrekturmeldung, stille Revision, Sperre)?
-71. Wird der Beginn ueberhaupt **handelbar** erreicht, oder liegt er systematisch nach dem Impuls
-    (siehe b)? Das entscheidet, ob Onset-Erkennung wirtschaftlich ist.
-72. Datenpfad live: dieselbe DuckDB? Bricht der Laufzeitspeicher bei Neustart? Muss der Zustand
-    neu aufgebaut werden -- und wie lange dauert das?
-73. Ausgabeform des Onset (Push-Trigger, Polling, Statussatz je Bar) -- was soll das Live-System
-    abholen?
-74. Wie wird ausgeschlossen, dass die Onset-Definition durch das spaetere Ergebnis beeinflusst
-    wird (Testverfahren: erst Onset festlegen, dann Ausgang messen -- Walk-Forward)?
-75. Wird die Grenze zur verworfenen Reclaim-Engine hier festgeschrieben (kein Code, keine
-    Doku-Uebernahme, nur Analogie)? **Anwender-Vorgabe -- bitte bestaetigen.**
-76. Gilt fuer die Live-Aussage derselbe Unsicherheitsbegriff (POC-Konsens) oder braucht sie einen
-    eigenen Sicherheitsbegriff?
-77. Ist Stufe 2 im Livebetrieb ueberhaupt vertretbar (Kosten je Bar), oder gilt Stufe 2 nur
-    offline fuer die Statistik, waehrend live eine kausal verfuegbare Kennzahl laeuft?
 
 ## 7. Naechste Schritte (VORSCHLAG, nicht beschlossen)
 
-1. Fragen 54/55: Nachweis rechnen, dass EIN globaler Parametersatz a--e nicht gleichzeitig sauber
-   liest (Kern unangetastet, keine UI, keine Ablage, Tabelle Tag x Parametersatz mit
-   Flimmerquote). -- Erst dieser Nachweis begruendet den Zeit-Zuschnitt.
-2. Frage 56: a--e als Sichtpruefungs-Sollwerte festschreiben.
-3. Fragen 1--7: Datenvertrag klaeren (Kern vs. ganz, Basis roh/gefiltert, Versionierung) --
-   Voraussetzung fuer JEDE Statistik.
-4. Fragen 59--63: Onset/`final`-Trennung und Kausalitaet -- Voraussetzung fuer die Live-Faehigkeit
-   UND fuer die Ehrlichkeit der b)-Studie.
-5. Fragen 30--39: Kodierung (billig, rein Sicht) -- entscheidet, ob der teure Eingriff noetig ist.
+- Fragen 55/56: Nachweis rechnen, dass EIN globaler Parametersatz a--e nicht gleichzeitig sauber
+  liest (Kern unangetastet, keine UI, keine Ablage, Tabelle Tag x Parametersatz mit
+  Flimmerquote). -- Erst dieser Nachweis begruendet den Zeit-Zuschnitt.
+- Frage 57: a--e als Sichtpruefungs-Sollwerte festschreiben.
+- Fragen 1--7: Datenvertrag klaeren (Kern vs. ganz, Basis roh/gefiltert, Versionierung) --
+  Voraussetzung fuer JEDE Statistik.
+- Frage 30: Look-ahead-Freiheit der Studienbedingung festschreiben -- Voraussetzung fuer die
+  Ehrlichkeit der b)-Studie.
+- Fragen 31--40: Kodierung (billig, rein Sicht) -- entscheidet, ob der teure Eingriff noetig ist.
 
 ## 8. Die drei Fragen, die alles Weitere festlegen
 
-1. **Ist der Split INNERHALB eines Tages Zielgroesse?** (Frage 40) -- Nein => Zeit nur als
-   Kennzahl/Darstellung; Ja => zweite Berg-Menge und damit ODER/UND-Entscheidung (Frage 52).
-2. **Ist die Statistik-Basis der TSV-Export oder eine neue Ablage?** (Frage 1) -- davon haengt ab,
-   ob der Datenvertrag (Fragen 2--7) ueberhaupt exportierbar ist.
-3. **Sind Onset und final getrennte Felder?** (Frage 62) -- Nein => die b)-Studie misst sich selbst
-   (Survivorship) und die Live-Frage bleibt unbeantwortbar.
+- **Ist der Split INNERHALB eines Tages Zielgroesse?** (Frage 41) -- Nein => Zeit nur als
+  Kennzahl/Darstellung; Ja => zweite Berg-Menge und damit ODER/UND-Entscheidung (Frage 53).
+- **Ist die Statistik-Basis der TSV-Export oder eine neue Ablage?** (Frage 1) -- davon haengt ab,
+  ob der Datenvertrag (Fragen 2--7) ueberhaupt exportierbar ist.
+- **Ist die Studienbedingung look-ahead-frei?** (Frage 30) -- Nein => die b)-Studie waehlt ihre
+  eigene Stichprobe und ist als historische Aussage wertlos.

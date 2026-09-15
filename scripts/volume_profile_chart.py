@@ -134,14 +134,22 @@ class ChartStil:
             die Beschriftung ausgeduennt, nie der Bezug zum Tageswechsel
             aufgegeben. Alle Tagesgrenzen erhalten zusaetzlich eine duenne
             Hilfslinie, damit der Tageswechsel im Preisverlauf sichtbar ist.
-        bereiche_zeichnen: True (Default) = jedes Segment bekommt seinen
+        bereiche_zeichnen: True = jedes Segment bekommt seinen
             EIGENEN Bereich ``[VAL .. VAH]`` als eigene Flaeche in der
             Segmentfarbe; das Hauptband wird dann nur noch als Kontur gefuehrt
             und die Luecken zwischen zwei Bereichen werden mit ihrer Breite in
-            ATR beschriftet. Damit ist sichtbar, was sonst im durchgehenden
-            Band verschwindet: getrennte Volumen-Nester und die schnellen Moves
-            dazwischen. False = alte Ansicht (Hauptband als Flaeche, je
-            Segment nur die POC-Linien).
+            ATR beschriftet. False = Hauptband als Flaeche, je Segment nur die
+            POC-Linien. Wirkt NUR, wenn ``fenster_ebene_zeichnen`` an ist.
+        fenster_ebene_zeichnen: False (Default) = die FENSTER-Ebene wird nicht
+            mehr gezeichnet: kein Tages-Hauptband (Zonen-VA), keine
+            Tages-POC-Linie samt Label, keine POCs weiterer Tages-Segmente,
+            keine Bereiche/Luecken der Tagessegmente. Grund: diese Flaechen
+            spannen ueber das GANZE Fenster (1 Tag) und ueberdeckten damit die
+            errechneten Segmente (Nester), die nur ueber ihre eigene
+            Lebensdauer laufen. Gezeichnet werden dann AUSSCHLIESSLICH die
+            Nester (``nester``): Band ``VAL..VAH`` von ``bar_start`` bis
+            ``bar_ende`` mit eigener POC-Linie. True = alte Ansicht mit
+            Fenster-Ebene (fuer Gegenproben).
         parameter_txt: Zusatz fuer Titel/Achsenkopf. Traegt die vom Default
             abweichenden profilbildenden Parameter (z. B. ``va_pct=0.93``),
             damit eine Ausgabe ohne Blick in die Datei zuordenbar ist.
@@ -165,6 +173,7 @@ class ChartStil:
     max_label_zeichen: int = 24
     max_xticks: int = 14
     bereiche_zeichnen: bool = True
+    fenster_ebene_zeichnen: bool = False
     bereich_va_pct: float = 0.7
     parameter_txt: str = ""
     modus: str = "zone"
@@ -418,6 +427,12 @@ def zeichne_zonen_chart(
     bereich_breiten_atr: List[float] = []
     anteile_aussen: List[float] = []
     for p in zeigen:
+        # FENSTER-Ebene (Tages-Hauptband, Tages-POC, Bereiche/Luecken der
+        # Tagessegmente) nur auf Ansage: ihre Flaechen spannen ueber das GANZE
+        # Fenster (1 Tag) und ueberdeckten die errechneten Segmente, die nur
+        # ueber ihre eigene Lebensdauer laufen.
+        if not stil.fenster_ebene_zeichnen:
+            continue
         seg = p.segmentierung
         band = _band(p, stil)
         if seg is None or not (np.isfinite(band.val) and np.isfinite(band.vah)):
@@ -535,14 +550,23 @@ def zeichne_zonen_chart(
         a, b = int(i.bar_start), int(i.bar_ende)
         if i.angeschnitten:
             n_nest_rand += 1
-            ax.plot(
-                [a, a], [i.val, i.vah], color=_COL_NEST_RAND, lw=1.0,
-                ls=(0, (1, 1)), zorder=8,
+            # Angeschnittene Nester bekommen ebenfalls ihr Band (von
+            # ``bar_start`` bis ``bar_ende``), aber violett gestrichelt: der
+            # Lauf kann am geladenen Rand weitergehen, wir wissen es nur nicht.
+            # Ohne Band fehlte das Segment im Bild vollstaendig.
+            ax.add_patch(
+                Rectangle(
+                    (a, i.val), max(1, b - a), max(i.vah - i.val, 1e-9),
+                    facecolor=_COL_NEST_RAND, edgecolor=_COL_NEST_RAND,
+                    ls=(0, (1, 1)), alpha=0.10, lw=0.9, zorder=4,
+                )
             )
+            ax.plot([a, b], [i.poc, i.poc], color=_COL_NEST_RAND, lw=1.2,
+                    ls=(0, (1, 1)), zorder=8)
             ax.annotate(
-                f"N{i.id} Rand", (a, i.vah), xytext=(2, 3),
+                f"N{i.id} Rand POC {i.poc:.3f}", (a, i.poc), xytext=(2, -6),
                 textcoords="offset points", fontsize=4.5,
-                color=_COL_NEST_RAND, va="bottom", ha="left", zorder=9,
+                color=_COL_NEST_RAND, va="top", ha="left", zorder=9,
             )
         if not i.gueltig:
             continue
@@ -586,7 +610,10 @@ def zeichne_zonen_chart(
     # Die Bereichsweite steht im Titel, nicht nur in der Legende: eine Ausgabe
     # ohne Parameterzusatz (Default-Lauf) muss trotzdem erkennen lassen, wie
     # breit die Bereiche angelegt sind (va_pct der eigenen Segment-VA).
-    bereich_txt = f" | Bereiche: je Segment eigene {stil.bereich_va_txt}" if stil.bereiche_zeichnen else ""
+    bereich_txt = (
+        f" | Bereiche: je Segment eigene {stil.bereich_va_txt}"
+        if (stil.fenster_ebene_zeichnen and stil.bereiche_zeichnen) else ""
+    )
     nest_txt = (
         f" | Nester: {n_nestobjekte}" if nest_gezeichnet else ""
     )
@@ -594,14 +621,21 @@ def zeichne_zonen_chart(
         f"VOLUMENPROFILE - {_TITEL_MODUS.get(stil.modus, stil.modus.upper())} | "
         f"{_stamm(stil)} | Fensterart={art} | "
         f"Bars {int(zeigen[0].bar_start)}..{int(zeigen[-1].bar_ende)}"
-        f"{bereich_txt}{nest_txt}"
+        f"{nest_txt}{bereich_txt}"
     )
-    stat: List[str] = [
-        f"Fenster: {len(zeigen)} | mit Profil {sum(1 for p in zeigen if p.gueltig)}",
-        f"Segmente gezeichnet: {sum(p.segmentierung.n_segmente for p in zeigen if p.gueltig)} "
-        f"(+{n_nest} weitere POCs)",
-        f"POC eindeutig: {len(zeigen) - n_unsicher} | unsicher: {n_unsicher}",
-    ]
+    stat: List[str] = []
+    if stil.fenster_ebene_zeichnen:
+        stat += [
+            f"Fenster: {len(zeigen)} | mit Profil {sum(1 for p in zeigen if p.gueltig)}",
+            f"Segmente gezeichnet: {sum(p.segmentierung.n_segmente for p in zeigen if p.gueltig)} "
+            f"(+{n_nest} weitere POCs)",
+            f"POC eindeutig: {len(zeigen) - n_unsicher} | unsicher: {n_unsicher}",
+        ]
+    else:
+        stat.append(
+            f"Fenster: {len(zeigen)} | gezeichnet werden NUR die errechneten "
+            f"Segmente (Nester)"
+        )
     if breiten_atr:
         stat.append(
             f"Bandbreite ({stil.modus}): median {np.median(breiten_atr):.2f} ATR"
@@ -637,26 +671,30 @@ def zeichne_zonen_chart(
         zorder=20,
     )
     handles: List[Line2D] = [
-        Line2D(
-            [0], [0], color=_COL_ZONE, lw=6,
-            alpha=(0.0 if stil.bereiche_zeichnen else 0.3),
-            label=f"{_KURZ_MODUS[stil.modus]} "
-                  f"({'Kontur' if stil.bereiche_zeichnen else 'VAL..VAH'})",
-        ),
-        Line2D([0], [0], color=_COL_POC, lw=1.4, label="POC (groesstes Segment)"),
-        Line2D([0], [0], color=_COL_POC_U, lw=1.2, ls=(0, (2, 2)),
-               label="POC unsicher + Band der Konsens-Parametersaetze"),
-        Line2D([0], [0], color=_COL_NEST, lw=0.7, ls=(0, (4, 3)),
-               label="POC weiterer Segmente"),
         Line2D([0], [0], color=_COL_KERZE_AUF, lw=5,
                label="Kerze auf (close >= open)"),
         Line2D([0], [0], color=_COL_KERZE_AB, lw=5,
                label="Kerze ab (close < open)"),
     ]
-    if stil.bereiche_zeichnen:
+    if stil.fenster_ebene_zeichnen:
+        handles += [
+            Line2D(
+                [0], [0], color=_COL_ZONE, lw=6,
+                alpha=(0.0 if stil.bereiche_zeichnen else 0.3),
+                label=f"{_KURZ_MODUS[stil.modus]} "
+                      f"({'Kontur' if stil.bereiche_zeichnen else 'VAL..VAH'})",
+            ),
+            Line2D([0], [0], color=_COL_POC, lw=1.4,
+                   label="POC (groesstes Segment)"),
+            Line2D([0], [0], color=_COL_POC_U, lw=1.2, ls=(0, (2, 2)),
+                   label="POC unsicher + Band der Konsens-Parametersaetze"),
+            Line2D([0], [0], color=_COL_NEST, lw=0.7, ls=(0, (4, 3)),
+                   label="POC weiterer Segmente"),
+        ]
+    if stil.fenster_ebene_zeichnen and stil.bereiche_zeichnen:
         for rang, farbe in enumerate(_bereich_farben(3)):
             handles.insert(
-                1 + rang,
+                2 + rang,
                 Line2D([0], [0], color=farbe, lw=6, alpha=0.45,
                        label=f"Bereich Segment {rang} "
                              f"(eigene {stil.bereich_va_txt}, VAL..VAH)"),

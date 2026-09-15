@@ -17,12 +17,14 @@ Drei Begriffe (sauber getrennt)
                Preisbaender: das ZUTEILUNGSBAND (Tal zu Tal, lueckenlose
                Tiling der Preisspanne) und den KERN (Value Area des Berges).
     KETTE      Berge AUFEINANDERFOLGENDER Fenster, deren KERNE sich im Preis
-               ueberlappen = derselbe Knoten ueber die Zeit.
-    INSTANZ    Ein ZUSAMMENHAENGENDER Lauf von Bars innerhalb einer Kette.
-               NUR eine Instanz ist ein Nest. Ist der Lauf unterbrochen (der
+               ueberlappen UND deren POCs hoechstens ``link_level_atr``
+               auseinanderliegen = derselbe Knoten ueber die Zeit. Sie ist
+               ausschliesslich das BAR-VERZEICHNIS dieses Knotens.
+    NEST       Ein ZUSAMMENHAENGENDER Lauf von Bars (Instanz). EIN Territorium
+               traegt GENAU EINEN solchen Lauf: ist der Lauf unterbrochen (der
                Preis hat den Knoten zwischenzeitlich verlassen), entstehen
-               ZWEI Instanzen auf etwa gleicher Hoehe - genau die Regel: nur
-               echte Nester in EINEM STUECK zaehlen, sonst sind es zwei.
+               ZWEI Territorien mit je EINEM Nest - die Rueckkehr auf ein
+               Level ist ein NEUES Nest, nicht der Wiederbesuch des alten.
 
 Ablauf
 ------
@@ -31,16 +33,21 @@ Ablauf
     Berge tilen die Preisspanne des Fensters lueckenlos - jeder Bar gehoert
     damit genau EINEM Berg (kein Bar in zwei Nestern).
  2) KETTENBILDUNG (ueber die Zeit): Berge aufeinanderfolgender Fenster werden
-    gepaart, wenn sich ihre KERNE (Value Areas) im Preis ueberlappen. Gepaart
-    wird guenstigst nach Ueberlappungsgroesse, jeder Berg hoechstens einmal -
-    die Ketten sind damit ueberschneidungsfrei und deterministisch. Innerhalb
-    EINES Fensters wird nie gepaart: zwei Berge desselben Profils sind per
-    Konstruktion zwei Knoten.
+    gepaart, wenn sich ihre KERNE (Value Areas) im Preis ueberlappen UND ihre
+    POCs hoechstens ``link_level_atr`` (Default 2,0 ATR) auseinanderliegen.
+    Gepaart wird guenstigst nach Ueberlappungsgroesse, jeder Berg hoechstens
+    einmal - die Ketten sind damit ueberschneidungsfrei und deterministisch.
+    Innerhalb EINES Fensters wird nie gepaart: zwei Berge desselben Profils
+    sind per Konstruktion zwei Knoten.
  3) LAUF/INSTANZ: Die zugeordneten Bars einer Kette werden auf ZUSAMMENHANG im
     Bar-Index geprueft (K5: Primaerschluessel). Jeder zusammenhaengende Lauf
     ist eine Instanz, jedes Loch trennt zwei. Handelsfreie Zeiten liegen
     ausserhalb der BKZ-Achse und trennen daher NICHT - es gibt deshalb keinen
     Zeitluecken-Parameter.
+    EIN TERRITORIUM TRAEGT GENAU EINEN LAUF: liefert eine Kette mehrere Laeufe,
+    war der Preis zwischenzeitlich weg - das sind getrennte Knoten (auch bei
+    gleichem Level), nicht der Wiederbesuch eines Territoriums. Damit sind die
+    Nester kausal nacheinander geordnet (Rueckkehr erzeugt ein NEUES Nest).
  4) LEVEL: Jede Instanz bekommt ihr EIGENES Profil aus ihren eigenen Bars
     (``build_volume_profile``, unveraendert) und daraus POC/VAL/VAH
     (``va_for_mountain`` mit dem Gipfel als Berg). Der ATR einer Instanz ist
@@ -82,7 +89,7 @@ Aufruf (aus dem Orchestrator):
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
@@ -117,6 +124,13 @@ class NestParameter:
         link_toleranz_atr: Zusaetzliche Toleranz beim Paaren zweier Kerne, als
             Vielfaches des Bezugs-ATR (Default 0,0 = strenger Schnitt; zwei
             Kerne gehoeren nur zusammen, wenn sie sich wirklich ueberlappen).
+        link_level_atr: Hoechster POC-ABSTAND zweier Berge, die noch gepaart
+            werden duerfen, als Vielfaches des Bezugs-ATR (Default 2,0). Die
+            reine Kern-Ueberlappung genuegt NICHT: laufen zwei Berge ueber
+            verschiedene LEVEL, ist das keine Fortsetzung desselben Knotens,
+            sondern eine Rueckkehr oder ein anderer Knoten - sonst entstehen
+            Sammelobjekte mit einem POC ueber mehrere ATR (Empirie September
+            2026: Kette mit POC-Spanne 7,4 ATR). 0 = nur identische POCs.
         min_bars: Mindestzahl Bars einer Instanz (Default 8 = rund zwei
             Stunden M15). Darunter ist der Lauf ein Flimmer-Lauf.
         min_anteil_pct: Mindestvolumen einer Instanz in Prozent des groessten
@@ -131,6 +145,7 @@ class NestParameter:
 
     schritt_atr: float = 0.25
     link_toleranz_atr: float = 0.0
+    link_level_atr: float = 2.0
     min_bars: int = 8
     min_anteil_pct: float = 4.0
     konsens_k: Tuple[float, ...] = (0.15, 0.25, 0.40)
@@ -178,10 +193,16 @@ class Bergband:
 
 @dataclass(frozen=True, slots=True)
 class Territorium:
-    """Eine KETTE gepaarter Berge: der Knoten als Zone ueber die Zeit.
+    """EIN Lauf einer Kette gepaarter Berge: der Knoten als Zone ueber die Zeit.
+
+    Jedes Territorium traegt GENAU EINEN zusammenhaengenden Lauf (Instanz) -
+    die Kette wird also beim ersten Loch im Bar-Index geteilt, und jede Teilkette
+    wird ein eigenes Territorium (K5, Bar-Index = Primaerschluessel). Report und
+    Speicher fuehren beide Ebenen deshalb 1:1.
 
     Attributes:
-        id: Laufende Nummer (0-basiert, in Reihenfolge des ersten Auftretens).
+        id: Laufende Nummer (0-basiert) = Position in der ZEIT (nach
+            ``bar_start``); deckt sich mit der Reportreihenfolge.
         unten: Untere Kante des Territoriums (min der Zuteilungsbaender).
         oben: Obere Kante des Territoriums (max der Zuteilungsbaender).
         kern_unten: Untere Kante der Kernvereinigung (min der Berg-VALs).
@@ -221,7 +242,9 @@ class NestInstanz:
     Attributes:
         id: Laufende Nummer (0-basiert, nach ``bar_start``).
         territorium_id: Zugehoeriges Territorium.
-        rang: Reihenfolge der Instanz innerhalb ihres Territoriums (0 = erste).
+        rang: Reihenfolge der Instanz innerhalb ihres Territoriums. Da ein
+            Territorium genau EINEN Lauf traegt, ist das IMMER 0; das Feld
+            bleibt fuer den Speicher-/TSV-Vertrag erhalten.
         bar_start: Erster Bar-Index der Instanz.
         bar_ende: Letzter Bar-Index der Instanz.
         ts_start: Erster BKZ-Zeitstempel (tz-naiv).
@@ -335,7 +358,12 @@ class NestErgebnis:
 
     @property
     def n_mehrfach(self) -> int:
-        """Anzahl Territorien mit mehr als EINER Instanz (Wiederbesuche)."""
+        """Anzahl Territorien mit mehr als EINER Instanz - strukturell IMMER 0.
+
+        Ein Territorium traegt per Konstruktion genau einen Lauf (Rueckkehr
+        erzeugt ein neues Territorium). Die Kennzahl bleibt als Kontrolle
+        bestehen: ein Wert ungleich 0 waere ein Fehler in der Aufteilung.
+        """
         zaehler: Dict[int, int] = {}
         for i in self.instanzen:
             if i.gueltig:
@@ -437,7 +465,9 @@ def _ueberlappung(a: Bergband, b: Bergband) -> float:
 
 
 def _baue_ketten(
-    fenster_berge: Sequence[Sequence[Bergband]], toleranz: float
+    fenster_berge: Sequence[Sequence[Bergband]],
+    toleranz: float,
+    level_toleranz: float = float("inf"),
 ) -> List[List[Tuple[int, int]]]:
     """Paart Berge aufeinanderfolgender Fenster zu Ketten.
 
@@ -446,9 +476,17 @@ def _baue_ketten(
     deterministisch. Ein Berg ohne Partner beginnt eine neue Kette. Innerhalb
     EINES Fensters wird nie gepaart.
 
+    ZUSAETZLICH muss der POC-Abstand der beiden Berge ``level_toleranz``
+    einhalten: eine Kern-Ueberlappung allein sagt nichts ueber das LEVEL. Zwei
+    Berge, deren POCs ATR-weit auseinanderliegen, sind verschiedene Knoten
+    (oder eine Rueckkehr) - ohne diese Schranke entstuenden Sammelobjekte mit
+    einem POC ueber die ganze Spanne.
+
     Args:
         fenster_berge: Berge je Fenster in Zeitfolge.
         toleranz: Zusaetzliche Ueberlappungstoleranz in Preiseinheiten.
+        level_toleranz: Hoechster POC-Abstand in Preiseinheiten
+            (``inf`` = keine Schranke).
 
     Returns:
         Ketten als Folgen von ``(fenster_index, berg_index)``.
@@ -470,8 +508,11 @@ def _baue_ketten(
             for j, b in enumerate(berge):
                 for i, a in enumerate(vorher):
                     ueber = _ueberlappung(a, b)
-                    if ueber > toleranz:
-                        paare.append((ueber, i, j))
+                    if ueber <= toleranz:
+                        continue
+                    if abs(float(a.poc) - float(b.poc)) > level_toleranz:
+                        continue
+                    paare.append((ueber, i, j))
         # Groesste Ueberlappung zuerst; bei Gleichstand stabil nach Rang.
         paare.sort(key=lambda t: (-t[0], t[1], t[2]))
         belegt_vorher: set = set()
@@ -705,57 +746,81 @@ def finde_nester(
         if np.isfinite(atr_bezug) and np_par.link_toleranz_atr > 0.0
         else 0.0
     )
-    ketten = _baue_ketten(fenster_berge, toleranz)
+    level_toleranz = (
+        float(np_par.link_level_atr * atr_bezug)
+        if np.isfinite(atr_bezug) and np_par.link_level_atr > 0.0
+        else (
+            0.0 if np.isfinite(atr_bezug) else float("inf")
+        )
+    )
+    ketten = _baue_ketten(fenster_berge, toleranz, level_toleranz)
 
-    # 3) Territorien (Ketten) samt beteiligten Fenstern
+    # 3) Territorien: EIN Territorium je ZUSAMMENHAENGENDEM Lauf (K5).
+    #    Ein Territorium traegt damit genau EINE Instanz (``NestInstanz.rang``
+    #    ist immer 0). Die Kette dient nur noch der Zuordnung der Bars: liefert
+    #    sie mehrere Laeufe, ist der Preis zwischenzeitlich weg gewesen - das
+    #    sind getrennte Knoten (Rueckkehr), keine Wiederbesuche desselben
+    #    Territoriums.
     territorien: List[Territorium] = []
-    terr_fenster: Dict[int, List[int]] = {}
     terr_ketten: Dict[int, List[Tuple[int, int]]] = {}
+    terr_fenster: Dict[int, List[int]] = {}
+    roh: List[Tuple[int, int, int, int]] = []  # (terr_id, a, b, n_fenster)
     for kette in ketten:
         if not kette:
             continue
-        baender = [fenster_berge[wi][j] for wi, j in kette]
-        tid = len(territorien)
-        terr_fenster[tid] = sorted({wi for wi, _j in kette})
-        terr_ketten[tid] = list(kette)
-        territorien.append(
-            Territorium(
-                id=tid,
-                unten=float(min(b.zuteilung_unten for b in baender)),
-                oben=float(max(b.zuteilung_oben for b in baender)),
-                kern_unten=float(min(b.val for b in baender)),
-                kern_oben=float(max(b.vah for b in baender)),
-                n_berge=len(baender),
-                n_fenster=len({b.label for b in baender}),
-                labels=tuple(b.label for b in baender),
-                bar_start=int(min(b.fenster_bar_start for b in baender)),
-                bar_ende=int(max(b.fenster_bar_ende for b in baender)),
-                verschmolzen=len({b.label for b in baender}) > 1,
-            )
-        )
-
-    # 4) Laeufe (Instanzen): zusammenhaengend im Bar-Index (K5)
-    roh: List[Tuple[int, int, int, int]] = []  # (terr_id, a, b, n_fenster)
-    for tid, kette in terr_ketten.items():
-        teile = [zuteilung[(wi, j)] for wi, j in kette if (wi, j) in zuteilung]
-        if not teile:
+        vorhanden = [(wi, j) for wi, j in kette if (wi, j) in zuteilung]
+        if not vorhanden:
             continue
-        for a, b in _laeufe(np.unique(np.concatenate(teile))):
+        alle = np.unique(np.concatenate([zuteilung[wi, j] for wi, j in vorhanden]))
+        for a, b in _laeufe(alle):
+            teil = [
+                (wi, j) for wi, j in vorhanden
+                if zuteilung[wi, j].size
+                and int(zuteilung[wi, j][-1]) >= a and int(zuteilung[wi, j][0]) <= b
+            ]
+            if not teil:
+                continue
+            baender = [fenster_berge[wi][j] for wi, j in teil]
+            wi_alle = sorted({wi for wi, _j in teil})
             n_fenster = int(
                 sum(
-                    1
-                    for wi in terr_fenster[tid]
+                    1 for wi in wi_alle
                     if fenster[wi].bar_ende >= a and fenster[wi].bar_start <= b
                 )
             )
+            tid = len(territorien)
+            terr_ketten[tid] = teil
+            terr_fenster[tid] = wi_alle
             roh.append((tid, a, b, n_fenster))
-    # Rang je Territorium = Reihenfolge der Instanzen in der Zeit.
-    rang: Dict[Tuple[int, int], int] = {}
-    for tid in terr_ketten:
-        for i, (a, _b, _nf) in enumerate(
-            sorted((a, b, nf) for t, a, b, nf in roh if t == tid)
-        ):
-            rang[(tid, a)] = i
+            territorien.append(
+                Territorium(
+                    id=tid,
+                    unten=float(min(x.zuteilung_unten for x in baender)),
+                    oben=float(max(x.zuteilung_oben for x in baender)),
+                    kern_unten=float(min(x.val for x in baender)),
+                    kern_oben=float(max(x.vah for x in baender)),
+                    n_berge=len(baender),
+                    n_fenster=n_fenster,
+                    labels=tuple(fenster[wi].label for wi in wi_alle),
+                    bar_start=int(a),
+                    bar_ende=int(b),
+                    verschmolzen=bool(n_fenster > 1),
+                )
+            )
+    # Rang je Territorium = Reihenfolge der Instanzen in der Zeit. Da ein
+    # Territorium genau EINEN Lauf traegt, ist er immer 0 (Feld bleibt fuer
+    # den Speichervertrag erhalten).
+    # Die Territorien werden nach ihrem ersten Bar neu durchnummeriert: die
+    # Id ist damit die Position in der ZEIT und deckt sich mit der Reihenfolge
+    # im Report (Bar-Index = Primaerschluessel, K5).
+    ordnung = sorted(
+        range(len(territorien)), key=lambda t: (territorien[t].bar_start, t)
+    )
+    neu_id: Dict[int, int] = {alt: i for i, alt in enumerate(ordnung)}
+    territorien = [
+        replace(territorien[alt], id=neu_id[alt]) for alt in ordnung
+    ]
+    roh = [(neu_id[t], a, b, nf) for t, a, b, nf in roh if t in neu_id]
     roh.sort(key=lambda t: (t[1], t[0]))
 
     # 5) Level je Lauf (gemeinsames Raster, ATR der eigenen Lebensdauer)
@@ -769,7 +834,7 @@ def finde_nester(
         poc, val, vah, vol, bins, bschritt, kons = level
         vorlaeufig.append(
             {
-                "territorium_id": tid, "rang": rang.get((tid, a), 0),
+                "territorium_id": tid, "rang": 0,
                 "bar_start": a, "bar_ende": b, "n_bars": int(b - a + 1),
                 "n_fenster": n_fenster, "poc": poc, "val": val, "vah": vah,
                 "vol": vol, "atr": atr_lauf, "raster_bins": bins,

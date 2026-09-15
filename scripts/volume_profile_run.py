@@ -46,10 +46,18 @@ Ein Volumenknoten richtet sich nicht nach dem Kalender: die Fenster-Ebene
 zerlegt ihn an der Tagesgrenze in zwei Berge. ``volume_profile_nests`` erkennt
 den Knoten deshalb als GANZES und liefert eigene Objekte:
 
-    TERRITORIUM  Kette gepaarter Berge (Kerne ueberlappen im Preis) = der
-                 Knoten als Zone ueber die Zeit.
+    TERRITORIUM  Kette gepaarter Berge (Kerne ueberlappen im Preis UND die
+                 POCs liegen hoechstens ``nest_link_level_atr`` auseinander)
+                 = der Knoten als Zone ueber die Zeit.
     NEST         EIN zusammenhaengender Lauf von Bars darin (Instanz) mit
                  eigenem POC/VAL/VAH, eigenem ATR und eigenem POC-Konsens.
+
+EIN TERRITORIUM TRAEGT GENAU EINEN LAUF: liefert eine Kette mehrere Laeufe, war
+der Preis zwischenzeitlich weg - das sind getrennte Knoten (auch bei gleichem
+Level), nicht der Wiederbesuch eines Territoriums. Die Nester sind damit kausal
+nacheinander geordnet, und die Territoriums-Id ist die Position in der ZEIT.
+Die Level-Schranke verhindert Sammelobjekte: eine Kern-Ueberlappung allein sagt
+nichts ueber das LEVEL (Empirie September 2026: Kette mit POC-Spanne 7,4 ATR).
 
 Die Schicht rechnet NICHTS neu: die Berge kommen aus der eingefrorenen
 Berg-Erkennung, die Level aus ``build_volume_profile``/``va_for_mountain``. Sie
@@ -132,6 +140,8 @@ Aufruf (Projekt-Wurzel) - Default ist September 2026 mit va_pct = 0,7:
     python -m scripts.volume_profile_run --window=h4 --vol_quantil=0.05
     python -m scripts.volume_profile_run --window=day --min_bars=40 ^
         --unvollstaendige_verwerfen=1
+    python -m scripts.volume_profile_run --nest_link_level_atr=0     ^
+        (Gegenseite: nur identische POCs werden gepaart)
 """
 from __future__ import annotations
 
@@ -338,6 +348,10 @@ class VolumeProfilConfig:
     # ihn in zusammenhaengende Laeufe (Instanzen = Nester).
     nest_schritt_atr: float = 0.25
     nest_link_toleranz_atr: float = 0.0
+    # Level-Schranke: zwei Berge werden nur gepaart, wenn ihre POCs hoechstens
+    # so viele ATR auseinanderliegen. Ohne sie verband die Kern-Ueberlappung
+    # auch Berge auf verschiedenen LEVELN zu einem Sammelobjekt.
+    nest_link_level_atr: float = 2.0
     nest_min_bars: int = 8
     nest_min_anteil_pct: float = 4.0
     nest_konsens_k: Tuple[float, ...] = (0.15, 0.25, 0.40)
@@ -418,6 +432,7 @@ def _nest_parameter(config: VolumeProfilConfig) -> NestParameter:
     return NestParameter(
         schritt_atr=config.nest_schritt_atr,
         link_toleranz_atr=config.nest_link_toleranz_atr,
+        link_level_atr=config.nest_link_level_atr,
         min_bars=config.nest_min_bars,
         min_anteil_pct=config.nest_min_anteil_pct,
         konsens_k=tuple(config.nest_konsens_k),
@@ -921,8 +936,8 @@ def _nest_text(ergebnis: NestErgebnis, config: VolumeProfilConfig) -> str:
     return (
         f"Nester: {len(ergebnis.nester)} Laeufe in "
         f"{ergebnis.n_territorien} Territorien "
-        f"({ergebnis.n_verschmolzen} ueber Fenstergrenzen, "
-        f"{ergebnis.n_mehrfach} mehrfach besucht) | "
+        f"({ergebnis.n_verschmolzen} ueber Fenstergrenzen; 1 Territorium = "
+        f"1 Lauf) | "
         f"ausgeschlossen: {ergebnis.n_zu_klein} zu klein, "
         f"{ergebnis.n_angeschnitten} am Rand | "
         f"Dauer median {np.median(dauer):.1f} h | "
@@ -946,9 +961,12 @@ def _nest_abschnitt(
     """
     zeilen: List[str] = [
         "NESTER UEBER FENSTERGRENZEN (zusammenhaengende Laeufe als eigene Objekte):",
-        "  TERRITORIUM = Kette gepaarter Berge (Kerne ueberlappen im Preis) = der",
-        "  Knoten als Zone ueber die Zeit. NEST (Instanz) = EIN zusammenhaengender",
-        "  Lauf von Bars darin; jedes Loch im Bar-Index trennt zwei Nester.",
+        "  TERRITORIUM = Kette gepaarter Berge (Kerne ueberlappen im Preis UND",
+        "  POC-Abstand <= Level-Toleranz) = der Knoten als Zone ueber die Zeit.",
+        "  NEST (Instanz) = EIN zusammenhaengender Lauf von Bars darin. EIN",
+        "  Territorium traegt GENAU EINEN Lauf (1:1); jedes Loch im Bar-Index",
+        "  erzeugt ein NEUES Territorium - die Rueckkehr auf ein Level ist ein",
+        "  neues Nest, kein Wiederbesuch. Die Id ist die Position in der ZEIT.",
         "  Level sind auf EINEM Raster gerechnet (gleicher Preisschritt ueber alle",
         "  Nester), ATR ist der der eigenen Lebensdauer.",
         f"  Erkennung: {_pad_txt(config)}.",
@@ -989,9 +1007,10 @@ def _nest_abschnitt(
     zeilen.append("")
     zeilen.append("NESTER - ZUSAMMENFASSUNG:")
     zeilen.append(
-        f"  Territorien: {ergebnis.n_territorien} | davon ueber eine "
-        f"Fenstergrenze verschmolzen: {ergebnis.n_verschmolzen} | Territorien "
-        f"mit mehr als einem Nest: {ergebnis.n_mehrfach}"
+        f"  Territorien: {ergebnis.n_territorien} (= Zahl der Nester, 1:1) | "
+        f"davon ueber eine Fenstergrenze verschmolzen: "
+        f"{ergebnis.n_verschmolzen} | Territorien mit mehr als einem Nest: "
+        f"{ergebnis.n_mehrfach} (strukturell 0 - Kontrollwert)"
     )
     zeilen.append(
         f"  Laeufe roh: {ergebnis.n_laeufe_roh} | Nester (gueltig): "
@@ -1205,7 +1224,9 @@ def report_text(
         f"POC-Unsicherheit: Toleranz={config.streu_toleranz_atr} ATR ueber "
         f"bins={list(config.konsens_bins)} x smooth={list(config.konsens_smooth)}",
         f"Nester (ueber Fenstergrenzen): Raster={config.nest_schritt_atr} ATR | "
-        f"Link-Toleranz={config.nest_link_toleranz_atr} ATR | Mindestgroesse "
+        f"Link-Toleranz={config.nest_link_toleranz_atr} ATR | "
+        f"Level-Toleranz={config.nest_link_level_atr} ATR POC-Abstand | "
+        f"Mindestgroesse "
         f"{config.nest_min_bars} Bars / {config.nest_min_anteil_pct} % | "
         f"Konsens k={list(config.nest_konsens_k)} x "
         f"smooth={list(config.nest_konsens_smooth)} | "
@@ -1372,6 +1393,7 @@ def tsv_nester(config: VolumeProfilConfig, ergebnis: NestErgebnis) -> str:
         f"# Fensterart={config.window_kind} modus={config.modus} | "
         f"Raster={config.nest_schritt_atr} ATR "
         f"link={config.nest_link_toleranz_atr} ATR "
+        f"link_level={config.nest_link_level_atr} ATR "
         f"min_bars={config.nest_min_bars} "
         f"min_anteil_pct={config.nest_min_anteil_pct} | "
         f"Konsens k={list(config.nest_konsens_k)} x "
@@ -1379,7 +1401,10 @@ def tsv_nester(config: VolumeProfilConfig, ergebnis: NestErgebnis) -> str:
         f"Toleranz={config.nest_streu_toleranz_atr} ATR | "
         f"Erkennung: {_pad_txt(config)}",
         "# rolle: TERRITORIUM = Kette gepaarter Berge (Knoten als Zone ueber die "
-        "Zeit) | NEST = zusammenhaengender Lauf darin (eigenes POC/VAL/VAH)",
+        "Zeit) | NEST = zusammenhaengender Lauf darin (eigenes POC/VAL/VAH). "
+        "EIN Territorium traegt GENAU EINEN Lauf (1:1) - rang ist daher immer 0.",
+        "# Paarung zweier Berge: Kerne ueberlappen im Preis UND POC-Abstand <= "
+        "link_level (sonst waeren es zwei Knoten bzw. eine Rueckkehr).",
         "# bar_start/bar_ende/ts_start/ts_ende: Bereich des Knotens bzw. Laufs im "
         "geladenen Zeitraum (Bar-Index = Primaerschluessel, K5)",
         "# angeschnitten=1: Lauf endet am Zeitraumrand (kann weiterlaufen). "
@@ -1460,6 +1485,7 @@ _ABWEICHUNGS_FELDER: Tuple[Tuple[str, str], ...] = (
 _NEST_ABWEICHUNGS_FELDER: Tuple[Tuple[str, str], ...] = (
     ("nest_schritt_atr", "nstep"),
     ("nest_link_toleranz_atr", "nlink"),
+    ("nest_link_level_atr", "nlev"),
     ("nest_min_bars", "nmin"),
     ("nest_min_anteil_pct", "nanteil"),
     ("nest_pad_tage", "npad"),
@@ -1601,7 +1627,8 @@ def _parse_cli(
         elif key in ("va_pct", "valley_rel", "min_mountain_pct", "va_zone_pct",
                      "vol_min", "vol_quantil", "streu_toleranz_atr",
                      "min_abdeckung", "nest_schritt_atr",
-                     "nest_link_toleranz_atr", "nest_min_anteil_pct",
+                     "nest_link_toleranz_atr", "nest_link_level_atr",
+                     "nest_min_anteil_pct",
                      "nest_streu_toleranz_atr"):
             felder[key] = float(val)
         elif key in ("konsens_bins", "konsens_smooth"):
@@ -1663,6 +1690,8 @@ def _validiere(config: VolumeProfilConfig) -> None:
         raise SystemExit("nest_schritt_atr muss > 0 sein (Rasterschritt).")
     if config.nest_link_toleranz_atr < 0.0:
         raise SystemExit("nest_link_toleranz_atr muss >= 0 sein.")
+    if config.nest_link_level_atr < 0.0:
+        raise SystemExit("nest_link_level_atr muss >= 0 sein (0 = nur gleiche POCs).")
     if config.nest_min_bars < 1:
         raise SystemExit("nest_min_bars muss >= 1 sein.")
     if config.nest_min_anteil_pct < 0.0:
@@ -1709,6 +1738,7 @@ def _store_parameter(config: VolumeProfilConfig) -> Dict[str, object]:
         # mit anderem Raster/Link/Mindestgroesse ist ein anderer Parametersatz.
         "nest_schritt_atr": config.nest_schritt_atr,
         "nest_link_toleranz_atr": config.nest_link_toleranz_atr,
+        "nest_link_level_atr": config.nest_link_level_atr,
         "nest_min_bars": config.nest_min_bars,
         "nest_min_anteil_pct": config.nest_min_anteil_pct,
         "nest_konsens_k": list(config.nest_konsens_k),

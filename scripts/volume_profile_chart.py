@@ -7,8 +7,9 @@ zeichnet - es rechnet keine Level und bildet keine Fenster.
 
 Zwei Ausgaben
 -------------
-1) ZONEN-CHART   Preis (high/low) ueber der Bar-Achse mit je Fenster
-                 dem Rechteck der Zonen-Value-Area (94 %) und der POC-Linie.
+1) ZONEN-CHART   Kerzen (open/close mit high/low-Docht) ueber der Bar-Achse,
+                 je Fenster das Rechteck der Zonen-Value-Area (94 %) und die
+                 POC-Linie.
                  Ist der POC unsicher (``poc_streu_atr`` > Toleranz), wird das
                  POC-Band der Konsens-Parametersaetze schraffiert und die
                  POC-Linie gestrichelt in der Warnfarbe gezeichnet.
@@ -93,7 +94,13 @@ _COL_POC_U: str = "#c62828"   # POC uneindeutig (+ Konsensband)
 _COL_NEST: str = "#e65100"    # POC weiterer Segmente
 _COL_NEST_OBJ: str = "#00695c"  # NEST ueber Fenstergrenzen (eigenes Objekt)
 _COL_NEST_RAND: str = "#8e24aa"  # Nest endet am Zeitraumrand (angeschnitten)
-_COL_PREIS: str = "#bbbbbb"   # Preis (high/low)
+# Kerzen: dieselbe Farbsprache wie ``algos/chart_engine.py`` (Marktansicht der
+# Anwendung) - auf = gruen, ab = rot. BEWUSSTE Abweichung von der archivierten
+# Referenz ``scripts/archiv/volume_zone_profil.py``: dort lief der Preis als
+# grauer high/low-Linienzug (``_COL_PREIS`` = ``#bbbbbb``). Die Sichtpruefung
+# verlangt Kerzen (open/close mit Docht) - die Linie ist damit ersetzt.
+_COL_KERZE_AUF: str = "#26a69a"  # Kerze auf (close >= open)
+_COL_KERZE_AB: str = "#ef5350"   # Kerze ab (close < open)
 _COL_LOB2: str = "#2e7d32"    # Zweitgipfel-Niveau
 _COL_OHNE_NEST: str = "#dcdcdc"
 
@@ -290,6 +297,64 @@ def _tagesgrenzen_labels(df: pd.DataFrame, indizes: np.ndarray) -> List[str]:
 # =============================================================================
 
 
+def _kerzen_farben(open_: np.ndarray, close: np.ndarray) -> np.ndarray:
+    """Liefert je Bar die Kerzenfarbe (auf/ab) als Vektor.
+
+    Args:
+        open_: Open-Reihe der Bars.
+        close: Close-Reihe der Bars.
+
+    Returns:
+        String-Array mit ``_COL_KERZE_AUF`` (close >= open) bzw.
+        ``_COL_KERZE_AB`` (close < open).
+    """
+    return np.where(close >= open_, _COL_KERZE_AUF, _COL_KERZE_AB)
+
+
+def _zeichne_kerzen(ax: plt.Axes, df: pd.DataFrame, breite: float = 0.7) -> int:
+    """Zeichnet OHLC-Kerzen vektorisiert in eine Achse (Docht + Koerper).
+
+    Es wird KEIN Loop ueber die Bars gefahren: Docht (``vlines``) und Koerper
+    (``bar``) gehen jeweils als ganze Reihe an matplotlib. Ein Doji
+    (``open == close``) bekommt eine Mindest-Koerperhoehe von 1/10000 der
+    Achsenspanne, sonst waere er unsichtbar. Rot/ gruen folgen
+    ``algos/chart_engine.py`` (auf = ``#26a69a``, ab = ``#ef5350``).
+
+    Hinweis: Die ``idx``-Spalte ist der Bar-Index (Primaerschluessel, K5) und
+    laeuft in 1er-Schritten - die Kerzenbreite ist deshalb in Achsen-Einheiten
+    anzugeben, nicht in Zeit.
+
+    Args:
+        ax: Ziel-Achse.
+        df: Bars (Spalten ``idx/open/high/low/close``).
+        breite: Kerzenbreite in Einheiten der X-Achse (1.0 = volle Bar-Breite).
+
+    Returns:
+        Anzahl gezeichneter Kerzen (0 bei leerem Input).
+    """
+    if df.empty:
+        return 0
+    x: np.ndarray = df["idx"].to_numpy(dtype=float)
+    o: np.ndarray = df["open"].to_numpy(dtype=float)
+    h: np.ndarray = df["high"].to_numpy(dtype=float)
+    l: np.ndarray = df["low"].to_numpy(dtype=float)
+    c: np.ndarray = df["close"].to_numpy(dtype=float)
+    farben = _kerzen_farben(o, c)
+    # Docht zuerst (zorder 1), Koerper darueber (zorder 2) - die Bänder und
+    # POC-Linien der Profile liegen mit zorder >= 3 darueber, bleiben aber
+    # durchscheinend, damit die Kerzen an jeder Stelle lesbar bleiben.
+    ax.vlines(x, l, h, color=list(farben), lw=0.45, zorder=1)
+    spanne: float = float(np.nanmax(h) - np.nanmin(l)) if h.size else 0.0
+    minimum: float = spanne * 1e-4 if spanne > 0.0 else 0.0
+    unten: np.ndarray = np.minimum(o, c)
+    hoehe: np.ndarray = np.maximum(np.abs(c - o), minimum)
+    ax.bar(
+        x, hoehe, bottom=unten, width=breite, color=list(farben),
+        edgecolor="none", linewidth=0.0, zorder=2,
+    )
+    return int(x.size)
+
+
 def zeichne_zonen_chart(
     df: pd.DataFrame,
     profile: Sequence[FensterProfil],
@@ -298,9 +363,11 @@ def zeichne_zonen_chart(
     nur_gueltige: bool = True,
     nester: Optional[Sequence[NestInstanz]] = None,
 ) -> None:
-    """Zeichnet Preis, die getrennten Bereiche je Segment und das Hauptband.
+    """Zeichnet Kerzen, die getrennten Bereiche je Segment und das Hauptband.
 
-    Je Fenster wird das Rechteck ``[VAL .. VAH]`` der 94 %-Zonen-Klammer und die
+    Der Preisverlauf steht als OHLC-Kerze auf der Bar-Achse (auf/ab in der
+    Farbsprache der Anwendung, siehe ``_zeichne_kerzen``); je Fenster wird das
+    Rechteck ``[VAL .. VAH]`` der 94 %-Zonen-Klammer und die
     POC-Linie gezeichnet; die POCs der uebrigen Segmente gestrichelt. Bei
     unsicherem POC (``streu_atr`` > Toleranz) wird zusaetzlich das POC-Band der
     Konsens-Parametersaetze schraffiert - die Unsicherheit ist sichtbar statt
@@ -321,7 +388,7 @@ def zeichne_zonen_chart(
     violetten Randmarker gekennzeichnet - es kann weiterlaufen.
 
     Args:
-        df: Bars des Gesamtfensters (Spalten ``idx/high/low/ts``).
+        df: Bars des Gesamtfensters (Spalten ``idx/open/high/low/close/ts``).
         profile: Fensterprofile (Vertrag ``FensterProfil``).
         stil: Darstellungsparameter.
         out_png: Zielpfad der PNG-Datei.
@@ -334,13 +401,11 @@ def zeichne_zonen_chart(
     ]
     if not zeigen:
         return
-    idx: np.ndarray = df["idx"].to_numpy(dtype=int)
-    high: np.ndarray = df["high"].to_numpy(dtype=float)
-    low: np.ndarray = df["low"].to_numpy(dtype=float)
 
     fig, ax = plt.subplots(figsize=(17, 11))
-    ax.plot(idx, high, color=_COL_PREIS, lw=0.5, zorder=1)
-    ax.plot(idx, low, color=_COL_PREIS, lw=0.5, zorder=1)
+    # Preis als Kerze (open/close mit high/low-Docht) - vektorisiert, siehe
+    # ``_zeichne_kerzen``; die Profile liegen mit zorder >= 3 darueber.
+    _zeichne_kerzen(ax, df)
 
     n_nest: int = 0
     n_unsicher: int = 0
@@ -583,7 +648,10 @@ def zeichne_zonen_chart(
                label="POC unsicher + Band der Konsens-Parametersaetze"),
         Line2D([0], [0], color=_COL_NEST, lw=0.7, ls=(0, (4, 3)),
                label="POC weiterer Segmente"),
-        Line2D([0], [0], color=_COL_PREIS, lw=1.0, label="Preis (high/low)"),
+        Line2D([0], [0], color=_COL_KERZE_AUF, lw=5,
+               label="Kerze auf (close >= open)"),
+        Line2D([0], [0], color=_COL_KERZE_AB, lw=5,
+               label="Kerze ab (close < open)"),
     ]
     if stil.bereiche_zeichnen:
         for rang, farbe in enumerate(_bereich_farben(3)):

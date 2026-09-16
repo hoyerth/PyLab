@@ -67,6 +67,31 @@ wird hier nur ANGESTOSSEN (``finde_nester``), in Speicherzeilen uebersetzt
 (angeschnitten) bleiben als Zeile erhalten, gehen aber nicht in die Statistik
 ein - so ist kalibrierbar, wie viele es wirklich gibt.
 
+Belegung (Aufenthalt) und Zeit-Preis-Karte (zweite Messgroesse)
+---------------------------------------------------------------
+ANZEIGE ZURZEIT AUS (``TPO_ANZEIGE`` = False): TPO ist zurueckgestellt, bis die
+VOLUMEN-Engine feinoptimiert ist (Sichtpruefung der Nester). Die Messung laeuft
+unveraendert weiter (Felder ``tpo_*``, Speicher, TSV-Spalten) - nur der Report
+zeigt die Belegungsspalten, die Belegungs-Zusammenfassung und die Karte nicht.
+
+Jedes Nest traegt neben dem VOLUMEN die BELEGUNG (Aufenthalt, TPO je Close).
+Beide haben eine EIGENE, im Report/TSV ausgewiesene Basis: das Volumen kommt
+aus dem Profil der GEFILTERTEN Bars (``n_bars_vol``), die Belegung aus den
+ROHEN Bars - Aufenthalt ist physische Zeit und wird vom Volumenfilter nicht
+beruehrt. Gezaehlt wird auf denselben Bin-Kanten wie das Levelprofil, damit
+Belegungs-POC und Volumen-POC vergleichbar sind.
+
+Der Report zeigt dazu die ZEIT-PREIS-KARTE (``_karte_zeilen``): je Fenster eine
+Zeile je Preisband, eine Spalte je BKZ-Stunde, in der Zelle die Bars, die dort
+geschlossen haben. Sie ist noetig, weil ein Histogramm - Volumen WIE TPO - die
+Zeitreihenfolge wegwirft und eine ZEIT-PLATTE (derselbe Preis zu verschiedenen
+Stunden) nicht von einem gewoehnlichen Gipfel unterscheiden kann. Gemessen
+(09/2026, SILVER M15): mit Gewicht 1 ueber die Bar-Spanne verteilt liefert die
+Zeitsicht an ALLEN Tagen dieselbe Berg-Zahl wie das Volumen - sie ist kein
+Detektor. Die Belegung ist deshalb eine ZWEITE MESSUNG desselben Objekts, keine
+zweite Objektmenge; eine solche ist erst ein weiterer, noch nicht vereinbarter
+Schritt.
+
 Dateiname und Parametrisierung
 ------------------------------
 Ein Default-Lauf behaelt seinen Namen. Weicht ein profilbildender Parameter ab
@@ -142,6 +167,8 @@ Aufruf (Projekt-Wurzel) - Default ist September 2026 mit va_pct = 0,7:
         --unvollstaendige_verwerfen=1
     python -m scripts.volume_profile_run --nest_link_level_atr=0     ^
         (Gegenseite: nur identische POCs werden gepaart)
+    python -m scripts.volume_profile_run --valley_rel=0.35           ^
+        (Gegenseite: groebere Talschwelle, weniger Berge je Fenster)
 """
 from __future__ import annotations
 
@@ -162,6 +189,12 @@ if __package__ in (None, ""):
         sys.path.insert(0, str(_projekt_root))
 
 from scripts.market_segmentation import load_data  # noqa: E402
+from scripts.volume_profile_belegung import (  # noqa: E402
+    KARTE_STUNDEN_MIN,
+    MAX_BAENDER,
+    ZeitPreisKarte,
+    zeit_preis_karte,
+)
 from scripts.volume_profile_chart import (  # noqa: E402
     ChartStil,
     zeichne_alles,
@@ -207,6 +240,21 @@ _ROOT: Path = Path(__file__).resolve().parent.parent
 # ``MIN_BARS_HART`` = 1 Bar ist von jedem Fenster erfuellt); sie greift nur als
 # unterste Kante, wenn nichts anderes gesagt ist.
 MIN_BARS_HART: int = 1
+
+# --- Anzeige-Schalter der zweiten Messgroesse (Belegung/TPO) -----------------
+# ABGESCHALTET (False): TPO ist vom Anwender zurueckgestellt - zuerst wird die
+# VOLUMEN-Engine feinoptimiert (Sichtpruefung der Nester), erst danach
+# TPO/Aufenthalt. Deshalb entfallen im TXT-Report die Belegungsspalten der
+# Nesttabelle, die Belegungs-Zusammenfassung und der Abschnitt
+# "ZEIT-PREIS-KARTE" - die Sichtpruefung zeigt dann nur die Volumenseite.
+#
+# Es wird NICHTS entfernt und NICHTS umgerechnet: die Belegung wird weiter
+# gemessen (Felder ``tpo_*`` in ``NestInstanz``/``NestObjektZeile`` und im
+# Laufzeitspeicher), und die TSV-Ausgabe behaelt ihre Spalten (sie ist der
+# spaetere DATENVERTRAG der Statistik, Frage 1 - kein Sichtpruefungs-Text).
+# True = die TPO-Abschnitte erscheinen wieder im Report.
+# Reine Anzeige: kein Parameter, keine Wirkung auf ``run_id`` oder Rechnung.
+TPO_ANZEIGE: bool = False
 
 
 # =============================================================================
@@ -260,7 +308,10 @@ class VolumeProfilConfig:
             Gipfel, groesserer Anteil des Profils bleibt in den Luecken
             (schnelle Moves). Die eingefrorene Baseline rechnete mit 0,93 -
             fuer den Vergleich laesst sich das per ``--va_pct=0.93`` setzen.
-        valley_rel: Tal-Schwellwert zur Berg-Trennung (Baseline ``VALLEY_REL``).
+        valley_rel: Tal-Schwellwert zur Berg-Trennung (Baseline ``VALLEY_REL``,
+            Default 0,60 seit dem 15.09.2026; vorher 0,35). Er rechnet relativ
+            zum kleineren Nachbargipfel - kleinere Werte verschlucken fette,
+            aber niedrigere Berge (02.09. 63,69 / 14.09. 62,90).
         min_mountain_pct: Mindestanteil am groessten Berg (Baseline
             ``MIN_MOUNTAIN_PCT``).
         va_zone_pct: Anteil des GESAMTVOLUMENS fuer die Zonen-Value-Area ab POC.
@@ -276,10 +327,24 @@ class VolumeProfilConfig:
             ``volume_profile_nests``).
         nest_link_toleranz_atr: Zusaetzliche Ueberlappungstoleranz beim Paaren
             zweier Berg-Kerne (0,0 = strenger Schnitt).
+        nest_link_level_atr: Hoechster POC-Abstand zweier Berge, die noch
+            gepaart werden duerfen, als Vielfaches des Bezugs-ATR (Default 1,0
+            seit dem 15.09.2026; vorher 2,0 = Gegenseite des Vergleichs). Der
+            ATR ist ein TAGESmass und als LEVEL-Schranke mit Faktor 2 zu grob:
+            er verschmilzt zwei real ~1 $ auseinanderliegende Knoten (10.09.
+            64,33 / 11.09. 63,97), wenn ein Crash-Tag ihn aufblaeht.
         nest_min_bars: Mindestzahl Bars eines Nest-Laufs; darunter ist der Lauf
             ein Flimmer-Lauf und geht nicht in die Statistik ein.
         nest_min_anteil_pct: Mindestvolumen eines Nest-Laufs in Prozent des
             groessten Laufs (Flimmer-Grenze, analog ``min_mountain_pct``).
+        nest_lauf_im_kern: True (Default) = ein Bar zaehlt nur zum LAUF, wenn
+            sein CLOSE im KERNBAND der Kette liegt (Vereinigung der
+            Berg-Value-Areas der gepaarten Berge). Damit deckt die gezeichnete
+            BOX (``VAL..VAH``) ihren Lauf: ein Bar ausserhalb des Kerns ist eine
+            Luecke, der Lauf endet dort und die Rueckkehr in den Kern beginnt
+            ein NEUES Nest. False = der Lauf umfasst alle Bars des
+            ZUTEILUNGSBANDES (Tal zu Tal, die Laeufe tilen dann die Zeitachse
+            lueckenlos) - das ist die Gegenseite des A/B-Vergleichs.
         nest_konsens_k: Rasterschritte, ueber die die POC-Unsicherheit eines
             Nestes gemessen wird (Aufloesungs-Unsicherheit).
         nest_konsens_smooth: Glaettungsfenster der Nest-Konsensmessung.
@@ -329,7 +394,16 @@ class VolumeProfilConfig:
     smooth_win: int = 3
     modus: str = "zone"
     va_pct: float = 0.7
-    valley_rel: float = 0.15
+    # Tal-Schwelle der Berg-Erkennung. 0,60 (Default seit dem 15.09.2026;
+    # vorher 0,35, davor 0,15): die Schranke rechnet RELATIV zum kleineren der
+    # beiden Nachbargipfel, deshalb werden ein fetter, aber niedrigerer Berg
+    # (14.09. bei 62,9 = 32 % Prominenz) und ein zweimal angetasteter Berg
+    # (02.09. bei 63,69 = 41 %) bei 0,35 verschluckt. Bei 0,60 liefert die
+    # Berg-Erkennung der Befundtage exakt die Soll-Struktur (02.09.:
+    # 64,03 | 63,69 | 65,04; 14.09.: 63,90 | 62,90 | 63,33), ohne die
+    # Tagesmitte zu zersplittern (0,65/0,70 erzeugen dort vier Berge).
+    # 0,15/0,35 = Gegenseite des Vergleichs (Kern unangetastet).
+    valley_rel: float = 0.60
     min_mountain_pct: float = 4.0
     va_zone_pct: float = 0.94
     vol_min: float = 0.0
@@ -350,10 +424,20 @@ class VolumeProfilConfig:
     nest_link_toleranz_atr: float = 0.0
     # Level-Schranke: zwei Berge werden nur gepaart, wenn ihre POCs hoechstens
     # so viele ATR auseinanderliegen. Ohne sie verband die Kern-Ueberlappung
-    # auch Berge auf verschiedenen LEVELN zu einem Sammelobjekt.
-    nest_link_level_atr: float = 2.0
+    # auch Berge auf verschiedenen LEVELN zu einem Sammelobjekt. 1,0 seit dem
+    # 15.09.2026 (vorher 2,0): der ATR ist ein TAGESmass, und ein Crash-Tag
+    # blaest die LEVEL-Schranke auf - damit verschmolzen zwei real ~1 $
+    # auseinanderliegende Knoten (10.09. POC 64,33 / 11.09. POC 63,97 = 1,56
+    # ATR bei nur +0,57 Kern-Ueberlappung). Bei 1,0 zerfallen diese Ketten.
+    nest_link_level_atr: float = 1.0
     nest_min_bars: int = 8
     nest_min_anteil_pct: float = 4.0
+    # Laufgrenze: der Lauf wird an die BOX gebunden (Close muss im Kernband der
+    # Kette liegen). Ohne sie umfasst der Lauf das ganze ZUTEILUNGSBAND (Tal zu
+    # Tal) - dann tilen die Laeufe die Zeitachse lueckenlos, und die gezeichnete
+    # Box deckt ihren Lauf nicht (gemessen: 22-33 % der Bars ausserhalb, bis
+    # 6,4 ATR daneben). 0 = Gegenseite des A/B-Vergleichs.
+    nest_lauf_im_kern: bool = True
     nest_konsens_k: Tuple[float, ...] = (0.15, 0.25, 0.40)
     nest_konsens_smooth: Tuple[int, ...] = (1, 3, 5, 9)
     nest_streu_toleranz_atr: float = 1.0
@@ -435,6 +519,7 @@ def _nest_parameter(config: VolumeProfilConfig) -> NestParameter:
         link_level_atr=config.nest_link_level_atr,
         min_bars=config.nest_min_bars,
         min_anteil_pct=config.nest_min_anteil_pct,
+        lauf_im_kern=config.nest_lauf_im_kern,
         konsens_k=tuple(config.nest_konsens_k),
         konsens_smooth=tuple(config.nest_konsens_smooth),
         streu_toleranz_atr=config.nest_streu_toleranz_atr,
@@ -565,6 +650,12 @@ def _nester_im_kern(
                 raster_schritt=float(i.raster_schritt),
                 zu_klein=bool(i.zu_klein), angeschnitten=angeschnitten,
                 konsens=i.konsens,
+                # Belegung und Volumenbasis stammen aus dem POLSTERlauf (wie
+                # die Level): sie tragen den GANZEN Knoten.
+                sorte=str(i.sorte), n_bars_vol=int(i.n_bars_vol),
+                tpo_poc=float(i.tpo_poc),
+                tpo_gipfel_bars=int(i.tpo_gipfel_bars),
+                tpo_bins=int(i.tpo_bins), tpo_dichte=float(i.tpo_dichte),
             )
         )
 
@@ -909,6 +1000,9 @@ def _nest_zeilen(
             poc_streu_atr=float(i.konsens.streu_atr),
             poc_min=float(i.konsens.poc_min), poc_max=float(i.konsens.poc_max),
             poc_eindeutig=bool(i.konsens.eindeutig),
+            sorte=str(i.sorte), n_bars_vol=int(i.n_bars_vol),
+            tpo_poc=float(i.tpo_poc), tpo_gipfel_bars=int(i.tpo_gipfel_bars),
+            tpo_bins=int(i.tpo_bins), tpo_dichte=float(i.tpo_dichte),
         )
         for i in ergebnis.instanzen
     ]
@@ -969,13 +1063,39 @@ def _nest_abschnitt(
         "  neues Nest, kein Wiederbesuch. Die Id ist die Position in der ZEIT.",
         "  Level sind auf EINEM Raster gerechnet (gleicher Preisschritt ueber alle",
         "  Nester), ATR ist der der eigenen Lebensdauer.",
-        f"  Erkennung: {_pad_txt(config)}.",
     ]
+    if TPO_ANZEIGE:
+        zeilen += [
+            "  Jedes Nest traegt ZWEI Messgroessen mit je eigener, ausgewiesener",
+            "  Basis: vol/Streu aus dem Volumenprofil der GEFILTERTEN Bars (Basis",
+            "  n_bars_vol), die Belegung (TPO) aus den ROHEN Bars - Aufenthalt ist",
+            "  physische Zeit und wird vom Volumenfilter NICHT beruehrt.",
+            "  TPO = Belegungs-Gipfel (Preis) | gB = Bars im dichtesten Bin |",
+            "  bins = Bins mit Belegung | dicht = Bars je belegtem Bin |",
+            "  int = Intensitaet = vol / n_bars_vol (Volumen je Bar).",
+        ]
+    if config.nest_lauf_im_kern:
+        zeilen += [
+            "  LAUFGRENZE: ein Bar zaehlt nur zum Lauf, wenn sein CLOSE im KERNBAND",
+            "  der Kette liegt (Vereinigung der Berg-Value-Areas der gepaarten",
+            "  Berge). Ein Bar ausserhalb ist eine Luecke: der Lauf endet dort, und",
+            "  kehrt der Preis in den Kern zurueck, beginnt ein NEUES Nest. Damit",
+            "  deckt die Box (VAL..VAH) ihren Lauf, statt die Zeitachse zu tilen.",
+        ]
+    else:
+        zeilen += [
+            "  LAUFGRENZE AUS (nest_lauf_im_kern=0): der Lauf umfasst ALLE Bars des",
+            "  ZUTEILUNGSBANDES (Tal zu Tal). Die Laeufe tilen dann die Zeitachse",
+            "  lueckenlos, und die Box (VAL..VAH) deckt ihren Lauf nicht.",
+        ]
+    zeilen.append(f"  Erkennung: {_pad_txt(config)}.")
     if not ergebnis.instanzen:
         zeilen.append("")
         zeilen.append("  Keine Nester erkannt (kein Lauf erreicht die Mindestgroesse).")
         return zeilen
     atr_bezug = ergebnis.atr_bezug
+    kopf_tpo = " | TPO        gB  bins dicht        int" if TPO_ANZEIGE else ""
+    breite_kopf = 154 if TPO_ANZEIGE else 122
     zeilen += [
         f"  Bezugs-ATR (Median der Fenster) = "
         f"{'-' if not np.isfinite(atr_bezug) else f'{atr_bezug:.5f}'} | "
@@ -983,14 +1103,24 @@ def _nest_abschnitt(
         f"{'-' if not np.isfinite(ergebnis.schritt) else f'{ergebnis.schritt:.5f}'} | "
         f"Laeufe roh = {ergebnis.n_laeufe_roh}",
         "  id   terr  rang  bars       BKZ von .. bis        nB  Fen  "
-        "POC        VAL        VAH      Breite  B/ATR  Vol        Streu  eint",
-        "  " + "-" * 126,
+        "POC        VAL        VAH      Breite  B/ATR  Vol        Streu  eint"
+        f"{kopf_tpo}  Marke",
+        "  " + "-" * breite_kopf,
     ]
     for i in ergebnis.instanzen:
         marke = (
             "zu klein" if i.zu_klein
             else ("Rand" if i.angeschnitten else "ja")
         )
+        zeile_tpo = ""
+        if TPO_ANZEIGE:
+            tpo = "-" if not np.isfinite(i.tpo_poc) else f"{i.tpo_poc:.3f}"
+            dicht = "-" if not np.isfinite(i.tpo_dichte) else f"{i.tpo_dichte:.2f}"
+            inten = "-" if not np.isfinite(i.intensitaet) else f"{i.intensitaet:.1f}"
+            zeile_tpo = (
+                f" | {tpo:>9} {i.tpo_gipfel_bars:4d} {i.tpo_bins:5d} "
+                f"{dicht:>5} {inten:>10}"
+            )
         zeilen.append(
             f"  {i.id:<4d} {i.territorium_id:<5d} {i.rang:<5d} "
             f"{i.bar_start:5d}..{i.bar_ende:<5d} "
@@ -1000,7 +1130,8 @@ def _nest_abschnitt(
             f"{('-' if not np.isfinite(i.breite_atr) else f'{i.breite_atr:.2f}'):>6} "
             f"{i.vol:10.1f} "
             f"{('-' if not np.isfinite(i.konsens.streu_atr) else f'{i.konsens.streu_atr:.2f}'):>5} "
-            f"{'ja' if i.konsens.eindeutig else 'NEIN':>5}  {marke}"
+            f"{'ja' if i.konsens.eindeutig else 'NEIN':>5}"
+            f"{zeile_tpo}  {marke}"
         )
 
     nester = ergebnis.nester
@@ -1038,6 +1169,216 @@ def _nest_abschnitt(
             f"  POC eindeutig (gegenueber dem Rasterschritt): {n_eind} von "
             f"{len(nester)} ({100.0 * n_eind / len(nester):.1f} %)"
         )
+        # Belegung (Aufenthalt): eigene Messgroesse aus den ROHEN Bars, deshalb
+        # eine eigene Zeile - nicht mit vol/Streu (gefilterte Bars) mischen.
+        # ANZEIGE: siehe ``TPO_ANZEIGE`` - die Messung laeuft weiter, nur der
+        # Report zeigt sie zurzeit nicht (Volumen-Engine geht vor).
+        if TPO_ANZEIGE:
+            gipfel = np.array([i.tpo_gipfel_bars for i in nester], dtype=float)
+            bins_bel = np.array([i.tpo_bins for i in nester], dtype=float)
+            dichte = np.array(
+                [i.tpo_dichte for i in nester if np.isfinite(i.tpo_dichte)],
+                dtype=float,
+            )
+            inten = np.array(
+                [i.intensitaet for i in nester if np.isfinite(i.intensitaet)],
+                dtype=float,
+            )
+            zeilen.append(
+                f"  Belegung (Aufenthalt, rohe Bars): Gipfel-Bin median="
+                f"{np.median(gipfel):.0f} Bars max={gipfel.max():.0f} | belegte "
+                f"Bins median={np.median(bins_bel):.0f} | Dichte median="
+                f"{(np.median(dichte) if dichte.size else float('nan')):.2f} "
+                f"Bars je belegtem Bin"
+            )
+            if inten.size:
+                zeilen.append(
+                    f"  Intensitaet (Volumen je Bar, Basis n_bars_vol): median="
+                    f"{np.median(inten):.1f} min={inten.min():.1f} "
+                    f"max={inten.max():.1f}"
+                )
+            zeilen.append(
+                "    Beide Groessen messen DASSELBE Nest auf verschiedener Basis: "
+                "Volumen aus den gefilterten Bars, Belegung aus allen Bars. Der "
+                "Charakter eines Nestes (Volumen- oder Aufenthaltsnest) ist daraus "
+                "ableitbar - die Zuordnungsregel ist noch NICHT vereinbart und "
+                "wird hier deshalb nur als Messwert gefuehrt."
+            )
+    return zeilen
+
+
+def _nest_abschnitt_mit_box(
+    df: Optional[pd.DataFrame], ergebnis: NestErgebnis, config: VolumeProfilConfig
+) -> List[str]:
+    """Baut den Nest-Abschnitt und haengt die Box-Abdeckung an.
+
+    Die Kennzahl gehoert direkt hinter die Nesttabelle: sie sagt, ob die
+    gezeichnete Box ihren Lauf deckt (Befund 1) - und sie ist ohne ``df`` nicht
+    rechenbar, deshalb wird sie nicht in ``_nest_abschnitt`` gezogen.
+
+    Args:
+        df: Bars des geladenen Zeitraums (BKZ); None = keine Kennzahl.
+        ergebnis: Ergebnis der Nest-Erkennung.
+        config: Laufkonfiguration.
+
+    Returns:
+        Zeilen des Abschnitts (inkl. Box-Abdeckung, falls rechenbar).
+    """
+    zeilen = _nest_abschnitt(ergebnis, config)
+    if df is not None:
+        box = _box_zeile(df, ergebnis)
+        if box:
+            zeilen.append(f"  {box}")
+    return zeilen
+
+
+def _box_zeile(df: pd.DataFrame, ergebnis: NestErgebnis) -> str:
+    """Kurzzeile "Box-Abdeckung": wie viele Laufbars liegen in der eigenen Box?
+
+    Die Box eines Nests ist seine Value Area ``VAL..VAH`` (das, was gezeichnet
+    wird). Die Kennzahl zaehlt die Bars aller Laeufe, deren CLOSE darin liegt -
+    sie ist das Mass fuer Befund 1 (Lauf und Box fallen auseinander). Sie wird
+    aus den Bars gerechnet, nicht aus den Leveln: es wird also nichts umgerechnet.
+
+    Args:
+        df: Bars des geladenen Zeitraums (BKZ).
+        ergebnis: Ergebnis der Nest-Erkennung.
+
+    Returns:
+        Textzeile; leer, wenn es keine Laeufe gibt.
+    """
+    if df.empty or not ergebnis.instanzen:
+        return ""
+    closes = df["close"].to_numpy(dtype=float)
+    n_bars = 0
+    n_drinnen = 0
+    max_ab_atr = 0.0
+    for i in ergebnis.instanzen:
+        c = closes[int(i.bar_start) : int(i.bar_ende) + 1]
+        if c.size == 0:
+            continue
+        drin = (c >= i.val) & (c <= i.vah)
+        n_bars += int(c.size)
+        n_drinnen += int(drin.sum())
+        if i.atr > 0.0 and not bool(drin.all()):
+            ab = np.maximum(i.val - c, c - i.vah)
+            max_ab_atr = max(max_ab_atr, float(np.max(ab)) / float(i.atr))
+    if n_bars == 0:
+        return ""
+    return (
+        f"Box-Abdeckung (Bars eines Laufs mit Close in seinem VAL..VAH): "
+        f"{n_drinnen}/{n_bars} = {100.0 * n_drinnen / n_bars:.1f} % | "
+        f"groesster Abstand zur eigenen Box {max_ab_atr:.2f} ATR"
+    )
+
+
+def _karte_zeichen(v: int) -> str:
+    """Textsymbol einer Kartenzelle (Zahl der Bars in einer Stunde/Preisband).
+
+    Args:
+        v: Bar-Zahl der Zelle.
+
+    Returns:
+        ``.`` bei 0, die Ziffer bei 1..9, ``A``..``Z`` ab 10 (bei 36 gedeckelt).
+    """
+    if v <= 0:
+        return "."
+    if v < 10:
+        return str(int(v))
+    return chr(ord("A") + min(int(v) - 10, 25))
+
+
+def _karte_zeilen(
+    df: pd.DataFrame,
+    gueltig: Sequence[FensterProfil],
+    nester: Optional[NestErgebnis] = None,
+) -> List[str]:
+    """Baut den Reportabschnitt "Zeit-Preis-Karte" (Aufenthalt je Fenster).
+
+    Die Karte ist die SICHT auf den Aufenthalt: je Fenster (i. d. R. ein BKZ-
+    Kalendertag) eine Zeile je Preisband und eine Spalte je BKZ-Stunde, in der
+    Zelle die Zahl der Bars, die dort geschlossen haben. Sie ist noetig, weil
+    ein Histogramm - Volumen WIE TPO - die Zeitreihenfolge wegwirft und eine
+    ZEIT-PLATTE (derselbe Preis zu verschiedenen Stunden) deshalb nicht zeigen
+    kann: als 1D-Verteilung erscheint sie wie ein gewoehnlicher Gipfel.
+
+    Gezeigt werden nur Fenster mit mindestens einem Nest (der Abschnitt dient
+    der Sichtpruefung der Nester), und die Bandhoehe ist der Rasterschritt der
+    Nest-Level - damit spricht die Karte dieselbe Aufloesung wie die Level.
+    Die Bandzahl ist auf ``MAX_BAENDER`` gedeckelt; die Karte eines sehr
+    weitlaufenden Tages wird dann groeber, aber vollstaendig.
+
+    Args:
+        df: Bars des geladenen Zeitraums (BKZ; Spalten ``close/high/low/ts``).
+        gueltig: Fenster mit Profil (Bar-Indizes in ``df``, K5).
+        nester: Ergebnis der Nest-Erkennung; None/leer = kein Abschnitt.
+
+    Returns:
+        Zeilen des Abschnitts (ohne fuehrende Leerzeile); leer, wenn keine
+        Karte bildbar ist.
+    """
+    if nester is None or not nester.instanzen or df.empty:
+        return []
+    fenster = [
+        p for p in gueltig
+        if any(
+            i.bar_ende >= p.bar_start and i.bar_start <= p.bar_ende
+            for i in nester.instanzen
+        )
+    ]
+    if not fenster:
+        return []
+    band_hoehe = float(nester.schritt)
+    if not np.isfinite(band_hoehe) or band_hoehe <= 0.0:
+        return []
+    zeilen: List[str] = [
+        "ZEIT-PREIS-KARTE (Aufenthalt: Bars je Preisband x BKZ-Stunde):",
+        "  Zeile = Preisband (obere Kante), Spalte = BKZ-Stunde 0..23, Zeichen",
+        f"  = Zahl der Bars, die in dieser Stunde dort geschlossen haben "
+        f"(1-9 = Ziffer, A-Z = 10-35, '.' = keine).",
+        f"  Gezeigt werden nur Fenster mit mindestens einem Nest; Bandhoehe = "
+        f"Rasterschritt der Nest-Level "
+        f"({band_hoehe:.5f}), Baender je Fenster gedeckelt auf "
+        f"{MAX_BAENDER}.",
+        "  Warum: ein Histogramm (Volumen WIE TPO) wirft die Zeitreihenfolge weg",
+        "  und kann eine ZEIT-PLATTE nicht zeigen - hier steht, WANN auf welchem",
+        "  Preis gestanden wurde. Daran entscheidet sich, ob eine zweite",
+        "  (Zeit-)Berg-Menge noetig ist.",
+        f"  'ueber Stunden' = Preisbaender mit Belegung in >= "
+        f"{KARTE_STUNDEN_MIN} verschiedenen BKZ-Stunden (Zeit-Platten).",
+    ]
+    n_karten = 0
+    for p in fenster:
+        sub = df.iloc[int(p.bar_start) : int(p.bar_ende) + 1]
+        karte: Optional[ZeitPreisKarte] = zeit_preis_karte(
+            sub, band_hoehe, p.label, int(p.bar_start), int(p.bar_ende)
+        )
+        if karte is None:
+            continue
+        n_karten += 1
+        oben = karte.lo + karte.n_baender * karte.schritt
+        zeilen.append("")
+        zeilen.append(
+            f"  {karte.label} | Bars {karte.n_bars} | Spanne {karte.lo:.3f}.."
+            f"{oben:.3f} | Baender {karte.n_baender} | max Zelle "
+            f"{karte.max_bars}"
+        )
+        zeilen.append(
+            "  " + " " * 9 + "".join(str(s % 10) for s in range(karte.stunden))
+        )
+        for b in range(karte.n_baender - 1, -1, -1):
+            text = "".join(_karte_zeichen(int(v)) for v in karte.rasten[b])
+            zeilen.append(
+                f"  {karte.lo + (b + 1) * karte.schritt:9.3f}  {text}"
+            )
+        stunden_je_band = karte.stunden_je_band
+        zeilen.append(
+            f"  -> belegte Baender: {karte.baender_belegt} | davon ueber "
+            f"Stunden: {karte.baender_ueber_stunden} | max Stunden eines "
+            f"Bandes: {int(stunden_je_band.max()) if stunden_je_band.size else 0}"
+        )
+    if n_karten == 0:
+        return []
     return zeilen
 
 
@@ -1175,6 +1516,7 @@ def report_text(
     profile: Sequence[FensterProfil],
     n_verworfen: int,
     nester: Optional[NestErgebnis] = None,
+    df: Optional[pd.DataFrame] = None,
 ) -> str:
     """Baut den TXT-Report des Laufs.
 
@@ -1184,6 +1526,8 @@ def report_text(
         n_verworfen: Anzahl wegen ``min_bars`` verworfener Fenster.
         nester: Ergebnis der Nest-Erkennung; None = kein Abschnitt (der Lauf
             wurde ohne diese Schicht gerechnet).
+        df: Bars des geladenen Zeitraums (BKZ). Wird fuer die Zeit-Preis-Karte
+            gebraucht (sie zeigt den Aufenthalt der Bars); None = keine Karte.
 
     Returns:
         Reporttext als String.
@@ -1228,6 +1572,8 @@ def report_text(
         f"Level-Toleranz={config.nest_link_level_atr} ATR POC-Abstand | "
         f"Mindestgroesse "
         f"{config.nest_min_bars} Bars / {config.nest_min_anteil_pct} % | "
+        f"Laufgrenze="
+        f"{'Kernband der Kette (Close in den Berg-Value-Areas)' if config.nest_lauf_im_kern else 'Zuteilungsband (Tal zu Tal, Laeufe tilen)'} | "
         f"Konsens k={list(config.nest_konsens_k)} x "
         f"smooth={list(config.nest_konsens_smooth)} | "
         f"Toleranz={config.nest_streu_toleranz_atr} ATR",
@@ -1263,8 +1609,16 @@ def report_text(
     if nester is not None:
         # Die Nest-Schicht liegt ueber den Fenstern (sie verbindet sie) - sie
         # wird deshalb auch gerechnet, wenn kein einzelnes Fenster gueltig war.
-        txt += _nest_abschnitt(nester, config)
+        txt += _nest_abschnitt_mit_box(df, nester, config)
         txt.append("")
+    if TPO_ANZEIGE and df is not None and nester is not None:
+        # Die Karte zeigt den AUFENTHALT (Zeit) - sie ist die Sicht, die ein
+        # Histogramm nicht liefern kann, und steht deshalb direkt hinter den
+        # Nestern, auf die sie sich bezieht. ANZEIGE: siehe ``TPO_ANZEIGE``.
+        karte = _karte_zeilen(df, gueltig, nester)
+        if karte:
+            txt += karte
+            txt.append("")
     if gueltig:
         txt += _separation_zeilen(config, gueltig)
         abdeck = np.array(
@@ -1400,6 +1754,12 @@ def tsv_nester(config: VolumeProfilConfig, ergebnis: NestErgebnis) -> str:
         f"smooth={list(config.nest_konsens_smooth)} "
         f"Toleranz={config.nest_streu_toleranz_atr} ATR | "
         f"Erkennung: {_pad_txt(config)}",
+        "# Laufgrenze: ein Bar zaehlt nur zum LAUF, wenn sein CLOSE im KERNBAND der "
+        "Kette liegt (Vereinigung der Berg-Value-Areas der gepaarten Berge = die "
+        "Box). Ein Bar ausserhalb ist eine Luecke - der Lauf endet dort, die "
+        "Rueckkehr in den Kern beginnt ein NEUES Nest. "
+        "nest_lauf_im_kern=0: der Lauf umfasst das ganze Zuteilungsband (Tal zu "
+        "Tal), Lauf und Box koennen dann auseinanderfallen.",
         "# rolle: TERRITORIUM = Kette gepaarter Berge (Knoten als Zone ueber die "
         "Zeit) | NEST = zusammenhaengender Lauf darin (eigenes POC/VAL/VAH). "
         "EIN Territorium traegt GENAU EINEN Lauf (1:1) - rang ist daher immer 0.",
@@ -1411,6 +1771,13 @@ def tsv_nester(config: VolumeProfilConfig, ergebnis: NestErgebnis) -> str:
         "zu_klein=1: Flimmer-Lauf. Beide gehen NICHT in die Statistik ein.",
         "# breite_atr: Value-Area-Breite in ATR der EIGENEN Lebensdauer | "
         "poc_streu: POC-Spanne ueber die Rasterschritte, in ATR",
+        "# ZWEI Messgroessen mit je eigener Basis: vol/breite aus dem "
+        "Volumenprofil der GEFILTERTEN Bars (Basis n_bars_vol), die Belegung "
+        "(tpo_*) aus den ROHEN Bars - Aufenthalt ist physische Zeit und wird "
+        "vom Volumenfilter nicht beruehrt. intensitaet = vol / n_bars_vol "
+        "(Volumen je Bar).",
+        "# sorte: Herkunft des Objekts (volumen = Volumenerkennung; das Feld "
+        "ist die Stelle einer spaeteren zweiten, zeitbasierten Objektfamilie).",
     ]
     spalten: Tuple[str, ...] = (
         "rolle", "id", "territorium_id", "rang", "bar_start", "bar_ende",
@@ -1418,7 +1785,8 @@ def tsv_nester(config: VolumeProfilConfig, ergebnis: NestErgebnis) -> str:
         "breite", "breite_atr", "vol", "atr", "raster_bins", "raster_schritt",
         "unten", "oben", "kern_unten", "kern_oben", "n_berge", "verschmolzen",
         "labels", "zu_klein", "angeschnitten", "poc_streu", "poc_min",
-        "poc_max", "poc_eindeutig",
+        "poc_max", "poc_eindeutig", "sorte", "n_bars_vol", "tpo_poc",
+        "tpo_gipfel_bars", "tpo_bins", "tpo_dichte", "intensitaet",
     )
 
     def _f(v: float) -> str:
@@ -1462,6 +1830,13 @@ def tsv_nester(config: VolumeProfilConfig, ergebnis: NestErgebnis) -> str:
             "poc_min": _f(i.konsens.poc_min),
             "poc_max": _f(i.konsens.poc_max),
             "poc_eindeutig": str(int(i.konsens.eindeutig)),
+            "sorte": str(i.sorte),
+            "n_bars_vol": str(int(i.n_bars_vol)),
+            "tpo_poc": _f(i.tpo_poc),
+            "tpo_gipfel_bars": str(int(i.tpo_gipfel_bars)),
+            "tpo_bins": str(int(i.tpo_bins)),
+            "tpo_dichte": _f(i.tpo_dichte),
+            "intensitaet": _f(i.intensitaet),
         }))
     return "\n".join(zeilen) + "\n"
 
@@ -1488,8 +1863,26 @@ _NEST_ABWEICHUNGS_FELDER: Tuple[Tuple[str, str], ...] = (
     ("nest_link_level_atr", "nlev"),
     ("nest_min_bars", "nmin"),
     ("nest_min_anteil_pct", "nanteil"),
+    ("nest_lauf_im_kern", "nkern"),
     ("nest_pad_tage", "npad"),
 )
+
+
+def _wert_txt(wert: object) -> str:
+    """Formatiert einen Parameterwert fuer Dateiname und Reportkopf.
+
+    ``bool`` hat kein ``:g``-Format - es wird als ``1``/``0`` geschrieben (so
+    ist auch der CLI-Wert zu setzen), alles andere wie bisher mit ``:g``.
+
+    Args:
+        wert: Parameterwert.
+
+    Returns:
+        Kurztext des Wertes.
+    """
+    if isinstance(wert, bool):
+        return "1" if wert else "0"
+    return f"{wert:g}"
 
 
 def _abweichende_parameter(config: VolumeProfilConfig) -> List[Tuple[str, object]]:
@@ -1548,7 +1941,7 @@ def _parameter_suffix(config: VolumeProfilConfig) -> str:
     for feld, kurz in _ABWEICHUNGS_FELDER + _NEST_ABWEICHUNGS_FELDER:
         wert = getattr(config, feld)
         if wert != getattr(default, feld):
-            teile.append(f"{kurz}{wert:g}")
+            teile.append(f"{kurz}{_wert_txt(wert)}")
     return "_" + "_".join(teile) if teile else ""
 
 
@@ -1585,8 +1978,8 @@ def _parameter_txt(config: VolumeProfilConfig) -> str:
     """
     abw = _abweichende_parameter(config)
     abw_nest = _nest_abweichende_parameter(config)
-    teile = [f"{feld}={wert:g}" for feld, wert in abw]
-    teile += [f"{feld}={wert:g}" for feld, wert in abw_nest]
+    teile = [f"{feld}={_wert_txt(wert)}" for feld, wert in abw]
+    teile += [f"{feld}={_wert_txt(wert)}" for feld, wert in abw_nest]
     return " ".join(teile)
 
 
@@ -1643,7 +2036,7 @@ def _parse_cli(
             felder[key] = tuple(
                 int(t) for t in val.replace(";", ",").split(",") if t.strip()
             )
-        elif key in ("unvollstaendige_verwerfen",):
+        elif key in ("unvollstaendige_verwerfen", "nest_lauf_im_kern"):
             felder[key] = val.lower() in ("1", "true", "ja", "yes", "an", "on")
         elif key in ("db_path", "out_dir"):
             felder[key] = Path(val)
@@ -1741,6 +2134,7 @@ def _store_parameter(config: VolumeProfilConfig) -> Dict[str, object]:
         "nest_link_level_atr": config.nest_link_level_atr,
         "nest_min_bars": config.nest_min_bars,
         "nest_min_anteil_pct": config.nest_min_anteil_pct,
+        "nest_lauf_im_kern": bool(config.nest_lauf_im_kern),
         "nest_konsens_k": list(config.nest_konsens_k),
         "nest_konsens_smooth": list(config.nest_konsens_smooth),
         "nest_streu_toleranz_atr": config.nest_streu_toleranz_atr,
@@ -1828,7 +2222,8 @@ def main(
     config.out_dir.mkdir(parents=True, exist_ok=True)
     stamm = _datei_stamm(config)
     (config.out_dir / f"{stamm}.txt").write_text(
-        report_text(config, profile, n_verworfen, nest_ergebnis), encoding="utf-8"
+        report_text(config, profile, n_verworfen, nest_ergebnis, df),
+        encoding="utf-8",
     )
     (config.out_dir / f"{stamm}_levels.tsv").write_text(
         tsv_levels(config, profile), encoding="utf-8"
@@ -1874,6 +2269,12 @@ def main(
     if speicher_zeile:
         print(speicher_zeile)
     print(_nest_text(nest_ergebnis, config))
+    # Die Box-Abdeckung ist die Kennzahl zu Befund 1 (deckt die gezeichnete Box
+    # ihren Lauf?) - sie gehoert in die Konsole, weil sie beim Sichtpruefen
+    # sofort zu sehen sein soll.
+    box_zeile = _box_zeile(df, nest_ergebnis)
+    if box_zeile:
+        print(box_zeile)
     bereiche = [zerlege_bereiche(p.segmentierung, p.atr) for p in gueltig]
     if bereiche:
         n_b = [b.n_bereiche for b in bereiche]

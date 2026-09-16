@@ -69,8 +69,11 @@ import json
 from dataclasses import dataclass
 from typing import Any, Dict, Iterator, List, Optional, Sequence
 
-# Vertragsversion der Zeilen/``run_id``-Bildung (bei Aenderungen erhoehen)
-SCHEMA_VERSION: str = "1"
+# Vertragsversion der Zeilen/``run_id``-Bildung (bei Aenderungen erhoehen).
+# v2: NestObjektZeile traegt die BELEGUNG (Aufenthalt) und die Basis des
+# Volumens (``sorte``, ``n_bars_vol``, ``tpo_*``) - ein v1-Stand hat diese
+# Felder nicht und ist damit nicht mehr Zeile fuer Zeile vergleichbar.
+SCHEMA_VERSION: str = "2"
 
 
 def _run_id(
@@ -338,6 +341,15 @@ class NestObjektZeile:
         poc_min: Kleinster POC der Konsensmessung.
         poc_max: Groesster POC der Konsensmessung.
         poc_eindeutig: True = POC stabil gegenueber dem Rasterschritt.
+        sorte: Herkunft des Objekts (``volumen`` = Volumenerkennung). Das Feld
+            ist die Stelle, an der eine zweite (Zeit-)Familie ihre Objekte
+            kennzeichnet.
+        n_bars_vol: Anzahl Bars, die ins Volumenprofil eingingen (Basis von
+            ``vol``). ``n_bars`` ist dagegen die rohe Bar-Zahl.
+        tpo_poc: Belegungs-Gipfel (Preis des dichtesten Close-Bins).
+        tpo_gipfel_bars: Bars im dichtesten Close-Bin.
+        tpo_bins: Anzahl Bins mit Belegung > 0 (Breite der Belegung).
+        tpo_dichte: Bars je belegtem Bin (``n_bars / tpo_bins``).
     """
 
     id: int
@@ -364,6 +376,12 @@ class NestObjektZeile:
     poc_min: float = float("nan")
     poc_max: float = float("nan")
     poc_eindeutig: bool = False
+    sorte: str = "volumen"
+    n_bars_vol: int = 0
+    tpo_poc: float = float("nan")
+    tpo_gipfel_bars: int = 0
+    tpo_bins: int = 0
+    tpo_dichte: float = float("nan")
 
     @property
     def gueltig(self) -> bool:
@@ -373,6 +391,21 @@ class NestObjektZeile:
             True, wenn es weder Flimmer-Lauf noch angeschnitten ist.
         """
         return not (self.zu_klein or self.angeschnitten)
+
+    @property
+    def intensitaet(self) -> float:
+        """Volumen je Bar (``vol / n_bars_vol``) - Dichte des Handelns.
+
+        Basis ist ``n_bars_vol`` (die Bars, die ins Profil eingingen), nicht
+        die rohe Bar-Zahl: sonst mischten sich gefiltertes Volumen und rohe
+        Bars.
+
+        Returns:
+            Volumen je Bar; ``nan``, wenn keine Bars ins Profil eingingen.
+        """
+        if self.n_bars_vol <= 0 or self.vol != self.vol:
+            return float("nan")
+        return float(self.vol / self.n_bars_vol)
 
 
 # =============================================================================

@@ -34,7 +34,7 @@ Ablauf
     damit genau EINEM Berg (kein Bar in zwei Nestern).
  2) KETTENBILDUNG (ueber die Zeit): Berge aufeinanderfolgender Fenster werden
     gepaart, wenn sich ihre KERNE (Value Areas) im Preis ueberlappen UND ihre
-    POCs hoechstens ``link_level_atr`` (Default 2,0 ATR) auseinanderliegen.
+    POCs hoechstens ``link_level_atr`` (Default 1,0 ATR) auseinanderliegen.
     Gepaart wird guenstigst nach Ueberlappungsgroesse, jeder Berg hoechstens
     einmal - die Ketten sind damit ueberschneidungsfrei und deterministisch.
     Innerhalb EINES Fensters wird nie gepaart: zwei Berge desselben Profils
@@ -44,6 +44,12 @@ Ablauf
     ist eine Instanz, jedes Loch trennt zwei. Handelsfreie Zeiten liegen
     ausserhalb der BKZ-Achse und trennen daher NICHT - es gibt deshalb keinen
     Zeitluecken-Parameter.
+    LAUFGRENZE (``lauf_im_kern``, Default an): Zum Lauf zaehlt ein Bar nur,
+    wenn sein CLOSE im KERNBAND der Kette liegt (Vereinigung der
+    Berg-Value-Areas der gepaarten Berge). Damit deckt die gezeichnete BOX
+    (``VAL..VAH``) ihren Lauf; ohne die Bindung kaeme der Lauf aus dem
+    ZUTEILUNGSBAND (Tal zu Tal) und umfasste auch die Bars, die der Kurs
+    zwischenzeitlich woanders verbracht hat (gemessen: bis 6,4 ATR daneben).
     EIN TERRITORIUM TRAEGT GENAU EINEN LAUF: liefert eine Kette mehrere Laeufe,
     war der Preis zwischenzeitlich weg - das sind getrennte Knoten (auch bei
     gleichem Level), nicht der Wiederbesuch eines Territoriums. Damit sind die
@@ -67,6 +73,20 @@ Laeufe unter ``min_bars`` Bars oder unter ``min_anteil_pct`` des groessten
 Laufvolumens sind FLIMMER-Laeufe (kurze Ausfluege ueber die Talgrenze). Sie
 bleiben als Zeile erhalten (``zu_klein``), gehen aber NICHT in die Statistik
 ein - so ist kalibrierbar, wie viele es wirklich gibt.
+
+Belegung (Aufenthalt) als ZWEITE Messgroesse
+--------------------------------------------
+Jedes Nest traegt neben dem VOLUMEN die BELEGUNG (Aufenthalt, TPO je Close)
+aus den ROHEN Bars - gezaehlt auf denselben Bin-KANTEN wie sein Levelprofil,
+damit Belegungs-POC und Volumen-POC vergleichbar sind. Beide Messgroessen
+haben eine eigene, ausgewiesene Basis (``n_bars_vol`` bzw. ``n_bars``); die
+Intensitaet (Volumen je Bar) rechnet deshalb auf ``n_bars_vol``.
+
+Die Belegung aendert NICHTS an der Erkennung: Territorien, Ketten und Level
+bleiben unveraendert (gemessen: mit Gewicht 1 ueber die Bar-Spanne verteilt
+haette die Zeitsicht an allen 11 Tagen dieselbe Bergzahl geliefert - sie ist
+kein Detektor, sondern eine zweite Messung desselben Objekts). Eine eigene
+Objektmenge aus der Zeit ist erst ein weiterer Schritt.
 
 Rand
 ----
@@ -95,6 +115,10 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 import numpy as np
 import pandas as pd
 
+from scripts.volume_profile_belegung import (
+    BelegungKennzahlen,
+    belegung_kennzahlen,
+)
 from scripts.volume_profile_core import (
     FensterProfil,
     PocKonsens,
@@ -125,16 +149,34 @@ class NestParameter:
             Vielfaches des Bezugs-ATR (Default 0,0 = strenger Schnitt; zwei
             Kerne gehoeren nur zusammen, wenn sie sich wirklich ueberlappen).
         link_level_atr: Hoechster POC-ABSTAND zweier Berge, die noch gepaart
-            werden duerfen, als Vielfaches des Bezugs-ATR (Default 2,0). Die
-            reine Kern-Ueberlappung genuegt NICHT: laufen zwei Berge ueber
-            verschiedene LEVEL, ist das keine Fortsetzung desselben Knotens,
-            sondern eine Rueckkehr oder ein anderer Knoten - sonst entstehen
-            Sammelobjekte mit einem POC ueber mehrere ATR (Empirie September
-            2026: Kette mit POC-Spanne 7,4 ATR). 0 = nur identische POCs.
+            werden duerfen, als Vielfaches des Bezugs-ATR (Default 1,0 seit dem
+            15.09.2026; vorher 2,0). Die reine Kern-Ueberlappung genuegt NICHT:
+            laufen zwei Berge ueber verschiedene LEVEL, ist das keine
+            Fortsetzung desselben Knotens, sondern eine Rueckkehr oder ein
+            anderer Knoten - sonst entstehen Sammelobjekte mit einem POC ueber
+            mehrere ATR (Empirie September 2026: Kette mit POC-Spanne 7,4 ATR).
+            Der ATR ist ein TAGESmass; als LEVEL-Schranke wird er mit dem
+            Faktor 2 zu grob, weil ein Crash-Tag den Faktor aufblaeht und zwei
+            real ~1 $ auseinanderliegende Knoten (10.09. POC 64,33 / 11.09.
+            POC 63,97 = 1,56 ATR bei nur +0,57 Kern-Ueberlappung) verschmilzt.
+            Gemessen mit 1,0: die Klebe-Ketten zerfallen, die Kern-Level
+            benachbarter Nester ruecken auf 0,3 ATR zusammen, die Box-Abdeckung
+            steigt von 79,8 % auf 84,7 %, der groesste Abstand von 1,63 auf
+            1,02 ATR. 0 = nur identische POCs.
         min_bars: Mindestzahl Bars einer Instanz (Default 8 = rund zwei
             Stunden M15). Darunter ist der Lauf ein Flimmer-Lauf.
         min_anteil_pct: Mindestvolumen einer Instanz in Prozent des groessten
             Laufs (Default 4,0 - analog ``min_mountain_pct`` des Kerns).
+        lauf_im_kern: True (Default) = ein Bar zaehlt nur dann zum LAUF, wenn
+            sein CLOSE im KERNBAND der Kette liegt (Vereinigung der
+            Berg-Value-Areas der gepaarten Berge). Damit deckt die gezeichnete
+            BOX (``VAL..VAH``) ihren Lauf: ein Bar ausserhalb des Kerns ist eine
+            Luecke - der Lauf endet dort, und kehrt der Preis in den Kern
+            zurueck, beginnt ein NEUES Nest. False = der Lauf umfasst alle Bars
+            des ZUTEILUNGSBANDES (Tal zu Tal); dann tilen die Laeufe die
+            Zeitachse lueckenlos, und Lauf und Box koennen auseinanderfallen
+            (gemessen September 2026: 22-33 % der Bars eines Berges schlossen
+            ausserhalb des eigenen Kerns, bis 6,4 ATR daneben).
         konsens_k: Rasterschritte (wie ``schritt_atr``), ueber die die
             POC-Unsicherheit einer Instanz gemessen wird. Die Unsicherheit ist
             hier eine AUFLOESUNGS-Unsicherheit (Bin-Breite), keine
@@ -145,9 +187,10 @@ class NestParameter:
 
     schritt_atr: float = 0.25
     link_toleranz_atr: float = 0.0
-    link_level_atr: float = 2.0
+    link_level_atr: float = 1.0
     min_bars: int = 8
     min_anteil_pct: float = 4.0
+    lauf_im_kern: bool = True
     konsens_k: Tuple[float, ...] = (0.15, 0.25, 0.40)
     konsens_smooth: Tuple[int, ...] = (1, 3, 5, 9)
     streu_toleranz_atr: float = 1.0
@@ -239,6 +282,15 @@ class Territorium:
 class NestInstanz:
     """Ein Nest: EIN zusammenhaengender Lauf von Bars innerhalb eines Territoriums.
 
+    Ein Nest traegt ZWEI Messgroessen desselben Laufs, jede auf ihrer eigenen
+    Basis (beide werden ausgewiesen, damit kein Verhaeltnis stillschweigend
+    gemischt wird):
+
+        vol        VOLUMEN aus der GEFILTERTEN Bar-Menge (Basis ``n_bars_vol``)
+        Belegung   AUFENTHALT (TPO je Close) aus den ROHEN Bars
+                   (``tpo_*``; Aufenthalt ist physische Zeit und wird vom
+                   Volumenfilter nicht beruehrt)
+
     Attributes:
         id: Laufende Nummer (0-basiert, nach ``bar_start``).
         territorium_id: Zugehoeriges Territorium.
@@ -254,13 +306,24 @@ class NestInstanz:
         poc: Point of Control der Instanz (Gipfel des eigenen Profils).
         val: Untere Kante der Instanz-Value-Area.
         vah: Obere Kante der Instanz-Value-Area.
-        vol: Volumen der Instanz (Rohprofil der eigenen Bars).
+        vol: Volumen der Instanz (Rohprofil der GEFILTERTEN eigenen Bars).
         atr: ATR der eigenen Lebensdauer (Bezugsgroesse aller ATR-Breiten).
         raster_bins: Bin-Anzahl des gemeinsamen Rasters fuer diese Instanz.
         raster_schritt: Tatsaechliche Bin-Breite in Preiseinheiten.
         zu_klein: True = Flimmer-Lauf (geht nicht in die Statistik ein).
         angeschnitten: True = beruehrt den geladenen Rand (kann weiterlaufen).
         konsens: POC-Unsicherheit ueber die Rasterschritte (Aufholoesung).
+        sorte: Herkunft des Objekts (``volumen`` = aus der Volumenerkennung).
+            Das Feld ist die Stelle, an der eine zweite (Zeit-)Familie ihre
+            Objekte kennzeichnet - die Struktur ist damit bereit, ohne dass
+            heute schon eine zweite Berg-Menge gebaut wird.
+        n_bars_vol: Anzahl Bars, die tatsaechlich in das Instanzprofil eingingen
+            (nach dem Volumenfilter). Das ist die Basis von ``vol`` und damit
+            die ehrliche Bezugsgroesse der Intensitaet.
+        tpo_poc: Belegungs-Gipfel (Preis des dichtesten Close-Bins).
+        tpo_gipfel_bars: Bars im dichtesten Close-Bin.
+        tpo_bins: Anzahl Bins mit Belegung > 0 (Breite der Belegung).
+        tpo_dichte: Bars je belegtem Bin (``n_bars / tpo_bins``).
     """
 
     id: int
@@ -282,6 +345,12 @@ class NestInstanz:
     zu_klein: bool
     angeschnitten: bool
     konsens: PocKonsens = field(default_factory=PocKonsens)
+    sorte: str = "volumen"
+    n_bars_vol: int = 0
+    tpo_poc: float = float("nan")
+    tpo_gipfel_bars: int = 0
+    tpo_bins: int = 0
+    tpo_dichte: float = float("nan")
 
     @property
     def breite(self) -> float:
@@ -294,6 +363,20 @@ class NestInstanz:
         if not (np.isfinite(self.atr) and self.atr > 0.0):
             return float("nan")
         return float(self.breite / self.atr)
+
+    @property
+    def intensitaet(self) -> float:
+        """Volumen je Bar (``vol / n_bars_vol``) - Dichte des Handelns.
+
+        Basis ist ``n_bars_vol`` (die Bars, die ins Profil eingingen), NICHT
+        ``n_bars``: sonst mischten sich gefiltertes Volumen und rohe Bar-Zahl.
+
+        Returns:
+            Volumen je Bar; ``nan``, wenn keine Bars ins Profil eingingen.
+        """
+        if self.n_bars_vol <= 0 or not np.isfinite(self.vol):
+            return float("nan")
+        return float(self.vol / self.n_bars_vol)
 
     @property
     def gueltig(self) -> bool:
@@ -535,9 +618,35 @@ def _baue_ketten(
     return ketten
 
 
+def _bars_im_kern(
+    alle: np.ndarray, closes: np.ndarray, baender: Sequence[Bergband]
+) -> np.ndarray:
+    """Bindet einen Lauf an die BOX: nur Bars mit Close im Kernband der Kette.
+
+    Die BOX ist die Vereinigung der Berg-Value-Areas der gepaarten Berge
+    (``min(val) .. max(vah)``). Ein Bar ausserhalb dieses Bandes zaehlt NICHT
+    zum Lauf - dort hat der Kurs den Knoten verlassen; kehrt er in den Kern
+    zurueck, entsteht durch den Loch-Schnitt in ``_laeufe`` ein NEUES Nest.
+    Damit deckt die gezeichnete Box ihren Lauf.
+
+    Args:
+        alle: Kandidat-Bar-Indizes der Kette (aufsteigend, eindeutig).
+        closes: Close je Bar-Index des GESAMTzeitraums (K5: Indexzugriff).
+        baender: Bergbaender der Kette (mindestens eines).
+
+    Returns:
+        Die Bar-Indizes, deren Close im Kernband der Kette liegt.
+    """
+    if alle.size == 0 or not baender:
+        return alle
+    unten = float(min(b.val for b in baender))
+    oben = float(max(b.vah for b in baender))
+    c = closes[alle]
+    return alle[(c >= unten) & (c <= oben)]
+
+
 def _laeufe(indizes: np.ndarray) -> List[Tuple[int, int]]:
     """Zerlegt Bar-Indizes in zusammenhaengende Laeufe.
-
     Zusammenhangend heisst ``index + 1`` (K5: Bar-Index als Primaerschluessel).
     Handelsfreie Zeiten liegen ausserhalb der BKZ-Achse und trennen daher
     nicht - es braucht keine Zeitluecken-Konvention.
@@ -613,7 +722,10 @@ def _instanz_level(
     nest: NestParameter,
     atr_bezug: float,
     atr_lauf: float,
-) -> Optional[Tuple[float, float, float, float, int, float, PocKonsens]]:
+) -> Optional[
+    Tuple[float, float, float, float, int, float, PocKonsens,
+          BelegungKennzahlen, int]
+]:
     """Rechnet POC/VAL/VAH eines Laufs auf dem gemeinsamen Raster.
 
     Es wird die EINGEFRORENE Volumenlogik verwendet (``build_volume_profile``
@@ -621,16 +733,23 @@ def _instanz_level(
     Der Berg ist hier das ganze Laufsprofil, die Value Area wird vom Gipfel aus
     nach aussen erweitert (``par.va_pct``).
 
+    ZUSAETZLICH wird die BELEGUNG (Aufenthalt) desselben Laufs gezaehlt - auf
+    denselben Bin-Kanten wie das Levelprofil, aber aus den ROHEN Bars (physische
+    Zeit; der Volumenfilter betrifft nur das Volumen). Damit traegt ein Nest
+    beide Messgroessen mit ausgewiesener Basis.
+
     Args:
-        bars: Bars des Laufs (ungefiltert).
+        bars: Bars des Laufs (ungefiltert, roh).
         par: Volumenparameter des Laufs (Bins/Glaettung/Anteil/Filter).
         nest: Nest-Parameter (Rasterschritt, Konsenssaetze).
         atr_bezug: Bezugs-ATR des Rasters.
         atr_lauf: ATR der Instanz-Lebensdauer (Bezug der Streuung).
 
     Returns:
-        ``(poc, val, vah, vol, raster_bins, raster_schritt, konsens)`` oder
-        ``None``, wenn kein Profil entsteht.
+        ``(poc, val, vah, vol, raster_bins, raster_schritt, konsens,
+        belegung, n_bars_vol)`` oder ``None``, wenn kein Profil entsteht.
+        ``n_bars_vol`` ist die Zahl der Bars, die ins Profil eingingen (Basis
+        von ``vol``); ``belegung`` die Kennzahlen des Aufenthalts.
     """
     gefiltert, _n = filtere_volumen(bars, par.vol_min, par.vol_quantil)
     if gefiltert.empty:
@@ -655,6 +774,9 @@ def _instanz_level(
         vol_s, prof.edges, (0, gipfel, bins - 1), gipfel, par.va_pct
     )
     vol_gesamt = float(prof.vol.sum())
+    # Belegung (Aufenthalt) auf DENSELBEN Kanten, aus den ROHEN Bars: der
+    # Volumenfilter darf den Aufenthalt nicht veraendern (physische Zeit).
+    belegung = belegung_kennzahlen(bars, prof.edges)
     # POC-Unsicherheit: hier die AUFLOESUNG variieren (Rasterschritt), nicht die
     # Bin-Anzahl - das Raster ist die Bezugsgroesse dieser Schicht.
     saetze = sorted({float(k) for k in nest.konsens_k} | {float(nest.schritt_atr)})
@@ -681,7 +803,7 @@ def _instanz_level(
         kons = PocKonsens()
     return (
         float(nest_va.poc), float(nest_va.val), float(nest_va.vah), vol_gesamt,
-        int(bins), float(spanne / bins), kons,
+        int(bins), float(spanne / bins), kons, belegung, int(len(gefiltert)),
     )
 
 
@@ -761,6 +883,15 @@ def finde_nester(
     #    sie mehrere Laeufe, ist der Preis zwischenzeitlich weg gewesen - das
     #    sind getrennte Knoten (Rueckkehr), keine Wiederbesuche desselben
     #    Territoriums.
+    #
+    #    LAUFGRENZE (``nest.lauf_im_kern``): Der Lauf wird an die BOX gebunden -
+    #    ein Bar zaehlt nur, wenn sein CLOSE im KERNBAND der Kette liegt
+    #    (Vereinigung der Berg-Value-Areas der gepaarten Berge). Ein Bar
+    #    ausserhalb ist eine Luecke: der Lauf endet dort, und kehrt der Preis in
+    #    den Kern zurueck, beginnt ein NEUES Nest. Ohne diese Bindung kaeme der
+    #    Lauf aus dem ZUTEILUNGSBAND (Tal zu Tal) und umfasste auch die Bars,
+    #    die der Kurs "ganz woanders" verbracht hat (bis 6,4 ATR daneben).
+    closes_alle = df["close"].to_numpy(dtype=float)
     territorien: List[Territorium] = []
     terr_ketten: Dict[int, List[Tuple[int, int]]] = {}
     terr_fenster: Dict[int, List[int]] = {}
@@ -772,6 +903,12 @@ def finde_nester(
         if not vorhanden:
             continue
         alle = np.unique(np.concatenate([zuteilung[wi, j] for wi, j in vorhanden]))
+        if np_par.lauf_im_kern:
+            alle = _bars_im_kern(
+                alle, closes_alle, [fenster_berge[wi][j] for wi, j in vorhanden]
+            )
+        if alle.size == 0:
+            continue
         for a, b in _laeufe(alle):
             teil = [
                 (wi, j) for wi, j in vorhanden
@@ -831,7 +968,7 @@ def finde_nester(
         level = _instanz_level(sub, par, np_par, atr_bezug, atr_lauf)
         if level is None:
             continue
-        poc, val, vah, vol, bins, bschritt, kons = level
+        poc, val, vah, vol, bins, bschritt, kons, belegung, n_bars_vol = level
         vorlaeufig.append(
             {
                 "territorium_id": tid, "rang": 0,
@@ -839,6 +976,7 @@ def finde_nester(
                 "n_fenster": n_fenster, "poc": poc, "val": val, "vah": vah,
                 "vol": vol, "atr": atr_lauf, "raster_bins": bins,
                 "raster_schritt": bschritt, "konsens": kons,
+                "belegung": belegung, "n_bars_vol": n_bars_vol,
             }
         )
 
@@ -852,6 +990,7 @@ def finde_nester(
     letzter_bar = int(len(df) - 1)
     instanzen: List[NestInstanz] = []
     for i, v in enumerate(vorlaeufig):
+        bel: BelegungKennzahlen = v["belegung"]
         instanzen.append(
             NestInstanz(
                 id=i,
@@ -877,6 +1016,12 @@ def finde_nester(
                     int(v["bar_start"]) <= 0 or int(v["bar_ende"]) >= letzter_bar
                 ),
                 konsens=v["konsens"],
+                sorte="volumen",
+                n_bars_vol=int(v["n_bars_vol"]),
+                tpo_poc=float(bel.poc),
+                tpo_gipfel_bars=int(bel.gipfel_bars),
+                tpo_bins=int(bel.bins_belegt),
+                tpo_dichte=float(bel.dichte),
             )
         )
 

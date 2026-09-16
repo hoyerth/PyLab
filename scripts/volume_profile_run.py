@@ -209,6 +209,12 @@ from scripts.volume_profile_core import (  # noqa: E402
     profil_mit_kennzahlen,
     zerlege_bereiche,
 )
+from scripts.volume_profile_impulse import (  # noqa: E402
+    ImpulsLeg,
+    atr_referenz,
+    finde_impulse,
+    impulskennzahlen,
+)
 from scripts.volume_profile_nests import (  # noqa: E402
     NestErgebnis,
     NestInstanz,
@@ -364,6 +370,24 @@ class VolumeProfilConfig:
             Testzeitraum gezeigt wird, wird bei mehr Fenstern seitenweise
             ausgegeben (``..._s1.png``, ``..._s2.png``, ...) - nichts wird
             weggelassen, nur aufgeteilt.
+        impuls_zeichnen: True (Default) = die IMPULSIVEN MOVES werden im
+            Zonen-Chart eingefaerbt (Sichtkontrolle der BASISINFORMATION): die
+            schnelle Strecke ZWISCHEN den Volumenknoten ist im Profil selbst
+            nicht enthalten - sie ist der leere Zwischenraum. Sie werden
+            ausserdem als eigene TSV gehalten (kein Bestandteil der
+            Profilrechnung). False = die Ebene entfaellt im Bild, die Tabelle
+            bleibt.
+        impuls_k: Messfenster der Impulsgeschwindigkeit in Bars (Default 4 =
+            eine Stunde auf M15). Es macht die Groesse rauschunabhaengig - ein
+            einzelner Bar ist kein Move.
+        impuls_schwelle: Mindestgeschwindigkeit in ATR (Default 2,5).
+        impuls_k und impuls_schwelle sind VORAB festgelegt und werden in
+            Charttitel, TSV-Kopf und Konsole mitgedruckt: die Zahl der gefundenen
+            Laeufe haengt an ihnen, ein Ergebnis ohne sie ist nicht lesbar.
+        impuls_min_bars: Mindestzahl markierter Bars je Lauf (Flimmer-Grenze).
+        impuls_labels_max: Hoechstzahl BESCHRIFTETER Laeufe im Chart (die
+            groessten nach Betrag) - sonst deckt die Beschriftung den Verlauf
+            zu.
     """
 
     # --- Datenzugriff -------------------------------------------------------
@@ -454,6 +478,25 @@ class VolumeProfilConfig:
     dpi: int = 300
     grid_max_profile: int = 0
     grid_seiten_max: int = 96
+
+    # --- Impulsive Moves (Sichtkontrolle UND eigene Messung) ----------------
+    # Die schnelle Strecke ZWISCHEN den Volumenknoten: im Profil selbst nicht
+    # enthalten (sie ist der leere Zwischenraum). Sie wird gezeichnet (Sicht)
+    # und in einer eigenen TSV gehalten (Messung) - dort haengt die
+    # Volumenfrage: laeuft der Impuls mit WENIG Volumen (er ist kurz und
+    # bietet wenig Aufenthalt), und wird er am AUSLOESE-Bar (der Bar VOR dem
+    # Lauf) von GROSSEN Teilnehmern mit erhoehtem Volumen gestartet?
+    #
+    # Rein additiv: diese Felder gehen NICHT in die run_id des Speichers und
+    # NICHT in den Dateinamen ein - sie aendern keine Profil- oder Nestzahl,
+    # nur die Sichtpruefung und eine zusaetzliche Tabelle. Ein Lauf mit anderer
+    # Impulsschwelle trifft damit DENSELBEN Parametersatz (kein zweiter
+    # Speicher mit identischen Zahlen).
+    impuls_zeichnen: bool = True
+    impuls_k: int = 4
+    impuls_schwelle: float = 2.5
+    impuls_min_bars: int = 2
+    impuls_labels_max: int = 14
 
 
 # =============================================================================
@@ -1038,6 +1081,37 @@ def _nest_text(ergebnis: NestErgebnis, config: VolumeProfilConfig) -> str:
         f"Breite median "
         f"{np.median(breite) if breite else float('nan'):.2f} ATR"
         f"{grund}"
+    )
+
+
+def _impuls_text(legs: Sequence[ImpulsLeg], config: VolumeProfilConfig) -> str:
+    """Kurzzeile der Impuls-Erkennung fuer die Konsole.
+
+    Die Schwellen werden IMMER mitgedruckt - die Zahl der gefundenen Laeufe
+    haengt an ihnen. Dazu die beiden Volumenverhaeltnisse (Median), weil sie
+    die eigentliche Frage tragen.
+
+    Args:
+        legs: Gefundene impulsive Moves.
+        config: Laufkonfiguration (Schwellen und Zeichenschalter).
+
+    Returns:
+        Textzeile mit Anzahl, Laenge, Strecke und Volumenverhaeltnissen.
+    """
+    zeichnung = "an" if config.impuls_zeichnen else "AUS"
+    kopf = (
+        f"Impulse k={config.impuls_k}B >= {config.impuls_schwelle} ATR "
+        f"(Zeichnung {zeichnung}):"
+    )
+    if not legs:
+        return f"{kopf} KEINE gefunden"
+    n, med_bars, med_pct, med_leg, med_trig = impulskennzahlen(legs)
+    n_auf = sum(1 for leg in legs if leg.richtung >= 0)
+    return (
+        f"{kopf} {int(n)} gefunden ({n_auf} auf / {int(n) - n_auf} ab) | "
+        f"Laenge median {med_bars:.0f} Bars | Strecke median {med_pct:.2f} % | "
+        f"Volumen je Bar: Leg {med_leg:.2f} x, Ausloese-Bar {med_trig:.2f} x "
+        f"Median-Bar"
     )
 
 
@@ -1841,6 +1915,92 @@ def tsv_nester(config: VolumeProfilConfig, ergebnis: NestErgebnis) -> str:
     return "\n".join(zeilen) + "\n"
 
 
+def tsv_impulse(config: VolumeProfilConfig, legs: Sequence[ImpulsLeg]) -> str:
+    """Maschinenlesbarer Block der IMPULSIVEN MOVES.
+
+    Die Tabelle ist die Datengrundlage der Volumenfrage: laeuft der Impuls mit
+    WENIG Volumen (er ist kurz und bietet wenig Aufenthalt), und wird er am
+    AUSLOESE-Bar (der Bar VOR dem Lauf) mit ERHOEHTEM Volumen gestartet? Beide
+    Volumengroessen stehen als absolute Zahl UND als Verhaeltnis zum
+    MEDIAN-Bar-Volumen des Zeitraums in der Datei - nur das Verhaeltnis ist
+    ueber Symbole und Zeitraeume hinweg vergleichbar.
+
+    Klar benannte Enden (siehe ``volume_profile_impulse``): ``bar_start``/
+    ``bar_ende`` sind die MARKIERTEN Bars, ``strecke_*`` die Bewegung von
+    ``close[bar_start - 1]`` bis ``close[bar_ende]`` - der Einstieg liegt also
+    VOR dem ersten markierten Bar, weil die Geschwindigkeit ``k`` Bars
+    zurueckblickt.
+
+    Args:
+        config: Laufkonfiguration (Schwellen fuer den Kommentarkopf).
+        legs: Gefundene impulsive Moves.
+
+    Returns:
+        TSV-Text (Kommentarzeilen, Header, Datenzeilen).
+    """
+    kopf: List[str] = [
+        f"# volume_profile Impulse - {config.symbol} {config.timeframe} | "
+        f"{config.start} .. {config.ende} (ende-exklusiv, BKZ)",
+        f"# Definition: speed[i] = |close[i] - close[i-k]| / atr >= "
+        f"{config.impuls_schwelle} ATR mit k={config.impuls_k} Bars; "
+        f"min_bars={config.impuls_min_bars} | "
+        f"Fensterart={config.window_kind} modus={config.modus}",
+        "# Die Schwellen sind VORAB festgelegt und nicht nachtraeglich justiert: "
+        "die Zahl der gefundenen Laeufe haengt an ihnen, ein Ergebnis ohne sie "
+        "ist nicht lesbar (nachtraegliches Justieren waere Data-Snooping).",
+        "# bar_start/bar_ende = MARKIERTE Bars (Bar-Index = Primaerschluessel, "
+        "K5) | strecke_* = Bewegung von close[bar_start - 1] bis "
+        "close[bar_ende], der Einstieg liegt VOR dem ersten markierten Bar | "
+        "n_bars = Zahl markierter Bars, NICHT die Dauer der Bewegung.",
+        "# richtung: +1 aufwaerts, -1 abwaerts (aus der Strecke). speed_max: "
+        "groesste Geschwindigkeit im Lauf (in ATR).",
+        "# vol_trigger = Volumen des AUSLOESE-Bars (der Bar VOR dem Lauf); leer, "
+        "wenn der Lauf am Datenanfang beginnt. vol_leg_avg = mittleres "
+        "Bar-Volumen IM Lauf.",
+        "# vol_ratio_* = Volumen / MEDIAN-Bar-Volumen des geladenen Zeitraums. "
+        "Erst das Verhaeltnis ist aussagekraeftig - die absolute Zahl haengt an "
+        "Symbol, Zeitraum und Kontraktgroesse.",
+    ]
+    spalten: Tuple[str, ...] = (
+        "id", "bar_start", "bar_ende", "n_bars", "ts_start", "ts_ende",
+        "richtung", "speed_max", "strecke_abs", "strecke_pct", "strecke_atr",
+        "vol_trigger", "vol_ratio_trigger", "vol_leg_avg", "vol_ratio_leg",
+        "atr",
+    )
+
+    def _f(v: float) -> str:
+        return "" if not np.isfinite(v) else f"{v:.5f}"
+
+    def _zeile(werte: Dict[str, str]) -> str:
+        zeile = "\t".join(werte.get(s, "") for s in spalten)
+        # Selbstpruefung: die Spaltenzahl muss zum Kopf passen, sonst ist die
+        # Datei fuer eine spaetere Auswertung stillschweigend verschoben.
+        assert len(zeile.split("\t")) == len(spalten), "TSV-Spalten verschoben"
+        return zeile
+
+    zeilen: List[str] = list(kopf)
+    zeilen.append("\t".join(spalten))
+    for leg in sorted(legs, key=lambda x: int(x.bar_start)):
+        zeilen.append(_zeile({
+            "id": str(leg.id),
+            "bar_start": str(leg.bar_start), "bar_ende": str(leg.bar_ende),
+            "n_bars": str(leg.n_bars),
+            "ts_start": f"{leg.ts_start:%Y-%m-%d %H:%M:%S}",
+            "ts_ende": f"{leg.ts_ende:%Y-%m-%d %H:%M:%S}",
+            "richtung": str(int(leg.richtung)),
+            "speed_max": _f(leg.speed_max),
+            "strecke_abs": _f(leg.strecke_abs),
+            "strecke_pct": _f(leg.strecke_pct),
+            "strecke_atr": _f(leg.strecke_atr),
+            "vol_trigger": _f(leg.vol_trigger),
+            "vol_ratio_trigger": _f(leg.vol_ratio_trigger),
+            "vol_leg_avg": _f(leg.vol_leg_avg),
+            "vol_ratio_leg": _f(leg.vol_ratio_leg),
+            "atr": _f(leg.atr),
+        }))
+    return "\n".join(zeilen) + "\n"
+
+
 # Profilbildende Parameter, die bei Abweichung vom Default in Dateiname und
 # Charttitel wandern: (Feldname, Kuerzel im Dateinamen).
 _ABWEICHUNGS_FELDER: Tuple[Tuple[str, str], ...] = (
@@ -2015,14 +2175,15 @@ def _parse_cli(
             felder["window_kind" if key.startswith("window") else key] = val
         elif key in ("num_bins", "smooth_win", "min_bars", "dpi",
                      "grid_max_profile", "grid_seiten_max", "nest_min_bars",
-                     "nest_pad_tage"):
+                     "nest_pad_tage", "impuls_k", "impuls_min_bars",
+                     "impuls_labels_max"):
             felder[key] = int(val)
         elif key in ("va_pct", "valley_rel", "min_mountain_pct", "va_zone_pct",
                      "vol_min", "vol_quantil", "streu_toleranz_atr",
                      "min_abdeckung", "nest_schritt_atr",
                      "nest_link_toleranz_atr", "nest_link_level_atr",
                      "nest_min_anteil_pct",
-                     "nest_streu_toleranz_atr"):
+                     "nest_streu_toleranz_atr", "impuls_schwelle"):
             felder[key] = float(val)
         elif key in ("konsens_bins", "konsens_smooth"):
             felder[key] = tuple(
@@ -2036,7 +2197,8 @@ def _parse_cli(
             felder[key] = tuple(
                 int(t) for t in val.replace(";", ",").split(",") if t.strip()
             )
-        elif key in ("unvollstaendige_verwerfen", "nest_lauf_im_kern"):
+        elif key in ("unvollstaendige_verwerfen", "nest_lauf_im_kern",
+                     "impuls_zeichnen"):
             felder[key] = val.lower() in ("1", "true", "ja", "yes", "an", "on")
         elif key in ("db_path", "out_dir"):
             felder[key] = Path(val)
@@ -2093,6 +2255,16 @@ def _validiere(config: VolumeProfilConfig) -> None:
         raise SystemExit("nest_konsens_k darf nicht leer sein (Rasterschritte).")
     if config.nest_pad_tage < 0:
         raise SystemExit("nest_pad_tage muss >= 0 sein (0 = kein Polster).")
+    if config.impuls_k < 1:
+        raise SystemExit(
+            "impuls_k muss >= 1 sein (Messfenster der Geschwindigkeit)."
+        )
+    if config.impuls_schwelle < 0.0:
+        raise SystemExit("impuls_schwelle muss >= 0 sein (in ATR).")
+    if config.impuls_min_bars < 1:
+        raise SystemExit("impuls_min_bars muss >= 1 sein.")
+    if config.impuls_labels_max < 0:
+        raise SystemExit("impuls_labels_max muss >= 0 sein.")
     if config.start >= config.ende:
         raise SystemExit(
             f"Leerer Zeitraum: start={config.start} muss < ende={config.ende} sein."
@@ -2176,6 +2348,19 @@ def main(
             f"in {config.start} .. {config.ende}."
         )
 
+    # Impulsive Moves: die schnelle Strecke ZWISCHEN den Volumenknoten. Sie
+    # aendern KEINE Zahl des Laufs (kein Bestandteil von run_id oder
+    # Dateiname) - sie werden gemessen, gezeichnet und als eigene Tabelle
+    # gehalten. Der Bezugs-ATR ist dieselbe Groesse wie ueberall sonst.
+    atr_bezug: float = atr_referenz(df)
+    impulse: List[ImpulsLeg] = finde_impulse(
+        df,
+        atr_bezug,
+        k=config.impuls_k,
+        schwelle=config.impuls_schwelle,
+        min_bars=config.impuls_min_bars,
+    )
+
     profile, n_verworfen = rechne_fensterprofile(df, config)
     if not any(p.gueltig for p in profile):
         raise SystemExit(
@@ -2233,6 +2418,12 @@ def main(
     (config.out_dir / f"{stamm}_nester.tsv").write_text(
         tsv_nester(config, nest_ergebnis), encoding="utf-8"
     )
+    # Die impulsiven Moves als eigene Tabelle: die Strecke zwischen den
+    # Knoten ist im Profil nicht enthalten, die Volumenfrage haengt aber an
+    # ihr (Wenig-Volumen-Impuls? Volumen am Ausloese-Bar?).
+    (config.out_dir / f"{stamm}_impulse.tsv").write_text(
+        tsv_impulse(config, impulse), encoding="utf-8"
+    )
     stil = ChartStil(
         dpi=config.dpi,
         titel_symbol=config.symbol,
@@ -2245,9 +2436,18 @@ def main(
         bereich_va_pct=config.va_pct,
         parameter_txt=_parameter_txt(config),
         modus=config.modus,
+        # Impulsive Moves (Basisinformation der Sichtkontrolle): die Schwellen
+        # gehen mit ins Chart - die Zahl der gezeichneten Laeufe haengt an
+        # ihnen, ohne sie ist das Bild nicht lesbar.
+        impuls_zeichnen=config.impuls_zeichnen,
+        impuls_k=config.impuls_k,
+        impuls_schwelle=config.impuls_schwelle,
+        impuls_min_bars=config.impuls_min_bars,
+        impuls_labels_max=config.impuls_labels_max,
     )
     p_zone, p_grids = zeichne_alles(
-        df, profile, stil, config.out_dir / stamm, nester=nest_ergebnis.instanzen
+        df, profile, stil, config.out_dir / stamm,
+        nester=nest_ergebnis.instanzen, impulse=impulse,
     )
 
     gueltig = [p for p in profile if p.gueltig]
@@ -2268,6 +2468,9 @@ def main(
     )
     if speicher_zeile:
         print(speicher_zeile)
+    # Die Impulse stehen VOR den Nestern: sie sind die Basisinformation der
+    # Sichtkontrolle (die Strecke zwischen den Knoten fehlt im Profil selbst).
+    print(_impuls_text(impulse, config))
     print(_nest_text(nest_ergebnis, config))
     # Die Box-Abdeckung ist die Kennzahl zu Befund 1 (deckt die gezeichnete Box
     # ihren Lauf?) - sie gehoert in die Konsole, weil sie beim Sichtpruefen
@@ -2292,6 +2495,7 @@ def main(
     print(f"Ausgabe: {config.out_dir / (stamm + '.txt')}")
     print(f"         {config.out_dir / (stamm + '_levels.tsv')}")
     print(f"         {config.out_dir / (stamm + '_nester.tsv')}")
+    print(f"         {config.out_dir / (stamm + '_impulse.tsv')}")
     if p_zone:
         print(f"         {p_zone}")
     for g in p_grids:

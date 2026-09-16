@@ -76,6 +76,7 @@ from scripts.volume_profile_core import (  # noqa: E402
     band_von,
     zerlege_bereiche,
 )
+from scripts.volume_profile_impulse import ImpulsLeg  # noqa: E402
 from scripts.volume_profile_nests import NestInstanz  # noqa: E402
 
 # Kurzname und Ueberschrift des Hauptbandes (es gibt nur eine Engine und nur
@@ -103,6 +104,17 @@ _COL_KERZE_AUF: str = "#26a69a"  # Kerze auf (close >= open)
 _COL_KERZE_AB: str = "#ef5350"   # Kerze ab (close < open)
 _COL_LOB2: str = "#2e7d32"    # Zweitgipfel-Niveau
 _COL_OHNE_NEST: str = "#dcdcdc"
+
+# Impulsive Moves (Basisinformation der Sichtkontrolle): eigener Farbtopf,
+# damit die Baender NICHT mit Kerzen (gruen/rot), Zonen-VA (blau), Nestern
+# (petrol) oder Randnestern (violett) verwechselt werden koennen. Die Flaeche
+# liegt HINTER den Kerzen (zorder 0,5) - sie faerbt die Strecke ein, verdeckt
+# aber nichts; die senkrechte Linie markiert den AUSLOESE-Bar (der Bar VOR dem
+# Lauf), an dem die Vermutung "erhoehtes Volumen" haengt.
+_COL_IMP_AUF: str = "#ffe082"   # impulsiver Move aufwaerts (Flaeche)
+_COL_IMP_AB: str = "#b39ddb"    # impulsiver Move abwaerts (Flaeche)
+_COL_IMP_AUF_L: str = "#f57f17"  # Ausloese-Bar aufwaerts (Linie/Text)
+_COL_IMP_AB_L: str = "#5e35b1"   # Ausloese-Bar abwaerts (Linie/Text)
 
 _PALETTE_NEST: Tuple[str, ...] = (
     "#1565c0", "#e65100", "#2e7d32", "#6a1b9a", "#00838f",
@@ -161,6 +173,17 @@ class ChartStil:
         modus: Hauptband der Zeichnung (``zone``, einziges Hauptband). Der
             Namen wird gegen den Kern geprueft; ein unbekannter Wert scheitert
             dort fail-loud.
+        impuls_zeichnen: True = die IMPULSIVEN MOVES werden als eingefaerbte
+            Strecken (auf/ab) ueber den Kerzen des Zonen-Charts gezeigt, mit
+            senkrechter Linie am Ausloese-Bar (der Bar VOR dem Lauf). Das ist
+            die Sichtkontrolle der Basisinformation: die schnelle Strecke
+            zwischen den Volumenknoten ist im Profil selbst nicht enthalten
+            (sie ist der leere Zwischenraum), muss aber sichtbar sein.
+        impuls_k: Messfenster der Impulsgeschwindigkeit in Bars.
+        impuls_schwelle: Mindestgeschwindigkeit in ATR.
+        impuls_min_bars: Mindestzahl markierter Bars je Lauf.
+        impuls_labels_max: Hoechstzahl BESCHRIFTETER Laeufe (die groessten nach
+            Betrag) - verhindert, dass die Beschriftung das Bild zudeckt.
     """
 
     dpi: int = 300
@@ -177,6 +200,11 @@ class ChartStil:
     bereich_va_pct: float = 0.7
     parameter_txt: str = ""
     modus: str = "zone"
+    impuls_zeichnen: bool = True
+    impuls_k: int = 4
+    impuls_schwelle: float = 2.5
+    impuls_min_bars: int = 2
+    impuls_labels_max: int = 14
 
     @property
     def bereich_va_txt(self) -> str:
@@ -364,6 +392,75 @@ def _zeichne_kerzen(ax: plt.Axes, df: pd.DataFrame, breite: float = 0.7) -> int:
     return int(x.size)
 
 
+def _zeichne_impulse(
+    ax: plt.Axes, impulse: Sequence[ImpulsLeg], stil: ChartStil
+) -> Tuple[int, int, List[float], List[float], List[float]]:
+    """Faerbt die impulsiven Moves in eine Achse ein (Sichtkontrolle).
+
+    Je Lauf entsteht ein senkrechtes Band von ``bar_start`` bis ``bar_ende`` in
+    der Richtungsfarbe (auf = Amber, ab = Violett) mit niedriger Deckkraft -
+    die Kerzen liegen DARUEBER und bleiben lesbar. Am AUSLOESE-Bar (der Bar VOR
+    dem Lauf) sitzt eine duenne senkrechte Linie in der kraeftigen Variante der
+    Richtungsfarbe; dort haengt die Volumenvermutung.
+
+    Beschriftet werden nur die ``impuls_labels_max`` groessten Laeufe nach
+    Betrag der Strecke (Format ``M<id> <pct>% <n>B``) - sonst deckt die
+    Beschriftung den Verlauf zu.
+
+    Args:
+        ax: Ziel-Achse.
+        impulse: Gefundene impulsive Moves (in Bar-Indizes der Achse).
+        stil: Darstellungsparameter (Anzahl der Beschriftungen).
+
+    Returns:
+        ``(n_auf, n_ab, strecken_pct, ratio_leg, ratio_trigger)`` - die Listen
+        tragen je Lauf einen Wert (fuer den Statistikblock).
+    """
+    if not impulse:
+        return 0, 0, [], [], []
+    st_pct: List[float] = []
+    r_leg: List[float] = []
+    r_trig: List[float] = []
+    n_auf = 0
+    n_ab = 0
+    # Beschriftung nur fuer die groessten Laeufe (nach Betrag der Strecke).
+    rang = sorted(
+        range(len(impulse)),
+        key=lambda i: -abs(float(impulse[i].strecke_pct))
+        if np.isfinite(impulse[i].strecke_pct) else 0.0,
+    )
+    beschriften = set(rang[: max(0, int(stil.impuls_labels_max))])
+    for pos, i in enumerate(impulse):
+        a, b = int(i.bar_start), int(i.bar_ende)
+        auf = i.richtung >= 0
+        if auf:
+            n_auf += 1
+        else:
+            n_ab += 1
+        flaeche = _COL_IMP_AUF if auf else _COL_IMP_AB
+        linie = _COL_IMP_AUF_L if auf else _COL_IMP_AB_L
+        st_pct.append(abs(float(i.strecke_pct)) if np.isfinite(i.strecke_pct) else float("nan"))
+        r_leg.append(float(i.vol_ratio_leg))
+        r_trig.append(float(i.vol_ratio_trigger))
+        # Flaeche HINTER den Kerzen: die Strecke ist eingefaerbt, der Verlauf
+        # bleibt vollstaendig sichtbar (keine Deckung, nur Farbe).
+        ax.axvspan(a - 0.5, b + 0.5, facecolor=flaeche, alpha=0.55, lw=0.0,
+                   zorder=0.5)
+        # Ausloese-Bar (der Bar VOR dem Lauf) - dort sitzt die Vermutung
+        # "erhoehtes Volumen durch grosse Marktteilnehmer".
+        if a - 1 >= 0:
+            ax.axvline(a - 1, color=linie, lw=0.8, ls=(0, (1, 1)), alpha=0.85,
+                       zorder=0.6)
+        if pos in beschriften:
+            ax.annotate(
+                f"M{i.id} {i.strecke_pct:+.2f}% {i.n_bars}B",
+                (a, 0.995), xycoords=("data", "axes fraction"),
+                xytext=(1, -2), textcoords="offset points", fontsize=4.5,
+                color=linie, rotation=90, va="top", ha="left", zorder=10,
+            )
+    return n_auf, n_ab, st_pct, r_leg, r_trig
+
+
 def zeichne_zonen_chart(
     df: pd.DataFrame,
     profile: Sequence[FensterProfil],
@@ -371,6 +468,7 @@ def zeichne_zonen_chart(
     out_png: Path,
     nur_gueltige: bool = True,
     nester: Optional[Sequence[NestInstanz]] = None,
+    impulse: Optional[Sequence[ImpulsLeg]] = None,
 ) -> None:
     """Zeichnet Kerzen, die getrennten Bereiche je Segment und das Hauptband.
 
@@ -404,6 +502,9 @@ def zeichne_zonen_chart(
         nur_gueltige: True = nur Fenster mit Profil zeichnen.
         nester: Nester ueber Fenstergrenzen (nur zaehlende werden gezeichnet);
             None = ohne Nest-Ebene.
+        impulse: Impulsive Moves (``ImpulsLeg``); werden bei
+            ``stil.impuls_zeichnen`` als eingefaerbte Strecken HINTER die
+            Kerzen gelegt (None = ohne Impuls-Ebene).
     """
     zeigen: List[FensterProfil] = [
         p for p in profile if (p.gueltig or not nur_gueltige)
@@ -415,6 +516,18 @@ def zeichne_zonen_chart(
     # Preis als Kerze (open/close mit high/low-Docht) - vektorisiert, siehe
     # ``_zeichne_kerzen``; die Profile liegen mit zorder >= 3 darueber.
     _zeichne_kerzen(ax, df)
+
+    # Impulsive Moves: BASISINFORMATION der Sichtkontrolle. Sie liegen mit
+    # zorder 0,5/0,6 HINTER den Kerzen (zorder 1/2) und hinter allen
+    # Profilebenen - sie faerben die Strecke ein, ohne etwas zu verdecken.
+    n_imp_auf: int = 0
+    n_imp_ab: int = 0
+    imp_strecken: List[float] = []
+    imp_ratio_leg: List[float] = []
+    imp_ratio_trig: List[float] = []
+    if stil.impuls_zeichnen and impulse:
+        (n_imp_auf, n_imp_ab, imp_strecken,
+         imp_ratio_leg, imp_ratio_trig) = _zeichne_impulse(ax, impulse, stil)
 
     n_nest: int = 0
     n_unsicher: int = 0
@@ -617,13 +730,36 @@ def zeichne_zonen_chart(
     nest_txt = (
         f" | Nester: {n_nestobjekte}" if nest_gezeichnet else ""
     )
+    impuls_txt = (
+        f" | Impulse: {n_imp_auf + n_imp_ab}"
+        if (stil.impuls_zeichnen and (n_imp_auf + n_imp_ab)) else ""
+    )
     ax.set_title(
         f"VOLUMENPROFILE - {_TITEL_MODUS.get(stil.modus, stil.modus.upper())} | "
         f"{_stamm(stil)} | Fensterart={art} | "
         f"Bars {int(zeigen[0].bar_start)}..{int(zeigen[-1].bar_ende)}"
-        f"{nest_txt}{bereich_txt}"
+        f"{nest_txt}{bereich_txt}{impuls_txt}"
     )
     stat: List[str] = []
+    # Die impulsiven Moves stehen ZUERST: sie sind die Basisinformation der
+    # Sichtkontrolle (die Strecke zwischen den Knoten ist im Profil selbst
+    # nicht enthalten). Die Schwellen werden mitgedruckt - die Zahl der
+    # gefundenen Laeufe haengt an ihnen, ohne sie ist das Bild nicht lesbar.
+    if stil.impuls_zeichnen and (n_imp_auf + n_imp_ab):
+        imp_median = [x for x in imp_strecken if np.isfinite(x)]
+        imp_leg = [x for x in imp_ratio_leg if np.isfinite(x)]
+        imp_trig = [x for x in imp_ratio_trig if np.isfinite(x)]
+        stat.append(
+            f"IMPULSE k={stil.impuls_k}B >= {stil.impuls_schwelle} ATR | "
+            f"{n_imp_auf + n_imp_ab} gefunden ({n_imp_auf} auf / {n_imp_ab} ab)"
+            + (f" | Strecke median {np.median(imp_median):.2f} %" if imp_median else "")
+        )
+        if imp_leg and imp_trig:
+            stat.append(
+                f"Impulsvolumen: Leg median {np.median(imp_leg):.2f} x "
+                f"Median-Bar | Ausloese-Bar {np.median(imp_trig):.2f} x "
+                f"Median-Bar"
+            )
     if stil.fenster_ebene_zeichnen:
         stat += [
             f"Fenster: {len(zeigen)} | mit Profil {sum(1 for p in zeigen if p.gueltig)}",
@@ -676,6 +812,16 @@ def zeichne_zonen_chart(
         Line2D([0], [0], color=_COL_KERZE_AB, lw=5,
                label="Kerze ab (close < open)"),
     ]
+    if stil.impuls_zeichnen and (n_imp_auf + n_imp_ab):
+        handles += [
+            Line2D([0], [0], color=_COL_IMP_AUF, lw=8,
+                   label=f"Impuls aufwaerts "
+                         f"(k={stil.impuls_k}B >= {stil.impuls_schwelle} ATR)"),
+            Line2D([0], [0], color=_COL_IMP_AB, lw=8,
+                   label="Impuls abwaerts"),
+            Line2D([0], [0], color=_COL_IMP_AUF_L, lw=0.8, ls=(0, (1, 1)),
+                   label="Ausloese-Bar (Bar VOR dem Impuls, Volumen)"),
+        ]
     if stil.fenster_ebene_zeichnen:
         handles += [
             Line2D(
@@ -951,6 +1097,7 @@ def zeichne_alles(
     stil: ChartStil,
     out_stamm: Path,
     nester: Optional[Sequence[NestInstanz]] = None,
+    impulse: Optional[Sequence[ImpulsLeg]] = None,
 ) -> Tuple[Optional[Path], List[Path]]:
     """Zeichnet beide Ausgaben und liefert die tatsaechlich erzeugten Pfade.
 
@@ -964,6 +1111,8 @@ def zeichne_alles(
         nester: Nester ueber Fenstergrenzen (die eigentlichen Knoten); sie
             werden im Zonen-Chart als durchgehendes Band mit eigener POC-Linie
             gezeichnet und im Grid je Panel ueberlagert (None = ohne).
+        impulse: Impulsive Moves (Basisinformation der Sichtkontrolle); sie
+            werden im Zonen-Chart eingefaerbt (None = ohne Impuls-Ebene).
 
     Returns:
         ``(zonen_png, profil_pngs)``; ``zonen_png`` ist ``None`` und die Liste
@@ -974,5 +1123,6 @@ def zeichne_alles(
     p_grid = out_stamm.with_name(out_stamm.name + "_profile.png")
     if not any(p.gueltig for p in profile):
         return None, []
-    zeichne_zonen_chart(df, profile, stil, p_zone, nester=nester)
+    zeichne_zonen_chart(df, profile, stil, p_zone, nester=nester,
+                        impulse=impulse)
     return p_zone, zeichne_profil_grid(profile, stil, p_grid, nester=nester)
